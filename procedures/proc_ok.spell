@@ -1,0 +1,13 @@
+PROC = "PAYLOAD_ACTIVATION"
+VERSION = "1.2"
+AUTHOR = "OpTeam"
+PURPOSE = "Activate payload A and verify states"
+DATE = "2025-08-30 10:00:00"
+
+def procedure():
+    # Build and send a command with absolute time
+    Send(command='TC_ACTIVATE_PAYLOAD', Time='2025-09-01 12:00:00')
+    # Verify resulting telemetry
+    Verify(['TM_PAYLOAD_STATUS', eq, 'ON'], ValueFormat=ENG, Timeout=60)
+    # Use WaitFor as additional safety
+    WaitFor(['TM_PAYLOAD_TEMP', bw, 10, 45], Delay=10)
