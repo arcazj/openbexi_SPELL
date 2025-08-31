@@ -1,0 +1,225 @@
+################################################################################
+#
+# NAME        : proc_test_all_functions
+# DESCRIPTION : This task covers operations related to performing something.
+#
+# FILE        : proc_test_all_functions.spell
+# SPACECRAFT  : SAT_A, 1111
+#
+# DEVELOPED   : Converted using XML to SPELL Converter Tool on June 23, 2025
+# VALIDATED   :
+#
+# REVISION HISTORY :
+# DATE          REV   AUTHOR      DESCRIPTION
+# ===========   ===   =========   ==============================================
+# 18 May 2025   I11   AXIOM       Release for Rev A Delivery
+#
+################################################################################
+
+
+def procedure():
+    # Abort OK
+    Abort()
+    # BuildTC OK
+    BuildTC(command='TC_BUILD')
+    # Call OK
+    Call('ITEM')
+    # ChangeLanguageConfig OK
+    ChangeLanguageConfig()
+    # CloseDisplay OK
+    CloseDisplay('MSG')
+    # CreateDictionary OK
+    CreateDictionary('DICT1')
+    # Defence OK
+    Defence()
+    # Delay OK
+    Delay(5)
+    # DisableAlarm OK
+    DisableAlarm('NAME')
+    # DisableUserAction OK
+    DisableUserAction('NAME')
+    # DismissUserAction OK
+    DismissUserAction('NAME')
+    # Display OK
+    Display('MSG')
+    # EnableAlarm OK
+    EnableAlarm('NAME')
+    # EnableUserAction OK
+    EnableUserAction('NAME')
+    # Event OK
+    Event('MSG')
+    # False OK
+    False()
+    # Finish OK
+    Finish()
+    # Function OK
+    Function()
+    # FunctionA OK
+    FunctionA()
+    # FunctionB OK
+    FunctionB()
+    # FunctionC OK
+    FunctionC()
+    # GetLimits OK
+    GetLimits('A')
+    # GetResource OK
+    GetResource('A')
+    # GetTM OK
+    GetTM('TM_PARAM', Wait=True, Timeout=5)
+    # Goto OK
+    Goto()
+    # Hidden OK
+    Hidden()
+    # HideDisplay OK
+    HideDisplay('MSG')
+    # Include OK
+    Include('ITEM')
+    # IsAlarmed OK
+    IsAlarmed('PARAM')
+    # LoadDictionary OK
+    LoadDictionary('ITEM')
+    # Log OK
+    Log('Message', Level='INFO')
+    # Long_Function_Call OK
+    Long_Function_Call()
+    # Manual OK
+    Manual()
+    # Numbers OK
+    Numbers()
+    # OnFailure OK
+    OnFailure()
+    # OnFalse OK
+    OnFalse()
+    # OnTrue OK
+    OnTrue()
+    # OpenDisplay OK
+    OpenDisplay('MSG')
+    # Pause OK
+    Pause(5)
+    # Postscript OK
+    Postscript()
+    # PrintDisplay OK
+    PrintDisplay('Display name', Printer='PRN')
+    # Prompt OK
+    Prompt('MSG')
+    # PromptUser OK
+    PromptUser('MSG')
+    # Python OK
+    Python()
+    # ReleaseResource OK
+    ReleaseResource('ITEM')
+    # SaveDictionary OK
+    SaveDictionary('DICT1')
+    # Select OK
+    Select('ITEM')
+    # SetGroundParameter OK
+    SetGroundParameter('NAME','VALUE')
+    # SetLimits OK
+    SetLimits('LIMIT','VALUE')
+    # SetResource OK
+    SetResource('NAME','VALUE')
+    # SetUserAction OK
+    SetUserAction('A')
+    # ShowDisplay OK
+    ShowDisplay('MSG')
+    # StartProc OK
+    StartProc(proc='INIT_PROC')
+    # Step OK
+    Step('MSG')
+    # True OK
+    True()
+    # WaitFor OK
+    WaitFor(['TM_PARAM', eq, 1], Timeout=10)
+
+    # prompt
+    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST )
+    Prompt( 'Message', ['Option 1', 'Option 2'], Type=LIST|ALPHA )
+    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST, Default='A', Timeout=1*MINUTE )
+
+    # Verify
+    Verify(['TM_PARAM', eq, 1], Timeout=10)
+    Verify( [ 'TMparam', eq, 'X' ], PromptUser=False, OnFalse=SKIP, OnFailure=ABORT|REPEAT|SKIP|CANCEL )
+    Verify(['TM_PAYLOAD_STATUS', eq, 'ON'], ValueFormat=ENG, Timeout=60)
+    Verify( [ 'TMparam', eq, 'VALUE' ], ValueFormat=RAW )
+    Verify( [ 'TMparam', eq, 'VALUE' ], Wait=True, Timeout=10 )
+    Verify( [ 'TMparam', eq, 'VALUE' ], ValueFormat=RAW )
+    Verify( [ 'TMparam', eq, 'VALUE' ] )
+    Verify( [ 'TMparam', eq, 20.3 ], Tolerance=0.1 )
+    Verify( [ 'TMparam', eq, 'VALUE' ], OnFalse=NOACTION )
+    Verify( [ 'TMparam', eq, 'VALUE' ], PromptUser=False, OnFalse=SKIP )
+    Verify( [ 'TMparam', eq, 'VALUE' ], Delay=2*MINUTE )
+    Verify( [ 'TMparam', eq, 'VALUE' ], Retries=2 )
+    Verify( [ [ 'TMparam1', eq, 'VALUE1' ], [ 'TMparam2', neq, 'VALUE2' ], [ 'TMparam3', lt, 10.5 ] ] )
+    Verify( [ [ 'TMparam1', eq, 'VALUE1' ],[ 'TMparam2', neq, 4, {ValueFormat:RAW} ], [ 'TMparam3', lt, 10.6 ]] )
+    Verify( [ [ 'TMparam1', eq, 'VALUE1' ], [ 'TMparam2', neq, 4, {ValueFormat:RAW} ],[ 'TMparam3', lt, 10.5 ]],Timeout = 10 )
+    Verify( [ [ 'AAAAAA', eq, 'Arm' ] ] )
+
+    # GetTM
+    x = GetTM( 'TMparam')
+    GetTM( 'TMparam')
+    GetTM( 'TMparam', Wait=True )
+    GetTM( 'TMparam', Wait=True, Timeout=1*MINUTE )
+    GetTM( 'TMparam', ValueFormat=RAW )
+    item = GetTM( 'TMparam', Extended=True )
+
+    # SetLimits
+    SetLimits( 'PARAM', 'LOW:0,HIGH:10', Select='ENG' )
+    SetLimits( 'PARAM', LD )
+    SetLimits( 'PARAM', mydef, Select=ACTIVE )
+    SetLimits( 'PARAM', mydef, Select="ID1" )
+    SetLimits( [['PARAM', eq, 3.4, {Tolerance:0.1}]] )
+    SetLimits( 'limits://name_of_file' )
+
+    # GetLimits
+    GetLimits( 'PARAM', Select='ENG' )
+    GetLimits( 'PARAM', Select=ACTIVE )
+    GetLimits( 'PARAM' )
+    GetLimits( 'PARAM,WITH,COMMA', Select='RAW' )
+
+    # Event
+    Event( 'Message')
+    Event( 'Message', WARNING )
+    Event( 'Message', Severity = ERROR )
+
+    # SetResource
+    SetResource( 'Variable', Value )
+    #SetResource( GDB['DECODER'], GDB['DECODER 1'] )
+    SetResource( 'CMD_ACT_DEC', 'DEC1' )
+
+    # Send
+    Send( group = [tc_item1, tc_item2, tc_item3], Group=True )
+    Send( group = [tc_item1, tc_item2, tc_item3], Block=True )
+    Send( command = tc_item, verify=[['TMparam',eq,10]] )
+    Send( command = 'CMDNAME' )
+    Send( command = tc_item )
+    Send( command= 'CMDNAME', Time='2008/04/10 10:30:00' )
+    Send( command= 'CMDNAME', Confirm=True )
+    Send( command= 'CMDNAME', args=[…] )
+    Send( sequence = 'SEQNAME' )
+    Send( group = ['CMD1','CMD2','CMD3'] )
+    Send( group = [ tc_item1,tc_item2,tc_item3 ] )
+    Send( command = tc_item, Timeout=1*MINUTE )
+    Send( command = tc_item, SendDelay=1*MINUTE )
+    Send( group = [tc_item1,tc_item2,tc_item3], SendDelay=1*MINUTE )
+    Send( command = tc_item, verify=[['TMparam',eq,10]] )
+    Send( command = tc_item,verify=[['TMparam',eq,10]],AdjLimits=True )
+    Send( command = 'TCNAME',args = [ [ 'ARG1', 1.0 ], [ 'ARG2', 0xFF, {Radix:HEX} ] ], verify=[ ['TM1',eq ,10.0,{Tolerance:0.1} ],   ['TM2',gt ,0 ,{Timeout:20} ] ], Delay=10*SECOND,Tolerance=0.5,OnFailure=CANCEL,PromptUser=False)
+    Send(command='TC_ACTIVATE_PAYLOAD', Time='2025-09-01 12:00:00')
+    Send(command='TC_OK', Time='2025-09-01 00:00:00')
+    Send( command= 'CMDNAME', ReleaseTime=NOW+30*MINUTE )
+    Send( command= 'CMDNAME', ReleaseTime='2008/04/10 10:30:00' )
+    Send( command = 'AAAAAA' )
+
+    # Wait
+    WaitFor( 2 )
+    WaitFor( 2*SECOND )
+    WaitFor( '+00:00:02' )
+    WaitFor( 1*HOUR, Interval=1*MINUTE, Message='Hi there')
+    WaitFor( 5*HOUR,Interval=[1*HOUR, 5*MINUTE, 1*SECOND] Message='Hi there')
+    WaitFor( '2008/10/03 10:45:34' )
+    WaitFor( ['TMparam', eq, 23 ] )
+    WaitFor( ['TMparam', eq, 23 ], Delay=20 )
+
+
+
+

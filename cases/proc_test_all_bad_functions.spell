@@ -1,0 +1,138 @@
+################################################################################
+#
+# NAME        : proc_test_all_bad_functions
+# DESCRIPTION : This task covers operations related to performing something.
+#
+# FILE        : proc_test_all_bad_functions.spell
+# SPACECRAFT  : SAT_A, 1111
+#
+# DEVELOPED   : Converted using XML to SPELL Converter Tool on June 23, 2025
+# VALIDATED   :
+#
+# REVISION HISTORY :
+# DATE          REV   AUTHOR      DESCRIPTION
+# ===========   ===   =========   ==============================================
+# 18 May 2025   I11   AXIOM       Release for Rev A Delivery
+#
+################################################################################
+
+PROC = "proc_test_all_bad_functions"
+VERSION = "1.0"
+AUTHOR = "Ops"
+PURPOSE = "Demo"
+DATE = "2025-08-31"
+
+def procedure():
+    Send('TC_BAD', Time='+00:01:00')
+    # Abort BAD
+    Abort('extra')
+    # BuildTC BAD
+    BuildTC()
+    # Call BAD
+    Call()
+    # ChangeLanguageConfig BAD
+    ChangeLanguageConfig(UNKNOWN=1)
+    # CloseDisplay BAD
+    CloseDisplay()
+    # CreateDictionary BAD
+    CreateDictionary(UNKNOWN=1)
+    # Defence BAD
+    Defence(UNKNOWN=1)
+    # Delay BAD
+    Delay()
+    # DisableAlarm BAD
+    DisableAlarm()
+    # DisableUserAction BAD
+    DisableUserAction()
+    # DismissUserAction BAD
+    DismissUserAction()
+    # Display BAD
+    Display()
+    # EnableAlarm BAD
+    EnableAlarm()
+    # EnableUserAction BAD
+    EnableUserAction()
+    # Event BAD
+    Event()
+    # False BAD
+    False(UNKNOWN=1)
+    # Finish BAD
+    Finish('extra')
+    # Function BAD
+    Function(UNKNOWN=1)
+    # FunctionA BAD
+    FunctionA(UNKNOWN=1)
+    # FunctionB BAD
+    FunctionB(UNKNOWN=1)
+    # FunctionC BAD
+    FunctionC(UNKNOWN=1)
+    # GetLimits BAD
+    GetLimits()
+    # GetResource BAD
+    GetResource()
+    # GetTM BAD
+    GetTM('TM_PARAM', Wait='sometimes')
+    # Goto BAD
+    Goto(UNKNOWN=1)
+    # Hidden BAD
+    Hidden(UNKNOWN=1)
+    # HideDisplay BAD
+    HideDisplay()
+    # Include BAD
+    Include()
+    # IsAlarmed BAD
+    IsAlarmed(UNKNOWN=1)
+    # LoadDictionary BAD
+    LoadDictionary()
+    # Log BAD
+    Log(UNKNOWN=1)
+    # Long_Function_Call BAD
+    Long_Function_Call(UNKNOWN=1)
+    # Manual BAD
+    Manual(UNKNOWN=1)
+    # Numbers BAD
+    Numbers(UNKNOWN=1)
+    # OnFailure BAD
+    OnFailure(UNKNOWN=1)
+    # OnFalse BAD
+    OnFalse(UNKNOWN=1)
+    # OnTrue BAD
+    OnTrue(UNKNOWN=1)
+    # OpenDisplay BAD
+    OpenDisplay()
+    # Pause BAD
+    Pause()
+    # Postscript BAD
+    Postscript(UNKNOWN=1)
+    # PrintDisplay BAD
+    PrintDisplay('Display name', Printer='PRN', 'PRN')
+    # Prompt BAD
+    Prompt()
+    # PromptUser BAD
+    PromptUser()
+    # Python BAD
+    Python(UNKNOWN=1)
+    # ReleaseResource BAD
+    ReleaseResource()
+    # SaveDictionary BAD
+    SaveDictionary(UNKNOWN=1)
+    # Select BAD
+    Select()
+    # SetGroundParameter BAD
+    SetGroundParameter()
+    # SetLimits BAD
+    SetLimits()
+    # SetResource BAD
+    SetResource()
+    # SetUserAction BAD
+    SetUserAction()
+    # ShowDisplay BAD
+    ShowDisplay()
+    # StartProc BAD
+    StartProc()
+    # Step BAD
+    Step()
+    # True BAD
+    True(UNKNOWN=1)
+    # WaitFor BAD
+    WaitFor()

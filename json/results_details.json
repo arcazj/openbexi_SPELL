@@ -1,0 +1,961 @@
+{
+  "cases\\proc_test_all_bad_functions.spell": {
+    "manual_version": "2.0.1",
+    "overall_compliance": {
+      "status": "FAIL",
+      "score_percent": 1.52
+    },
+    "summary": "Commented header checks (NAME, DESCRIPTION, FILE, SPACECRAFT) + SPELL body validations.",
+    "findings": [
+      {
+        "rule_id": "4.5.1",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 24,
+          "line_end": 24
+        },
+        "evidence": "Send('TC_BAD', Time='+00:01:00')",
+        "explanation": "Send() requires one of: command=, sequence=, or group=. Positional not allowed.",
+        "manual_quote": "Send: use keywords to identify command/sequence/group.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Send(command='CMD', ...) or Send(sequence='SEQ') or Send(group=[...])"
+      },
+      {
+        "rule_id": "A.Send.POSITIONAL",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 24,
+          "line_end": 24
+        },
+        "evidence": "Send('TC_BAD', Time='+00:01:00')",
+        "explanation": "Positional arguments not allowed in Send().",
+        "manual_quote": "Send: use keyword arguments only.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Send(key=value, ...)"
+      },
+      {
+        "rule_id": "A.Send.ARGS_MAX",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 24,
+          "line_end": 24
+        },
+        "evidence": "Send('TC_BAD', Time='+00:01:00')",
+        "explanation": "Send() allows at most 0 positional argument(s).",
+        "manual_quote": "Send: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove extra positional args; use keywords."
+      },
+      {
+        "rule_id": "A.Abort.ARGS_MAX",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 26,
+          "line_end": 26
+        },
+        "evidence": "Abort('extra')",
+        "explanation": "Abort() allows at most 0 positional argument(s).",
+        "manual_quote": "Abort: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove extra positional args; use keywords."
+      },
+      {
+        "rule_id": "A.Call.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 30,
+          "line_end": 30
+        },
+        "evidence": "Call()",
+        "explanation": "Call() expects first positional argument as a quoted string.",
+        "manual_quote": "Call: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Call('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Call.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 30,
+          "line_end": 30
+        },
+        "evidence": "Call()",
+        "explanation": "Call() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Call: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Call()."
+      },
+      {
+        "rule_id": "A.ChangeLanguageConfig.KW",
+        "category": "TELEMETRY",
+        "severity": "MINOR",
+        "location": {
+          "line_start": 32,
+          "line_end": 32
+        },
+        "evidence": "ChangeLanguageConfig(UNKNOWN=1)",
+        "explanation": "Unknown keyword 'UNKNOWN' for ChangeLanguageConfig().",
+        "manual_quote": "Appendix B: Modifiers table.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove or replace unknown keyword."
+      },
+      {
+        "rule_id": "A.CloseDisplay.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 34,
+          "line_end": 34
+        },
+        "evidence": "CloseDisplay()",
+        "explanation": "CloseDisplay() expects first positional argument as a quoted string.",
+        "manual_quote": "CloseDisplay: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use CloseDisplay('name or message', ...)"
+      },
+      {
+        "rule_id": "A.CloseDisplay.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 34,
+          "line_end": 34
+        },
+        "evidence": "CloseDisplay()",
+        "explanation": "CloseDisplay() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "CloseDisplay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to CloseDisplay()."
+      },
+      {
+        "rule_id": "A.CreateDictionary.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 36,
+          "line_end": 36
+        },
+        "evidence": "CreateDictionary(UNKNOWN=1)",
+        "explanation": "CreateDictionary() expects first positional argument as a quoted string.",
+        "manual_quote": "CreateDictionary: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use CreateDictionary('name or message', ...)"
+      },
+      {
+        "rule_id": "A.CreateDictionary.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 36,
+          "line_end": 36
+        },
+        "evidence": "CreateDictionary(UNKNOWN=1)",
+        "explanation": "CreateDictionary() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "CreateDictionary: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to CreateDictionary()."
+      },
+      {
+        "rule_id": "A.Delay.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 40,
+          "line_end": 40
+        },
+        "evidence": "Delay()",
+        "explanation": "Delay() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Delay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Delay()."
+      },
+      {
+        "rule_id": "A.DisableAlarm.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 42,
+          "line_end": 42
+        },
+        "evidence": "DisableAlarm()",
+        "explanation": "DisableAlarm() expects first positional argument as a quoted string.",
+        "manual_quote": "DisableAlarm: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use DisableAlarm('name or message', ...)"
+      },
+      {
+        "rule_id": "A.DisableAlarm.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 42,
+          "line_end": 42
+        },
+        "evidence": "DisableAlarm()",
+        "explanation": "DisableAlarm() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "DisableAlarm: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to DisableAlarm()."
+      },
+      {
+        "rule_id": "A.DisableUserAction.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 44,
+          "line_end": 44
+        },
+        "evidence": "DisableUserAction()",
+        "explanation": "DisableUserAction() expects first positional argument as a quoted string.",
+        "manual_quote": "DisableUserAction: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use DisableUserAction('name or message', ...)"
+      },
+      {
+        "rule_id": "A.DisableUserAction.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 44,
+          "line_end": 44
+        },
+        "evidence": "DisableUserAction()",
+        "explanation": "DisableUserAction() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "DisableUserAction: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to DisableUserAction()."
+      },
+      {
+        "rule_id": "A.DismissUserAction.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 46,
+          "line_end": 46
+        },
+        "evidence": "DismissUserAction()",
+        "explanation": "DismissUserAction() expects first positional argument as a quoted string.",
+        "manual_quote": "DismissUserAction: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use DismissUserAction('name or message', ...)"
+      },
+      {
+        "rule_id": "A.DismissUserAction.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 46,
+          "line_end": 46
+        },
+        "evidence": "DismissUserAction()",
+        "explanation": "DismissUserAction() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "DismissUserAction: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to DismissUserAction()."
+      },
+      {
+        "rule_id": "A.Display.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 48,
+          "line_end": 48
+        },
+        "evidence": "Display()",
+        "explanation": "Display() expects first positional argument as a quoted string.",
+        "manual_quote": "Display: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Display('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Display.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 48,
+          "line_end": 48
+        },
+        "evidence": "Display()",
+        "explanation": "Display() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Display: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Display()."
+      },
+      {
+        "rule_id": "A.EnableAlarm.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 50,
+          "line_end": 50
+        },
+        "evidence": "EnableAlarm()",
+        "explanation": "EnableAlarm() expects first positional argument as a quoted string.",
+        "manual_quote": "EnableAlarm: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use EnableAlarm('name or message', ...)"
+      },
+      {
+        "rule_id": "A.EnableAlarm.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 50,
+          "line_end": 50
+        },
+        "evidence": "EnableAlarm()",
+        "explanation": "EnableAlarm() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "EnableAlarm: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to EnableAlarm()."
+      },
+      {
+        "rule_id": "A.EnableUserAction.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 52,
+          "line_end": 52
+        },
+        "evidence": "EnableUserAction()",
+        "explanation": "EnableUserAction() expects first positional argument as a quoted string.",
+        "manual_quote": "EnableUserAction: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use EnableUserAction('name or message', ...)"
+      },
+      {
+        "rule_id": "A.EnableUserAction.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 52,
+          "line_end": 52
+        },
+        "evidence": "EnableUserAction()",
+        "explanation": "EnableUserAction() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "EnableUserAction: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to EnableUserAction()."
+      },
+      {
+        "rule_id": "A.Event.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 54,
+          "line_end": 54
+        },
+        "evidence": "Event()",
+        "explanation": "Event() expects first positional argument as a quoted string.",
+        "manual_quote": "Event: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Event('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Event.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 54,
+          "line_end": 54
+        },
+        "evidence": "Event()",
+        "explanation": "Event() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Event: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Event()."
+      },
+      {
+        "rule_id": "A.Finish.ARGS_MAX",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 58,
+          "line_end": 58
+        },
+        "evidence": "Finish('extra')",
+        "explanation": "Finish() allows at most 0 positional argument(s).",
+        "manual_quote": "Finish: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove extra positional args; use keywords."
+      },
+      {
+        "rule_id": "A.GetLimits.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 68,
+          "line_end": 68
+        },
+        "evidence": "GetLimits()",
+        "explanation": "GetLimits() expects first positional argument as a quoted string.",
+        "manual_quote": "GetLimits: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use GetLimits('name or message', ...)"
+      },
+      {
+        "rule_id": "A.GetLimits.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 68,
+          "line_end": 68
+        },
+        "evidence": "GetLimits()",
+        "explanation": "GetLimits() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "GetLimits: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to GetLimits()."
+      },
+      {
+        "rule_id": "A.GetResource.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 70,
+          "line_end": 70
+        },
+        "evidence": "GetResource()",
+        "explanation": "GetResource() expects first positional argument as a quoted string.",
+        "manual_quote": "GetResource: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use GetResource('name or message', ...)"
+      },
+      {
+        "rule_id": "A.GetResource.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 70,
+          "line_end": 70
+        },
+        "evidence": "GetResource()",
+        "explanation": "GetResource() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "GetResource: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to GetResource()."
+      },
+      {
+        "rule_id": "A.GetTM.KWTYPE",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 72,
+          "line_end": 72
+        },
+        "evidence": "Wait='sometimes'",
+        "explanation": "Keyword 'Wait' for GetTM() should be bool.",
+        "manual_quote": "GetTM: 'Wait' type expectation.",
+        "status": "VIOLATION",
+        "suggested_fix": "Set Wait to a valid bool."
+      },
+      {
+        "rule_id": "A.HideDisplay.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 78,
+          "line_end": 78
+        },
+        "evidence": "HideDisplay()",
+        "explanation": "HideDisplay() expects first positional argument as a quoted string.",
+        "manual_quote": "HideDisplay: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use HideDisplay('name or message', ...)"
+      },
+      {
+        "rule_id": "A.HideDisplay.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 78,
+          "line_end": 78
+        },
+        "evidence": "HideDisplay()",
+        "explanation": "HideDisplay() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "HideDisplay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to HideDisplay()."
+      },
+      {
+        "rule_id": "A.Include.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 80,
+          "line_end": 80
+        },
+        "evidence": "Include()",
+        "explanation": "Include() expects first positional argument as a quoted string.",
+        "manual_quote": "Include: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Include('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Include.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 80,
+          "line_end": 80
+        },
+        "evidence": "Include()",
+        "explanation": "Include() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Include: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Include()."
+      },
+      {
+        "rule_id": "A.IsAlarmed.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 82,
+          "line_end": 82
+        },
+        "evidence": "IsAlarmed(UNKNOWN=1)",
+        "explanation": "IsAlarmed() expects first positional argument as a quoted string.",
+        "manual_quote": "IsAlarmed: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use IsAlarmed('name or message', ...)"
+      },
+      {
+        "rule_id": "A.IsAlarmed.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 82,
+          "line_end": 82
+        },
+        "evidence": "IsAlarmed(UNKNOWN=1)",
+        "explanation": "IsAlarmed() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "IsAlarmed: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to IsAlarmed()."
+      },
+      {
+        "rule_id": "A.LoadDictionary.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 84,
+          "line_end": 84
+        },
+        "evidence": "LoadDictionary()",
+        "explanation": "LoadDictionary() expects first positional argument as a quoted string.",
+        "manual_quote": "LoadDictionary: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use LoadDictionary('name or message', ...)"
+      },
+      {
+        "rule_id": "A.LoadDictionary.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 84,
+          "line_end": 84
+        },
+        "evidence": "LoadDictionary()",
+        "explanation": "LoadDictionary() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "LoadDictionary: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to LoadDictionary()."
+      },
+      {
+        "rule_id": "A.Log.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 86,
+          "line_end": 86
+        },
+        "evidence": "Log(UNKNOWN=1)",
+        "explanation": "Log() expects first positional argument as a quoted string.",
+        "manual_quote": "Log: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Log('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Log.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 86,
+          "line_end": 86
+        },
+        "evidence": "Log(UNKNOWN=1)",
+        "explanation": "Log() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Log: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Log()."
+      },
+      {
+        "rule_id": "A.Log.KW",
+        "category": "TELEMETRY",
+        "severity": "MINOR",
+        "location": {
+          "line_start": 86,
+          "line_end": 86
+        },
+        "evidence": "Log(UNKNOWN=1)",
+        "explanation": "Unknown keyword 'UNKNOWN' for Log().",
+        "manual_quote": "Appendix B: Modifiers table.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove or replace unknown keyword."
+      },
+      {
+        "rule_id": "A.OpenDisplay.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 100,
+          "line_end": 100
+        },
+        "evidence": "OpenDisplay()",
+        "explanation": "OpenDisplay() expects first positional argument as a quoted string.",
+        "manual_quote": "OpenDisplay: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use OpenDisplay('name or message', ...)"
+      },
+      {
+        "rule_id": "A.OpenDisplay.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 100,
+          "line_end": 100
+        },
+        "evidence": "OpenDisplay()",
+        "explanation": "OpenDisplay() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "OpenDisplay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to OpenDisplay()."
+      },
+      {
+        "rule_id": "A.Pause.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 102,
+          "line_end": 102
+        },
+        "evidence": "Pause()",
+        "explanation": "Pause() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Pause: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Pause()."
+      },
+      {
+        "rule_id": "A.PrintDisplay.ARGS_MAX",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 106,
+          "line_end": 106
+        },
+        "evidence": "PrintDisplay('Display name', Printer='PRN', 'PRN')",
+        "explanation": "PrintDisplay() allows at most 1 positional argument(s).",
+        "manual_quote": "PrintDisplay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove extra positional args; use keywords."
+      },
+      {
+        "rule_id": "A.Prompt.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 108,
+          "line_end": 108
+        },
+        "evidence": "Prompt()",
+        "explanation": "Prompt() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Prompt: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Prompt()."
+      },
+      {
+        "rule_id": "A.PromptUser.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 110,
+          "line_end": 110
+        },
+        "evidence": "PromptUser()",
+        "explanation": "PromptUser() expects first positional argument as a quoted string.",
+        "manual_quote": "PromptUser: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use PromptUser('name or message', ...)"
+      },
+      {
+        "rule_id": "A.PromptUser.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 110,
+          "line_end": 110
+        },
+        "evidence": "PromptUser()",
+        "explanation": "PromptUser() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "PromptUser: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to PromptUser()."
+      },
+      {
+        "rule_id": "A.ReleaseResource.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 114,
+          "line_end": 114
+        },
+        "evidence": "ReleaseResource()",
+        "explanation": "ReleaseResource() expects first positional argument as a quoted string.",
+        "manual_quote": "ReleaseResource: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use ReleaseResource('name or message', ...)"
+      },
+      {
+        "rule_id": "A.ReleaseResource.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 114,
+          "line_end": 114
+        },
+        "evidence": "ReleaseResource()",
+        "explanation": "ReleaseResource() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "ReleaseResource: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to ReleaseResource()."
+      },
+      {
+        "rule_id": "A.SaveDictionary.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 116,
+          "line_end": 116
+        },
+        "evidence": "SaveDictionary(UNKNOWN=1)",
+        "explanation": "SaveDictionary() expects first positional argument as a quoted string.",
+        "manual_quote": "SaveDictionary: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use SaveDictionary('name or message', ...)"
+      },
+      {
+        "rule_id": "A.SaveDictionary.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 116,
+          "line_end": 116
+        },
+        "evidence": "SaveDictionary(UNKNOWN=1)",
+        "explanation": "SaveDictionary() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "SaveDictionary: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to SaveDictionary()."
+      },
+      {
+        "rule_id": "A.Select.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 118,
+          "line_end": 118
+        },
+        "evidence": "Select()",
+        "explanation": "Select() expects first positional argument as a quoted string.",
+        "manual_quote": "Select: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Select('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Select.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 118,
+          "line_end": 118
+        },
+        "evidence": "Select()",
+        "explanation": "Select() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Select: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Select()."
+      },
+      {
+        "rule_id": "A.SetGroundParameter.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 120,
+          "line_end": 120
+        },
+        "evidence": "SetGroundParameter()",
+        "explanation": "SetGroundParameter() expects at least 2 positional argument(s); found 0.",
+        "manual_quote": "SetGroundParameter: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to SetGroundParameter()."
+      },
+      {
+        "rule_id": "A.SetLimits.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 122,
+          "line_end": 122
+        },
+        "evidence": "SetLimits()",
+        "explanation": "SetLimits() expects first positional argument as a quoted string.",
+        "manual_quote": "SetLimits: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use SetLimits('name or message', ...)"
+      },
+      {
+        "rule_id": "A.SetLimits.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 122,
+          "line_end": 122
+        },
+        "evidence": "SetLimits()",
+        "explanation": "SetLimits() expects at least 2 positional argument(s); found 0.",
+        "manual_quote": "SetLimits: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to SetLimits()."
+      },
+      {
+        "rule_id": "A.SetResource.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 124,
+          "line_end": 124
+        },
+        "evidence": "SetResource()",
+        "explanation": "SetResource() expects at least 2 positional argument(s); found 0.",
+        "manual_quote": "SetResource: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to SetResource()."
+      },
+      {
+        "rule_id": "A.SetUserAction.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 126,
+          "line_end": 126
+        },
+        "evidence": "SetUserAction()",
+        "explanation": "SetUserAction() expects first positional argument as a quoted string.",
+        "manual_quote": "SetUserAction: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use SetUserAction('name or message', ...)"
+      },
+      {
+        "rule_id": "A.SetUserAction.ARGS_MIN",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 126,
+          "line_end": 126
+        },
+        "evidence": "SetUserAction()",
+        "explanation": "SetUserAction() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "SetUserAction: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to SetUserAction()."
+      },
+      {
+        "rule_id": "A.ShowDisplay.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 128,
+          "line_end": 128
+        },
+        "evidence": "ShowDisplay()",
+        "explanation": "ShowDisplay() expects first positional argument as a quoted string.",
+        "manual_quote": "ShowDisplay: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use ShowDisplay('name or message', ...)"
+      },
+      {
+        "rule_id": "A.ShowDisplay.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 128,
+          "line_end": 128
+        },
+        "evidence": "ShowDisplay()",
+        "explanation": "ShowDisplay() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "ShowDisplay: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to ShowDisplay()."
+      },
+      {
+        "rule_id": "A.StartProc.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 130,
+          "line_end": 130
+        },
+        "evidence": "StartProc()",
+        "explanation": "StartProc() expects first positional argument as a quoted string.",
+        "manual_quote": "StartProc: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use StartProc('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Step.POSSTR",
+        "category": "TELEMETRY",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 132,
+          "line_end": 132
+        },
+        "evidence": "Step()",
+        "explanation": "Step() expects first positional argument as a quoted string.",
+        "manual_quote": "Step: examples show first arg is a string.",
+        "status": "VIOLATION",
+        "suggested_fix": "Use Step('name or message', ...)"
+      },
+      {
+        "rule_id": "A.Step.ARGS_MIN",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {
+          "line_start": 132,
+          "line_end": 132
+        },
+        "evidence": "Step()",
+        "explanation": "Step() expects at least 1 positional argument(s); found 0.",
+        "manual_quote": "Step: see Appendix A signature.",
+        "status": "VIOLATION",
+        "suggested_fix": "Provide required positional arguments to Step()."
+      }
+    ],
+    "_note": "sanitized_output"
+  },
+  "cases\\proc_test_all_functions.spell": {
+    "manual_version": "2.0.1",
+    "overall_compliance": {
+      "status": "PASS",
+      "score_percent": 100.0
+    },
+    "summary": "Commented header checks (NAME, DESCRIPTION, FILE, SPACECRAFT) + SPELL body validations.",
+    "findings": [],
+    "_note": "sanitized_output"
+  }
+}

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual envs
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Backups / generated
+*.bak
+coverage_*.csv
+results_*.csv
+results_*.json
+json/*.json
+json/*.csv
+reports/
+

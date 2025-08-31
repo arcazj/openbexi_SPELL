@@ -1,0 +1,3 @@
+filename,status,score_percent,violations
+cases\proc_test_all_bad_functions.spell,FAIL,1.52,67
+cases\proc_test_all_functions.spell,PASS,100.0,0
