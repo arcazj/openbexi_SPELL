@@ -183,7 +183,7 @@ def procedure():
 
     # SetResource
     SetResource( 'Variable', Value )
-    #SetResource( GDB['DECODER'], GDB['DECODER 1'] )
+    SetResource( GDB['DECODER'], GDB['DECODER 1'] )
     SetResource( 'CMD_ACT_DEC', 'DEC1' )
 
     # Send

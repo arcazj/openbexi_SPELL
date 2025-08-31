@@ -1,7 +1,12 @@
 # SPELL Procedure Compliance Auditor
 
-Static analyzer for **SPELL** procedures against the **SPELL Language Manual — v2.0.1**.  
-Validates **commented headers**, **telecommand sending**, and **telemetry verification**
+A static analyzer for SPELL procedures that checks compliance with the SPELL Language Manual (v2.0.1).
+It Validates the syntax of commented headers, telecommand sending (e.g., Send, BuildTC), and telemetry functions (e.g., Verify, WaitFor, GetTM) according the SPELL Language Manual.
+
+SPELL is a free, open-source suite for developing and executing automated satellite procedures.
+It can run procedures across different Ground Control Systems and for any spacecraft.
+
+Learn more about SPELL: https://sourceforge.net/p/spell-sat/wiki/Home/
 
 ---
 
