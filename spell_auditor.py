@@ -11,13 +11,19 @@ REQUIRED_COMMENT_KEYS_DEFAULT = ("NAME", "DESCRIPTION", "FILE", "SPACECRAFT")
 CURRENT_PROCEDURE_PATH: Optional[str] = None
 FUNC_NAME_RE = re.compile(r'^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(')
 
+
 def _strip_comment(s: str) -> str:
-    in_s = False; in_d = False
+    in_s = False;
+    in_d = False
     for i, ch in enumerate(s):
-        if ch == "'" and not in_d: in_s = not in_s
-        elif ch == '"' and not in_s: in_d = not in_d
-        elif ch == '#' and not in_s and not in_d: return s[:i]
+        if ch == "'" and not in_d:
+            in_s = not in_s
+        elif ch == '"' and not in_s:
+            in_d = not in_d
+        elif ch == '#' and not in_s and not in_d:
+            return s[:i]
     return s
+
 
 def _call_args_text(line: str) -> str:
     try:
@@ -27,6 +33,7 @@ def _call_args_text(line: str) -> str:
         return line[start:end].strip()
     except ValueError:
         return ""
+
 
 def _split_top_level_args(args_text: str) -> List[str]:
     parts: List[str] = []
@@ -38,9 +45,11 @@ def _split_top_level_args(args_text: str) -> List[str]:
     while i < len(args_text):
         ch = args_text[i]
         if ch == "'" and not in_dq:
-            in_sq = not in_sq; buf.append(ch)
+            in_sq = not in_sq;
+            buf.append(ch)
         elif ch == '"' and not in_sq:
-            in_dq = not in_dq; buf.append(ch)
+            in_dq = not in_dq;
+            buf.append(ch)
         elif ch in '([{':
             if not in_sq and not in_dq: depth += 1
             buf.append(ch)
@@ -59,21 +68,26 @@ def _split_top_level_args(args_text: str) -> List[str]:
     pos = [p for p in parts if '=' not in p]
     return pos
 
+
 def _is_string_literal_token(tok: str) -> bool:
     tok = tok.strip()
     return len(tok) >= 2 and tok[0] in ('"', "'") and tok[-1] == tok[0]
+
 
 def _is_number_literal(tok: str) -> bool:
     tok = tok.strip()
     return bool(re.match(r'^[-+]?\d+(?:\.\d+)?$', tok))
 
+
 def _is_list_like(tok: str) -> bool:
     tok = tok.strip()
     return tok.startswith('[') and tok.endswith(']')
 
+
 def _is_index_expr(tok: str) -> bool:
     s = tok.strip()
     return bool(re.match(r"^[A-Za-z_][A-Za-z0-9_]*\s*\[.+\]\s*$", s))
+
 
 def _is_time_expr(tok: str) -> bool:
     tok = tok.strip().strip("'\"")
@@ -83,13 +97,17 @@ def _is_time_expr(tok: str) -> bool:
         return True
     return False
 
+
 def _is_time_string(tok: str) -> bool:
     t = tok.strip().strip("'\"")
-    return bool(re.match(r'^(\+?\d{1,2}:\d{2}:\d{2}|\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})$', t))
+    return bool(re.match(
+        r'^(\+?\d{1,2}:\d{2}:\d{2}|\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})$', t))
+
 
 def _is_time_like(tok: str) -> bool:
     s = tok.strip()
     return _is_number_literal(s) or _is_time_expr(s) or (_is_string_literal_token(s) and _is_time_string(s))
+
 
 def _is_list_of_time_like(tok: str) -> bool:
     s = tok.strip()
@@ -99,8 +117,10 @@ def _is_list_of_time_like(tok: str) -> bool:
     parts = _split_top_level_args(inner) or [p.strip() for p in inner.split(",")]
     return all(_is_time_like(p) for p in parts)
 
+
 def _is_ident(tok: str) -> bool:
     return bool(re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', tok.strip()))
+
 
 def _is_enum_set(tok: str, allowed: set) -> bool:
     s = tok.strip().strip("'\"")
@@ -108,16 +128,19 @@ def _is_enum_set(tok: str, allowed: set) -> bool:
     parts = [p.strip() for p in s.split('|') if p.strip()]
     return all(p in allowed for p in parts) and len(parts) > 0
 
+
 def _is_flag_set(tok: str, allowed: set) -> bool:
     s = tok.strip().strip("'\"")
     parts = [p.strip() for p in s.split('|') if p.strip()]
     return all(p in allowed for p in parts) and len(parts) > 0
+
 
 def _is_string_bool_time(tok: str) -> bool:
     s = tok.strip()
     if _is_string_literal_token(s): return True
     if re.match(r'^(True|False|true|false|1|0)$', s.strip("'\"") or s): return True
     return _is_time_like(s)
+
 
 def _infer_pos_type(tok: str) -> str:
     if _is_string_literal_token(tok): return 'string'
@@ -126,6 +149,7 @@ def _infer_pos_type(tok: str) -> str:
     if _is_index_expr(tok): return 'index'
     if _is_ident(tok): return 'ident'
     return 'other'
+
 
 def parse_kwargs(line: str) -> Dict[str, str]:
     call = _call_args_text(line)
@@ -146,10 +170,12 @@ def parse_kwargs(line: str) -> Dict[str, str]:
             if not in_sq and not in_dq: depth = max(0, depth - 1)
             buf.append(ch)
         elif ch in ('"', "'"):
-            q = ch; buf.append(ch); i += 1
+            q = ch;
+            buf.append(ch);
+            i += 1
             while i < len(call):
                 buf.append(call[i])
-                if call[i] == q and call[i-1] != '\\': break
+                if call[i] == q and call[i - 1] != '\\': break
                 i += 1
         elif ch == ',' and depth == 0 and not in_sq and not in_dq:
             part = ''.join(buf).strip()
@@ -185,6 +211,7 @@ def parse_kwargs(line: str) -> Dict[str, str]:
     kwargs.update(augmented)
     return kwargs
 
+
 def extract_verify_core(line: str):
     if '[[' in line:  # multi-list
         return ('MULTI', 'OK', [])
@@ -197,6 +224,7 @@ def extract_verify_core(line: str):
     op = parts[1].strip()
     rhs = [p.strip().strip("'\"") for p in parts[2:]]
     return (param, op, rhs)
+
 
 FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
     "Send": {
@@ -237,7 +265,7 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
         "kw_enums": {
             "OnFailure": ["ABORT", "REPEAT", "SKIP", "CANCEL"],
             "OnFalse": ["ABORT", "REPEAT", "SKIP", "CANCEL", "NOACTION"],
-            "OnTrue":  ["ABORT", "REPEAT", "SKIP", "CANCEL", "NOACTION"],
+            "OnTrue": ["ABORT", "REPEAT", "SKIP", "CANCEL", "NOACTION"],
             "ValueFormat": ["RAW", "ENG"]
         }
     },
@@ -262,7 +290,7 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
         "kw_enums": {"OnFailure": ["ABORT", "REPEAT", "SKIP", "CANCEL"], "ValueFormat": ["RAW", "ENG"]},
         "min_args": 1, "max_pos_args": 1, "pos_types": ["string"]
     },
-    "Prompt": {"min_args": 1, "max_pos_args": 2, "pos_types": ["string", ["list", "other","ident"]],
+    "Prompt": {"min_args": 1, "max_pos_args": 2, "pos_types": ["string", ["list", "other", "ident"]],
                "allowed_kw": ["Type", "Default", "Timeout"],
                "kw_types": {"Type": "flag_set", "Default": "string_bool_time", "Timeout": "time_like"}},
     "PromptUser": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
@@ -291,9 +319,9 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
     "DismissUserAction": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
     "SetUserAction": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
     "SetResource": {"min_args": 2, "max_pos_args": 2,
-                    "pos_types": [["string","ident","index"], ["string","number","ident","index"]]},
+                    "pos_types": [["string", "ident", "index"], ["string", "number", "ident", "index"]]},
     "SetGroundParameter": {"min_args": 2, "max_pos_args": 2,
-                           "pos_types": [["string","ident","index"], ["string","number","ident","index"]]},
+                           "pos_types": [["string", "ident", "index"], ["string", "number", "ident", "index"]]},
     "GetResource": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
     "ReleaseResource": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
     "CreateDictionary": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
@@ -317,6 +345,7 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
             "allowed_kw": ["Level"], "kw_types": {"Level": "string"}}
 }
 
+
 def derive_spec_for(lname: str) -> Dict[str, Any]:
     spec: Dict[str, Any] = {}
     if any(key in lname for key in ("Prompt", "Display", "Event", "Step")) and lname != "PrintDisplay":
@@ -332,17 +361,19 @@ def derive_spec_for(lname: str) -> Dict[str, Any]:
         spec.update({"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]})
     return spec
 
+
 def load_header_rules(_path: Optional[str]) -> Dict[str, Any]:
     return {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True, "spacecraft_check": True}
 
-def _parse_commented_header(lines: List[str]) -> Tuple[Dict[str,str], int]:
-    mapping: Dict[str,str] = {}
+
+def _parse_commented_header(lines: List[str]) -> Tuple[Dict[str, str], int]:
+    mapping: Dict[str, str] = {}
     if not lines: return mapping, 0
     if not lines[0].strip().startswith(HEADER_BANNER):
         return mapping, 0
     end = 0
     for idx, ln in enumerate(lines, start=1):
-        if idx == 1: 
+        if idx == 1:
             continue
         if ln.strip().startswith(HEADER_BANNER):
             end = idx
@@ -352,7 +383,10 @@ def _parse_commented_header(lines: List[str]) -> Tuple[Dict[str,str], int]:
             mapping[m.group(1).upper()] = m.group(2).strip()
     return mapping, end
 
+
 CALL_START_RE = re.compile(r'([A-Za-z_][A-Za-z0-9_]*)\s*\(')
+
+
 def split_calls_anywhere(line: str) -> List[str]:
     s = line.strip()
     out: List[str] = []
@@ -368,17 +402,21 @@ def split_calls_anywhere(line: str) -> List[str]:
         while j + 1 < n:
             j += 1
             ch = s[j]
-            if ch == "'" and not in_dq: in_sq = not in_sq
-            elif ch == '"' and not in_sq: in_dq = not in_dq
+            if ch == "'" and not in_dq:
+                in_sq = not in_sq
+            elif ch == '"' and not in_sq:
+                in_dq = not in_dq
             elif not in_sq and not in_dq:
-                if ch == '(': depth += 1
+                if ch == '(':
+                    depth += 1
                 elif ch == ')':
                     depth -= 1
                     if depth == 0: break
-        seg = s[start:j+1].strip()
+        seg = s[start:j + 1].strip()
         if seg: out.append(seg)
         i = j + 1
     return out or ([line] if line.strip() else [])
+
 
 def _split_semicolons_toplevel(line: str) -> List[str]:
     """Split by ';' only when not inside quotes/brackets.
@@ -428,13 +466,88 @@ def _split_semicolons_toplevel(line: str) -> List[str]:
     return segs
 
 
+def extract_calls_anywhere_multiline(lines: List[str]) -> List[Tuple[int, str]]:
+    """
+    Return a list of (start_line_number, 'FuncName(...)') for all function calls,
+    capturing across multiple lines until the matching closing ')'.
+    Handles nested parentheses and ignores parentheses inside quotes.
+    """
+    out: List[Tuple[int, str]] = []
+    i = 0
+    n = len(lines)
+
+    while i < n:
+        s = lines[i]
+        pos = 0
+        while True:
+            m = CALL_START_RE.search(s, pos)
+            if not m:
+                break
+
+            start_line = i + 1
+            # Scan char-by-char across lines until the matching ')'
+            in_sq = False
+            in_dq = False
+            depth = 0
+            line_idx = i
+            col_idx = m.start()
+            buf_chars: List[str] = []
+
+            # Begin at the function name; collect until depth returns to 0
+            found_open = False
+            while True:
+                if line_idx >= n:
+                    # Unterminated call; emit best effort and stop
+                    out.append((start_line, ''.join(buf_chars)))
+                    i = n
+                    break
+
+                line = lines[line_idx]
+                if col_idx >= len(line):
+                    # end of line -> newline and advance
+                    buf_chars.append('\n')
+                    line_idx += 1
+                    col_idx = 0
+                    continue
+
+                ch = line[col_idx]
+                buf_chars.append(ch)
+
+                # toggle quotes
+                if ch == "'" and not in_dq:
+                    in_sq = not in_sq
+                elif ch == '"' and not in_sq:
+                    in_dq = not in_dq
+                elif not in_sq and not in_dq:
+                    if ch == '(':
+                        depth += 1
+                        found_open = True
+                    elif ch == ')':
+                        if found_open:
+                            depth -= 1
+                            if depth == 0:
+                                # Completed this call
+                                out.append((start_line, ''.join(buf_chars)))
+                                # Continue scanning after this call on the same line
+                                i = line_idx
+                                s = lines[i]
+                                pos = col_idx + 1
+                                break
+
+                col_idx += 1
+            # end inner char scan
+        # end while scan in this line
+        i += 1
+    return out
+
 
 def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) -> Dict[str, Any]:
+    # --- Read original lines (preserve comments for header parsing) ---
     orig_lines = procedure_text.splitlines()
 
     findings: List[Dict[str, Any]] = []
 
-    # --- Parse commented header BEFORE any splitting/tokenization ---
+    # --- Parse commented header BEFORE any tokenization ---
     header_map, header_end = _parse_commented_header(orig_lines)
     req_keys = header_rules.get("required_keys", list(REQUIRED_COMMENT_KEYS_DEFAULT))
     for key in req_keys:
@@ -443,10 +556,13 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                 "rule_id": f"HEADER_COMMENTED:{key}",
                 "category": "HEADER", "severity": "MAJOR",
                 "location": {"line_start": 1, "line_end": max(1, header_end)},
-                "evidence": "", "explanation": f"Missing mandatory commented field #{key}",
+                "evidence": "",
+                "explanation": f"Missing mandatory commented field #{key}",
                 "manual_quote": "Commented header must include # NAME, # DESCRIPTION, # FILE, # SPACECRAFT.",
-                "status": "VIOLATION", "suggested_fix": f'Add "# {key} : ..." inside top banner'
+                "status": "VIOLATION",
+                "suggested_fix": f'Add "# {key} : ..." inside top banner'
             })
+
     if header_rules.get("file_must_match", True) and CURRENT_PROCEDURE_PATH and header_map.get("FILE"):
         actual = os.path.basename(CURRENT_PROCEDURE_PATH)
         if header_map["FILE"].strip() != actual:
@@ -457,11 +573,13 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                 "evidence": f'# FILE : {header_map["FILE"]}',
                 "explanation": f"# FILE must match procedure filename: expected {actual}.",
                 "manual_quote": "FILE must be the actual filename.",
-                "status": "VIOLATION", "suggested_fix": f'Change to "# FILE : {actual}"'
+                "status": "VIOLATION",
+                "suggested_fix": f'Change to "# FILE : {actual}"'
             })
+
     if header_rules.get("spacecraft_check", True):
         scv = header_map.get("SPACECRAFT")
-        if scv:
+        if scv is not None:
             tokens = [t.strip() for t in scv.split(",") if t.strip()]
             bad = [t for t in tokens if not (re.fullmatch(r"[A-Za-z0-9_\-]+", t) or re.fullmatch(r"\d+", t))]
             if not tokens or bad:
@@ -472,104 +590,55 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                     "evidence": f"# SPACECRAFT : {scv}",
                     "explanation": "SPACECRAFT must be a single value or CSV of numeric IDs or simple names.",
                     "manual_quote": "SPACECRAFT syntax.",
-                    "status": "VIOLATION", "suggested_fix": 'Example: "# SPACECRAFT  : SAT_A, 1111"'
+                    "status": "VIOLATION",
+                    "suggested_fix": 'Example: "# SPACECRAFT  : SAT_A, 1111"'
                 })
 
-    # --- Now expand for call analysis (semicolon-split that preserves comments) ---
-    expanded: List[str] = []
-    for ln in orig_lines:
-        for seg in _split_semicolons_toplevel(ln):
-            expanded.extend(split_calls_anywhere(seg))
-    lines = expanded
-
-    # ... continue with the rest of your existing analysis using `lines` ...
-
-
-    findings: List[Dict[str, Any]] = []
-
-    # Commented header checks
-    header_map, header_end = _parse_commented_header(lines)
-    req_keys = header_rules.get("required_keys", list(REQUIRED_COMMENT_KEYS_DEFAULT))
-    for key in req_keys:
-        if key not in header_map or not header_map[key]:
-            findings.append({
-                "rule_id": f"HEADER_COMMENTED:{key}",
-                "category": "HEADER", "severity": "MAJOR",
-                "location": {"line_start": 1, "line_end": max(1, header_end)},
-                "evidence": "", "explanation": f"Missing mandatory commented field #{key}",
-                "manual_quote": "Commented header must include # NAME, # DESCRIPTION, # FILE, # SPACECRAFT.",
-                "status": "VIOLATION", "suggested_fix": f'Add "# {key} : ..." inside top banner'
-            })
-    if header_rules.get("file_must_match", True) and CURRENT_PROCEDURE_PATH and header_map.get("FILE"):
-        actual = os.path.basename(CURRENT_PROCEDURE_PATH)
-        if header_map["FILE"].strip() != actual:
-            findings.append({
-                "rule_id": "HEADER_COMMENTED:FILE_MATCH",
-                "category": "HEADER", "severity": "MAJOR",
-                "location": {"line_start": 1, "line_end": max(1, header_end)},
-                "evidence": f'# FILE : {header_map["FILE"]}',
-                "explanation": f"# FILE must match procedure filename: expected {actual}.",
-                "manual_quote": "FILE must be the actual filename.",
-                "status": "VIOLATION", "suggested_fix": f'Change to "# FILE : {actual}"'
-            })
-    if header_rules.get("spacecraft_check", True):
-        scv = header_map.get("SPACECRAFT")
-        if scv:
-            tokens = [t.strip() for t in scv.split(",") if t.strip()]
-            bad = [t for t in tokens if not (re.fullmatch(r"[A-Za-z0-9_\-]+", t) or re.fullmatch(r"\d+", t))]
-            if not tokens or bad:
-                findings.append({
-                    "rule_id": "HEADER_COMMENTED:SPACECRAFT_FORMAT",
-                    "category": "HEADER", "severity": "MAJOR",
-                    "location": {"line_start": 1, "line_end": max(1, header_end)},
-                    "evidence": f"# SPACECRAFT : {scv}",
-                    "explanation": "SPACECRAFT must be a single value or CSV of numeric IDs or simple names.",
-                    "manual_quote": "SPACECRAFT syntax.",
-                    "status": "VIOLATION", "suggested_fix": 'Example: "# SPACECRAFT  : SAT_A, 1111"'
-                })
+    # --- Extract complete function calls across lines ---
+    # Expect helper extract_calls_anywhere_multiline(lines) → List[(start_line_number, call_string)]
+    calls = extract_calls_anywhere_multiline(orig_lines)
 
     send_lines: List[int] = []
     verify_like_after_send = False
 
-    for idx, line in enumerate(lines, start=1):
-        sline = line.strip()
-        if not sline or sline.startswith('#'): continue
+    # --- Per-call analysis ---
+    for idx, sline in calls:
+        sline = sline.strip()
+        if not sline or sline.startswith('#'):
+            continue
 
+        # Track Send(...) presence and telemetry follow-up
         if re.match(r'^\s*Send\s*\(', sline):
             send_lines.append(idx)
-        if send_lines and (re.search(r'^\s*(Verify|WaitFor|GetTM)\s*\(', sline)):
-            verify_like_after_send = True
 
-        # Send: core requirements + time-like checks
+        # Inline verify in Send(...) short-circuits the "must verify after send" rule
         if re.match(r'^\s*Send\s*\(', sline):
-            kwargs = parse_kwargs(sline)
-            lowkeys = {k.lower(): v for k, v in kwargs.items()}
-            if 'verify' in lowkeys: verify_like_after_send = True
-            if not any(k in lowkeys for k in ('command', 'sequence', 'group')):
-                findings.append({
-                    "rule_id": "4.5.1", "category": "COMMAND", "severity": "MAJOR",
-                    "location": {"line_start": idx, "line_end": idx},
-                    "evidence": sline,
-                    "explanation": "Send() requires one of: command=, sequence=, or group=.",
-                    "manual_quote": "Send usage.", "status": "VIOLATION",
-                    "suggested_fix": "Use Send(command='CMD', ...) or Send(sequence='SEQ') or Send(group=[...])"
-                })
-            for key in ("Time","ReleaseTime"):
-                if key in kwargs and not _is_time_like(kwargs[key]):
+            kwargs_for_send = parse_kwargs(sline)
+            lowkeys = {k.lower(): v for k, v in kwargs_for_send.items()}
+            if 'verify' in lowkeys:
+                verify_like_after_send = True
+            # Additional time-like checks for Send keyword times
+            for key in ("Time", "ReleaseTime"):
+                if key in kwargs_for_send and not _is_time_like(kwargs_for_send[key]):
                     findings.append({
-                        "rule_id": "A.Send.KWTYPE","category":"COMMAND","severity":"MAJOR",
-                        "location":{"line_start":idx,"line_end":idx},
-                        "evidence": f"{key}={kwargs[key]}",
+                        "rule_id": "A.Send.KWTYPE", "category": "COMMAND", "severity": "MAJOR",
+                        "location": {"line_start": idx, "line_end": idx},
+                        "evidence": f"{key}={kwargs_for_send[key]}",
                         "explanation": f"Keyword '{key}' for Send() should be time_like.",
-                        "manual_quote":"", "status":"VIOLATION",
+                        "manual_quote": "", "status": "VIOLATION",
                         "suggested_fix": f"Set {key} to a valid time_like."
                     })
 
+        # Any explicit Verify/WaitFor/GetTM after at least one Send(...)
+        if send_lines and re.match(r'^\s*(Verify|WaitFor|GetTM)\s*\(', sline):
+            verify_like_after_send = True
+
         # GetTM: Timeout with Wait=False -> warn
         if re.match(r'^\s*GetTM\s*\(', sline):
-            kwargs = parse_kwargs(sline)
-            low = {k.lower(): kwargs[k] for k in kwargs}
-            if 'timeout' in low and ('wait' not in low or low['wait'].strip().strip("'\"").lower() not in ('true', '1')):
+            kwargs_gtm = parse_kwargs(sline)
+            low = {k.lower(): kwargs_gtm[k] for k in kwargs_gtm}
+            if 'timeout' in low and (
+                    'wait' not in low or low['wait'].strip().strip("'\"").lower() not in ('true', '1')):
                 findings.append({
                     "rule_id": "4.2.TIMEOUT_WITHOUT_WAIT", "category": "TELEMETRY", "severity": "MINOR",
                     "location": {"line_start": idx, "line_end": idx},
@@ -580,24 +649,25 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                 })
 
         # Verify operator check (single-list form)
-        if re.match(r'^\s*Verify\s*\(', sline):
-            if '[[' not in sline:
-                core = extract_verify_core(sline)
-                if core:
-                    (_param, op, _rhs) = core
-                    if op not in ALLOWED_VERIFY_OPS:
-                        findings.append({
-                            "rule_id": "4.3.1.OP", "category": "TELEMETRY", "severity": "MAJOR",
-                            "location": {"line_start": idx, "line_end": idx},
-                            "evidence": sline,
-                            "explanation": f"Operator {op} is not allowed.",
-                            "manual_quote": "Allowed: eq, ge, gt, lt, le, neq, bw, nbw.",
-                            "status": "VIOLATION", "suggested_fix": "Use a valid operator (e.g., eq)."
-                        })
+        if re.match(r'^\s*Verify\s*\(', sline) and '[[' not in sline:
+            core = extract_verify_core(sline)
+            if core:
+                (_param, op, _rhs) = core
+                if op not in ALLOWED_VERIFY_OPS:
+                    findings.append({
+                        "rule_id": "4.3.1.OP", "category": "TELEMETRY", "severity": "MAJOR",
+                        "location": {"line_start": idx, "line_end": idx},
+                        "evidence": sline,
+                        "explanation": f"Operator {op} is not allowed.",
+                        "manual_quote": "Allowed: eq, ge, gt, lt, le, neq, bw, nbw.",
+                        "status": "VIOLATION",
+                        "suggested_fix": "Use a valid operator (e.g., eq)."
+                    })
 
-        # Appendix-A enforcement
+        # Appendix-A enforcement (arity/types/keywords)
         mname = FUNC_NAME_RE.search(sline)
-        if not mname: continue
+        if not mname:
+            continue
         lname = mname.group(1)
         spec = FUNCTION_SPEC.get(lname, {}) or derive_spec_for(lname)
         kwargs = parse_kwargs(sline)
@@ -624,12 +694,13 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                         "evidence": sline,
                         "explanation": f"{lname}() {('list' if setlimits_list_form else 'uri')} form allows exactly 1 positional argument.",
                         "manual_quote": f"{lname}: alternative single-argument form.",
-                        "status": "VIOLATION", "suggested_fix": "Remove extra positional args; keep only the list/URI."
+                        "status": "VIOLATION",
+                        "suggested_fix": "Remove extra positional args; keep only the list/URI."
                     })
             elif len(pos_args) > spec['max_pos_args']:
                 findings.append({
                     "rule_id": f"A.{lname}.ARGS_MAX",
-                    "category": "TELEMETRY" if lname.startswith(("Get","Set")) else "COMMAND",
+                    "category": "TELEMETRY" if lname.startswith(("Get", "Set")) else "COMMAND",
                     "severity": "MAJOR",
                     "location": {"line_start": idx, "line_end": idx},
                     "evidence": sline,
@@ -646,7 +717,7 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
             if len(pos_args) < required_min:
                 findings.append({
                     "rule_id": f"A.{lname}.ARGS_MIN",
-                    "category": "TELEMETRY" if lname.startswith(("Get","Set")) else "COMMAND",
+                    "category": "TELEMETRY" if lname.startswith(("Get", "Set")) else "COMMAND",
                     "severity": "MAJOR",
                     "location": {"line_start": idx, "line_end": idx},
                     "evidence": sline,
@@ -660,9 +731,10 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
         if 'pos_types' in spec and pos_args:
             if not (lname == "SetLimits" and (setlimits_list_form or setlimits_uri_form)):
                 allowed_list = spec['pos_types']
-                for i, tok in enumerate(pos_args):
-                    if i >= len(allowed_list): break
-                    allowed = allowed_list[i]
+                for i_pa, tok in enumerate(pos_args):
+                    if i_pa >= len(allowed_list):
+                        break
+                    allowed = allowed_list[i_pa]
                     allowed = [allowed] if isinstance(allowed, str) else allowed
                     actual = _infer_pos_type(tok)
                     if lname == 'WaitFor' and (_is_time_like(tok) or actual in allowed):
@@ -674,48 +746,67 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                             "severity": "MAJOR",
                             "location": {"line_start": idx, "line_end": idx},
                             "evidence": sline,
-                            "explanation": f"Positional {i+1} for {lname}() must be {allowed}, found {actual}.",
+                            "explanation": f"Positional {i_pa + 1} for {lname}() must be {allowed}, found {actual}.",
                             "manual_quote": f"{lname}: Appendix A examples.",
                             "status": "VIOLATION",
                             "suggested_fix": "Use the correct literal type (quoted string, number, list, or index)."
                         })
 
-        # Keyword types
+        # Keyword type checks
         for kw_name, kw_type in (spec.get("kw_types") or {}).items():
             for k, v in list(kwargs.items()):
-                if k != kw_name: continue
-                vv = v.strip(); ok = True
-                if kw_type == 'bool': ok = bool(re.match(r'^(True|False|true|false|1|0)$', vv.strip("'\"")))
-                elif kw_type == 'string': ok = _is_string_literal_token(vv)
-                elif kw_type == 'number': ok = bool(re.match(r"^[-+]?\d+(?:\.\d+)?$", vv.strip("'\"")))
-                elif kw_type == 'string_or_ident': ok = _is_string_literal_token(vv) or _is_ident(vv)
+                if k != kw_name:
+                    continue
+                vv = v.strip()
+                ok = True
+                if kw_type == 'bool':
+                    ok = bool(re.match(r'^(True|False|true|false|1|0)$', vv.strip("'\"")))
+                elif kw_type == 'string':
+                    ok = _is_string_literal_token(vv)
+                elif kw_type == 'number':
+                    ok = bool(re.match(r"^[-+]?\d+(?:\.\d+)?$", vv.strip("'\"")))
+                elif kw_type == 'string_or_ident':
+                    ok = _is_string_literal_token(vv) or _is_ident(vv)
                 elif kw_type == 'enum_ident':
-                    enums = (spec.get('kw_enums') or {}).get(kw_name, []); ok = vv.strip().strip('"\'' ) in enums
+                    enums = (spec.get('kw_enums') or {}).get(kw_name, [])
+                    ok = vv.strip().strip('"\'') in enums
                 elif kw_type == 'enum_set':
-                    enums = set((spec.get('kw_enums') or {}).get(kw_name, [])); ok = _is_enum_set(vv, enums)
-                elif kw_type == 'flag_set': ok = _is_flag_set(vv, {"OK", "YES_NO", "LIST", "NUM", "ALPHA","CANCEL", "OK_CANCEL", "DATE", "YES", "NO"})
-                elif kw_type == 'time_expr': ok = _is_time_expr(vv)
-                elif kw_type == 'time_like': ok = _is_time_like(vv)
-                elif kw_type == 'time_like_or_time_list': ok = _is_time_like(vv) or _is_list_of_time_like(vv)
-                elif kw_type == 'string_bool_time': ok = _is_string_bool_time(vv)
-                elif kw_type == 'list': ok = _is_list_like(vv)
+                    enums = set((spec.get('kw_enums') or {}).get(kw_name, []))
+                    ok = _is_enum_set(vv, enums)
+                elif kw_type == 'flag_set':
+                    ok = _is_flag_set(vv, {"OK", "YES_NO", "LIST", "NUM", "ALPHA", "CANCEL", "OK_CANCEL", "DATE", "YES",
+                                           "NO"})
+                elif kw_type == 'time_expr':
+                    ok = _is_time_expr(vv)
+                elif kw_type == 'time_like':
+                    ok = _is_time_like(vv)
+                elif kw_type == 'time_like_or_time_list':
+                    ok = _is_time_like(vv) or _is_list_of_time_like(vv)
+                elif kw_type == 'string_bool_time':
+                    ok = _is_string_bool_time(vv)
+                elif kw_type == 'list':
+                    ok = _is_list_like(vv)
                 if not ok:
                     findings.append({
                         "rule_id": f"A.{lname}.KWTYPE",
-                        "category": "TELEMETRY" if lname.startswith(("Get","Set","Wait","Verify")) else "COMMAND",
-                        "severity": "MAJOR", "location": {"line_start": idx, "line_end": idx},
+                        "category": "TELEMETRY" if lname.startswith(("Get", "Set", "Wait", "Verify")) else "COMMAND",
+                        "severity": "MAJOR",
+                        "location": {"line_start": idx, "line_end": idx},
                         "evidence": f"{k}={v}",
                         "explanation": f"Keyword '{kw_name}' for {lname}() should be {kw_type}.",
-                        "manual_quote": f"{lname}: keyword type expectation.", "status": "VIOLATION",
+                        "manual_quote": f"{lname}: keyword type expectation.",
+                        "status": "VIOLATION",
                         "suggested_fix": f"Set {kw_name} to a valid {kw_type}."
                     })
 
         # Unknown keywords (soft)
-        allowed_union = set([*(FUNCTION_SPEC.get(lname, {}).get("allowed_kw") or []),
-                             *(FUNCTION_SPEC.get(lname, {}).get("required_kw") or []),
-                             *(FUNCTION_SPEC.get(lname, {}).get("require_any_kw_in") or []),
-                             *(FUNCTION_SPEC.get(lname, {}).get("alt_required_kw") or []),
-                             *list((FUNCTION_SPEC.get(lname, {}).get("kw_types") or {}).keys())])
+        allowed_union = set([
+            *(FUNCTION_SPEC.get(lname, {}).get("allowed_kw") or []),
+            *(FUNCTION_SPEC.get(lname, {}).get("required_kw") or []),
+            *(FUNCTION_SPEC.get(lname, {}).get("require_any_kw_in") or []),
+            *(FUNCTION_SPEC.get(lname, {}).get("alt_required_kw") or []),
+            *list((FUNCTION_SPEC.get(lname, {}).get("kw_types") or {}).keys())
+        ])
         if allowed_union:
             for k in kwargs.keys():
                 if k not in allowed_union:
@@ -731,6 +822,7 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                         "suggested_fix": "Remove or replace unknown keyword."
                     })
 
+    # --- Telemetry follow-up rule for Send() ---
     if send_lines and not verify_like_after_send:
         first = send_lines[0]
         findings.append({
@@ -739,25 +831,32 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
             "evidence": "Send(...) without subsequent Verify/WaitFor/GetTM or inline verify",
             "explanation": "Telecommand should be followed by telemetry confirmation.",
             "manual_quote": "Each critical command requires confirmation.",
-            "status": "VIOLATION", "suggested_fix": "Add Verify/WaitFor/GetTM or inline verify=[...]."
+            "status": "VIOLATION",
+            "suggested_fix": "Add Verify/WaitFor/GetTM or inline verify=[...]."
         })
 
+    # --- Scoring ---
     must_ids = set(["4.5.1", "4.3.1"])
     for f in list(findings):
-        if str(f.get('rule_id', '')).startswith("HEADER_COMMENTED:"):
-            must_ids.add(f['rule_id'])
-        if str(f.get('rule_id', '')).startswith("A.") and f.get('severity') in ("MAJOR", "CRITICAL"):
-            must_ids.add(f['rule_id'])
+        rid = str(f.get('rule_id', ''))
+        if rid.startswith("HEADER_COMMENTED:"):
+            must_ids.add(rid)
+        if rid.startswith("A.") and f.get('severity') in ("MAJOR", "CRITICAL"):
+            must_ids.add(rid)
+
     applicable = len(must_ids)
     violated = set([f['rule_id'] for f in findings if f['status'] == "VIOLATION" and f['rule_id'] in must_ids])
     score = 0 if applicable == 0 else round(100.0 * (applicable - len(violated)) / applicable, 2)
-    status = "PASS" if score >= 95 and not any(f['severity']=="CRITICAL" for f in findings if f['status']=="VIOLATION") else "FAIL"
+    status = "PASS" if score >= 95 and not any(
+        f['severity'] == "CRITICAL" for f in findings if f['status'] == "VIOLATION") else "FAIL"
+
     return {
         "manual_version": "2.0.1",
         "overall_compliance": {"status": status, "score_percent": score},
         "summary": "Header + Send/WaitFor/Verify + SetLimits alt-forms + SetResource index/ident + multi-call split.",
         "findings": findings
     }
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -775,18 +874,22 @@ def main():
         print(json.dumps(err, indent=2) if args.json else f"[ERROR] {e}")
         sys.exit(1)
 
-    header_rules = {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True, "spacecraft_check": True}
+    header_rules = {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True,
+                    "spacecraft_check": True}
     res = audit(text, args.json, header_rules)
 
     if args.json:
         print(json.dumps(res, indent=2))
     else:
-        print(f"Manual: {res['manual_version']} | Status: {res['overall_compliance']['status']} | Score: {res['overall_compliance']['score_percent']}%")
+        print(
+            f"Manual: {res['manual_version']} | Status: {res['overall_compliance']['status']} | Score: {res['overall_compliance']['score_percent']}%")
         for f in res["findings"]:
             if f["status"] != "VIOLATION": continue
             loc = f["location"]
             locs = f"lines {loc['line_start']}-{loc['line_end']}" if loc["line_start"] else "header"
-            print(f"\n[{f['severity']}] {f['rule_id']} ({f['category']}) @ {locs}\nEvidence: {f['evidence']}\nWhy: {f['explanation']}\nManual: {f['manual_quote']}\nFix: {f['suggested_fix']}")
+            print(
+                f"\n[{f['severity']}] {f['rule_id']} ({f['category']}) @ {locs}\nEvidence: {f['evidence']}\nWhy: {f['explanation']}\nManual: {f['manual_quote']}\nFix: {f['suggested_fix']}")
+
 
 if __name__ == "__main__":
     main()

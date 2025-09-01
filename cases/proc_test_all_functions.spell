@@ -203,6 +203,10 @@ def procedure():
     Send( command= 'CMDNAME', ReleaseTime='2008/04/10 10:30:00' )
     Send( command = 'AAA;AAA' )
     Send( command = 'BAAA ; fA / ? <>  #AA' )
+    # case when args is on next line
+    Send( command = 'C TCNAME (test)',
+          args = [ [ 'ARG1', 1.0 ], [ 'ARG2', 0xFF, {Radix:HEX} ] ], verify=[ ['TM1',eq ,10.0,{Tolerance:0.1} ],   ['TM2',gt ,0 ,{Timeout:20} ] ], Delay=10*SECOND,Tolerance=0.5,OnFailure=CANCEL,PromptUser=False)
+
 
     # Wait
     WaitFor( 2 )
