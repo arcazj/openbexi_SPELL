@@ -100,8 +100,6 @@ def procedure():
     Postscript()
     # PrintDisplay OK
     PrintDisplay('Display name', Printer='PRN')
-    # Prompt OK
-    Prompt('MSG')
     # PromptUser OK
     PromptUser('MSG')
     # Python OK
@@ -130,11 +128,6 @@ def procedure():
     True()
     # WaitFor OK
     WaitFor(['TM_PARAM', eq, 1], Timeout=10)
-
-    # prompt
-    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST )
-    Prompt( 'Message', ['Option 1', 'Option 2'], Type=LIST|ALPHA )
-    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST, Default='A', Timeout=1*MINUTE )
 
     # Verify
     Verify(['TM_PARAM', eq, 1], Timeout=10)
@@ -219,6 +212,17 @@ def procedure():
     WaitFor( '2008/10/03 10:45:34' )
     WaitFor( ['TMparam', eq, 23 ] )
     WaitFor( ['TMparam', eq, 23 ], Delay=20 )
+
+    # prompt
+    Prompt( 'Message', OK )
+    Prompt( 'Message', YES_NO )
+    Prompt( 'Message', OK , Default=True)
+    Prompt( 'Message',['A:Option 1', 'B:Option 2'],Type=LIST )
+    Prompt( 'Message', ['Option 1', 'Option 2'],Type=LIST|NUM )
+    Prompt( 'Message', ['Option 1', 'Option 2'],Type=LIST|ALPHA)
+    Prompt( 'Message', ['Option 1', 'Option 2'],Type=YES_NO)
+    Prompt( 'Message',['A:Option 1', 'B:Option 2','C:Option 3', 'D:Option 4'],Type=LIST )
+    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST, Default='A', Timeout=1*MINUTE )
 
 
 

@@ -38,6 +38,7 @@ Learn more about SPELL: https://sourceforge.net/p/spell-sat/wiki/Home/
 .
 ├─ cases/                      # test procedures (.spell / .py)
 ├─ json/                       # test artifacts (results JSON/CSV)
+├─ doc/                        # SPELL_Language_Manual.pdf
 ├─ header_rules.json           # active header policy (used by the auditor)
 ├─ header_rules_default.json   # template/fallback for CI or local
 ├─ MANIFEST.json               # optional: explicit case list for the runner

@@ -136,3 +136,4 @@ def procedure():
     True(UNKNOWN=1)
     # WaitFor BAD
     WaitFor()
+    Send( command = 'AAAAAA' , CPU='Standby')

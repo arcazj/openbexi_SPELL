@@ -262,7 +262,7 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
         "kw_enums": {"OnFailure": ["ABORT", "REPEAT", "SKIP", "CANCEL"], "ValueFormat": ["RAW", "ENG"]},
         "min_args": 1, "max_pos_args": 1, "pos_types": ["string"]
     },
-    "Prompt": {"min_args": 1, "max_pos_args": 2, "pos_types": ["string", ["list", "other"]],
+    "Prompt": {"min_args": 1, "max_pos_args": 2, "pos_types": ["string", ["list", "other","ident"]],
                "allowed_kw": ["Type", "Default", "Timeout"],
                "kw_types": {"Type": "flag_set", "Default": "string_bool_time", "Timeout": "time_like"}},
     "PromptUser": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
@@ -602,7 +602,7 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                     enums = (spec.get('kw_enums') or {}).get(kw_name, []); ok = vv.strip().strip('"\'' ) in enums
                 elif kw_type == 'enum_set':
                     enums = set((spec.get('kw_enums') or {}).get(kw_name, [])); ok = _is_enum_set(vv, enums)
-                elif kw_type == 'flag_set': ok = _is_flag_set(vv, {"OK", "YESNO", "LIST", "NUM", "ALPHA"})
+                elif kw_type == 'flag_set': ok = _is_flag_set(vv, {"OK", "YES_NO", "LIST", "NUM", "ALPHA","CANCEL", "OK_CANCEL", "DATE", "YES", "NO"})
                 elif kw_type == 'time_expr': ok = _is_time_expr(vv)
                 elif kw_type == 'time_like': ok = _is_time_like(vv)
                 elif kw_type == 'time_like_or_time_list': ok = _is_time_like(vv) or _is_list_of_time_like(vv)
