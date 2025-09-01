@@ -201,7 +201,8 @@ def procedure():
     Send(command='TC_OK', Time='2025-09-01 00:00:00')
     Send( command= 'CMDNAME', ReleaseTime=NOW+30*MINUTE )
     Send( command= 'CMDNAME', ReleaseTime='2008/04/10 10:30:00' )
-    Send( command = 'AAAAAA' )
+    Send( command = 'AAA;AAA' )
+    Send( command = 'BAAA ; fA / ? <>  #AA' )
 
     # Wait
     WaitFor( 2 )

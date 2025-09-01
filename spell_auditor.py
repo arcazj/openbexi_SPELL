@@ -380,19 +380,110 @@ def split_calls_anywhere(line: str) -> List[str]:
         i = j + 1
     return out or ([line] if line.strip() else [])
 
-def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) -> Dict[str, Any]:
-    lines = procedure_text.splitlines()
+def _split_semicolons_toplevel(line: str) -> List[str]:
+    """Split by ';' only when not inside quotes/brackets.
+    Preserve full comment-only lines (starting with '#')."""
+    # Keep pure comment lines intact (needed for header parsing & cleanliness)
+    if line.lstrip().startswith('#'):
+        return [line]
 
-    expanded: List[str] = []
-    for ln in lines:
-        if ';' in ln:
-            for seg in ln.split(';'):
-                seg = seg.strip()
-                if not seg: continue
-                expanded.extend(split_calls_anywhere(seg))
+    segs: List[str] = []
+    buf: List[str] = []
+    depth = 0
+    in_sq = False
+    in_dq = False
+    i = 0
+    n = len(line)
+    while i < n:
+        ch = line[i]
+        if ch == "'" and not in_dq:
+            in_sq = not in_sq
+            buf.append(ch)
+        elif ch == '"' and not in_sq:
+            in_dq = not in_dq
+            buf.append(ch)
+        elif ch in '([{':
+            if not in_sq and not in_dq:
+                depth += 1
+            buf.append(ch)
+        elif ch in ')]}':
+            if not in_sq and not in_dq:
+                depth = max(0, depth - 1)
+            buf.append(ch)
+        elif ch == ';' and depth == 0 and not in_sq and not in_dq:
+            seg = ''.join(buf).strip()
+            if seg:
+                segs.append(seg)
+            buf = []
+        elif ch == '#' and depth == 0 and not in_sq and not in_dq:
+            # start of inline comment — stop consuming code portion
+            break
         else:
-            expanded.extend(split_calls_anywhere(ln))
+            buf.append(ch)
+        i += 1
+
+    tail = ''.join(buf).strip()
+    if tail:
+        segs.append(tail)
+    return segs
+
+
+
+def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) -> Dict[str, Any]:
+    orig_lines = procedure_text.splitlines()
+
+    findings: List[Dict[str, Any]] = []
+
+    # --- Parse commented header BEFORE any splitting/tokenization ---
+    header_map, header_end = _parse_commented_header(orig_lines)
+    req_keys = header_rules.get("required_keys", list(REQUIRED_COMMENT_KEYS_DEFAULT))
+    for key in req_keys:
+        if key not in header_map or not header_map[key]:
+            findings.append({
+                "rule_id": f"HEADER_COMMENTED:{key}",
+                "category": "HEADER", "severity": "MAJOR",
+                "location": {"line_start": 1, "line_end": max(1, header_end)},
+                "evidence": "", "explanation": f"Missing mandatory commented field #{key}",
+                "manual_quote": "Commented header must include # NAME, # DESCRIPTION, # FILE, # SPACECRAFT.",
+                "status": "VIOLATION", "suggested_fix": f'Add "# {key} : ..." inside top banner'
+            })
+    if header_rules.get("file_must_match", True) and CURRENT_PROCEDURE_PATH and header_map.get("FILE"):
+        actual = os.path.basename(CURRENT_PROCEDURE_PATH)
+        if header_map["FILE"].strip() != actual:
+            findings.append({
+                "rule_id": "HEADER_COMMENTED:FILE_MATCH",
+                "category": "HEADER", "severity": "MAJOR",
+                "location": {"line_start": 1, "line_end": max(1, header_end)},
+                "evidence": f'# FILE : {header_map["FILE"]}',
+                "explanation": f"# FILE must match procedure filename: expected {actual}.",
+                "manual_quote": "FILE must be the actual filename.",
+                "status": "VIOLATION", "suggested_fix": f'Change to "# FILE : {actual}"'
+            })
+    if header_rules.get("spacecraft_check", True):
+        scv = header_map.get("SPACECRAFT")
+        if scv:
+            tokens = [t.strip() for t in scv.split(",") if t.strip()]
+            bad = [t for t in tokens if not (re.fullmatch(r"[A-Za-z0-9_\-]+", t) or re.fullmatch(r"\d+", t))]
+            if not tokens or bad:
+                findings.append({
+                    "rule_id": "HEADER_COMMENTED:SPACECRAFT_FORMAT",
+                    "category": "HEADER", "severity": "MAJOR",
+                    "location": {"line_start": 1, "line_end": max(1, header_end)},
+                    "evidence": f"# SPACECRAFT : {scv}",
+                    "explanation": "SPACECRAFT must be a single value or CSV of numeric IDs or simple names.",
+                    "manual_quote": "SPACECRAFT syntax.",
+                    "status": "VIOLATION", "suggested_fix": 'Example: "# SPACECRAFT  : SAT_A, 1111"'
+                })
+
+    # --- Now expand for call analysis (semicolon-split that preserves comments) ---
+    expanded: List[str] = []
+    for ln in orig_lines:
+        for seg in _split_semicolons_toplevel(ln):
+            expanded.extend(split_calls_anywhere(seg))
     lines = expanded
+
+    # ... continue with the rest of your existing analysis using `lines` ...
+
 
     findings: List[Dict[str, Any]] = []
 
