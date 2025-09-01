@@ -213,16 +213,28 @@ def parse_kwargs(line: str) -> Dict[str, str]:
 
 
 def extract_verify_core(line: str):
-    if '[[' in line:  # multi-list
+    """
+    Extract single-list Verify core:
+      Verify( [ PARAM, OP, RHS... ] , ... )
+    Returns (param, op, rhs_list) or ('MULTI','OK',[]) for [[...]] form.
+    Respects commas inside quotes and nesting via _split_top_level_args().
+    """
+    # multi-list form: [[ ... ]]
+    if '[[' in line:
         return ('MULTI', 'OK', [])
+
     m = re.search(r"Verify\s*\(\s*\[(.*?)\]\s*(?:,|\))", line, flags=re.DOTALL)
-    if not m: return None
+    if not m:
+        return None
+
     inner = m.group(1)
-    parts = re.split(r"\s*,\s*", inner)
-    if len(parts) < 3: return None
+    parts = _split_top_level_args(inner)   # <-- key change (no naive re.split)
+    if len(parts) < 3:
+        return None
+
     param = parts[0].strip().strip("'\"")
-    op = parts[1].strip()
-    rhs = [p.strip().strip("'\"") for p in parts[2:]]
+    op    = parts[1].strip()
+    rhs   = [p.strip().strip("'\"") for p in parts[2:]]
     return (param, op, rhs)
 
 
