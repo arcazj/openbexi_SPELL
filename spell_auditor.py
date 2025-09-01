@@ -312,7 +312,12 @@ FUNCTION_SPEC: Dict[str, Dict[str, Any]] = {
         "allowed_kw": ["Severity"], "kw_types": {"Severity": "enum_ident"},
         "kw_enums": {"Severity": ["INFO", "WARNING", "ERROR", "CRITICAL"]}
     },
-    "Step": {"min_args": 1, "max_pos_args": 1, "pos_types": ["string"]},
+    "Step": {
+        "min_args": 2,
+        "max_pos_args": 2,
+        "pos_types": ["string", "string"],
+        # optional: leave allowed_kw absent to avoid permitting keywords implicitly
+    },
     "StartProc": {"alt_required_kw": ["proc"], "max_pos_args": 1,
                   "pos_types": ["string"], "kw_types": {"proc": "string", "Blocking": "bool", "Automatic": "bool"},
                   "allowed_kw": ["proc", "Blocking", "Automatic"]},
@@ -683,6 +688,19 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
         lname = mname.group(1)
         spec = FUNCTION_SPEC.get(lname, {}) or derive_spec_for(lname)
         kwargs = parse_kwargs(sline)
+        if lname == "Step" and kwargs:
+            findings.append({
+        "rule_id": "A.Step.KW",
+        "category": "COMMAND",
+        "severity": "MAJOR",
+        "location": {"line_start": idx, "line_end": idx},
+        "evidence": sline,
+        "explanation": "Step() does not accept keyword arguments; use Step('MSG','DESC').",
+        "manual_quote": "Step: two positional strings only.",
+        "status": "VIOLATION",
+        "suggested_fix": "Remove keywords and pass exactly two positional strings."
+    })
+
         pos_args = _split_top_level_args(_call_args_text(sline))
 
         # Special-case SetLimits alternative forms: list-of-lists or URI single arg
