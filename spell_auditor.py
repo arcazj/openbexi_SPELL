@@ -556,7 +556,67 @@ def extract_calls_anywhere_multiline(lines: List[str]) -> List[Tuple[int, str]]:
         # end while scan in this line
         i += 1
     return out
+def _is_call_like(tok: str) -> bool:
+    s = tok.strip()
+    # very loose: funcName(...)
+    return bool(re.match(r'^[A-Za-z_][A-Za-z0-9_]*\s*\(.*\)\s*$', s))
 
+def _is_string_like_expr(tok: str) -> bool:
+    """
+    Return True if tok is a top-level '+' concatenation of string-like parts:
+    - string literal  e.g., 'abc' or "abc"
+    - identifier      e.g., NAME
+    - index expr      e.g., SCDB['k'] or SCDB[NAME]
+    - call-like expr  e.g., getLabel(...)
+    Ignoring nested brackets/quotes while splitting by '+' at top level.
+    """
+    s = tok.strip()
+    if not s:
+        return False
+
+    parts = []
+    buf = []
+    depth = 0
+    in_sq = False
+    in_dq = False
+    i = 0
+    while i < len(s):
+        ch = s[i]
+        if ch == "'" and not in_dq:
+            in_sq = not in_sq
+            buf.append(ch)
+        elif ch == '"' and not in_sq:
+            in_dq = not in_dq
+            buf.append(ch)
+        elif not in_sq and not in_dq:
+            if ch in '([{':
+                depth += 1
+                buf.append(ch)
+            elif ch in ')]}':
+                depth = max(0, depth - 1)
+                buf.append(ch)
+            elif ch == '+' and depth == 0:
+                part = ''.join(buf).strip()
+                if not part:
+                    return False
+                if not (_is_string_literal_token(part) or _is_ident(part) or _is_index_expr(part) or _is_call_like(part)):
+                    return False
+                parts.append(part)
+                buf = []
+            else:
+                buf.append(ch)
+        else:
+            buf.append(ch)
+        i += 1
+
+    tail = ''.join(buf).strip()
+    if tail:
+        if not (_is_string_literal_token(tail) or _is_ident(tail) or _is_index_expr(tail) or _is_call_like(tail)):
+            return False
+        parts.append(tail)
+
+    # At least one part must exist; a single string/ident is fine too.
+    return len(parts) >= 1
 
 def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) -> Dict[str, Any]:
     # --- Read original lines (preserve comments for header parsing) ---
@@ -761,14 +821,21 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
         if 'pos_types' in spec and pos_args:
             if not (lname == "SetLimits" and (setlimits_list_form or setlimits_uri_form)):
                 allowed_list = spec['pos_types']
-                for i_pa, tok in enumerate(pos_args):
-                    if i_pa >= len(allowed_list):
-                        break
-                    allowed = allowed_list[i_pa]
+                for i, tok in enumerate(pos_args):
+                    if i >= len(allowed_list): break
+                    allowed = allowed_list[i]
                     allowed = [allowed] if isinstance(allowed, str) else allowed
                     actual = _infer_pos_type(tok)
+
+                    # KEEP this existing special case
                     if lname == 'WaitFor' and (_is_time_like(tok) or actual in allowed):
                         continue
+
+                    # NEW special case: Prompt first positional may be a string *expression*
+                    if lname == 'Prompt' and i == 0 and _is_string_like_expr(tok):
+                        # treat as string-compatible
+                        continue
+
                     if 'any' not in allowed and actual not in allowed:
                         findings.append({
                             "rule_id": f"A.{lname}.POSTYPE",
@@ -776,7 +843,7 @@ def audit(procedure_text: str, only_json: bool, header_rules: Dict[str, Any]) ->
                             "severity": "MAJOR",
                             "location": {"line_start": idx, "line_end": idx},
                             "evidence": sline,
-                            "explanation": f"Positional {i_pa + 1} for {lname}() must be {allowed}, found {actual}.",
+                            "explanation": f"Positional {i+1} for {lname}() must be {allowed}, found {actual}.",
                             "manual_quote": f"{lname}: Appendix A examples.",
                             "status": "VIOLATION",
                             "suggested_fix": "Use the correct literal type (quoted string, number, list, or index)."

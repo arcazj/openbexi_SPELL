@@ -228,7 +228,8 @@ def procedure():
     Prompt( 'Message', ['Option 1', 'Option 2'],Type=LIST|ALPHA)
     Prompt( 'Message', ['Option 1', 'Option 2'],Type=YES_NO)
     Prompt( 'Message',['A:Option 1', 'B:Option 2','C:Option 3', 'D:Option 4'],Type=LIST )
-    Prompt( 'Message', ['A:Option 1', 'B:Option 2'], Type=LIST, Default='A', Timeout=1*MINUTE )
+    Prompt( 'Option 1' + SCDB['angle'],['0-deg','180-deg'],
+     Type=LIST|ALPHA, Default='0' )
 
 
 
