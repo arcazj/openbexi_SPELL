@@ -1,0 +1,30 @@
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+
+const apiProxy = {
+  "/api": {
+    target: "http://127.0.0.1:8000",
+    changeOrigin: true,
+    ws: true,
+  },
+};
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    proxy: apiProxy,
+  },
+  preview: {
+    host: "127.0.0.1",
+    port: 4173,
+    proxy: apiProxy,
+  },
+  test: {
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+    css: true,
+    exclude: ["e2e/**", "node_modules/**", "dist/**"],
+  },
+});
