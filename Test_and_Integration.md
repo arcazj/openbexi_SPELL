@@ -11,6 +11,67 @@
 | Applies to | v0.1 documentation baseline and every product version from v0.2 |
 | Operational authorization | None |
 
+## Version 0.3 Pre-Implementation Test Plan
+
+### Requirements And Traceability
+
+| Requirement ID | Requirement | Primary tests |
+| --- | --- | --- |
+| `V03-REQ-LIC-001` | The new implementation is Apache-2.0 licensed and legacy evidence is excluded | `V03-LIC-001` |
+| `V03-REQ-MIG-001` | Versioned migrations preserve fresh and existing SQLite/PostgreSQL data | `V03-MIG-001` through `003` |
+| `V03-REQ-AUTH-001` | Signed identity claims and server-enforced roles replace caller-asserted role headers | `V03-AUTH-001` through `004` |
+| `V03-REQ-ISO-001` | The backend has no general outbound route and still reaches only required internal services | `V03-ISO-001`, `002` |
+| `V03-REQ-SUP-001` | Dependencies are reproducible, inventoried, and have zero unreviewed advisories | `V03-SUP-001` through `003` |
+| `V03-REQ-LANG-001` | Typed variables and safe expressions execute only through data IR | `V03-LANG-001`, `002` |
+| `V03-REQ-LANG-002` | Conditions, bounded loops, and reusable local calls are deterministic and checkpointable | `V03-LANG-003` through `005` |
+| `V03-REQ-REC-001` | Variables, effects, and control position recover atomically without duplication | `V03-REC-001`, `002` |
+| `V03-REQ-VAL-001` | Validation returns diagnostics/IR/hash without saving or executing source | `V03-VAL-001` through `003` |
+| `V03-REQ-UI-001` | The console exposes an accessible validation workflow and preserves execution interlocks | `V03-UI-001` through `003` |
+| `V03-REQ-PERF-001` | Local command, replay, concurrency, throughput, and soak budgets are measured | `V03-PERF-001` through `004` |
+
+### Acceptance Tests
+
+| Test ID | Expected result | Environment | Entry status |
+| --- | --- | --- | --- |
+| `V03-LIC-001` | Official Apache-2.0 text matches upstream; NOTICE exists; legacy ZIPs are absent from commits/packages | `DOC`, `DEV` | Planned |
+| `V03-MIG-001` | A fresh SQLite and PostgreSQL database upgrades from zero to the v0.3 head | `DEV`, `SIM` | Planned |
+| `V03-MIG-002` | A populated v0.2 schema upgrades without losing executions, events, prompts, commands, or hashes | `DEV`, `SIM` | Planned |
+| `V03-MIG-003` | Re-running upgrade is idempotent and a failed migration rolls back visibly | `DEV`, `SIM` | Planned |
+| `V03-AUTH-001` | Valid JWT issuer, audience, expiry, subject, and role claims authenticate REST and WebSocket | `DEV`, `SIM` | Planned |
+| `V03-AUTH-002` | Missing, expired, malformed, wrong-issuer, wrong-audience, and unsigned tokens are rejected | `DEV` | Planned |
+| `V03-AUTH-003` | Viewer/operator/admin permissions are enforced only from signed claims; spoofed role headers have no effect | `DEV`, `SIM` | Planned |
+| `V03-AUTH-004` | Development token issuance is disabled by default outside the explicit local profile | `DEV`, `SIM` | Planned |
+| `V03-ISO-001` | Backend and database attach only to an internal network; the loopback proxy is the sole API ingress | `SIM` | Planned |
+| `V03-ISO-002` | Full browser acceptance passes while a backend internet-connect probe fails and PostgreSQL remains reachable | `SIM` | Planned |
+| `V03-SUP-001` | Python installation succeeds with exact versions and required hashes; Node uses `npm ci` integrity data | `DEV` | Planned |
+| `V03-SUP-002` | Backend/frontend packages rebuild twice with identical content hashes after normalized metadata | `DEV` | Planned |
+| `V03-SUP-003` | CycloneDX inventories and audit policy report zero unreviewed advisories | `DEV` | Planned |
+| `V03-LANG-001` | Typed declarations and assignments produce normalized expression IR without executing source | `DEV` | Planned |
+| `V03-LANG-002` | Arithmetic, comparison, and boolean expression types are checked; unsafe syntax is rejected | `DEV` | Planned |
+| `V03-LANG-003` | If/else selects one deterministic branch and emits ordered checkpoints/effects | `DEV`, `SIM` | Planned |
+| `V03-LANG-004` | A bounded `range` loop executes the exact approved count and rejects excessive/dynamic bounds | `DEV`, `SIM` | Planned |
+| `V03-LANG-005` | Reusable zero-argument local calls expand with bounded depth and recursion is rejected | `DEV`, `SIM` | Planned |
+| `V03-REC-001` | Crash/recovery after variable and control-flow checkpoints restores values and emits no duplicate effect | `SIM` | Planned |
+| `V03-REC-002` | Concurrent commands/prompts, late worker states, database failure, and restart retain one durable outcome | `DEV`, `SIM` | Planned |
+| `V03-VAL-001` | Valid source returns subset version, SHA-256, normalized IR, variables, and no diagnostics | `DEV` | Planned |
+| `V03-VAL-002` | Invalid/unsafe source returns stable line/column/code/severity diagnostics and creates no execution | `DEV` | Planned |
+| `V03-VAL-003` | Validation input size, complexity, nesting, call depth, and loop bounds are enforced | `DEV` | Planned |
+| `V03-UI-001` | Selected source can be validated without execution and results are visible and keyboard reachable | `SIM` | Planned |
+| `V03-UI-002` | Desktop/mobile Axe scan has no serious/critical issue and controls/text fit their containers | `SIM` | Planned |
+| `V03-UI-003` | Existing pause, prompt, abort, crash/recovery, report, stale, and reconnect workflows remain correct | `SIM` | Planned |
+| `V03-PERF-001` | At least 100 REST mutations meet 250 ms local p95 without duplicate outcomes | `SIM` | Planned |
+| `V03-PERF-002` | A 10,000-event snapshot/cursor replay completes in 3 seconds with exact canonical order | `SIM` | Planned |
+| `V03-PERF-003` | One execution and two browser clients sustain at least 100 events/s for 60 seconds without loss | `SIM` | Planned |
+| `V03-PERF-004` | A 10-minute 20 events/s soak has no crash, loss, stuck control, or sustained memory-growth trend | `SIM` | Planned |
+
+### Release Gate
+
+Every test is mandatory unless the final release record gives a concrete
+non-safety exception. Migration, authentication, isolation, language safety,
+durability, recovery, and canonical event-loss tests cannot be waived. The
+release remains simulator-only and grants no authority to add a GCS or
+spacecraft endpoint.
+
 ## Purpose
 
 This document is the authoritative test-planning reference for OpenBEXI SPELL.

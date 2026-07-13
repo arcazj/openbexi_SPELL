@@ -1,9 +1,69 @@
 # Prompt History
 
 This document records approved project requests, planning decisions, delivery
-status, and unresolved issues by OpenBEXI SPELL version. Entries are append-only.
-Later versions may supersede a decision but must not rewrite the historical
-request or result.
+status, and unresolved issues by OpenBEXI SPELL version. New version entries
+are inserted at the top so the current version is visible first. Later versions
+may supersede a decision but must not rewrite an earlier request or result.
+
+## 2026-07-12 - SPELL v0.3
+
+### Release Identity
+
+| Field | Value |
+| --- | --- |
+| Version | 0.3 |
+| Release name | Simulator Hardening and Language Foundation |
+| Request type | Hardening, restricted-language expansion, and validation workflow |
+| Status | Approved to implement after the recorded v0.3 test gate |
+| Baseline | Commit `7df7743`, tag `v0.2.0` |
+| License | Apache License 2.0 |
+| Operational authorization | None |
+
+### Owner Request
+
+Execute all recommendations required before v0.3, show the newest version at
+the top of this history, license the new implementation under Apache License
+2.0, and then deliver SPELL v0.3.
+
+### Consolidated Version 0.3 Prompt
+
+Freeze the verified v0.2 simulator baseline in source control without
+committing IDE metadata or legacy reference archives. Add the official Apache
+License 2.0 text and project notice, preserve the v0.2 evidence, and tag the
+baseline `v0.2.0`.
+
+Before v0.3 implementation, define its exact requirements, exclusions,
+acceptance tests, performance budgets, security dispositions, and evidence
+rules in `SPELL_v0.3_Pre-Implementation.md`, `PROMPT_History.md`, and
+`Test_and_Integration.md`.
+
+Then implement one simulator-only v0.3 release that:
+
+- Uses versioned migrations for fresh and existing SQLite/PostgreSQL stores.
+- Uses signed JWT claims and server-enforced roles, with an explicitly gated
+  loopback development issuer for the local console.
+- Removes general backend outbound networking through the Compose topology.
+- Produces hash-locked Python dependencies, reproducible packages, SBOMs, and
+  zero unreviewed dependency advisories.
+- Expands the non-executing procedure IR with typed variables, safe
+  expressions, conditions, bounded loops, reusable local calls, and durable
+  variable checkpoints.
+- Adds validation-only REST and 2D console workflows without persistent
+  authoring or Python source execution.
+- Exercises concurrency, faults, migrations, restart/recovery, 10,000-event
+  replay, accessibility, performance, and a sustained local soak.
+
+Do not add Java, Three.js, arbitrary Python execution, drivers, GCS or
+spacecraft connections, operational commanding, high availability, or
+operational authorization.
+
+### Entry Decision
+
+The owner explicitly authorized this bounded v0.3 work. The v0.2 baseline was
+committed and tagged before v0.3 product edits. Implementation may begin only
+after the v0.3 test section in `Test_and_Integration.md` is present. Release
+acceptance requires actual evidence or an explicit non-safety exception for
+every v0.3 test.
 
 ## 2026-07-12 - SPELL v0.1
 
