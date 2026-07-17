@@ -1,36 +1,37 @@
 # SPELL Operations Console
 
-React and TypeScript operator console for the SPELL v0.2 simulator-only vertical slice. The frontend uses Redux Toolkit for authoritative UI state, native WebSocket reconnect/resynchronization, ECharts for numeric telemetry, and Lucide icons.
+React and strict TypeScript real-time 2D console for the OpenBEXI SPELL v0.3
+simulator. It uses Redux Toolkit for authoritative UI state, native WebSocket
+reconnect and resynchronization, ECharts for numeric telemetry, and Lucide
+icons.
 
-The console is not approved for live spacecraft or Ground Control System operations.
-
-## Run
-
-The backend is expected on `http://127.0.0.1:8000`; Vite proxies `/api` and WebSocket traffic.
+The normal deployment is built and served by the loopback reverse proxy at
+`http://127.0.0.1:8080`. For frontend development, Vite runs on
+`http://127.0.0.1:5173` and proxies `/api` and WebSocket traffic to that proxy.
 
 ```powershell
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 127.0.0.1
 ```
 
-Open `http://127.0.0.1:5173`.
-
-## Verify
+Generate a short-lived signed token with `scripts/issue_dev_token.py`, then
+enter it in the console session-access form. The token is held only in browser
+session storage and is not compiled into the frontend. The server rechecks JWT
+expiry after a WebSocket is established and closes an expired connection with
+code `4401`. Logout closes the socket and erases the token; a `4401` close also
+erases it and returns the console to session access.
 
 ```powershell
-npm run build
 npm test
-npx playwright install chromium
+npm run build
 npm run test:e2e
 ```
 
-The default Playwright matrix runs the initial console at desktop and mobile viewports and fails on serious or critical accessibility findings.
+The mocked browser suite runs without a backend. Real integration requires the
+local Compose stack plus `SPELL_REAL_BACKEND=1` and `SPELL_E2E_TOKEN` set to a
+currently valid signed JWT.
 
-With the simulator backend running, execute the real REST and WebSocket workflow:
-
-```powershell
-$env:SPELL_REAL_BACKEND = "1"
-npx playwright test e2e/integration.spec.ts --project=chromium
-```
-
-Set `VITE_SPELL_TOKEN` only when the simulator backend uses a development token other than `spell-dev-token`.
+From the repository root, `scripts/qualify_release.ps1` runs the canonical
+fingerprint-bound stream gate in two independent Chromium processes, and
+`scripts/build_v03.ps1` runs the complete release verification and packaging
+workflow.

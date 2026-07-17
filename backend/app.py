@@ -1,24 +1,35 @@
 import asyncio
 import hashlib
 import json
+import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Annotated, Any, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import select
 
+from .auth import AuthConfig, AuthenticationError, authenticate_bearer, decode_token
 from .config import Settings
-from .database import Base, create_database
+from .database import create_database
 from .events import EventHub
+from .migrations import run_migrations
 from .models import Command, Event, Execution, Prompt
-from .procedure_parser import ProcedureCatalog, ProcedureValidationError
-from .schemas import CommandCreate, ExecutionCreate, PromptResponseCreate
+from .procedure_parser import IR_VERSION, ProcedureCatalog, ProcedureValidationError
+from .schemas import (
+    CommandCreate,
+    ExecutionCreate,
+    ProcedureValidationRequest,
+    PromptResponseCreate,
+)
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
 from .supervisor import AuthorizationError, ConflictError, NotFoundError, Supervisor
+from .version import PRODUCT_VERSION, REPORT_VERSION
 
 
 @dataclass(frozen=True)
@@ -27,25 +38,45 @@ class Identity:
     role: str
 
 
-def create_app(settings: Optional[Settings] = None) -> FastAPI:
+def create_app(
+    settings: Optional[Settings] = None,
+    auth_config: AuthConfig | None = None,
+) -> FastAPI:
     settings = settings or Settings.from_env()
     engine, session_factory = create_database(settings.database_url)
     catalog = ProcedureCatalog(settings.procedures_dir)
     hub = EventHub(settings.websocket_queue_size)
-    supervisor = Supervisor(session_factory, catalog, hub)
+    supervisor = Supervisor(
+        session_factory,
+        catalog,
+        hub,
+        command_ack_timeout_seconds=settings.command_ack_timeout_seconds,
+    )
+    resolved_auth_config = auth_config
+
+    def get_auth_config() -> AuthConfig:
+        nonlocal resolved_auth_config
+        if resolved_auth_config is None:
+            resolved_auth_config = AuthConfig.from_env()
+        return resolved_auth_config
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        Base.metadata.create_all(engine)
+        app.state.auth_config = get_auth_config()
+        run_migrations(engine)
         supervisor.reconcile_orphaned_executions()
-        yield
-        supervisor.close()
-        engine.dispose()
+        try:
+            yield
+        finally:
+            try:
+                supervisor.close()
+            finally:
+                engine.dispose()
 
     app = FastAPI(
         title="OpenBEXI SPELL Simulator API",
-        version="0.2.0",
-        description="Simulator-only vertical slice. Not approved for spacecraft operations.",
+        version=PRODUCT_VERSION,
+        description="Simulator-only restricted-language environment. Not approved for spacecraft operations.",
         lifespan=lifespan,
     )
     app.add_middleware(
@@ -53,7 +84,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
         allow_credentials=False,
         allow_methods=["GET", "POST"],
-        allow_headers=["Authorization", "Content-Type", "X-Dev-Actor", "X-Dev-Role", "X-Idempotency-Key"],
+        allow_headers=["Authorization", "Content-Type", "X-Idempotency-Key"],
     )
     app.add_middleware(
         TrustedHostMiddleware,
@@ -65,17 +96,36 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     app.state.catalog = catalog
     app.state.supervisor = supervisor
     app.state.hub = hub
+    app.state.auth_config = auth_config
+
+    @app.exception_handler(RequestValidationError)
+    async def safe_request_validation_error(
+        _: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        # Rejected input can contain non-UTF-8 Unicode scalars. Never echo it
+        # into the response, and keep the validation contract data-only.
+        errors = [
+            {
+                key: error[key]
+                for key in ("type", "loc", "msg")
+                if key in error
+            }
+            for error in exc.errors()
+        ]
+        return JSONResponse(status_code=422, content={"detail": errors})
 
     def identity(
         authorization: Annotated[Optional[str], Header()] = None,
-        x_dev_actor: Annotated[str, Header()] = "local-operator",
-        x_dev_role: Annotated[str, Header()] = "viewer",
     ) -> Identity:
-        if authorization != f"Bearer {settings.dev_auth_token}":
-            raise HTTPException(status_code=401, detail="invalid development bearer token")
-        if x_dev_role not in {"viewer", "operator", "admin"}:
-            raise HTTPException(status_code=403, detail="invalid development role")
-        return Identity(actor=x_dev_actor, role=x_dev_role)
+        try:
+            claims = authenticate_bearer(authorization, get_auth_config())
+        except AuthenticationError as exc:
+            raise HTTPException(
+                status_code=401,
+                detail=str(exc),
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from exc
+        return Identity(actor=claims.subject, role=claims.role)
 
     IdentityDep = Annotated[Identity, Depends(identity)]
 
@@ -92,7 +142,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     def health() -> dict[str, Any]:
         return {
             "status": "ok",
-            "version": "0.2.0",
+            "version": PRODUCT_VERSION,
             "mode": "simulator-only",
             "operational_use": False,
         }
@@ -105,9 +155,9 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 item = procedure.summary()
                 item.update(
                     {
-                        "version": "0.2",
+                        "version": IR_VERSION,
                         "entrypoint": procedure.path.name,
-                        "source": procedure.path.read_text(encoding="utf-8"),
+                        "source": procedure.source,
                         "steps": list(procedure.steps),
                     }
                 )
@@ -115,6 +165,43 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             return {"items": items}
         except ProcedureValidationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/api/v1/procedures/validate")
+    def validate_procedure(
+        request: ProcedureValidationRequest, _: IdentityDep
+    ) -> dict[str, Any]:
+        subset_version = f"spell-restricted-ast/{IR_VERSION}"
+        try:
+            procedure = catalog.validate_source(request.source, request.source_name)
+        except ProcedureValidationError as exc:
+            try:
+                source_hash: str | None = hashlib.sha256(
+                    request.source.encode("utf-8")
+                ).hexdigest()
+            except UnicodeEncodeError:
+                source_hash = None
+            return {
+                "valid": False,
+                "subset_version": subset_version,
+                "sha256": source_hash,
+                "steps": [],
+                "variables": {},
+                "diagnostics": [item.as_dict() for item in exc.diagnostics],
+            }
+        variables = {
+            step["name"]: step["declared_type"]
+            for step in procedure.steps
+            if step["type"] == "variable_set"
+            and not str(step["name"]).startswith("__spell_")
+        }
+        return {
+            "valid": True,
+            "subset_version": subset_version,
+            "sha256": procedure.sha256,
+            "steps": list(procedure.steps),
+            "variables": variables,
+            "diagnostics": [],
+        }
 
     @app.get("/api/v1/procedures/{procedure_id}")
     def get_procedure(procedure_id: str, _: IdentityDep) -> dict[str, Any]:
@@ -124,7 +211,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="procedure not found") from exc
         result = procedure.summary()
         result.update(
-            {"source": procedure.path.read_text(encoding="utf-8"), "steps": list(procedure.steps)}
+            {"source": procedure.source, "steps": list(procedure.steps)}
         )
         return result
 
@@ -136,10 +223,12 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
     def create_execution(
         request: ExecutionCreate,
         caller: IdentityDep,
-        x_idempotency_key: Annotated[Optional[str], Header()] = None,
+        x_idempotency_key: Annotated[
+            Optional[str], Header(min_length=1, max_length=200)
+        ] = None,
     ) -> dict[str, Any]:
         if request.context_id != "simulator":
-            raise HTTPException(status_code=422, detail="v0.2 supports only the simulator context")
+            raise HTTPException(status_code=422, detail="v0.3 supports only the simulator context")
         key = request.idempotency_key or x_idempotency_key
         if not key:
             raise HTTPException(status_code=422, detail="idempotency_key is required")
@@ -184,7 +273,9 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         execution_id: str,
         request: CommandCreate,
         caller: IdentityDep,
-        x_idempotency_key: Annotated[Optional[str], Header()] = None,
+        x_idempotency_key: Annotated[
+            Optional[str], Header(min_length=1, max_length=200)
+        ] = None,
     ) -> dict[str, Any]:
         key = request.idempotency_key or x_idempotency_key
         if not key:
@@ -210,7 +301,9 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         prompt_id: str,
         request: PromptResponseCreate,
         caller: IdentityDep,
-        x_idempotency_key: Annotated[Optional[str], Header()] = None,
+        x_idempotency_key: Annotated[
+            Optional[str], Header(min_length=1, max_length=200)
+        ] = None,
     ) -> dict[str, Any]:
         key = request.idempotency_key or x_idempotency_key
         if not key:
@@ -261,6 +354,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             "configuration_hash": execution_dict(execution)["configuration_hash"],
             "context_id": execution.context_id,
             "state": execution.state,
+            "variables": execution.variables,
             "commands": commands_data,
             "prompts": [prompt_dict(item) for item in prompts],
             "events": serialized_events,
@@ -269,7 +363,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             json.dumps(integrity_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
         return {
-            "report_version": "0.2",
+            "report_version": REPORT_VERSION,
             "execution_id": execution.id,
             "procedure_name": execution.procedure_name,
             "procedure_hash": execution.procedure_hash,
@@ -277,6 +371,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             "configuration_hash": execution_dict(execution)["configuration_hash"],
             "context_id": execution.context_id,
             "state": execution.state,
+            "variables": execution.variables,
             "started_at": execution.created_at.isoformat(),
             "finished_at": (
                 execution.updated_at.isoformat() if execution.state in {"completed", "aborted", "failed"} else None
@@ -288,6 +383,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 "event_count": len(serialized_events),
                 "command_count": len(commands),
                 "worker_generations": execution.worker_generation,
+                "variable_count": len(execution.variables),
             },
             "commands": commands_data,
             "prompts": [prompt_dict(item) for item in prompts],
@@ -306,13 +402,27 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         after_sequence: int = Query(0, ge=0),
     ) -> None:
         protocols = websocket.scope.get("subprotocols", [])
-        if len(protocols) != 2 or protocols[0] != "spell-auth" or protocols[1] != settings.dev_auth_token:
-            await websocket.close(code=4401, reason="invalid development websocket credentials")
+        if len(protocols) != 2 or protocols[0] != "spell-auth":
+            await websocket.close(code=4401, reason="invalid websocket credentials")
             return
+        try:
+            websocket_identity = decode_token(get_auth_config(), protocols[1])
+        except AuthenticationError:
+            await websocket.close(code=4401, reason="invalid websocket credentials")
+            return
+        seconds_until_expiry = websocket_identity.expires_at - time.time()
+        if seconds_until_expiry <= 0:
+            await websocket.close(code=4401, reason="websocket credentials expired")
+            return
+        loop = asyncio.get_running_loop()
+        expiry_deadline = loop.time() + seconds_until_expiry
         try:
             execution = supervisor.get_execution(execution_id)
         except NotFoundError:
             await websocket.close(code=4404, reason="execution not found")
+            return
+        if loop.time() >= expiry_deadline:
+            await websocket.close(code=4401, reason="websocket credentials expired")
             return
         await websocket.accept(subprotocol="spell-auth")
         if after_sequence > execution.next_sequence - 1:
@@ -342,9 +452,16 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 await websocket.close(code=4409, reason="snapshot resynchronization required")
                 return
             for item in replay:
+                if loop.time() >= expiry_deadline:
+                    await websocket.close(code=4401, reason="websocket credentials expired")
+                    return
                 await websocket.send_json(item)
                 last_sent = item["sequence"]
             while True:
+                seconds_remaining = expiry_deadline - loop.time()
+                if seconds_remaining <= 0:
+                    await websocket.close(code=4401, reason="websocket credentials expired")
+                    return
                 if subscription.overflowed:
                     await websocket.send_json(
                         {
@@ -357,9 +474,13 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                     return
                 try:
                     item = await asyncio.wait_for(
-                        subscription.queue.get(), timeout=settings.websocket_keepalive_seconds
+                        subscription.queue.get(),
+                        timeout=min(settings.websocket_keepalive_seconds, seconds_remaining),
                     )
                 except asyncio.TimeoutError:
+                    if loop.time() >= expiry_deadline:
+                        await websocket.close(code=4401, reason="websocket credentials expired")
+                        return
                     await websocket.send_json({"event_type": "stream.keepalive", "execution_id": execution_id})
                     continue
                 if item["sequence"] <= last_sent:

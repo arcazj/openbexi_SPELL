@@ -5,10 +5,12 @@ import {
   forceResyncExecution,
   ingestEvent,
   resyncExecution,
+  setSelectedProcedure,
   setConnectionPhase,
   startExecution,
+  validateProcedure,
 } from "./store";
-import type { ExecutionSnapshot } from "./types";
+import type { ExecutionSnapshot, ProcedureValidationResult } from "./types";
 
 const snapshot: ExecutionSnapshot = {
   id: "exec-1",
@@ -34,6 +36,55 @@ function testStore() {
 }
 
 describe("console state", () => {
+  it("tracks validation independently and ignores a superseded response", () => {
+    const store = testStore();
+    const args = { procedureId: "checkout", source: "Log('ready')" };
+    const result: ProcedureValidationResult = {
+      valid: true,
+      subset_version: "spell-restricted-ast/0.3",
+      sha256: "a".repeat(64),
+      steps: [{ index: 0, line: 1, type: "log", message: "ready" }],
+      variables: { mode: "simulator" },
+      diagnostics: [],
+    };
+
+    store.dispatch(validateProcedure.pending("validation-1", args));
+    expect(store.getState().console.validation).toMatchObject({
+      procedureId: "checkout",
+      status: "pending",
+    });
+
+    store.dispatch(validateProcedure.fulfilled(result, "stale-validation", args));
+    expect(store.getState().console.validation.status).toBe("pending");
+
+    store.dispatch(validateProcedure.fulfilled(result, "validation-1", args));
+    expect(store.getState().console.validation).toMatchObject({
+      status: "complete",
+      result: { valid: true, subset_version: "spell-restricted-ast/0.3" },
+    });
+
+    store.dispatch(setSelectedProcedure("another-procedure"));
+    expect(store.getState().console.validation).toMatchObject({ status: "idle", result: null });
+  });
+
+  it("keeps validation request failures in the validation workflow", () => {
+    const store = testStore();
+    const args = { procedureId: "checkout", source: "import os" };
+    store.dispatch(validateProcedure.pending("validation-error", args));
+    store.dispatch(
+      validateProcedure.rejected(
+        new Error("Source is outside the restricted subset"),
+        "validation-error",
+        args,
+      ),
+    );
+    expect(store.getState().console.validation).toMatchObject({
+      status: "failed",
+      error: "Source is outside the restricted subset",
+    });
+    expect(store.getState().console.pendingAction).toBeNull();
+  });
+
   it("tracks explicit connection phases", () => {
     const store = testStore();
     store.dispatch(setConnectionPhase("RESYNCING"));

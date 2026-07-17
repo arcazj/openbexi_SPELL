@@ -1,0 +1,166 @@
+{
+  "acceptance_complete": false,
+  "environment": {
+    "database": "temporary SQLite",
+    "platform": "Linux-6.6.26-linuxkit-x86_64-with-glibc2.41",
+    "python": "3.13.14",
+    "transport": "FastAPI TestClient with signed JWT REST authentication; two bounded production EventHub delivery subscriptions; supporting gate only"
+  },
+  "finished_at": "2026-07-17T00:19:05.065099+00:00",
+  "gates": {
+    "event_replay": {
+      "event_count": 10000,
+      "events_per_second": 74283.39,
+      "execution_id": "0b8c70ed-c75e-4ae3-8dd2-92908c99ef2d",
+      "finished_at": "2026-07-17T00:18:04.938021+00:00",
+      "passed": true,
+      "payloads_exact": true,
+      "replay_seconds": 0.13462,
+      "seed_seconds_excluded_from_measurement": 0.20667,
+      "sequence_integrity": {
+        "duplicate_count": 0,
+        "duplicate_examples": [],
+        "exact": true,
+        "expected_count": 10000,
+        "missing_count": 0,
+        "missing_examples": [],
+        "received_count": 10000,
+        "unexpected_count": 0,
+        "unexpected_examples": []
+      },
+      "started_at": "2026-07-17T00:18:04.586875+00:00",
+      "test_id": "V03-PERF-002",
+      "threshold": {
+        "minimum_events": 10000,
+        "missing_or_duplicate_events": 0,
+        "replay_seconds_at_most": 3.0
+      }
+    },
+    "eventhub_fanout": {
+      "achieved_events_per_second": 100.013,
+      "client_queue_overflowed": [
+        false,
+        false
+      ],
+      "clients": 2,
+      "delivery_boundary": "supporting in-process EventHub fan-out boundary",
+      "event_count_excluding_sentinel": 6001,
+      "execution_id": "df29bc44-4eaa-4fc7-9294-2967cd0b5ccc",
+      "finished_at": "2026-07-17T00:19:05.056829+00:00",
+      "measured_duration_seconds": 60.003304,
+      "passed": true,
+      "persisted_sequence_integrity": {
+        "duplicate_count": 0,
+        "duplicate_examples": [],
+        "exact": true,
+        "expected_count": 6002,
+        "missing_count": 0,
+        "missing_examples": [],
+        "received_count": 6002,
+        "unexpected_count": 0,
+        "unexpected_examples": []
+      },
+      "producer_errors": [],
+      "production_elapsed_seconds": 60.002179,
+      "reader_results": [
+        {
+          "delivery_max_ms": 7.372,
+          "delivery_p95_ms": 2.439,
+          "error": null,
+          "name": "client-1",
+          "sequence_integrity": {
+            "duplicate_count": 0,
+            "duplicate_examples": [],
+            "exact": true,
+            "expected_count": 6002,
+            "missing_count": 0,
+            "missing_examples": [],
+            "received_count": 6002,
+            "unexpected_count": 0,
+            "unexpected_examples": []
+          }
+        },
+        {
+          "delivery_max_ms": 7.38,
+          "delivery_p95_ms": 2.442,
+          "error": null,
+          "name": "client-2",
+          "sequence_integrity": {
+            "duplicate_count": 0,
+            "duplicate_examples": [],
+            "exact": true,
+            "expected_count": 6002,
+            "missing_count": 0,
+            "missing_examples": [],
+            "received_count": 6002,
+            "unexpected_count": 0,
+            "unexpected_examples": []
+          }
+        }
+      ],
+      "schedule_max_ms": 4.086,
+      "schedule_p95_ms": 1.77,
+      "started_at": "2026-07-17T00:18:04.938030+00:00",
+      "target_duration_seconds": 60.0,
+      "target_events_per_second": 100.0,
+      "test_id": "V03-PERF-003A",
+      "threshold": {
+        "elapsed_overrun_seconds_at_most": 1.0,
+        "minimum_clients": 2,
+        "minimum_duration_seconds": 60.0,
+        "minimum_rate_events_per_second": 100.0,
+        "missing_or_duplicate_events": 0,
+        "schedule_max_ms_at_most": 1000.0,
+        "schedule_p95_ms_at_most": 250.0
+      },
+      "window_events_per_second": 100.013
+    },
+    "rest_mutations": {
+      "durable_command_states": {
+        "completed": 100
+      },
+      "execution_id": "9717c410-542a-4eb2-8848-ee2c8d85f380",
+      "finished_at": "2026-07-17T00:18:04.586868+00:00",
+      "idempotent_retries": 100,
+      "mutation_types": {
+        "pause": 50,
+        "resume": 50
+      },
+      "passed": true,
+      "primary_max_ms": 16.382,
+      "primary_mutations": 100,
+      "primary_p50_ms": 8.24,
+      "primary_p95_ms": 12.452,
+      "retry_identity_mismatches": 0,
+      "retry_p95_ms": 9.156,
+      "retry_status_codes": [
+        202
+      ],
+      "started_at": "2026-07-17T00:17:58.455257+00:00",
+      "status_codes": [
+        202
+      ],
+      "stored_command_count": 100,
+      "terminal_execution_state": "aborted",
+      "test_id": "V03-PERF-001",
+      "threshold": {
+        "duplicate_outcomes": 0,
+        "minimum_primary_mutations": 100,
+        "primary_p95_ms_at_most": 250.0
+      },
+      "unique_command_ids": 100,
+      "worker_generations": 1,
+      "workers_drained": true
+    }
+  },
+  "generated_at": "2026-07-17T00:17:57.066663+00:00",
+  "overall_pass": true,
+  "product_version": "0.3.0",
+  "profile": "quick",
+  "schema_version": "1.0",
+  "source": {
+    "commit": null,
+    "dirty": null,
+    "fingerprint_sha256": "454d79fdbadc6d5076f415fa9bc1d03dd12552511e58c59330ad5315d50eb734"
+  }
+}

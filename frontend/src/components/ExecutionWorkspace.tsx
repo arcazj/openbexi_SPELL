@@ -16,6 +16,7 @@ import { loadReport, resyncExecution, sendExecutionCommand } from "../store";
 import type { ExecutionSnapshot } from "../types";
 import { ProcedureFlow } from "./ProcedureFlow";
 import { PromptPanel } from "./PromptPanel";
+import { ValidationPanel } from "./ValidationPanel";
 
 const TERMINAL_STATES = new Set(["ABORTED", "FAILED", "COMPLETED"]);
 
@@ -142,9 +143,16 @@ function AbortDialog({ execution }: { execution: ExecutionSnapshot }) {
 
 export function ExecutionWorkspace() {
   const dispatch = useAppDispatch();
-  const { execution, connection, pendingAction } = useAppSelector((state) => state.console);
+  const { execution, connection, pendingAction, validation } = useAppSelector((state) => state.console);
 
   if (!execution) {
+    if (validation.status !== "idle") {
+      return (
+        <main className="empty-workspace validation-workspace">
+          <ValidationPanel />
+        </main>
+      );
+    }
     return (
       <main className="empty-workspace">
         <div className="empty-mark"><FileClock aria-hidden="true" size={32} /></div>
@@ -225,6 +233,8 @@ export function ExecutionWorkspace() {
         </button>
       </div>
 
+      <ValidationPanel />
+
       {stale && (
         <div className="stale-interlock" role="alert">
           <AlertOctagon aria-hidden="true" size={17} />
@@ -242,7 +252,11 @@ export function ExecutionWorkspace() {
           <h3 id="source-title">Procedure source</h3>
           <span>{currentStep ? `Line ${currentStep.line} - ${currentStep.label}` : "Awaiting source position"}</span>
         </div>
-        <ol className="source-list" aria-label="Procedure source with current execution line">
+        <ol
+          className="source-list"
+          tabIndex={0}
+          aria-label="Scrollable procedure source with current execution line"
+        >
           {sourceLines.map((line, index) => {
             const lineNumber = index + 1;
             const active = lineNumber === execution.current_line || execution.steps[index]?.id === execution.current_step_id;

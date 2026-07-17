@@ -161,6 +161,7 @@ export function DataDock() {
             id={`dock-tab-${tab.id}`}
             type="button"
             role="tab"
+            aria-label={tab.label}
             aria-selected={dockTab === tab.id}
             aria-controls={`dock-${tab.id}`}
             key={tab.id}
@@ -177,7 +178,7 @@ export function DataDock() {
         {dockTab === "telemetry" && (
           <div className="telemetry-layout">
             <TelemetryChart />
-            <div className="table-scroll">
+            <div className="table-scroll" tabIndex={0} aria-label="Scrollable telemetry table">
               <table>
                 <thead><tr><th>Parameter</th><th>Value</th><th>Quality</th><th>Source UTC</th></tr></thead>
                 <tbody>
@@ -195,7 +196,7 @@ export function DataDock() {
           </div>
         )}
         {dockTab === "events" && (
-          <div className="table-scroll">
+          <div className="table-scroll" tabIndex={0} aria-label="Scrollable event table">
             <table>
               <thead><tr><th>Seq</th><th>Server UTC</th><th>Type</th><th>Summary</th></tr></thead>
               <tbody>
@@ -210,7 +211,7 @@ export function DataDock() {
           </div>
         )}
         {dockTab === "logs" && (
-          <div className="table-scroll">
+          <div className="table-scroll" tabIndex={0} aria-label="Scrollable log table">
             <table>
               <thead><tr><th>UTC</th><th>Level</th><th>Source</th><th>Message</th></tr></thead>
               <tbody>

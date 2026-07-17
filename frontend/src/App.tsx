@@ -1,5 +1,7 @@
 import { AlertCircle, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { AUTH_CHANGED_EVENT, getAccessToken } from "./api";
+import { AccessTokenGate } from "./components/AccessTokenGate";
 import { ConsoleHeader } from "./components/ConsoleHeader";
 import { DataDock } from "./components/DataDock";
 import { ExecutionWorkspace } from "./components/ExecutionWorkspace";
@@ -11,11 +13,20 @@ import { useExecutionStream } from "./useExecutionStream";
 export default function App() {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.console.error);
-  useExecutionStream();
+  const [authenticated, setAuthenticated] = useState(() => Boolean(getAccessToken()));
+  useExecutionStream(authenticated);
 
   useEffect(() => {
-    void dispatch(bootstrap());
-  }, [dispatch]);
+    const updateAuthentication = () => setAuthenticated(Boolean(getAccessToken()));
+    window.addEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
+  }, []);
+
+  useEffect(() => {
+    if (authenticated) void dispatch(bootstrap());
+  }, [authenticated, dispatch]);
+
+  if (!authenticated) return <AccessTokenGate />;
 
   return (
     <div className="app-frame">
