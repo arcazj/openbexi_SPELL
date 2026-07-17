@@ -3,11 +3,12 @@ from __future__ import annotations
 import multiprocessing
 import hashlib
 import json
+import math
 import queue
 import threading
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -16,13 +17,23 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .events import EventHub
 from .models import Command, Event, Execution, Prompt
-from .procedure_parser import Procedure, ProcedureCatalog
+from .procedure_parser import IR_VERSION, Procedure, ProcedureCatalog
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
 from .worker import worker_main
 
 
 TERMINAL_STATES = {"completed", "aborted", "failed"}
-PROCEDURE_SUBSET_VERSION = "spell-restricted-ast/0.2"
+ACTIVE_STATES = {
+    "starting",
+    "running",
+    "pausing",
+    "paused",
+    "resuming",
+    "prompting",
+    "aborting",
+    "recovering",
+}
+PROCEDURE_SUBSET_VERSION = f"spell-restricted-ast/{IR_VERSION}"
 
 
 def canonical_hash(value: dict[str, Any]) -> str:
@@ -35,7 +46,7 @@ def configuration_hash(procedure: Procedure, context_id: str) -> str:
         {
             "context_id": context_id,
             "procedure_hash": procedure.sha256,
-            "procedure_subset_version": PROCEDURE_SUBSET_VERSION,
+            "procedure_subset_version": f"spell-restricted-ast/{procedure.ir_version}",
             "steps": list(procedure.steps),
         }
     )
@@ -61,6 +72,8 @@ class WorkerHandle:
     generation: int
     normal_exit: bool = False
     intentional_stop: bool = False
+    failure_signal: threading.Event = field(default_factory=threading.Event)
+    failure_detail: str | None = None
 
 
 class Supervisor:
@@ -69,6 +82,7 @@ class Supervisor:
         session_factory: sessionmaker[Session],
         catalog: ProcedureCatalog,
         hub: EventHub,
+        command_ack_timeout_seconds: float = 5.0,
     ):
         self.session_factory = session_factory
         self.catalog = catalog
@@ -77,6 +91,12 @@ class Supervisor:
         self._lock = threading.RLock()
         self._workers: dict[str, WorkerHandle] = {}
         self._closed = False
+        if (
+            not math.isfinite(command_ack_timeout_seconds)
+            or command_ack_timeout_seconds <= 0
+        ):
+            raise ValueError("command ACK timeout must be a positive finite number")
+        self.command_ack_timeout_seconds = command_ack_timeout_seconds
 
     def create_execution(
         self,
@@ -89,6 +109,10 @@ class Supervisor:
     ) -> Execution:
         if role not in {"operator", "admin"}:
             raise AuthorizationError("operator role required")
+        if not idempotency_key or len(idempotency_key) > 200:
+            raise ConflictError(
+                "idempotency key is required and must not exceed 200 characters"
+            )
         creation_request_hash = canonical_hash(
             {
                 "procedure_id": procedure.id,
@@ -99,6 +123,8 @@ class Supervisor:
         )
         published: list[dict[str, Any]] = []
         with self._lock, self.session_factory() as session:
+            if self._closed:
+                raise ConflictError("supervisor is closed")
             existing = session.scalar(
                 select(Execution).where(
                     Execution.created_by == actor,
@@ -121,8 +147,10 @@ class Supervisor:
                 procedure_id=procedure.id,
                 procedure_name=procedure.name,
                 procedure_hash=procedure.sha256,
-                procedure_source=procedure.path.read_text(encoding="utf-8"),
+                procedure_source=procedure.source,
                 steps=list(procedure.steps),
+                ir_version=procedure.ir_version,
+                variables={},
                 total_steps=len(procedure.steps),
                 context_id=context_id,
                 created_by=actor,
@@ -138,7 +166,7 @@ class Supervisor:
                 {
                     "procedure_id": procedure.id,
                     "procedure_hash": procedure.sha256,
-                    "procedure_subset_version": PROCEDURE_SUBSET_VERSION,
+                    "procedure_subset_version": f"spell-restricted-ast/{procedure.ir_version}",
                     "configuration_hash": config_hash,
                     "request_hash": creation_request_hash,
                 },
@@ -216,12 +244,14 @@ class Supervisor:
             execution_id = execution.id
             start_command_id = start_command.id
             self._publish(execution_id, published)
-            try:
-                self._spawn_worker(execution_id, start_command_id)
-            except Exception as exc:
-                self._invalidate_worker(execution_id)
-                self._fail_command(start_command_id, f"worker startup failed: {exc}")
-                self._set_state(execution_id, "recovery_required", source="supervisor")
+        try:
+            handle = self._spawn_worker(execution_id, start_command_id)
+            self._arm_command_watchdog(execution_id, start_command_id, handle)
+        except Exception as exc:
+            self._recover_dispatch_failure(
+                execution_id,
+                f"worker startup failed: {exc}",
+            )
         return self.get_execution(execution_id)
 
     def get_execution(self, execution_id: str) -> Execution:
@@ -243,19 +273,11 @@ class Supervisor:
 
     def reconcile_orphaned_executions(self) -> None:
         """Mark persisted active executions recoverable after a control-plane restart."""
-        active_states = {
-            "starting",
-            "running",
-            "pausing",
-            "paused",
-            "resuming",
-            "prompting",
-            "aborting",
-            "recovering",
-        }
         with self.session_factory() as session:
             execution_ids = list(
-                session.scalars(select(Execution.id).where(Execution.state.in_(active_states))).all()
+                session.scalars(
+                    select(Execution.id).where(Execution.state.in_(ACTIVE_STATES))
+                ).all()
             )
         for execution_id in execution_ids:
             self.append_event(
@@ -270,6 +292,31 @@ class Supervisor:
                 "recovery_required",
                 source="supervisor",
                 preserve_open_prompts=True,
+                pending_command_error="supervisor restarted before command completion",
+            )
+        with self.session_factory() as session:
+            settled_execution_ids = list(
+                session.scalars(
+                    select(Execution.id)
+                    .join(Command, Command.execution_id == Execution.id)
+                    .where(
+                        Execution.state.in_(TERMINAL_STATES | {"recovery_required"}),
+                        Command.status == "accepted",
+                    )
+                    .distinct()
+                ).all()
+            )
+            settled_states = {
+                execution_id: session.get(Execution, execution_id).state
+                for execution_id in settled_execution_ids
+            }
+        for execution_id, state in settled_states.items():
+            self._set_state(
+                execution_id,
+                state,
+                source="supervisor",
+                preserve_open_prompts=state == "recovery_required",
+                pending_command_error="supervisor restarted before command completion",
             )
 
     def snapshot(self, execution_id: str) -> dict[str, Any]:
@@ -361,6 +408,8 @@ class Supervisor:
         published: list[dict[str, Any]] = []
 
         with self._lock, self.session_factory() as session:
+            if self._closed:
+                raise ConflictError("supervisor is closed")
             existing = session.scalar(
                 select(Command).where(
                     Command.execution_id == execution_id,
@@ -434,26 +483,31 @@ class Supervisor:
             if state_event is not None:
                 published.append(event_dict(state_event))
             session.expunge(command)
-
             self._publish(execution_id, published)
-            try:
-                if command_type in {"start", "recover"}:
-                    self._spawn_worker(execution_id, command.id)
-                elif command_type == "simulate_crash":
-                    self._simulate_crash(execution_id, command.id)
-                elif command_type == "abort" and state_before == "recovery_required":
-                    self._set_state(
-                        execution_id, "aborted", source="supervisor", command_id=command.id
-                    )
-                else:
+        try:
+            if command_type in {"start", "recover"}:
+                handle = self._spawn_worker(execution_id, command.id)
+                self._arm_command_watchdog(execution_id, command.id, handle)
+            elif command_type == "simulate_crash":
+                self._simulate_crash(execution_id, command.id)
+            elif command_type == "abort" and state_before == "recovery_required":
+                self._set_state(
+                    execution_id, "aborted", source="supervisor", command_id=command.id
+                )
+            else:
+                with self._lock:
+                    if self._closed:
+                        raise RuntimeError("supervisor is closed")
                     handle = self._workers.get(execution_id)
-                    if handle is None or not handle.process.is_alive():
-                        raise RuntimeError("worker is unavailable")
-                    handle.control.put({"type": command_type, "command_id": command.id, **payload})
-            except Exception as exc:
-                self._invalidate_worker(execution_id)
-                self._fail_command(command.id, f"command dispatch failed: {exc}")
-                self._set_state(execution_id, "recovery_required", source="supervisor")
+                if handle is None or not handle.process.is_alive():
+                    raise RuntimeError("worker is unavailable")
+                handle.control.put({"type": command_type, "command_id": command.id, **payload})
+                self._arm_command_watchdog(execution_id, command.id, handle)
+        except Exception as exc:
+            self._recover_dispatch_failure(
+                execution_id,
+                f"command dispatch failed: {exc}",
+            )
         return command
 
     def respond_to_prompt(
@@ -469,6 +523,10 @@ class Supervisor:
     ) -> Command:
         if role not in {"operator", "admin"}:
             raise AuthorizationError("operator role required")
+        if not idempotency_key or len(idempotency_key) > 200:
+            raise ConflictError(
+                "idempotency key is required and must not exceed 200 characters"
+            )
         request_hash = canonical_hash(
             {
                 "prompt_id": prompt_id,
@@ -481,6 +539,8 @@ class Supervisor:
         )
         published: list[dict[str, Any]] = []
         with self._lock, self.session_factory() as session:
+            if self._closed:
+                raise ConflictError("supervisor is closed")
             prompt = session.get(Prompt, prompt_id)
             if prompt is None:
                 raise NotFoundError("prompt not found")
@@ -552,23 +612,29 @@ class Supervisor:
             session.refresh(command)
             published = [event_dict(accepted), event_dict(reserved)]
             session.expunge(command)
-            self._publish(command.execution_id, published)
-            handle = self._workers.get(command.execution_id)
-            try:
-                if handle is None or not handle.process.is_alive():
-                    raise RuntimeError("worker is unavailable")
-                handle.control.put(
-                    {
-                        "type": "prompt_response",
-                        "command_id": command.id,
-                        "prompt_id": prompt_id,
-                        "response": response,
-                    }
-                )
-            except Exception as exc:
-                self._invalidate_worker(command.execution_id)
-                self._fail_command(command.id, f"prompt dispatch failed: {exc}")
-                self._set_state(command.execution_id, "recovery_required", source="supervisor")
+            execution_id = command.execution_id
+            self._publish(execution_id, published)
+        try:
+            with self._lock:
+                if self._closed:
+                    raise RuntimeError("supervisor is closed")
+                handle = self._workers.get(execution_id)
+            if handle is None or not handle.process.is_alive():
+                raise RuntimeError("worker is unavailable")
+            handle.control.put(
+                {
+                    "type": "prompt_response",
+                    "command_id": command.id,
+                    "prompt_id": prompt_id,
+                    "response": response,
+                }
+            )
+            self._arm_command_watchdog(execution_id, command.id, handle)
+        except Exception as exc:
+            self._recover_dispatch_failure(
+                execution_id,
+                f"prompt dispatch failed: {exc}",
+            )
         return command
 
     @staticmethod
@@ -584,8 +650,10 @@ class Supervisor:
         if state not in allowed[command_type]:
             raise ConflictError(f"cannot {command_type} while execution is {state}")
 
-    def _spawn_worker(self, execution_id: str, command_id: str) -> None:
+    def _spawn_worker(self, execution_id: str, command_id: str) -> WorkerHandle:
         with self._lock, self.session_factory() as session:
+            if self._closed:
+                raise ConflictError("supervisor is closed")
             execution = session.get(Execution, execution_id)
             if execution is None:
                 raise NotFoundError("execution not found")
@@ -608,6 +676,7 @@ class Supervisor:
             generation = execution.worker_generation
             start_step = execution.current_step
             steps = execution.steps
+            checkpoint_variables = dict(execution.variables)
             resume_prompt = session.scalar(
                 select(Prompt).where(
                     Prompt.execution_id == execution_id,
@@ -629,6 +698,7 @@ class Supervisor:
                     start_step,
                     command_id,
                     resume_prompt_id,
+                    checkpoint_variables,
                     control,
                     output,
                 ),
@@ -648,16 +718,83 @@ class Supervisor:
         threading.Thread(
             target=self._monitor_worker, args=(execution_id, handle), daemon=True
         ).start()
+        return handle
+
+    def _arm_command_watchdog(
+        self, execution_id: str, command_id: str, handle: WorkerHandle
+    ) -> threading.Thread:
+        timeout_seconds = self.command_ack_timeout_seconds
+        if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise ValueError("command ACK timeout must be a positive finite number")
+        watchdog = threading.Thread(
+            target=self._watch_command_ack,
+            args=(execution_id, command_id, handle, timeout_seconds),
+            daemon=True,
+        )
+        watchdog.start()
+        return watchdog
+
+    def _watch_command_ack(
+        self,
+        execution_id: str,
+        command_id: str,
+        handle: WorkerHandle,
+        timeout_seconds: float,
+    ) -> None:
+        deadline = time.monotonic() + timeout_seconds
+        retry_delay = 0.05
+        while not self._closed:
+            try:
+                with self.session_factory() as session:
+                    command = session.get(Command, command_id)
+                    if (
+                        command is None
+                        or command.execution_id != execution_id
+                        or command.status != "accepted"
+                    ):
+                        return
+                    command_type = command.command_type
+            except Exception:
+                if self._closed:
+                    return
+                remaining = deadline - time.monotonic()
+                time.sleep(min(retry_delay, remaining) if remaining > 0 else retry_delay)
+                retry_delay = min(retry_delay * 2, 1.0)
+                continue
+
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                time.sleep(min(0.05, remaining))
+                continue
+            self._recover_worker_loss(
+                execution_id,
+                handle,
+                "worker.command_ack_timeout",
+                {
+                    "command_id": command_id,
+                    "command_type": command_type,
+                    "timeout_seconds": timeout_seconds,
+                },
+                f"worker did not acknowledge {command_type} command within "
+                f"{timeout_seconds:g} seconds",
+                pending_command_id=command_id,
+            )
+            return
 
     def _consume_worker(self, execution_id: str, handle: WorkerHandle) -> None:
         dead_since: float | None = None
-        while not self._closed:
+        while not self._closed and not handle.intentional_stop:
             try:
                 message = handle.output.get(timeout=0.2)
             except queue.Empty:
                 try:
                     alive = handle.process.is_alive()
-                except ValueError:
+                except (AssertionError, OSError, ValueError) as exc:
+                    if not handle.intentional_stop:
+                        self._signal_worker_failure(
+                            handle,
+                            f"worker liveness check failed: {type(exc).__name__}: {exc}",
+                        )
                     return
                 if alive:
                     dead_since = None
@@ -666,45 +803,98 @@ class Supervisor:
                 if time.monotonic() - dead_since >= 2.0:
                     return
                 continue
-            except (EOFError, OSError, ValueError):
+            except (EOFError, OSError, ValueError) as exc:
+                if not handle.intentional_stop:
+                    self._signal_worker_failure(
+                        handle,
+                        f"worker output consumer failed: {type(exc).__name__}: {exc}",
+                    )
                 return
-            if not self._worker_message_is_current(execution_id, handle, message):
-                continue
-            kind = message["kind"]
-            if kind == "event":
-                self.append_event(
-                    execution_id,
-                    message["event_type"],
-                    message.get("payload", {}),
-                    source=message.get("source", "worker"),
-                    severity=message.get("severity", "info"),
+            try:
+                kind = message["kind"]
+                if kind == "terminal":
+                    if not self._worker_message_is_current(execution_id, handle, message):
+                        continue
+                    handle.process.join(timeout=2)
+                    if handle.process.is_alive():
+                        self._signal_worker_failure(
+                            handle, "worker remained alive after its terminal message"
+                        )
+                        return
+                    handle.normal_exit = True
+                    self._cleanup_worker(execution_id, handle)
+                    return
+                with self._lock:
+                    if not self._worker_message_is_current(execution_id, handle, message):
+                        continue
+                    if kind == "event":
+                        self.append_event(
+                            execution_id,
+                            message["event_type"],
+                            message.get("payload", {}),
+                            source=message.get("source", "worker"),
+                            severity=message.get("severity", "info"),
+                        )
+                    elif kind == "state":
+                        self._set_worker_state(
+                            execution_id,
+                            message["state"],
+                            command_id=message.get("command_id"),
+                        )
+                    elif kind == "step_commit":
+                        self._commit_step(execution_id, handle.generation, message)
+                    elif kind == "prompt_opened":
+                        self._open_prompt(execution_id, message)
+                    else:
+                        raise ValueError(f"unsupported worker message kind: {kind!r}")
+            except Exception as exc:
+                self._signal_worker_failure(
+                    handle,
+                    f"worker consumer failed while handling a message: "
+                    f"{type(exc).__name__}: {exc}",
                 )
-            elif kind == "state":
-                self._set_worker_state(
-                    execution_id,
-                    message["state"],
-                    command_id=message.get("command_id"),
-                )
-            elif kind == "step_commit":
-                self._commit_step(execution_id, handle.generation, message)
-            elif kind == "prompt_opened":
-                self._open_prompt(execution_id, message)
-            elif kind == "terminal":
-                handle.normal_exit = True
-                handle.process.join(timeout=2)
-                self._cleanup_worker(execution_id, handle)
                 return
 
     def _monitor_worker(self, execution_id: str, handle: WorkerHandle) -> None:
-        try:
-            handle.process.join()
-        except ValueError:
+        while not self._closed and not handle.intentional_stop:
+            if handle.failure_signal.wait(timeout=0.05):
+                self._recover_worker_loss(
+                    execution_id,
+                    handle,
+                    "worker.consumer_failed",
+                    {"error": handle.failure_detail or "worker consumer failed"},
+                    handle.failure_detail or "worker consumer failed",
+                )
+                return
+            try:
+                handle.process.join(timeout=0.05)
+                if not handle.process.is_alive():
+                    break
+            except (AssertionError, OSError, ValueError) as exc:
+                if not self._closed and not handle.intentional_stop:
+                    self._recover_worker_loss(
+                        execution_id,
+                        handle,
+                        "worker.monitor_failed",
+                        {"error": f"{type(exc).__name__}: {exc}"},
+                        f"worker monitor failed: {type(exc).__name__}: {exc}",
+                    )
+                return
+        if self._closed or handle.intentional_stop:
             return
         deadline = time.monotonic() + 3.0
         while time.monotonic() < deadline:
             if self._closed or handle.normal_exit or handle.intentional_stop:
                 return
-            time.sleep(0.05)
+            if handle.failure_signal.wait(timeout=0.05):
+                self._recover_worker_loss(
+                    execution_id,
+                    handle,
+                    "worker.consumer_failed",
+                    {"error": handle.failure_detail or "worker consumer failed"},
+                    handle.failure_detail or "worker consumer failed",
+                )
+                return
         if self._closed or handle.normal_exit or handle.intentional_stop:
             return
         with self._lock:
@@ -717,26 +907,117 @@ class Supervisor:
                     self._cleanup_worker(execution_id, handle)
                     return
             exit_code = handle.process.exitcode
+        self._recover_worker_loss(
+            execution_id,
+            handle,
+            "worker.crashed",
+            {"exit_code": exit_code},
+            f"worker exited unexpectedly with code {exit_code}",
+        )
+
+    @staticmethod
+    def _signal_worker_failure(handle: WorkerHandle, detail: str) -> None:
+        if handle.failure_signal.is_set():
+            return
+        handle.failure_detail = detail
+        handle.failure_signal.set()
+
+    def _recover_worker_loss(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        event_type: str,
+        payload: dict[str, Any],
+        command_error: str,
+        pending_command_id: str | None = None,
+    ) -> None:
+        with self._lock:
+            if (
+                self._closed
+                or handle.intentional_stop
+                or self._workers.get(execution_id) is not handle
+            ):
+                return
+            if pending_command_id is not None:
+                with self.session_factory() as session:
+                    command = session.get(Command, pending_command_id)
+                    if (
+                        command is None
+                        or command.execution_id != execution_id
+                        or command.status != "accepted"
+                    ):
+                        return
             handle.intentional_stop = True
+        terminated = self._terminate_worker(handle)
+        if terminated:
             self._cleanup_worker(execution_id, handle)
+        try:
             self.append_event(
                 execution_id,
-                "worker.crashed",
-                {"exit_code": exit_code},
+                event_type,
+                payload,
                 source="supervisor",
                 severity="error",
             )
-            self._set_state(execution_id, "recovery_required", source="supervisor")
+        except Exception:
+            # The recovery transition below remains the durable source of truth if
+            # recording the supplementary worker-loss event also fails.
+            pass
+        retry_delay = 0.05
+        while not self._closed:
+            try:
+                self._set_state(
+                    execution_id,
+                    "recovery_required",
+                    source="supervisor",
+                    preserve_open_prompts=True,
+                    pending_command_error=command_error,
+                )
+                return
+            except Exception:
+                if self._closed:
+                    return
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 1.0)
+
+    def _recover_dispatch_failure(self, execution_id: str, command_error: str) -> None:
+        try:
+            self._invalidate_worker(execution_id)
+        except RuntimeError as exc:
+            command_error = f"{command_error}; {exc}"
+        retry_delay = 0.05
+        while True:
+            try:
+                self._set_state(
+                    execution_id,
+                    "recovery_required",
+                    source="supervisor",
+                    preserve_open_prompts=True,
+                    pending_command_error=command_error,
+                )
+                return
+            except Exception:
+                if self._closed:
+                    return
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 1.0)
 
     def _simulate_crash(self, execution_id: str, command_id: str) -> None:
-        handle = self._workers.get(execution_id)
+        with self._lock:
+            handle = self._workers.get(execution_id)
+            if handle is not None:
+                handle.intentional_stop = True
         if handle is None or not handle.process.is_alive():
             self._fail_command(command_id, "worker is unavailable")
-            self._set_state(execution_id, "recovery_required", source="supervisor")
+            self._set_state(
+                execution_id,
+                "recovery_required",
+                source="supervisor",
+                preserve_open_prompts=True,
+            )
             return
-        handle.intentional_stop = True
-        handle.process.terminate()
-        handle.process.join(timeout=2)
+        if not self._terminate_worker(handle):
+            raise RuntimeError("simulated crash could not terminate worker")
         exit_code = handle.process.exitcode
         self._cleanup_worker(execution_id, handle)
         self.append_event(
@@ -748,7 +1029,12 @@ class Supervisor:
             causation_id=command_id,
         )
         self._complete_command(command_id, {"state": "recovery_required"})
-        self._set_state(execution_id, "recovery_required", source="supervisor")
+        self._set_state(
+            execution_id,
+            "recovery_required",
+            source="supervisor",
+            preserve_open_prompts=True,
+        )
 
     def _worker_message_is_current(
         self, execution_id: str, handle: WorkerHandle, message: dict[str, Any]
@@ -756,7 +1042,10 @@ class Supervisor:
         if message.get("generation") != handle.generation:
             return False
         with self._lock:
-            if self._workers.get(execution_id) is not handle:
+            if (
+                handle.intentional_stop
+                or self._workers.get(execution_id) is not handle
+            ):
                 return False
             with self.session_factory() as session:
                 execution = session.get(Execution, execution_id)
@@ -787,6 +1076,9 @@ class Supervisor:
                 raise ConflictError("worker checkpoint is not contiguous")
 
             prompt_resolution = message.get("prompt_resolution")
+            checkpoint_variables = message.get("variables")
+            if not isinstance(checkpoint_variables, dict):
+                raise ConflictError("worker checkpoint variables are missing or invalid")
             if prompt_resolution is not None:
                 prompt = session.get(Prompt, prompt_resolution["prompt_id"])
                 command = session.get(Command, prompt_resolution["command_id"])
@@ -833,19 +1125,24 @@ class Supervisor:
                     )
                 )
             execution.current_step = next_step
+            execution.variables = checkpoint_variables
             published.append(
                 event_dict(
                     self._add_event(
                         session,
                         execution,
                         "execution.checkpointed",
-                        {"next_step": next_step, "generation": generation},
+                        {
+                            "next_step": next_step,
+                            "generation": generation,
+                            "variables": checkpoint_variables,
+                        },
                         source="supervisor",
                     )
                 )
             )
             session.commit()
-        self._publish(execution_id, published)
+            self._publish(execution_id, published)
         return True
 
     def _open_prompt(self, execution_id: str, message: dict[str, Any]) -> None:
@@ -904,7 +1201,7 @@ class Supervisor:
                 )
                 published.append(event_dict(state_event))
             session.commit()
-        self._publish(execution_id, published)
+            self._publish(execution_id, published)
 
     def _set_worker_state(
         self, execution_id: str, state: str, command_id: str | None = None
@@ -917,6 +1214,7 @@ class Supervisor:
             "completed": {"running", "completed"},
             "failed": {"starting", "running", "recovering", "failed"},
         }
+        pending_command_error: str | None = None
         with self._lock:
             with self.session_factory() as session:
                 execution = session.get(Execution, execution_id)
@@ -930,20 +1228,16 @@ class Supervisor:
                         "aborting",
                     }:
                         return
-                    pending_query = select(Command.id).where(
-                        Command.execution_id == execution_id,
-                        Command.status == "accepted",
+                    pending_command_error = (
+                        f"worker reached {state} before command dispatch"
                     )
-                    if command_id is not None:
-                        pending_query = pending_query.where(Command.id != command_id)
-                    pending_ids = list(session.scalars(pending_query).all())
-                else:
-                    pending_ids = []
-            for pending_id in pending_ids:
-                self._fail_command(
-                    pending_id, f"worker reached {state} before command dispatch"
-                )
-            self._set_state(execution_id, state, source="worker", command_id=command_id)
+            self._set_state(
+                execution_id,
+                state,
+                source="worker",
+                command_id=command_id,
+                pending_command_error=pending_command_error,
+            )
 
     def _set_state(
         self,
@@ -952,6 +1246,7 @@ class Supervisor:
         source: str,
         command_id: str | None = None,
         preserve_open_prompts: bool = False,
+        pending_command_error: str | None = None,
     ) -> None:
         published: list[dict[str, Any]] = []
         with self._lock, self.session_factory() as session:
@@ -964,11 +1259,18 @@ class Supervisor:
             if previous != state:
                 execution.state = state
                 execution.revision += 1
+                state_payload: dict[str, Any] = {
+                    "previous": previous,
+                    "state": state,
+                    "revision": execution.revision,
+                }
+                if pending_command_error is not None:
+                    state_payload["reason"] = pending_command_error
                 state_event = self._add_event(
                     session,
                     execution,
                     "execution.state_changed",
-                    {"previous": previous, "state": state, "revision": execution.revision},
+                    state_payload,
                     source=source,
                     causation_id=command_id,
                 )
@@ -1045,17 +1347,35 @@ class Supervisor:
                                     causation_id=pending.id,
                                 )
                                 published.append(event_dict(failed_event))
+            if state in TERMINAL_STATES | {"recovery_required"}:
+                pending_commands = session.scalars(
+                    select(Command).where(
+                        Command.execution_id == execution_id,
+                        Command.status == "accepted",
+                    )
+                ).all()
+                error = pending_command_error or (
+                    f"execution entered {state} before command completion"
+                )
+                for pending in pending_commands:
+                    if command_id is not None and pending.id == command_id:
+                        continue
+                    failed_event = self._fail_command_in_session(
+                        session, execution, pending, error
+                    )
+                    if failed_event is not None:
+                        published.append(event_dict(failed_event))
             revision = execution.revision
             if command_id is not None:
                 command = session.get(Command, command_id)
-                if command is not None:
+                if command is not None and command.execution_id == execution_id:
                     completed = self._complete_command_in_session(
                         session, execution, command, {"state": state, "revision": revision}
                     )
                     if completed is not None:
                         published.append(event_dict(completed))
             session.commit()
-        self._publish(execution_id, published)
+            self._publish(execution_id, published)
 
     def _complete_command(self, command_id: str, result: dict[str, Any]) -> None:
         published: list[dict[str, Any]] = []
@@ -1071,7 +1391,7 @@ class Supervisor:
             session.commit()
             if event is not None:
                 published = [event_dict(event)]
-        self._publish(execution_id, published)
+            self._publish(execution_id, published)
 
     def _complete_command_in_session(
         self,
@@ -1101,26 +1421,38 @@ class Supervisor:
             command = session.get(Command, command_id)
             if command is None or command.status != "accepted":
                 return
-            command.status = "failed"
-            command.result_payload = {"error": message}
-            command.completed_at = datetime.now(timezone.utc)
             execution_id = command.execution_id
             execution = session.get(Execution, execution_id)
             if execution is None:
                 return
-            event = self._add_event(
-                session,
-                execution,
-                "command.failed",
-                {"command_id": command_id, "error": message},
-                source="supervisor",
-                severity="error",
-                correlation_id=command.correlation_id,
-                causation_id=command_id,
-            )
+            event = self._fail_command_in_session(session, execution, command, message)
             session.commit()
-            published = [event_dict(event)]
-        self._publish(execution_id, published)
+            if event is not None:
+                published = [event_dict(event)]
+            self._publish(execution_id, published)
+
+    def _fail_command_in_session(
+        self,
+        session: Session,
+        execution: Execution,
+        command: Command,
+        message: str,
+    ) -> Event | None:
+        if command.status != "accepted":
+            return None
+        command.status = "failed"
+        command.result_payload = {"error": message}
+        command.completed_at = datetime.now(timezone.utc)
+        return self._add_event(
+            session,
+            execution,
+            "command.failed",
+            {"command_id": command.id, "error": message},
+            source="supervisor",
+            severity="error",
+            correlation_id=command.correlation_id,
+            causation_id=command.id,
+        )
 
     def append_event(
         self,
@@ -1148,8 +1480,9 @@ class Supervisor:
             )
             session.commit()
             serialized = event_dict(event)
-        # Publishing is intentionally after the database commit.
-        self.hub.publish(execution_id, serialized)
+            # Commit and publication share the supervisor lock so live subscribers
+            # observe the same per-execution order as the durable event log.
+            self.hub.publish(execution_id, serialized)
         return serialized
 
     @staticmethod
@@ -1188,13 +1521,32 @@ class Supervisor:
             if handle is None:
                 return
             handle.intentional_stop = True
-            try:
-                if handle.process.is_alive():
-                    handle.process.terminate()
-                    handle.process.join(timeout=2)
-            except (AssertionError, OSError, ValueError):
-                pass
-            self._cleanup_worker(execution_id, handle)
+        if not self._terminate_worker(handle):
+            raise RuntimeError("worker termination failed; generation remains fenced")
+        self._cleanup_worker(execution_id, handle)
+
+    @staticmethod
+    def _terminate_worker(handle: WorkerHandle) -> bool:
+        try:
+            if not handle.process.is_alive():
+                return True
+        except (AssertionError, AttributeError, OSError, ValueError):
+            return False
+        try:
+            handle.process.terminate()
+            handle.process.join(timeout=2)
+        except (AssertionError, AttributeError, OSError, ValueError):
+            pass
+        try:
+            if handle.process.is_alive():
+                handle.process.kill()
+                handle.process.join(timeout=2)
+        except (AssertionError, AttributeError, OSError, ValueError):
+            pass
+        try:
+            return not handle.process.is_alive()
+        except (AssertionError, AttributeError, OSError, ValueError):
+            return False
 
     def _cleanup_worker(self, execution_id: str, handle: WorkerHandle) -> None:
         with self._lock:
@@ -1226,12 +1578,43 @@ class Supervisor:
             return [event_dict(event) for event in events]
 
     def close(self) -> None:
-        self._closed = True
         with self._lock:
+            self._closed = True
             handles = tuple(self._workers.items())
-        for execution_id, handle in handles:
-            if handle.process.is_alive():
+            for _, handle in handles:
                 handle.intentional_stop = True
-                handle.process.terminate()
-                handle.process.join(timeout=2)
+        for execution_id, handle in handles:
+            self._terminate_worker(handle)
             self._cleanup_worker(execution_id, handle)
+
+        with self.session_factory() as session:
+            execution_ids = set(
+                session.scalars(
+                    select(Execution.id).where(Execution.state.in_(ACTIVE_STATES))
+                ).all()
+            )
+            execution_ids.update(
+                session.scalars(
+                    select(Command.execution_id)
+                    .where(Command.status == "accepted")
+                    .distinct()
+                ).all()
+            )
+            states = {
+                execution_id: session.get(Execution, execution_id).state
+                for execution_id in execution_ids
+                if session.get(Execution, execution_id) is not None
+            }
+        for execution_id, state in states.items():
+            target_state = (
+                state
+                if state in TERMINAL_STATES | {"recovery_required"}
+                else "recovery_required"
+            )
+            self._set_state(
+                execution_id,
+                target_state,
+                source="supervisor",
+                preserve_open_prompts=target_state == "recovery_required",
+                pending_command_error="supervisor stopped before command completion",
+            )

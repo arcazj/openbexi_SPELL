@@ -1,254 +1,255 @@
-# General Execution Prompt
+# OpenBEXI SPELL Project Instructions
 
-This file defines the durable project context and execution rules for
-`openbexi_spell`. It applies to all future analysis, documentation, development,
-testing, integration, and release work unless a more specific approved project
-document overrides it.
+This file is the durable execution prompt for `openbexi_spell`. Read it before
+analysis, design, implementation, testing, integration, packaging, or release
+work. Release-specific requests and results belong in `PROMPT_History.md`,
+`Test_and_Integration.md`, and the applicable version record.
 
-Keep this file focused on stable project rules. Record release-specific requests,
-versions, dates, and verification results in dedicated history or release
-documents after those documents have been introduced. Do not invent supporting
-files, commands, or workflows that are not present in the repository.
+## Mission
 
-## Project Mission
+OpenBEXI SPELL is a clean-room modernization of the Satellite Procedure
+Execution Language and Library. Its purpose is to make automated satellite
+procedures readable, repeatable, observable, portable across organizations, and
+independent of a particular Ground Control System or spacecraft.
 
-SPELL is the Satellite Procedure Execution Language and Library. It is an open
-framework for developing and executing automated satellite procedures through
-different Ground Control Systems and for different spacecraft platforms.
+Reliability, deterministic behavior, traceability, explicit recovery, and
+operator control take priority over convenience or visual novelty. The project
+must reduce operational risk; a local simulator result must never be presented
+as operational qualification.
 
-The goals of `openbexi_spell` are to support the evolution, integration, and use
-of SPELL while preserving these principles:
+## Current Baseline
 
-- Provide a powerful and readable satellite-operations language.
-- Make procedures shareable across satellite operators and manufacturers.
-- Reduce operational risk, human error, and procedure maintenance cost.
-- Execute procedures in a repeatable, reliable, observable, and auditable way.
-- Keep shared automation independent of a particular spacecraft or Ground
-  Control System.
-- Preserve well-defined integration boundaries so deployments can be adapted
-  without changing common procedure behavior.
+SPELL v0.3 is a local, simulator-only engineering release built from new
+first-party code:
 
-This is operational software. Reliability, traceability, compatibility, and
-explicit failure handling take priority over convenience or cosmetic refactoring.
+- Python 3.13 FastAPI control plane and isolated procedure workers.
+- Restricted AST parser and data-only IR; submitted Python text is never
+  imported, compiled, evaluated, or executed.
+- Bounded binary source reads, AST complexity, expansion, and serialized IR;
+  malformed text receives stable non-echoing diagnostics before persistence.
+- Typed variables, safe expressions, deterministic conditions, bounded loops,
+  bounded zero-argument local calls, and durable variable checkpoints.
+- SQLite development storage and PostgreSQL 18 target storage with ordered,
+  versioned migrations.
+- Versioned REST mutations and snapshots plus authenticated, downstream-only,
+  ordered WebSocket events.
+- React and strict TypeScript real-time 2D operator console. Java, Eclipse,
+  SWT, and Three.js are not runtime dependencies.
+- Signed short-lived JWT identity, server-enforced viewer/operator/admin roles,
+  loopback reverse-proxy ingress, and an internal backend/database network.
+- Hash-locked Python dependencies, npm integrity locking, reproducible source
+  packages, distinct backend/proxy/frontend CycloneDX SBOMs, and dependency
+  audit gates.
 
-## Current Project Baseline
+The baseline has no driver host, Ground Control System client, spacecraft
+connection, operational telecommand path, persistent procedure authoring,
+high-availability deployment, or operational authorization. Configuration must
+not make any of those capabilities appear to exist.
 
-The repository begins with three upstream distribution archives and this project
-guidance. Treat the archives as inputs and reference material until an approved
-task establishes the working source layout:
+## Legacy Evidence
 
-- `SPELL2.6.10-src.zip` contains the SPELL 2.6.10 core source baseline. The
-  verified source uses C++, Python, Unix shell tooling, GNU Autotools, XML
-  configuration, and protobuf/gRPC interfaces.
-- `SPELL-COTS-2.6.10.zip` is a third-party dependency bundle. It is vendored
-  material, not ordinary application source.
-- `SPELL_GUI_4.0.12-win32.win32.x86.zip` is a prebuilt 32-bit Windows Eclipse
-  RCP/SWT GUI distribution. It is not GUI source code.
+The following excluded archives are read-only compatibility and historical
+evidence. Never compile, import, link, package, or silently copy implementation
+code from them into the Apache-2.0 project:
 
-Core SPELL and SPELL GUI have separate version series. Do not force them to use
-one version number or assume that similarly named packages have identical
-release procedures.
+- `SPELL2.6.10-src.zip`: legacy C++/Python core source.
+- `SPELL-COTS-2.6.10.zip`: legacy third-party dependency bundle.
+- `SPELL_GUI_4.0.12-win32.win32.x86.zip`: legacy 32-bit Eclipse GUI binary.
 
-Before changing any artifact, classify it as first-party source, generated code,
-configuration, procedure content, optional integration code, vendored dependency,
-or binary distribution. Preserve that ownership boundary throughout the change.
+The Server, GUI, Language, Driver Development, Development Environment, and
+Build manuals remain required references when a future version touches their
+behavior. Record missing manuals or conflicts; do not invent compatibility.
+Core and GUI legacy versions are independent version series.
 
-## SPELL Architecture
+## Architecture Rules
 
-The upstream SPELL suite identifies five application families. Their exact
-availability and version in `openbexi_spell` must be confirmed from the local
-source and documentation before work begins:
+- Keep the browser, control plane, execution worker, persistence, and future
+  integration adapters as separate trust and ownership boundaries.
+- REST is authoritative for commands and snapshots. Mutations require durable
+  idempotency keys; state-sensitive commands require expected revisions.
+- WebSocket is downstream-only. Persist ordered events before publication, and
+  recover gaps through snapshot plus cursor replay.
+- Parse procedure source into a versioned, normalized, data-only IR. Maintain an
+  explicit allowlist; reject imports, attributes, reflection, arbitrary calls,
+  dynamic loop bounds, recursion, filesystem, network, database, subprocess,
+  asynchronous, and exception syntax.
+- Bound source bytes before decoding or parsing, then bound AST nodes and depth,
+  expanded steps, and serialized IR bytes before IR is handed to a worker or
+  persisted. Catalog discovery must use bounded binary reads and reject files
+  that exceed policy before reading their contents into memory.
+- Reject invalid UTF-8, unpaired Unicode surrogates, and NUL characters with
+  stable structured diagnostics that never echo submitted source. Preserve the
+  exact accepted source and compute its SHA-256 over the same exact text; do not
+  substitute normalized or reparsed text for either value.
+- Enforce definite assignment across branches, loops, and local calls. Protect
+  compiler/runtime-reserved names from user declarations, assignments, loop
+  targets, and function definitions.
+- Commit procedure position, variables, effects, prompts, commands, events, and
+  audit data atomically at safe checkpoints. Fence stale worker generations.
+- Preserve one durable outcome under retry, concurrency, late worker messages,
+  database failure, process restart, and recovery. Every accepted command must
+  reach a durable terminal outcome on worker terminal messages, consumer
+  failure, bounded shutdown, and supervisor restart; no accepted command may
+  remain indefinitely pending.
+- Keep any future GCS or spacecraft behavior behind typed driver boundaries.
+  Neither the browser nor the control plane may directly access an operational
+  integration.
+- Do not add Java. A future Three.js feature requires explicit version scope and
+  must not replace the primary accessible 2D control surface.
 
-- **SPELL Server** provides the real-time procedure execution environment and
-  integration with Ground Control Systems.
-- **SPELL Library** extends Python with language elements and runtime services
-  for satellite operations.
-- **SPELL Shell** provides a command-line interface to SPELL capabilities.
-- **SPELL GUI** is the Eclipse RCP/SWT operator application used to connect to
-  an execution environment and control procedures.
-- **SPELL Development Environment** is the Eclipse-based environment used to
-  develop, check, version, and maintain procedures.
+## Safety Rules
 
-The core source baseline also contains contexts, executors, services, listeners,
-configuration services, procedure support, spacecraft database access, IPC, and
-driver interfaces. Ground Control System behavior belongs behind the driver and
-service abstractions. Do not assume that optional or proprietary driver
-implementations referenced by build files are included in the repository.
+- Never connect to a live Ground Control System, spacecraft, or mission network
+  without an explicit approved task, environment, procedure, and test plan.
+- Use simulated, recorded, stubbed, or otherwise non-operational data by
+  default. Keep simulator identifiers and operational disclaimers visible in
+  API metadata, reports, and release records.
+- Preserve prompts, holds, confirmations, aborts, disconnect interlocks, and
+  recovery barriers. Never weaken them silently.
+- Never retry an externally effective command automatically. An uncertain
+  result requires reconciliation before any later operational implementation
+  may continue.
+- Validate telemetry identity, unit, time, freshness, validity, quality, and
+  limits before a future operational decision consumes it.
+- Preserve chronological events, commands, user identity, reasons, prompts,
+  hashes, state transitions, checkpoints, results, and as-run evidence.
+- Treat timeout, cancellation, stale data, partial response, disconnect,
+  restart, migration failure, worker loss, and malformed input as normal failure
+  cases with explicit behavior.
+- Fail closed when identity, role, driver, service, schema, procedure,
+  dependency, secret, or configuration is missing or incompatible.
 
-Configuration and interface contracts include XML files, protobuf/gRPC schemas,
-socket or IPC protocols, Python procedure APIs, and driver interfaces. These are
-cross-component contracts and must be treated as compatibility-sensitive.
+## Identity And Network Rules
 
-Deployment material in the source archive includes container, Kubernetes,
-Kustomize, Helm, and CI definitions. Their presence does not prove that every
-deployment target is currently supported or reproducible in this repository.
+- Derive actor and role only from a verified signed credential. Never trust
+  caller-supplied actor or role headers.
+- Validate JWT algorithm, signature, issuer, audience, subject, role, issued-at,
+  not-before, expiry, identifier, and maximum lifetime.
+- Re-evaluate WebSocket credential expiry after the connection is established
+  and close an expired session with code `4401`. The frontend must close its
+  socket and erase session credentials on logout, and a `4401` close must erase
+  the stored token and return the operator to session access.
+- Development token issuance must be disabled by default, explicitly enabled,
+  loopback-only, short-lived, and unavailable through a general HTTP endpoint.
+- Do not embed tokens or signing secrets in frontend builds, source, examples,
+  logs, reports, packages, screenshots, or commits.
+- Expose only the loopback reverse proxy in the local Compose profile. The
+  backend and database remain un-published on an internal network, and the
+  backend must have no general public-network route.
+- Keep trusted-host, CORS, content-security, framing, content-type, and referrer
+  policies constrained to the required local surface.
 
-## Operational Safety Rules
+## Compatibility And Evolution
 
-- Never connect tests or exploratory changes to a live Ground Control System or
-  spacecraft unless the task explicitly authorizes it and provides an approved
-  environment and procedure.
-- Default to isolated, simulated, recorded, stubbed, or otherwise non-operational
-  data sources for development and verification.
-- Keep mission-specific and Ground Control System-specific behavior out of shared
-  execution, language, and procedure components. Implement such behavior through
-  documented configuration, databases, adapters, or drivers.
-- Make command submission, acknowledgement, timeout, cancellation, retry, abort,
-  and recovery behavior explicit. Never add an automatic telecommand retry
-  without proving that the operation is safe and approved for repetition.
-- Preserve operator prompts, holds, confirmations, overrides, and abort paths.
-  Do not silently weaken an existing safety barrier.
-- Validate telemetry identity, units, timestamps, freshness, validity, limits,
-  and quality before using it to make an operational decision.
-- Preserve chronological logs, procedure status, command and telemetry evidence,
-  user actions, and as-run records needed to reconstruct an execution.
-- Treat disconnection, partial responses, stale data, restart, warm-start, and
-  interrupted execution as normal failure cases that require defined behavior.
-- Fail clearly when a required driver, service, schema, database, procedure,
-  dependency, or configuration is missing or incompatible.
+- Treat REST schemas, WebSocket events, IR versions, procedure semantics,
+  migration history, persisted fields, command outcomes, and report hashes as
+  versioned contracts.
+- Prefer backward-compatible additions. Any breaking change requires an
+  approved migration, rollback plan, compatibility evidence, and explicit
+  release note.
+- Never edit an applied migration. Add an ordered migration and test fresh,
+  prior-version, repeated, and failed-upgrade paths on SQLite and PostgreSQL.
+- Migration revisions are immutable, static schema transformations. They must
+  not derive an applied revision from live ORM metadata or mutable application
+  models.
+- Keep legacy compatibility evidence separate from claims of full legacy SPELL
+  language compatibility. Unsupported syntax must fail with stable diagnostics.
+- Do not claim support for an operating system, browser, GCS, spacecraft,
+  driver, deployment, performance level, or recovery mode until its gate has
+  actually passed.
 
-## Compatibility Rules
+## Repository And Supply Chain
 
-- Preserve Ground Control System and spacecraft-platform independence in common
-  code and procedure APIs.
-- Maintain existing public APIs, procedure semantics, configuration structure,
-  message fields, and persisted data unless the task explicitly approves a
-  breaking change and its migration plan.
-- The core baseline supports both Python 2 and Python 3 build paths. Do not remove
-  either path, modernize syntax globally, or replace runtime assumptions until
-  the supported compatibility matrix has been explicitly changed.
-- Regenerate all affected bindings after an approved protobuf or other generated
-  interface change. Never edit generated bindings as the source of truth.
-- Keep schema evolution backward-compatible where feasible. Document field,
-  default, enum, unit, timing, and error-semantics changes.
-- Preserve XML element names, attributes, identifiers, encodings, and lookup
-  behavior unless migration and compatibility are part of the task.
-- Treat optional drivers and deployment integrations as optional. A missing
-  proprietary implementation must not be replaced with invented behavior.
-- Verify platform claims independently. The current core build instructions are
-  POSIX-oriented, while the supplied GUI is a Windows x86 binary distribution.
+- The new first-party implementation is licensed under Apache License 2.0. The
+  project license does not relicense excluded legacy archives or dependencies.
+- Keep legacy ZIPs, IDE metadata, build output, caches, credentials, tokens,
+  private certificates, machine paths, and local databases out of commits and
+  release packages.
+- Do not edit vendored legacy COTS code to implement product behavior.
+- Use exact dependency locks with artifact hashes where the ecosystem supports
+  them. Install Python release dependencies with `--require-hashes` and Node
+  dependencies with `npm ci`.
+- Produce separate backend, proxy, and frontend SBOMs plus a checksum manifest,
+  and run dependency audits for every release. Critical or High findings
+  require resolution; every other advisory requires a recorded, time-bounded
+  disposition.
+- Build the release package twice from the same frozen source and require
+  identical SHA-256 results. The manifest must exclude archives, secrets,
+  generated browser screenshots, caches, and IDE files. Screenshot exclusion
+  must be path- and file-type-specific; it must retain PNG or other visual
+  assets that are part of the product.
+- Bind quick, soak, and real-browser evidence to one shared source fingerprint.
+  Exercise the browser stream with two independent Chromium processes, then
+  compose the three reports in a separate validation step that recomputes their
+  identities, gates, and integrity instead of trusting a pre-composed result.
+- Preserve unrelated user changes. Do not rewrite or discard them to obtain a
+  clean working tree.
 
-## Repository and Dependency Rules
+## Version Workflow
 
-- Do not modify or replace the original ZIP archives unless the user explicitly
-  requests an archive-management task.
-- Do not edit vendored COTS source to implement application behavior. Prefer an
-  upstream fix, a documented patch, or an application-side integration change.
-- Do not commit build outputs, extracted binary distributions, caches, local IDE
-  state, credentials, private certificates, tokens, or machine-specific paths.
-- Some archived deployment files may reference private registries, proxies, or
-  internal infrastructure. Treat those values as sensitive and never reproduce
-  them in new public documentation or configuration.
-- Verify the license of each component before copying, redistributing, linking,
-  or changing it. The core source is GPL-licensed, while upstream SPELL
-  components and Eclipse-based components may use different compatible licenses.
-- Keep changes narrowly scoped. Do not combine dependency upgrades, formatting,
-  generated-file churn, protocol changes, and functional work without a concrete
-  need.
-- Preserve unrelated user changes and untracked files. Never discard or rewrite
-  them to obtain a clean working tree.
+1. Read this file, the latest entry at the top of `PROMPT_History.md`, the
+   current release record, provenance, and relevant code/tests.
+2. Inspect repository and dependency state. Establish the last verified tag and
+   keep unrelated or local-only files out of the change.
+3. Before implementation, add the new version request at the top of
+   `PROMPT_History.md`, define scope and exclusions, and add requirements and
+   acceptance tests to `Test_and_Integration.md`.
+4. Do not implement until that pre-implementation gate is explicit. Resolve
+   ambiguity by narrowing scope, especially around operational behavior.
+5. Implement in small ownership-aligned changes. Update migrations, schemas,
+   examples, documentation, threat controls, and tests with the behavior.
+6. Execute every mandatory gate. Record exact environments, commands, totals,
+   timings, failures, exceptions, and artifact hashes. Never report an
+   unexecuted test as passed.
+7. Update `README.md`, `PROVENANCE.md`, the version release record, test results,
+   and the latest history entry. Keep earlier history immutable.
+8. Commit only intended project files, create the requested annotated version
+   tag, and leave the verified local service running on its documented
+   loopback URL when the release includes a web application.
 
-## Before Starting a Task
+## Required Verification
 
-1. Read this file and all existing repository documentation relevant to the task.
-2. Inspect the current repository state and determine whether the required source
-   has been extracted, generated, or added since this baseline was written.
-3. Read the component's local `README`, `INSTALL`, `LICENSE`, release notes,
-   configuration examples, build definitions, and tests before proposing changes.
-4. Identify affected execution paths, procedure APIs, drivers, schemas,
-   configurations, deployment targets, and operator workflows.
-5. State any safety, compatibility, licensing, dependency, or platform risk that
-   materially affects the work.
-6. Establish the best available build and test baseline. If the environment lacks
-   required dependencies, record that limitation instead of inventing a result.
-7. Define acceptance criteria that cover expected behavior and relevant failure
-   and recovery cases.
+Scale verification with risk, but every product release must include:
 
-Do not assume that instructions from another OpenBEXI project apply here. In
-particular, browser-only, Three.js, satellite.js, npm, and Earth-visualization
-rules are not part of `openbexi_spell` unless this repository later introduces
-and documents such a component.
+- Python compilation and backend unit/integration tests with Docker networking
+  disabled using SQLite.
+- Full backend tests against the target PostgreSQL version, including fresh and
+  prior-version migrations.
+- Parser allowlist, type, complexity, recursion, loop-bound, size, and
+  non-execution tests.
+- Authentication, role-spoofing, token-policy, ingress, header, internal-service,
+  and outbound-isolation tests.
+- Crash, pause, prompt, abort, database-failure, restart, recovery,
+  idempotency, concurrency, late-message, and audit-integrity tests.
+- Frontend unit tests, strict TypeScript production build, desktop/mobile real
+  browser workflows, keyboard control, responsive containment, and Axe checks.
+- Canonical replay, latency, throughput, concurrency, and sustained soak tests
+  against version-specific budgets. These are engineering gates, not
+  operational SLOs.
+- Fingerprint-bound quick, soak, and two-Chromium real-browser reports composed
+  by an independent validation step. Run the canonical release qualification
+  through `scripts/qualify_release.ps1`.
+- Hash-locked dependency installation, Python and Node audits, SBOM generation,
+  proxy validation, package-manifest inspection, exact screenshot-only evidence
+  exclusion, and two-build reproducibility. Run the canonical complete build
+  and packaging gate through `scripts/build_v03.ps1`.
 
-## Making Changes
-
-- Follow the structure, naming, ownership boundaries, error conventions, and
-  build patterns already used by the affected SPELL component.
-- Prefer small, reviewable changes with clear behavior over broad rewrites of the
-  imported baseline.
-- Keep common language and execution behavior separate from mission databases,
-  environment configuration, and driver implementations.
-- Use structured parsers and generators for XML, protobuf, and other structured
-  formats. Do not manipulate them with fragile text replacement.
-- Preserve procedure readability. Operational intent, conditions, timeouts,
-  expected responses, and recovery behavior must remain apparent to reviewers
-  and operators.
-- Add concise comments only where safety intent, protocol behavior, or a
-  non-obvious compatibility constraint would otherwise be unclear.
-- Update documentation and examples when setup, configuration, procedure syntax,
-  interfaces, supported environments, or operator behavior changes.
-- Do not claim support for a platform, Ground Control System, spacecraft, driver,
-  or deployment until it has been verified at the appropriate level.
-
-## Build and Verification
-
-Use the build instructions shipped with the actual source being changed. For the
-initial core 2.6.10 baseline, the verified build system is GNU Autotools with an
-out-of-tree configure and make workflow. Dependency locations may be supplied
-through `SPELL_COTS`, compiler and linker flags, `PATH`, and
-`LD_LIBRARY_PATH`. Do not hard-code local dependency paths into tracked files.
-
-Verification must scale with the affected surface and should include the
-applicable items below:
-
-- Configure and build the affected native components with the supported toolchain.
-- Run available native unit tests when the CppUnit test option and dependencies
-  are available.
-- Validate affected Python modules and procedures under every supported Python
-  runtime that the change touches.
-- Parse and validate changed XML configuration and exercise invalid-input cases.
-- Regenerate and validate protobuf/gRPC artifacts when schemas change, including
-  compatibility with existing peers where possible.
-- Test Ground Control System drivers against approved stubs, simulators, recorded
-  data, or non-operational integration environments.
-- Exercise success, timeout, cancellation, disconnect, restart, recovery, and
-  partial-failure behavior when those paths are affected.
-- Validate container and deployment definitions with their native tools when they
-  change, without publishing images or applying to a cluster unless authorized.
-- Treat the supplied GUI binary as a reference and smoke-test target only. GUI
-  source changes require an actual GUI source baseline and its documented build
-  environment.
-- Check that logs and as-run evidence remain complete and do not expose secrets.
-
-Report exactly what was run, what passed, what failed, and what could not be run.
-Do not describe an unexecuted test, unavailable driver, or missing platform as
-verified.
-
-## Release and Documentation Rules
-
-- Keep this file limited to stable project-wide guidance. Do not accumulate
-  release logs or one-time implementation requests here.
-- Use the component's real version sources and release documentation. Discover
-  all version surfaces from the extracted repository before changing any of them.
-- Keep independent component versions independent unless the project adopts and
-  documents a unified release scheme.
-- Update existing setup, architecture, integration, testing, API, procedure, and
-  operator documentation whenever the corresponding behavior changes.
-- When new project documents are introduced, define their ownership clearly and
-  link them from the appropriate index rather than duplicating conflicting rules.
-- Do not add agent-specific commit attribution. Create commits, tags, releases,
-  or published artifacts only when the user explicitly requests them.
+Any unresolved Critical or High defect in safety boundaries, identity,
+authorization, persistence, ordering, migration, recovery, isolation, or source
+non-execution blocks release. Exceptions must be concrete and cannot waive a
+safety boundary.
 
 ## Authoritative References
 
-Use local source, build, license, and release files as the authority for the
-specific version being changed. Use the upstream SPELL material for historical
-and architectural context:
+Local versioned code, migrations, tests, lock files, license files, and release
+records are authoritative for the implementation. Use upstream SPELL material
+for historical and architectural context:
 
 - SPELL Wiki: `https://sourceforge.net/p/spell-sat/wiki/Home/`
-- SPELL project summary: `https://sourceforge.net/projects/spell-sat/`
-- SPELL getting started: `https://sourceforge.net/p/spell-sat/wiki/Start%20using%20SPELL/`
-- SPELL licensing overview: `https://sourceforge.net/p/spell-sat/wiki/Licensing/`
+- SPELL project: `https://sourceforge.net/projects/spell-sat/`
+- Getting started: `https://sourceforge.net/p/spell-sat/wiki/Start%20using%20SPELL/`
+- Licensing overview: `https://sourceforge.net/p/spell-sat/wiki/Licensing/`
 
-If local artifacts and website documentation disagree, document the discrepancy
-and follow the local version-specific material unless the task explicitly adopts
-a newer upstream baseline.
+When local evidence and upstream documentation disagree, record the discrepancy
+and follow the approved local version contract unless a later prompt explicitly
+adopts different behavior.

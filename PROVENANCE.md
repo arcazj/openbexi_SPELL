@@ -1,16 +1,13 @@
-# SPELL v0.2 Provenance and Dependency Review
+# SPELL v0.3 Provenance and Dependency Review
 
 ## Clean-Room Boundary
 
-SPELL v0.2 is a new simulator-only implementation. The legacy archives are
-read-only behavioral and documentation references; no legacy implementation is
-compiled, imported, linked, or shipped by the v0.2 backend or frontend.
+SPELL v0.3 is a new simulator-only implementation. The three legacy archives
+are read-only behavioral and documentation references; no legacy implementation
+is compiled, imported, linked, or shipped by the backend, frontend, proxy, or
+release package.
 
-New first-party implementation is limited to `backend/`, `frontend/src/`,
-`frontend/e2e/`, and `procedures/`. A SHA-256 comparison performed on
-2026-07-12 found no exact match between a new source file and any entry in the
-three reference archives. This mechanical check supports, but does not by
-itself prove, clean-room authorship.
+The archives are explicitly ignored and excluded from the reproducible package:
 
 | Read-only reference | SHA-256 |
 | --- | --- |
@@ -18,51 +15,81 @@ itself prove, clean-room authorship.
 | `SPELL-COTS-2.6.10.zip` | `29E4639E15244308907FDCBA607F55F8A3A5FD3E2A49D631B6F996B33EA35558` |
 | `SPELL_GUI_4.0.12-win32.win32.x86.zip` | `751BAE952B3928BE3D5BA7CBD6D4EADD84BCBBA1248EA2707EABFDE75E493E10` |
 
-## Direct Dependencies
+A v0.2 SHA-256 comparison found no exact match between a new first-party source
+file and an archive entry. That mechanical check supports but does not by itself
+prove clean-room authorship. Version 0.3 continues the same source boundary.
 
-Versions are fixed by `backend/requirements.lock` and
-`frontend/package-lock.json`. Transitive package licenses remain governed by
-their upstream packages and lock-file inventory.
+## Dependency Integrity
 
-| Python dependency | License |
+Python versions and accepted distribution hashes are fixed in
+`backend/requirements.hashes.lock`; release installation uses
+`pip --require-hashes`. Node versions and registry integrity values are fixed in
+`frontend/package-lock.json`; container builds use `npm ci --ignore-scripts`.
+
+| Direct Python dependency | License family |
 | --- | --- |
 | FastAPI, SQLAlchemy, Pydantic, pytest | MIT |
-| Uvicorn, HTTPX, python-dotenv | BSD-3-Clause |
+| Uvicorn, HTTPX2, python-dotenv | BSD-3-Clause |
 | Psycopg | LGPL-3.0-only |
 
-| Web dependency | License |
+| Direct web dependency | License family |
 | --- | --- |
 | React, Redux Toolkit, React Redux, Vite, Vitest, jsdom, Testing Library | MIT |
 | Apache ECharts, Playwright, TypeScript | Apache-2.0 |
 | Lucide React | ISC |
 
-The Node lock records registry integrity hashes. The Python lock records exact
-versions but not artifact hashes; hash-locked Python wheelhouse generation is a
-future supply-chain hardening item.
+Transitive packages remain governed by their upstream licenses. CycloneDX
+inventories are generated independently for each release image:
 
-CycloneDX inventories generated for the release are stored in
-[`artifacts/v0.2/python-sbom.cdx.json`](artifacts/v0.2/python-sbom.cdx.json) and
-[`artifacts/v0.2/node-sbom.cdx.json`](artifacts/v0.2/node-sbom.cdx.json).
+| Image boundary | Inventory |
+| --- | --- |
+| Backend | [`artifacts/sbom/backend.cdx.json`](artifacts/sbom/backend.cdx.json) |
+| Reverse proxy | [`artifacts/sbom/proxy.cdx.json`](artifacts/sbom/proxy.cdx.json) |
+| Frontend build | [`artifacts/sbom/frontend.cdx.json`](artifacts/sbom/frontend.cdx.json) |
+
+Their digests are recorded together in
+[`artifacts/sbom/SHA256SUMS`](artifacts/sbom/SHA256SUMS). The frontend inventory
+is produced from its dedicated builder image rather than inferred from the
+runtime proxy image.
 
 ## Licensing Status
 
-The new OpenBEXI SPELL implementation is licensed under the Apache License,
-Version 2.0. See `LICENSE` and `NOTICE`. This project license does not change
-the licenses or redistribution restrictions of the excluded legacy archives or
-third-party dependencies, and this review is not legal advice.
+New OpenBEXI SPELL implementation and documentation are licensed under Apache
+License 2.0 through `LICENSE` and `NOTICE`. That license does not
+relicense or alter redistribution restrictions of the excluded legacy archives
+or third-party packages. This provenance record is not legal advice.
 
-## Security Review Status
+## Security Review
 
-The frontend full dependency audit reported zero known vulnerabilities on
-2026-07-12. Python test and dotenv advisories were removed by the v0.2 secure
-pins. The remaining Starlette advisories require versions not currently
-compatible with the latest available FastAPI release; v0.2 mitigates the
-applicable Host-header risk with trusted-host validation, binds services to
-loopback, and does not use the affected static-file, form, or endpoint-class
-surfaces. This disposition is valid only for the local simulator slice and must
-be revisited before any shared or operational deployment.
+The v0.3 release gates run `pip-audit==2.10.0` against the hash-locked Python set
+and `npm audit` against the Node lock. They report zero known product dependency
+vulnerabilities. The audit tool's own bootstrap transitive dependencies are
+installed by pip and are not hash-locked; they are release tooling, are not
+shipped in a product image, and remain a documented reproducibility limitation.
+The upgraded FastAPI/Starlette/HTTP client set is not affected by the five
+Starlette advisories accepted in v0.2, and the repository policy test confirms
+that none of their vulnerable version ranges or application surfaces remain.
 
-The accepted local-release residuals are `PYSEC-2026-161`, `PYSEC-2026-248`,
-`PYSEC-2026-249`, `GHSA-wqp7-x3pw-xc5r`, and `GHSA-x746-7m8f-x49c`. They are
-listed with upstream references and the release restrictions in
-[`SPELL_v0.2_Release.md`](SPELL_v0.2_Release.md).
+The SBOM generator requires Docker SBOM 0.6.0 with Syft v0.43.0 and scans
+immutable image IDs. Its scan-input builds disable BuildKit's nondeterministic
+provenance-attestation wrapper so repeated builds resolve to the same runtime
+manifest ID; the generated CycloneDX inventories and checksum manifest provide
+the release evidence for those images. JSON and the checksum manifest are
+written with canonical LF line endings so Git checkout cannot alter their
+recorded hashes. The scanner emits warnings when its conversion layer cannot
+retain some file-level package relationships. It still produces valid component
+inventories and checksums; the warning is a tooling fidelity limitation, not a
+waiver of dependency audit results.
+
+No claim is made that dependency audit, SBOM generation, or local isolation is
+an operational security accreditation. Shared or operational deployment remains
+out of scope.
+
+## Release Evidence Integrity
+
+Quick, soak, and real-browser qualification reports are bound to the same
+shared source fingerprint. The browser gate uses two independent Chromium
+processes, and a separate composer recomputes report identity, required gates,
+and integrity before packaging accepts the evidence. Reproducible packaging
+excludes only generated screenshot files under `artifacts/v0.3`; it does not
+exclude product PNG or other visual assets by extension alone.

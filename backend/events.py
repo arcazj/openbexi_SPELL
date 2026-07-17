@@ -42,7 +42,10 @@ class EventHub:
         with self._lock:
             subscribers = tuple(self._subscribers.get(execution_id, ()))
         for subscription in subscribers:
-            subscription.loop.call_soon_threadsafe(self._put, subscription, event)
+            try:
+                subscription.loop.call_soon_threadsafe(self._put, subscription, event)
+            except RuntimeError:
+                self.unsubscribe(execution_id, subscription)
 
     @staticmethod
     def _put(subscription: Subscription, event: dict[str, Any]) -> None:

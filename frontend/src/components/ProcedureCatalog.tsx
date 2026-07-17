@@ -1,7 +1,7 @@
-import { FileCode2, LoaderCircle, Play, Search } from "lucide-react";
+import { FileCheck2, FileCode2, LoaderCircle, Play, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { setContext, setSelectedProcedure, startExecution } from "../store";
+import { setContext, setSelectedProcedure, startExecution, validateProcedure } from "../store";
 
 export function ProcedureCatalog() {
   const dispatch = useAppDispatch();
@@ -11,6 +11,7 @@ export function ProcedureCatalog() {
     contextId,
     connection,
     pendingAction,
+    validation,
   } = useAppSelector((state) => state.console);
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
@@ -27,6 +28,15 @@ export function ProcedureCatalog() {
   const onStart = () => {
     if (!selectedProcedureId) return;
     void dispatch(startExecution({ procedureId: selectedProcedureId, contextId }));
+  };
+
+  const onValidate = () => {
+    if (!selected?.source) return;
+    void dispatch(
+      validateProcedure({ procedureId: selected.id, source: selected.source }),
+    ).then(() => {
+      window.requestAnimationFrame(() => document.getElementById("validation-panel")?.focus());
+    });
   };
 
   const moveSelection = (event: React.KeyboardEvent, index: number) => {
@@ -104,19 +114,36 @@ export function ProcedureCatalog() {
 
       <div className="catalog-start">
         <p>{selected?.description ?? "Select a procedure to review its execution profile."}</p>
-        <button
-          type="button"
-          className="primary-command"
-          onClick={onStart}
-          disabled={!selected || unavailable}
-        >
-          {pendingAction === "START" ? (
-            <LoaderCircle className="spin" aria-hidden="true" size={17} />
-          ) : (
-            <Play aria-hidden="true" size={17} fill="currentColor" />
-          )}
-          Start procedure
-        </button>
+        <div className="catalog-actions">
+          <button
+            type="button"
+            className="validation-command"
+            onClick={onValidate}
+            disabled={!selected?.source || unavailable || validation.status === "pending"}
+            aria-controls={validation.status !== "idle" ? "validation-panel" : undefined}
+            aria-busy={validation.status === "pending"}
+          >
+            {validation.status === "pending" ? (
+              <LoaderCircle className="spin" aria-hidden="true" size={17} />
+            ) : (
+              <FileCheck2 aria-hidden="true" size={17} />
+            )}
+            Validate source
+          </button>
+          <button
+            type="button"
+            className="primary-command"
+            onClick={onStart}
+            disabled={!selected || unavailable}
+          >
+            {pendingAction === "START" ? (
+              <LoaderCircle className="spin" aria-hidden="true" size={17} />
+            ) : (
+              <Play aria-hidden="true" size={17} fill="currentColor" />
+            )}
+            Start procedure
+          </button>
+        </div>
       </div>
     </aside>
   );

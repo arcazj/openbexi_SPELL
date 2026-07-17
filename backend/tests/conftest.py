@@ -9,8 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app import create_app
+from backend.auth import AuthConfig, issue_local_dev_token
 from backend.config import Settings
 from backend.database import Base, create_database
+from backend.migrations import schema_migrations
 
 
 @pytest.fixture
@@ -44,48 +46,63 @@ def procedures_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def client(tmp_path: Path, procedures_dir: Path):
+def auth_config() -> AuthConfig:
+    return AuthConfig(
+        issuer="openbexi-spell-tests",
+        audience="openbexi-spell-api",
+        signing_secret=b"test-only-secret-with-at-least-32-bytes",
+        clock_skew_seconds=1,
+        max_token_lifetime_seconds=900,
+        allow_local_dev_issuance=True,
+    )
+
+
+def _headers(auth_config: AuthConfig, subject: str, role: str) -> dict[str, str]:
+    token = issue_local_dev_token(
+        auth_config,
+        subject=subject,
+        role=role,
+        peer_host="127.0.0.1",
+        lifetime_seconds=600,
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def client(tmp_path: Path, procedures_dir: Path, auth_config: AuthConfig):
     database_url = os.getenv(
         "SPELL_TEST_DATABASE_URL", f"sqlite:///{(tmp_path / 'test.db').as_posix()}"
     )
     if os.getenv("SPELL_TEST_DATABASE_URL"):
         engine, _ = create_database(database_url)
-        Base.metadata.drop_all(engine)
-        Base.metadata.create_all(engine)
+        with engine.begin() as connection:
+            schema_migrations.drop(connection, checkfirst=True)
+            Base.metadata.drop_all(connection)
         engine.dispose()
     settings = Settings(
         database_url=database_url,
         procedures_dir=procedures_dir,
-        dev_auth_token="test-token",
         websocket_replay_limit=1000,
         websocket_queue_size=64,
         websocket_keepalive_seconds=0.1,
     )
-    with TestClient(create_app(settings)) as test_client:
+    with TestClient(create_app(settings, auth_config=auth_config)) as test_client:
         yield test_client
 
 
 @pytest.fixture
-def viewer_headers() -> dict[str, str]:
-    return {"Authorization": "Bearer test-token", "X-Dev-Role": "viewer"}
+def viewer_headers(auth_config: AuthConfig) -> dict[str, str]:
+    return _headers(auth_config, "pytest-viewer", "viewer")
 
 
 @pytest.fixture
-def operator_headers() -> dict[str, str]:
-    return {
-        "Authorization": "Bearer test-token",
-        "X-Dev-Role": "operator",
-        "X-Dev-Actor": "pytest-operator",
-    }
+def operator_headers(auth_config: AuthConfig) -> dict[str, str]:
+    return _headers(auth_config, "pytest-operator", "operator")
 
 
 @pytest.fixture
-def admin_headers() -> dict[str, str]:
-    return {
-        "Authorization": "Bearer test-token",
-        "X-Dev-Role": "admin",
-        "X-Dev-Actor": "pytest-admin",
-    }
+def admin_headers(auth_config: AuthConfig) -> dict[str, str]:
+    return _headers(auth_config, "pytest-admin", "admin")
 
 
 def wait_for_state(

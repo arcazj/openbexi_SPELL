@@ -10,11 +10,17 @@ __pycache__/
 .venv/
 var/
 
+.idea/
+*.iml
+
 frontend/node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+
+artifacts/*.tar.gz
+artifacts/*.tar.gz.sha256
 
 *.log
 

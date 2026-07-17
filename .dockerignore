@@ -1,7 +1,10 @@
 .git
 .idea
+.env
 .venv
 var
+artifacts/*.tar.gz
+artifacts/*.tar.gz.sha256
 *.zip
 __pycache__
 *.py[cod]

@@ -1,5 +1,6 @@
-import { Clock3, Radio, Satellite, Server, UserRound } from "lucide-react";
+import { Clock3, LogOut, Radio, Satellite, Server, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
+import { clearAccessToken } from "../api";
 import { useAppSelector } from "../hooks";
 
 function useUtcClock(): string {
@@ -47,6 +48,15 @@ export function ConsoleHeader() {
         <Radio aria-hidden="true" size={15} />
         <span>{connection.phase}</span>
       </div>
+      <button
+        type="button"
+        className="session-button"
+        aria-label="End session"
+        title="End session"
+        onClick={clearAccessToken}
+      >
+        <LogOut aria-hidden="true" size={16} />
+      </button>
     </header>
   );
 }

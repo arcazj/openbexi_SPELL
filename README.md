@@ -1,131 +1,165 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL v0.2 is a clean-room, simulator-only vertical slice of a modern
-Satellite Procedure Execution Language and Library environment. It combines a
-Python execution service, isolated procedure workers, durable state and event
-storage, and a real-time 2D web console.
+OpenBEXI SPELL v0.3 is a clean-room, simulator-only engineering release of a
+modern Satellite Procedure Execution Language and Library environment. It
+combines a Python execution service, isolated workers, durable state and event
+storage, a restricted typed procedure language, and a real-time 2D web console.
 
-Version 0.2 is development software. It has no Ground Control System driver,
-spacecraft connection, operational telecommand capability, or authorization
-for mission use.
+It has no Ground Control System driver, spacecraft connection, operational
+telecommand capability, or authorization for mission use.
 
-## Implemented in v0.2
+## Version 0.3
 
-- Python 3.10+ control plane, verified with Python 3.13.
-- One spawned operating-system worker per execution.
-- Restricted, non-executing AST parser for four procedure steps.
-- Idempotent, revision-guarded start, pause, resume, prompt, abort, crash, and
-  recovery operations.
-- Persist-before-publish execution, command, prompt, checkpoint, audit, and
-  ordered event records.
-- PostgreSQL target storage with SQLite support for fast isolated tests.
-- Authenticated downstream WebSocket replay plus snapshot/cursor resync.
-- React and strict TypeScript 2D operator console with responsive desktop and
-  mobile layouts, accessibility checks, telemetry charts, and as-run reports.
-- Python 3.13 development container and loopback-only Docker Compose services.
+- Python 3.13 control plane with one spawned worker per execution.
+- Restricted non-executing AST parser and data-only IR for typed variables,
+  safe expressions, conditions, bounded loops, bounded local calls, logs,
+  simulated telemetry, waits, and operator prompts.
+- Bounded binary source reads, AST shape, expanded step count, and serialized IR
+  size, with stable non-echoing diagnostics for invalid UTF-8, unpaired Unicode
+  surrogates, NUL characters, and other rejected input.
+- Exact accepted procedure source and SHA-256 identity, definite-assignment
+  checks, and protected compiler/runtime-reserved names.
+- Atomic, durable checkpoints containing procedure position and variables.
+- Idempotent and revision-guarded start, pause, resume, prompt, abort, simulated
+  crash, and recovery operations.
+- Ordered database migrations for fresh and v0.2 SQLite/PostgreSQL stores.
+- Signed short-lived JWT identity and server-enforced viewer/operator/admin
+  roles; unsigned identity headers are ignored.
+- Authenticated WebSocket replay with snapshot/cursor resynchronization.
+- Established WebSockets expire with their JWT. Logout and a `4401` close both
+  close the socket, erase the session token, and return to session access.
+- Durable settlement of every accepted command across worker completion,
+  consumer failure, bounded shutdown, and supervisor restart terminal paths.
+- React and strict TypeScript console with source validation, responsive
+  desktop/mobile layouts, keyboard controls, telemetry charts, and as-run
+  reports.
+- Loopback reverse proxy as the sole ingress; backend and PostgreSQL remain on
+  an internal network with no backend public-network route.
+- Immutable static migrations; applied revisions do not depend on live ORM
+  metadata.
+- Hash-locked Python dependencies, npm integrity locking, distinct
+  backend/proxy/frontend CycloneDX SBOMs with checksums, dependency audits, and
+  reproducible source packages.
 
 ## Quick Start
 
-Prerequisites are Docker Desktop and a current Node.js LTS or newer release.
+Prerequisites are Docker Desktop and PowerShell.
 
 ```powershell
+Copy-Item .env.example .env
+# Set SPELL_DB_PASSWORD and a SPELL_JWT_HS256_SECRET of at least 32 bytes.
 docker compose up --build -d
-Set-Location frontend
-npm ci
-npm run dev -- --host 127.0.0.1
+
+$token = (docker compose run --rm --no-deps `
+  -e SPELL_ALLOW_LOCAL_DEV_TOKEN=true backend `
+  python /app/scripts/issue_dev_token.py `
+  --subject local.operator --role admin --lifetime 900 | Select-Object -Last 1).Trim()
 ```
 
-Open the operator console at `http://127.0.0.1:5173`. API documentation is at
-`http://127.0.0.1:8000/docs`. The checked-in credentials are local simulator
-defaults only. `docker compose down` stops the services without deleting the
-PostgreSQL volume.
+Open `http://127.0.0.1:8080`, enter the signed token in the session-access form,
+and connect. The token remains in browser session storage and is not built into
+the frontend. Local issuance is disabled in the running backend by default and
+is enabled only for the one-shot loopback helper command above.
 
-## Procedure Subset
+`docker compose down` stops the stack without deleting the PostgreSQL volume.
 
-Files named `*.spell.py` are parsed with `ast.parse` and `ast.literal_eval`.
-They are never imported or evaluated as Python source.
+## Procedure Language
 
-| Step | v0.2 behavior |
+Files named `*.spell.py` are parsed with Python's AST but are never imported,
+compiled, evaluated, or run as Python source. The parser emits a versioned,
+normalized data IR consumed by the worker. Source is read with a byte limit
+before decoding; AST nodes/depth, expanded steps, and serialized IR are bounded
+before worker handoff or persistence. Accepted source is preserved exactly and
+its SHA-256 is computed over that same text.
+
+| Construct | v0.3 behavior |
 | --- | --- |
-| `Log(message, level=...)` | Persist a simulator procedure log |
-| `Telemetry(channel, value=..., unit=...)` | Persist a deterministic simulated sample |
-| `Wait(seconds)` | Wait at an interruptible safe boundary |
-| `Prompt(question, choices=..., default=...)` | Persist and latch an operator prompt |
+| `name: type = expression` | Declare `bool`, `int`, `float`, or `str` state |
+| `name = expression` | Type-checked assignment to a declared variable |
+| Arithmetic/comparison/boolean expressions | Evaluate through the allowlisted data interpreter |
+| `if` / `else` | Select one deterministic guarded branch |
+| `for name in range(...)` | Expand a statically bounded loop, maximum 1,000 iterations |
+| `def name()` plus `Call(name)` | Expand a bounded, non-recursive zero-argument local call |
+| `Log(...)` | Persist a procedure log |
+| `Telemetry(...)` | Persist a deterministic simulated telemetry sample |
+| `Wait(...)` | Wait at an interruptible checkpoint |
+| `Prompt(...)` | Persist and latch an operator prompt |
 
-Only top-level calls with literal arguments are accepted. Imports, assignment,
-attribute access, arbitrary calls, filesystem access, networking, subprocesses,
-drivers, and secrets are rejected during validation. See
-[`procedures/demo.spell.py`](procedures/demo.spell.py) for the complete sample.
+Imports, attribute access, comprehensions, recursion, arbitrary calls, dynamic
+loop bounds, filesystem, networking, subprocesses, reflection, exceptions, and
+asynchronous syntax are rejected with structured diagnostics. Invalid UTF-8,
+unpaired surrogates, and NUL characters receive stable diagnostics that do not
+echo source. Definite assignment is checked across control flow, and reserved
+compiler/runtime names cannot be redefined. See
+[`procedures/v03_language_demo.spell.py`](procedures/v03_language_demo.spell.py).
 
 ## Architecture
 
-The browser communicates only with the FastAPI control plane. The control plane
-validates procedures into a versioned intermediate representation, stores the
-authoritative execution record, and launches the validated steps in a spawned
-worker. Worker output is generation-fenced and committed atomically with its
-step completion and checkpoint before events are published.
+The browser communicates with the loopback Nginx proxy. Only the proxy publishes
+a host port. It serves the frontend and forwards `/api` and WebSocket traffic to
+the internal FastAPI service. FastAPI validates identity, procedures, revisions,
+and idempotency keys, persists authoritative state, and sends data-only IR to an
+isolated worker process.
 
-REST is the authoritative mutation and snapshot interface. Every mutation uses
-an idempotency key, and execution commands also require the expected revision.
-WebSocket is downstream-only and provides ordered per-execution events. Clients
-recover from a disconnect or sequence gap by loading a snapshot and replaying
-from its cursor.
-
-The simulator context is the only accepted execution context. The v0.2 source
-contains no GCS or spacecraft client. Compose uses a dedicated development
-network with host ports bound only to loopback. Container outbound networking
-is not blocked by Compose; the backend acceptance suite is also run separately
-with Docker networking disabled.
+REST is authoritative for mutations and snapshots. WebSocket is downstream-only
+and provides ordered per-execution events. Clients recover from a disconnect or
+sequence gap by loading a snapshot and replaying from its cursor. Worker output
+is generation-fenced and committed atomically with effects, variables,
+checkpoint position, and events before publication. The supervisor durably
+settles accepted commands when a worker terminates, a consumer fails, shutdown
+times out, or recovery runs after restart.
 
 ## API Surface
 
+All resources except health require a signed bearer JWT. WebSocket sends the JWT
+as a subprotocol rather than placing it in the URL.
+
 | Method | Resource |
 | --- | --- |
-| `GET` | `/api/v1/health`, `/procedures`, `/executions` |
-| `POST` | `/api/v1/executions` |
-| `GET` | `/api/v1/executions/{id}/snapshot`, `/events`, `/report` |
+| `GET` | `/api/v1/health`, `/api/v1/procedures`, `/api/v1/executions` |
+| `POST` | `/api/v1/procedures/validate`, `/api/v1/executions` |
+| `GET` | `/api/v1/executions/{id}/snapshot`, `/api/v1/executions/{id}/events`, `/api/v1/executions/{id}/report` |
 | `POST` | `/api/v1/executions/{id}/commands` |
 | `POST` | `/api/v1/prompts/{id}/responses` |
 | `WS` | `/api/v1/ws?execution_id={id}&after_sequence={n}` |
 
-All paths except health are under `/api/v1`. REST uses the development bearer
-token and role headers; WebSocket authentication uses a subprotocol so the token
-is not placed in the URL. This development identity mechanism is not suitable
-for a shared or operational deployment.
+Validation is transient: it returns subset version, SHA-256, normalized IR,
+declared variables, and diagnostics without saving or executing submitted text.
 
 ## Verification
 
 ```powershell
-docker compose build backend
-docker run --rm --network none openbexi_spell-backend python -m pytest backend/tests -q
-docker compose run --rm -e SPELL_TEST_DATABASE_URL=postgresql+psycopg://spell:spell-dev-only@postgres:5432/spell_test backend python -m pytest backend/tests -q
-
-Set-Location frontend
-npm test
-npm run build
-$env:SPELL_REAL_BACKEND='1'; npm run test:e2e
-npm audit
+.\scripts\qualify_release.ps1
+.\scripts\build_v03.ps1
 ```
 
-The authoritative executed-test matrix and all exceptions are recorded in
-[`Test_and_Integration.md`](Test_and_Integration.md).
+`qualify_release.ps1` creates fingerprint-bound quick, soak, and two-process
+Chromium stream reports and composes them independently. `build_v03.ps1`
+validates that evidence against the current source, then runs the complete
+SQLite/PostgreSQL, frontend, real-backend browser, isolation, audit, distinct
+SBOM, package inspection, and reproducibility gates. Exact commands and results
+are recorded in [`Test_and_Integration.md`](Test_and_Integration.md).
+
+Release packaging excludes only generated evidence screenshots under the
+versioned artifacts path; product PNG and other visual assets remain included.
 
 ## Project Documents
 
 | Document | Purpose |
 | --- | --- |
-| [`PROMPT_Instructions.md`](PROMPT_Instructions.md) | Durable project and safety rules |
-| [`SPELL_v0.1_Pre-Implementation.md`](SPELL_v0.1_Pre-Implementation.md) | Legacy evidence and architecture baseline |
-| [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plan and actual results |
-| [`PROMPT_History.md`](PROMPT_History.md) | Approved requests, decisions, and version history |
-| [`PROVENANCE.md`](PROVENANCE.md) | Clean-room and direct-dependency review |
-| [`SPELL_v0.2_Release.md`](SPELL_v0.2_Release.md) | v0.2 scope, evidence, limitations, and decision |
+| [`PROMPT_Instructions.md`](PROMPT_Instructions.md) | Durable architecture, safety, and release rules |
+| [`PROMPT_History.md`](PROMPT_History.md) | Latest-first approved request and version history |
+| [`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md) | Approved v0.3 scope and exclusions |
+| [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
+| [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
+| [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-The required legacy SPELL Development Environment manual remains unavailable.
-Its absence was waived only for this v0.2 slice because v0.2 does not implement
-a procedure authoring environment.
+The required legacy Development Environment manual remains unavailable. Its
+absence does not authorize invented legacy behavior or a procedure authoring
+environment.
 
 ## License
 
-OpenBEXI SPELL is licensed under the Apache License, Version 2.0. See
-[`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+The new OpenBEXI SPELL implementation is licensed under Apache License 2.0. See
+[`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). Excluded legacy archives and
+third-party packages retain their own licenses.

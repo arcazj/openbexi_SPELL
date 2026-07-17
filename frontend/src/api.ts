@@ -4,20 +4,70 @@ import type {
   ExecutionSnapshot,
   HealthStatus,
   ProcedureSummary,
+  ProcedureValidationResult,
 } from "./types";
 
 const API_ROOT = "/api/v1";
-const DEVELOPMENT_TOKEN = import.meta.env.VITE_SPELL_TOKEN ?? "spell-dev-token";
-const DEVELOPMENT_ACTOR = import.meta.env.VITE_SPELL_ACTOR ?? "console.admin";
-const DEVELOPMENT_ROLE = import.meta.env.VITE_SPELL_ROLE ?? "admin";
+const ACCESS_TOKEN_KEY = "openbexi.spell.access-token";
+
+export const AUTH_CHANGED_EVENT = "spell-auth-changed";
+
+export function getAccessToken(): string | null {
+  try {
+    return window.sessionStorage.getItem(ACCESS_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAccessToken(token: string): void {
+  const normalized = token.trim();
+  if (normalized.split(".").length !== 3) throw new Error("Enter a signed JWT with three segments.");
+  window.sessionStorage.setItem(ACCESS_TOKEN_KEY, normalized);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
+
+export function clearAccessToken(): void {
+  window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
+
+export function accessTokenExpiresAtMs(): number | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payloadSegment = token.split(".")[1];
+    if (!payloadSegment) return null;
+    const normalized = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown };
+    return typeof payload.exp === "number" && Number.isFinite(payload.exp)
+      ? payload.exp * 1000
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function accessTokenSubject(): string {
+  const token = getAccessToken();
+  if (!token) return "Unauthenticated";
+  try {
+    const payloadSegment = token.split(".")[1];
+    if (!payloadSegment) return "Authenticated user";
+    const payload = JSON.parse(atob(payloadSegment.replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.sub === "string" && payload.sub ? payload.sub : "Authenticated user";
+  } catch {
+    return "Authenticated user";
+  }
+}
 
 type JsonObject = Record<string, unknown>;
 
 function requestHeaders(extra?: HeadersInit): Headers {
   const headers = new Headers(extra);
-  headers.set("Authorization", `Bearer ${DEVELOPMENT_TOKEN}`);
-  headers.set("X-Dev-Actor", DEVELOPMENT_ACTOR);
-  headers.set("X-Dev-Role", DEVELOPMENT_ROLE);
+  const token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
   if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return headers;
 }
@@ -41,6 +91,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   const body = (await response.json().catch(() => null)) as unknown;
   if (!response.ok) {
+    if (response.status === 401) clearAccessToken();
     const message =
       typeof body === "object" && body !== null && "detail" in body
         ? String(body.detail)
@@ -97,7 +148,7 @@ function normalizeProcedure(raw: JsonObject): ProcedureSummary {
   return {
     id: String(raw.id),
     name: String(raw.name ?? raw.id),
-    version: String(raw.version ?? "0.2"),
+    version: String(raw.version ?? "0.3"),
     description: String(raw.description ?? ""),
     entrypoint: String(raw.entrypoint ?? ""),
     step_count: Number(raw.step_count ?? 0),
@@ -172,7 +223,7 @@ export const api = {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.2.0"),
+      version: String(raw.version ?? "0.3.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,
@@ -182,6 +233,13 @@ export const api = {
   async procedures(): Promise<ProcedureSummary[]> {
     const items = unwrapList(await request<JsonObject[] | { items: JsonObject[] }>("/procedures"));
     return items.map(normalizeProcedure);
+  },
+
+  async validateProcedure(source: string): Promise<ProcedureValidationResult> {
+    return request<ProcedureValidationResult>("/procedures/validate", {
+      method: "POST",
+      body: JSON.stringify({ source }),
+    });
   },
 
   async startExecution(
@@ -263,5 +321,6 @@ export function websocketUrl(executionId: string, afterSequence: number): string
 }
 
 export function websocketProtocols(): string[] {
-  return ["spell-auth", DEVELOPMENT_TOKEN];
+  const token = getAccessToken();
+  return token ? ["spell-auth", token] : ["spell-auth"];
 }

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base, utc_now
@@ -26,6 +26,10 @@ class Execution(Base):
     procedure_hash: Mapped[str] = mapped_column(String(64))
     procedure_source: Mapped[str] = mapped_column(Text)
     steps: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    ir_version: Mapped[str] = mapped_column(String(20), default="0.3", server_default="0.3")
+    variables: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=dict, server_default=text("'{}'"), nullable=False
+    )
     context_id: Mapped[str] = mapped_column(String(100), default="simulator")
     created_by: Mapped[str] = mapped_column(String(200))
     creation_idempotency_key: Mapped[str] = mapped_column(String(200))

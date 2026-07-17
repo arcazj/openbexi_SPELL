@@ -1,5 +1,5 @@
 import { configureStore, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { api } from "./api";
+import { accessTokenSubject, api } from "./api";
 import type {
   AsRunReport,
   ConnectionPhase,
@@ -8,6 +8,7 @@ import type {
   HealthStatus,
   LogEntry,
   ProcedureSummary,
+  ProcedureValidationResult,
   TelemetryPoint,
 } from "./types";
 
@@ -24,6 +25,13 @@ interface ConsoleState {
   userName: string;
   procedures: ProcedureSummary[];
   selectedProcedureId: string | null;
+  validation: {
+    procedureId: string | null;
+    status: "idle" | "pending" | "complete" | "failed";
+    result: ProcedureValidationResult | null;
+    error: string | null;
+    requestId: string | null;
+  };
   execution: ExecutionSnapshot | null;
   report: AsRunReport | null;
   dockTab: DockTab;
@@ -40,9 +48,16 @@ const initialState: ConsoleState = {
     reconnectAttempt: 0,
   },
   contextId: "simulator",
-  userName: import.meta.env.VITE_SPELL_ACTOR ?? "console.admin",
+  userName: accessTokenSubject(),
   procedures: [],
   selectedProcedureId: null,
+  validation: {
+    procedureId: null,
+    status: "idle",
+    result: null,
+    error: null,
+    requestId: null,
+  },
   execution: null,
   report: null,
   dockTab: "telemetry",
@@ -71,6 +86,11 @@ export const startExecution = createAsyncThunk(
   "console/startExecution",
   async ({ procedureId, contextId }: { procedureId: string; contextId: string }) =>
     api.startExecution(procedureId, contextId),
+);
+
+export const validateProcedure = createAsyncThunk(
+  "console/validateProcedure",
+  async ({ source }: { procedureId: string; source: string }) => api.validateProcedure(source),
 );
 
 export const resyncExecution = createAsyncThunk(
@@ -139,6 +159,13 @@ const consoleSlice = createSlice({
   reducers: {
     setSelectedProcedure(state, action: { payload: string }) {
       state.selectedProcedureId = action.payload;
+      state.validation = {
+        procedureId: null,
+        status: "idle",
+        result: null,
+        error: null,
+        requestId: null,
+      };
     },
     setContext(state, action: { payload: string }) {
       state.contextId = action.payload;
@@ -156,6 +183,15 @@ const consoleSlice = createSlice({
     },
     dismissError(state) {
       state.error = null;
+    },
+    clearValidation(state) {
+      state.validation = {
+        procedureId: null,
+        status: "idle",
+        result: null,
+        error: null,
+        requestId: null,
+      };
     },
     ingestEvent(state, action: { payload: ExecutionEvent }) {
       const event = action.payload;
@@ -267,6 +303,29 @@ const consoleSlice = createSlice({
         state.pendingAction = null;
         state.error = action.error.message ?? "Unable to start the procedure";
       })
+      .addCase(validateProcedure.pending, (state, action) => {
+        state.validation = {
+          procedureId: action.meta.arg.procedureId,
+          status: "pending",
+          result: null,
+          error: null,
+          requestId: action.meta.requestId,
+        };
+      })
+      .addCase(validateProcedure.fulfilled, (state, action) => {
+        if (state.validation.requestId !== action.meta.requestId) return;
+        state.validation.status = "complete";
+        state.validation.result = action.payload;
+        state.validation.error = null;
+        state.validation.requestId = null;
+      })
+      .addCase(validateProcedure.rejected, (state, action) => {
+        if (state.validation.requestId !== action.meta.requestId) return;
+        state.validation.status = "failed";
+        state.validation.result = null;
+        state.validation.error = action.error.message ?? "Procedure validation failed";
+        state.validation.requestId = null;
+      })
       .addCase(resyncExecution.fulfilled, (state, action) => {
         const incoming = normalizeSnapshot(action.payload);
         const current = state.execution;
@@ -327,6 +386,7 @@ const consoleSlice = createSlice({
 });
 
 export const {
+  clearValidation,
   dismissError,
   ingestEvent,
   markReconnect,

@@ -1,0 +1,316 @@
+{
+  "acceptance_complete": false,
+  "environment": {
+    "database": "temporary SQLite",
+    "platform": "Linux-6.6.26-linuxkit-x86_64-with-glibc2.41",
+    "python": "3.13.14",
+    "transport": "FastAPI TestClient with signed JWT REST authentication; two bounded production EventHub delivery subscriptions; supporting gate only"
+  },
+  "finished_at": "2026-07-17T00:29:19.315544+00:00",
+  "gates": {
+    "soak": {
+      "achieved_events_per_second": 20.002,
+      "append_max_ms": 8.181,
+      "append_p95_ms": 2.611,
+      "append_p99_ms": 4.929,
+      "control_failures": [],
+      "event_count": 12001,
+      "execution_id": "9b944b12-3bec-4493-8443-b3d8e8c4d1ae",
+      "finished_at": "2026-07-17T00:29:19.308230+00:00",
+      "measured_duration_seconds": 600.001721,
+      "memory_measurement": {
+        "post_warmup_growth_mib": 1.375,
+        "post_warmup_slope_mib_per_minute": 0.188,
+        "samples": [
+          {
+            "elapsed_seconds": 0.003775,
+            "rss_mib": 72.648
+          },
+          {
+            "elapsed_seconds": 10.052846,
+            "rss_mib": 73.023
+          },
+          {
+            "elapsed_seconds": 20.101829,
+            "rss_mib": 73.523
+          },
+          {
+            "elapsed_seconds": 30.101844,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 40.101918,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 50.151878,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 60.151997,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 70.201919,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 80.25207,
+            "rss_mib": 73.648
+          },
+          {
+            "elapsed_seconds": 90.301801,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 100.302344,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 110.352771,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 120.356659,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 130.401822,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 140.452054,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 150.501801,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 160.503202,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 170.551876,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 180.551882,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 190.604836,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 200.651788,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 210.651844,
+            "rss_mib": 73.773
+          },
+          {
+            "elapsed_seconds": 220.65209,
+            "rss_mib": 73.898
+          },
+          {
+            "elapsed_seconds": 230.701806,
+            "rss_mib": 74.023
+          },
+          {
+            "elapsed_seconds": 240.702127,
+            "rss_mib": 74.148
+          },
+          {
+            "elapsed_seconds": 250.751943,
+            "rss_mib": 74.273
+          },
+          {
+            "elapsed_seconds": 260.80184,
+            "rss_mib": 74.273
+          },
+          {
+            "elapsed_seconds": 270.851784,
+            "rss_mib": 74.273
+          },
+          {
+            "elapsed_seconds": 280.852042,
+            "rss_mib": 74.398
+          },
+          {
+            "elapsed_seconds": 290.901851,
+            "rss_mib": 74.398
+          },
+          {
+            "elapsed_seconds": 300.951993,
+            "rss_mib": 74.398
+          },
+          {
+            "elapsed_seconds": 310.952098,
+            "rss_mib": 74.523
+          },
+          {
+            "elapsed_seconds": 321.001673,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 331.002172,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 341.051847,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 351.101963,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 361.15189,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 371.202271,
+            "rss_mib": 74.648
+          },
+          {
+            "elapsed_seconds": 381.251748,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 391.252318,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 401.301733,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 411.351714,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 421.35188,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 431.351934,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 441.40536,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 451.451755,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 461.451767,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 471.501848,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 481.552211,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 491.60178,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 501.601944,
+            "rss_mib": 74.773
+          },
+          {
+            "elapsed_seconds": 511.65183,
+            "rss_mib": 74.898
+          },
+          {
+            "elapsed_seconds": 521.701712,
+            "rss_mib": 74.898
+          },
+          {
+            "elapsed_seconds": 531.701897,
+            "rss_mib": 74.898
+          },
+          {
+            "elapsed_seconds": 541.751845,
+            "rss_mib": 75.023
+          },
+          {
+            "elapsed_seconds": 551.801941,
+            "rss_mib": 75.148
+          },
+          {
+            "elapsed_seconds": 561.801973,
+            "rss_mib": 75.148
+          },
+          {
+            "elapsed_seconds": 571.852609,
+            "rss_mib": 75.148
+          },
+          {
+            "elapsed_seconds": 581.901768,
+            "rss_mib": 75.148
+          },
+          {
+            "elapsed_seconds": 591.902014,
+            "rss_mib": 75.148
+          },
+          {
+            "elapsed_seconds": 600.001721,
+            "rss_mib": 75.148
+          }
+        ],
+        "source": "process RSS",
+        "warmup_excluded_fraction": 0.2
+      },
+      "passed": true,
+      "producer_errors": [],
+      "production_elapsed_seconds": 600.00172,
+      "schedule_max_ms": 2.653,
+      "schedule_p95_ms": 0.548,
+      "sequence_integrity": {
+        "duplicate_count": 0,
+        "duplicate_examples": [],
+        "exact": true,
+        "expected_count": 12001,
+        "missing_count": 0,
+        "missing_examples": [],
+        "received_count": 12001,
+        "unexpected_count": 0,
+        "unexpected_examples": []
+      },
+      "started_at": "2026-07-17T00:19:19.142878+00:00",
+      "target_duration_seconds": 600.0,
+      "target_events_per_second": 20.0,
+      "test_id": "V03-PERF-004",
+      "threshold": {
+        "elapsed_overrun_seconds_at_most": 1.0,
+        "minimum_duration_seconds": 600.0,
+        "minimum_rate_events_per_second": 20.0,
+        "missing_or_duplicate_events": 0,
+        "post_warmup_memory_growth_mib_at_most": 32.0,
+        "post_warmup_memory_slope_mib_per_minute_at_most": 2.0,
+        "schedule_max_ms_at_most": 1000.0,
+        "schedule_p95_ms_at_most": 250.0
+      },
+      "window_events_per_second": 20.002
+    }
+  },
+  "generated_at": "2026-07-17T00:19:19.087893+00:00",
+  "overall_pass": true,
+  "product_version": "0.3.0",
+  "profile": "soak",
+  "schema_version": "1.0",
+  "source": {
+    "commit": null,
+    "dirty": null,
+    "fingerprint_sha256": "454d79fdbadc6d5076f415fa9bc1d03dd12552511e58c59330ad5315d50eb734"
+  }
+}

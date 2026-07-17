@@ -37,6 +37,29 @@ export interface ProcedureSummary {
   source?: string;
 }
 
+export interface ValidationDiagnostic {
+  severity?: string;
+  code?: string;
+  message: string;
+  line?: number | null;
+  column?: number | null;
+}
+
+export type ValidationStep = Record<string, unknown> & {
+  index?: number;
+  line?: number;
+  type?: string;
+};
+
+export interface ProcedureValidationResult {
+  valid: boolean;
+  subset_version: string;
+  sha256: string | null;
+  steps: ValidationStep[];
+  variables: unknown[] | Record<string, unknown>;
+  diagnostics: ValidationDiagnostic[];
+}
+
 export interface TelemetryPoint {
   parameter: string;
   value: string | number | boolean;

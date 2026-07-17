@@ -13,7 +13,7 @@ def iso(value):
 
 def event_dict(event: Event) -> dict[str, Any]:
     return {
-        "schema_version": "0.2",
+        "schema_version": "0.3",
         "payload_version": "1",
         "event_id": event.id,
         "execution_id": event.execution_id,
@@ -63,7 +63,7 @@ def prompt_dict(prompt: Prompt) -> dict[str, Any]:
 
 
 def execution_dict(execution: Execution) -> dict[str, Any]:
-    subset_version = "spell-restricted-ast/0.2"
+    subset_version = f"spell-restricted-ast/{execution.ir_version}"
     config_identity = {
         "context_id": execution.context_id,
         "procedure_hash": execution.procedure_hash,
@@ -84,6 +84,7 @@ def execution_dict(execution: Execution) -> dict[str, Any]:
         "current_step": execution.current_step,
         "total_steps": execution.total_steps,
         "worker_generation": execution.worker_generation,
+        "variables": execution.variables,
         "procedure_subset_version": subset_version,
         "configuration_hash": config_hash,
         "last_sequence": execution.next_sequence - 1,

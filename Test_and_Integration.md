@@ -5,10 +5,10 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current release | SPELL v0.2 |
-| Status | v0.2 local simulator release accepted with documented exceptions |
-| Date | 2026-07-12 |
-| Applies to | v0.1 documentation baseline and every product version from v0.2 |
+| Current release | SPELL v0.3 |
+| Status | v0.3 local simulator engineering release accepted |
+| Date | 2026-07-16 |
+| Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
 ## Version 0.3 Pre-Implementation Test Plan
@@ -31,38 +31,66 @@
 
 ### Acceptance Tests
 
-| Test ID | Expected result | Environment | Entry status |
+| Test ID | Expected result | Environment | Final result |
 | --- | --- | --- | --- |
-| `V03-LIC-001` | Official Apache-2.0 text matches upstream; NOTICE exists; legacy ZIPs are absent from commits/packages | `DOC`, `DEV` | Planned |
-| `V03-MIG-001` | A fresh SQLite and PostgreSQL database upgrades from zero to the v0.3 head | `DEV`, `SIM` | Planned |
-| `V03-MIG-002` | A populated v0.2 schema upgrades without losing executions, events, prompts, commands, or hashes | `DEV`, `SIM` | Planned |
-| `V03-MIG-003` | Re-running upgrade is idempotent and a failed migration rolls back visibly | `DEV`, `SIM` | Planned |
-| `V03-AUTH-001` | Valid JWT issuer, audience, expiry, subject, and role claims authenticate REST and WebSocket | `DEV`, `SIM` | Planned |
-| `V03-AUTH-002` | Missing, expired, malformed, wrong-issuer, wrong-audience, and unsigned tokens are rejected | `DEV` | Planned |
-| `V03-AUTH-003` | Viewer/operator/admin permissions are enforced only from signed claims; spoofed role headers have no effect | `DEV`, `SIM` | Planned |
-| `V03-AUTH-004` | Development token issuance is disabled by default outside the explicit local profile | `DEV`, `SIM` | Planned |
-| `V03-ISO-001` | Backend and database attach only to an internal network; the loopback proxy is the sole API ingress | `SIM` | Planned |
-| `V03-ISO-002` | Full browser acceptance passes while a backend internet-connect probe fails and PostgreSQL remains reachable | `SIM` | Planned |
-| `V03-SUP-001` | Python installation succeeds with exact versions and required hashes; Node uses `npm ci` integrity data | `DEV` | Planned |
-| `V03-SUP-002` | Backend/frontend packages rebuild twice with identical content hashes after normalized metadata | `DEV` | Planned |
-| `V03-SUP-003` | CycloneDX inventories and audit policy report zero unreviewed advisories | `DEV` | Planned |
-| `V03-LANG-001` | Typed declarations and assignments produce normalized expression IR without executing source | `DEV` | Planned |
-| `V03-LANG-002` | Arithmetic, comparison, and boolean expression types are checked; unsafe syntax is rejected | `DEV` | Planned |
-| `V03-LANG-003` | If/else selects one deterministic branch and emits ordered checkpoints/effects | `DEV`, `SIM` | Planned |
-| `V03-LANG-004` | A bounded `range` loop executes the exact approved count and rejects excessive/dynamic bounds | `DEV`, `SIM` | Planned |
-| `V03-LANG-005` | Reusable zero-argument local calls expand with bounded depth and recursion is rejected | `DEV`, `SIM` | Planned |
-| `V03-REC-001` | Crash/recovery after variable and control-flow checkpoints restores values and emits no duplicate effect | `SIM` | Planned |
-| `V03-REC-002` | Concurrent commands/prompts, late worker states, database failure, and restart retain one durable outcome | `DEV`, `SIM` | Planned |
-| `V03-VAL-001` | Valid source returns subset version, SHA-256, normalized IR, variables, and no diagnostics | `DEV` | Planned |
-| `V03-VAL-002` | Invalid/unsafe source returns stable line/column/code/severity diagnostics and creates no execution | `DEV` | Planned |
-| `V03-VAL-003` | Validation input size, complexity, nesting, call depth, and loop bounds are enforced | `DEV` | Planned |
-| `V03-UI-001` | Selected source can be validated without execution and results are visible and keyboard reachable | `SIM` | Planned |
-| `V03-UI-002` | Desktop/mobile Axe scan has no serious/critical issue and controls/text fit their containers | `SIM` | Planned |
-| `V03-UI-003` | Existing pause, prompt, abort, crash/recovery, report, stale, and reconnect workflows remain correct | `SIM` | Planned |
-| `V03-PERF-001` | At least 100 REST mutations meet 250 ms local p95 without duplicate outcomes | `SIM` | Planned |
-| `V03-PERF-002` | A 10,000-event snapshot/cursor replay completes in 3 seconds with exact canonical order | `SIM` | Planned |
-| `V03-PERF-003` | One execution and two browser clients sustain at least 100 events/s for 60 seconds without loss | `SIM` | Planned |
-| `V03-PERF-004` | A 10-minute 20 events/s soak has no crash, loss, stuck control, or sustained memory-growth trend | `SIM` | Planned |
+| `V03-LIC-001` | Official Apache-2.0 text matches upstream; NOTICE exists; legacy ZIPs are absent from commits/packages | `DOC`, `DEV` | Pass |
+| `V03-MIG-001` | A fresh SQLite and PostgreSQL database upgrades from zero to the v0.3 head | `DEV`, `SIM` | Pass |
+| `V03-MIG-002` | A populated v0.2 schema upgrades without losing executions, events, prompts, commands, or hashes | `DEV`, `SIM` | Pass |
+| `V03-MIG-003` | Re-running upgrade is idempotent and a failed migration rolls back visibly | `DEV`, `SIM` | Pass |
+| `V03-AUTH-001` | Valid JWT issuer, audience, expiry, subject, and role claims authenticate REST and WebSocket | `DEV`, `SIM` | Pass |
+| `V03-AUTH-002` | Missing, expired, malformed, wrong-issuer, wrong-audience, and unsigned tokens are rejected | `DEV` | Pass |
+| `V03-AUTH-003` | Viewer/operator/admin permissions are enforced only from signed claims; spoofed role headers have no effect | `DEV`, `SIM` | Pass |
+| `V03-AUTH-004` | Development token issuance is disabled by default outside the explicit local profile | `DEV`, `SIM` | Pass |
+| `V03-ISO-001` | Backend and database attach only to an internal network; the loopback proxy is the sole API ingress | `SIM` | Pass |
+| `V03-ISO-002` | Full browser acceptance passes while a backend internet-connect probe fails and PostgreSQL remains reachable | `SIM` | Pass |
+| `V03-SUP-001` | Python installation succeeds with exact versions and required hashes; Node uses `npm ci` integrity data | `DEV` | Pass |
+| `V03-SUP-002` | Backend/frontend packages rebuild twice with identical content hashes after normalized metadata | `DEV` | Pass |
+| `V03-SUP-003` | CycloneDX inventories and audit policy report zero unreviewed advisories | `DEV` | Pass |
+| `V03-LANG-001` | Typed declarations and assignments produce normalized expression IR without executing source | `DEV` | Pass |
+| `V03-LANG-002` | Arithmetic, comparison, and boolean expression types are checked; unsafe syntax is rejected | `DEV` | Pass |
+| `V03-LANG-003` | If/else selects one deterministic branch and emits ordered checkpoints/effects | `DEV`, `SIM` | Pass |
+| `V03-LANG-004` | A bounded `range` loop executes the exact approved count and rejects excessive/dynamic bounds | `DEV`, `SIM` | Pass |
+| `V03-LANG-005` | Reusable zero-argument local calls expand with bounded depth and recursion is rejected | `DEV`, `SIM` | Pass |
+| `V03-REC-001` | Crash/recovery after variable and control-flow checkpoints restores values and emits no duplicate effect | `SIM` | Pass |
+| `V03-REC-002` | Concurrent commands/prompts, late worker states, database failure, and restart retain one durable outcome | `DEV`, `SIM` | Pass |
+| `V03-VAL-001` | Valid source returns subset version, SHA-256, normalized IR, variables, and no diagnostics | `DEV` | Pass |
+| `V03-VAL-002` | Invalid/unsafe source returns stable line/column/code/severity diagnostics and creates no execution | `DEV` | Pass |
+| `V03-VAL-003` | Validation input size, complexity, nesting, call depth, and loop bounds are enforced | `DEV` | Pass |
+| `V03-UI-001` | Selected source can be validated without execution and results are visible and keyboard reachable | `SIM` | Pass |
+| `V03-UI-002` | Desktop/mobile Axe scan has no serious/critical issue and controls/text fit their containers | `SIM` | Pass |
+| `V03-UI-003` | Existing pause, prompt, abort, crash/recovery, report, stale, and reconnect workflows remain correct | `SIM` | Pass |
+| `V03-PERF-001` | At least 100 REST mutations meet 250 ms local p95 without duplicate outcomes | `SIM` | Pass |
+| `V03-PERF-002` | A 10,000-event snapshot/cursor replay completes in 3 seconds with exact canonical order | `SIM` | Pass |
+| `V03-PERF-003` | One execution and two browser clients sustain at least 100 events/s for 60 seconds without loss | `SIM` | Pass with two independent Chromium processes using native WebSocket |
+| `V03-PERF-003A` | The supporting in-process EventHub boundary sustains the same fan-out load without queue overflow | `SIM` | Pass; supporting evidence only |
+| `V03-PERF-004` | A 10-minute 20 events/s soak has no crash, loss, stuck control, or sustained memory-growth trend | `SIM` | Pass |
+
+### Performance Qualification Command
+
+Run `./scripts/qualify_release.ps1` for the release-grade performance gate. It
+builds one immutable qualification image, runs the quick and soak components
+with outbound networking disabled, runs the real browser component against an
+ephemeral loopback Uvicorn server, and independently composes the evidence.
+
+- `qualification-quick.json` contains `V03-PERF-001`, `002`, and supporting
+  EventHub gate `003A`.
+- `qualification-soak.json` contains the full 600-second `V03-PERF-004` run.
+- `qualification-browser-stream.json` contains `V03-PERF-003` from two
+  independent Chromium processes using native WebSocket connections.
+- `qualification.json` is composer-owned release evidence. It is accepted only
+  when all components pass, their identities and metrics are internally
+  consistent, and all source fingerprints match.
+
+The REST measurement uses 50 acknowledged pause/resume pairs against one
+long-running simulated execution; state polling and idempotent retries are
+outside the primary latency timer. Browser cadence is measured independently in
+each Chromium process from first to last data event. Both browsers must first
+receive the server keepalive emitted after subscription and replay, and the
+composer verifies that this readiness timestamp precedes first data. Only then
+does the harness start production. The sentinel is checked separately for
+completeness. `V03-PERF-003A` exercises two bounded production EventHub
+subscriptions, but it is supporting evidence and cannot substitute for the
+native browser gate.
 
 ### Release Gate
 
@@ -71,6 +99,73 @@ non-safety exception. Migration, authentication, isolation, language safety,
 durability, recovery, and canonical event-loss tests cannot be waived. The
 release remains simulator-only and grants no authority to add a GCS or
 spacecraft endpoint.
+
+### Version 0.3 Executed Evidence
+
+Final verification ran from 2026-07-13 through 2026-07-16 EDT (the final
+qualification reports were generated on 2026-07-17 UTC) from Windows 11 Pro
+build 26200 on an Intel Core i7-9700 with 31.8 GiB RAM. Docker 26.1.1 ran Python
+3.13.14 Linux containers and PostgreSQL 18.4. Frontend verification used Node
+24.13.0, npm 11.6.2, Playwright 1.61.1, and desktop/mobile Chromium projects.
+
+| Gate | Actual result |
+| --- | --- |
+| Backend, SQLite, Docker network disabled | 112 passed, 1 PostgreSQL-only skip |
+| Backend, PostgreSQL, including populated v0.2 migration | 113 passed |
+| Frontend Vitest | 13 passed |
+| Strict TypeScript and Vite production build | Pass |
+| Mocked and real Playwright, desktop and mobile | 16 passed: 8 mocked and 8 signed-token real-backend |
+| Release composer and reproducible-package tooling | 26 passed |
+| Real-flow Axe serious/critical findings | 0 after correcting focusability, names, and contrast |
+| Browser requests outside loopback | 0 |
+| Backend internet probe | Blocked as required; PostgreSQL probe remained reachable |
+| Compose ingress | Only Nginx published, at `127.0.0.1:8080` |
+| Authenticated REST mutations | 100 pause/resume commands plus 100 idempotent retries; 12.452 ms primary p95; 0 duplicate outcomes |
+| Canonical replay | 10,000 events in 0.13462 s; no gap, duplicate, or payload mismatch |
+| Native browser real-time stream | Two ready-before-production Chromium processes each received all 6,002 sequences; 100.022 events/s over 59.9967 s; no gap or duplicate |
+| Browser producer scheduling | 100.012 events/s for 60.002974 s; 0.91 ms p95 and 7.336 ms maximum lag |
+| Supporting EventHub fan-out | Two bounded clients at 100.013 events/s for 60.003304 s; no loss, duplicate, or overflow |
+| Sustained soak | 12,001 exact events at 20.002 events/s for 600.001721 s; no control or producer failure |
+| Soak scheduling and memory | 0.548 ms p95/2.653 ms max lag; 1.375 MiB post-warmup growth; 0.188 MiB/min slope |
+| Python and Node dependency audits | 0 known vulnerabilities; Starlette exposure policy passed |
+| CycloneDX image inventories | Separate backend, proxy, and frontend inventories with `SHA256SUMS`; conversion warnings recorded in `PROVENANCE.md` |
+| Reproducible package | Two immutable-input builds and a third current-context drift build produced an identical SHA-256; checksum sidecar retained with the archive |
+
+Focused safety and release-integrity evidence also passed:
+
+- Source byte, Unicode, AST node/depth, expanded-step, prompt-width, and
+  serialized-IR byte limits reject oversized input before worker handoff or
+  persistence. Invalid UTF-8, unpaired surrogates, and NULs return stable,
+  non-echoing diagnostics. Accepted source and its SHA-256 use the exact same
+  text.
+- Definite assignment is enforced across branches, loops, and calls; reserved
+  compiler/runtime names cannot be declared, assigned, or used as loop targets.
+- Chained comparisons short-circuit in the data interpreter. Empty or excessive
+  ranges, recursion, unsafe syntax, and unbounded call expansion are rejected.
+- Worker terminal messages, consumer failure, bounded shutdown, and restart
+  recovery settle every accepted command durably; stale generations and late
+  messages cannot overwrite the authoritative result.
+- Established WebSockets close when their JWT expires. Logout and close code
+  `4401` both close the client socket, erase the session token, and return the
+  console to the access gate.
+- Migration `v0001` is immutable static schema code rather than live ORM
+  metadata. Fresh, populated-v0.2, repeated, failure, SQLite, and PostgreSQL
+  paths passed.
+- Qualification and packaging reject missing, failed, mixed-fingerprint, or
+  stale reports. Packaging excludes only generated screenshots under
+  `artifacts/v0.3`, retaining legitimate product PNG assets.
+
+Machine-readable performance evidence is in
+`artifacts/v0.3/qualification.json` (schema `1.1`, `overall_pass: true`,
+`acceptance_complete: true`, fingerprint
+`454d79fdbadc6d5076f415fa9bc1d03dd12552511e58c59330ad5315d50eb734`).
+The quick, soak, and browser-stream component reports are retained beside it.
+Browser screenshots are under `artifacts/v0.3/`; backend, proxy, and frontend
+CycloneDX inventories plus their checksum manifest are under `artifacts/sbom/`.
+
+No v0.3 acceptance test has a safety exception. SPELL v0.3 is accepted only as
+a local simulator engineering release. It remains unapproved for shared,
+operational, GCS, spacecraft, or telecommand use.
 
 ## Purpose
 

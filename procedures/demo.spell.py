@@ -1,4 +1,4 @@
-"""Simulator-only v0.2 procedure demonstrating every supported step."""
+"""Simulator-only baseline procedure demonstrating every supported step."""
 
 Log("Starting simulated power-system check")
 Telemetry("sim.power.bus_voltage", value=28.4, unit="V")

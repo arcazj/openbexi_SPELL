@@ -1,11 +1,12 @@
 # Prompt History
 
 This document records approved project requests, planning decisions, delivery
-status, and unresolved issues by OpenBEXI SPELL version. New version entries
-are inserted at the top so the current version is visible first. Later versions
-may supersede a decision but must not rewrite an earlier request or result.
+status, and unresolved issues by OpenBEXI SPELL version. The current version is
+inserted at the top so it is visible first; earlier entries retain their original
+delivery order. Later versions may supersede a decision but must not rewrite an
+earlier request or result.
 
-## 2026-07-12 - SPELL v0.3
+## 2026-07-16 - SPELL v0.3
 
 ### Release Identity
 
@@ -14,7 +15,7 @@ may supersede a decision but must not rewrite an earlier request or result.
 | Version | 0.3 |
 | Release name | Simulator Hardening and Language Foundation |
 | Request type | Hardening, restricted-language expansion, and validation workflow |
-| Status | Approved to implement after the recorded v0.3 test gate |
+| Status | Delivered and accepted as a local simulator engineering release |
 | Baseline | Commit `7df7743`, tag `v0.2.0` |
 | License | Apache License 2.0 |
 | Operational authorization | None |
@@ -64,6 +65,29 @@ committed and tagged before v0.3 product edits. Implementation may begin only
 after the v0.3 test section in `Test_and_Integration.md` is present. Release
 acceptance requires actual evidence or an explicit non-safety exception for
 every v0.3 test.
+
+### Version 0.3 Implementation Outcome
+
+Version 0.3 was finalized on 2026-07-16 under Apache License 2.0. It delivered
+versioned SQLite/PostgreSQL migrations, strict signed JWT identity and roles,
+internal-only backend/database networking, hash-locked dependencies, SBOMs,
+reproducible packaging, the typed restricted language and variable recovery,
+and transient API/console validation.
+
+Final verification passed 112 backend tests with one PostgreSQL-only skip under
+network-disabled SQLite, all 113 tests on PostgreSQL, 13 frontend unit tests, a
+strict production build, 16 desktop/mobile browser tests, and 26 release-tooling
+tests. The 100-command latency and 10,000-event replay gates passed. Two
+independent Chromium processes each received all 6,002 sequences at 100.022
+events/second after an explicit subscription-readiness handshake, and the
+10-minute soak persisted 12,001 exact events at 20.002 events/second with
+bounded scheduling lag and memory growth. Dependency audits reported no known
+product dependency vulnerabilities; separate backend, proxy, and frontend SBOMs
+and their checksum manifest were generated.
+
+The release is recorded in `SPELL_v0.3_Release.md` and tagged `v0.3.0`. No GCS,
+spacecraft, driver, Java, arbitrary Python execution, Three.js, or operational
+authorization was added.
 
 ## 2026-07-12 - SPELL v0.1
 
