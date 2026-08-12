@@ -17,10 +17,10 @@ operator control take priority over convenience or visual novelty. The project
 must reduce operational risk; a local simulator result must never be presented
 as operational qualification.
 
-## Current Baseline
+## Current Baseline And Candidate
 
-SPELL v0.3 is a local, simulator-only engineering release built from new
-first-party code:
+SPELL v0.3.0, tag `v0.3.0`, remains the accepted local simulator engineering
+baseline. It is built from new first-party code and provides:
 
 - Python 3.13 FastAPI control plane and isolated procedure workers.
 - Restricted AST parser and data-only IR; submitted Python text is never
@@ -41,10 +41,25 @@ first-party code:
   packages, distinct backend/proxy/frontend CycloneDX SBOMs, and dependency
   audit gates.
 
-The baseline has no driver host, Ground Control System client, spacecraft
-connection, operational telecommand path, persistent procedure authoring,
-high-availability deployment, or operational authorization. Configuration must
-not make any of those capabilities appear to exist.
+SPELL v0.4.0 is the owner-approved Candidate A engineering target. Its scope is
+strictly local-only, synthetic, non-CUI simulator engineering. Candidate scope
+is limited to a typed `spell.driver.v1` infrastructure-lifecycle contract, one
+bundled deterministic simulator driver in a separate host, control-plane-owned
+context and attachment supervision, mTLS service identity, durable operation
+reconciliation, read-only REST/WebSocket projections, and a read-only console
+projection. Existing v0.3 procedure semantics and their versioned schemas stay
+unchanged and do not route through the driver.
+
+The v0.4 candidate exposes no telemetry or telecommand data plane, no
+procedure-facing driver call, no arbitrary endpoint, and no browser mutation of
+driver state. It does not provide a legacy or live Ground Control System client,
+spacecraft or mission-network connection, externally effective command,
+persistent procedure authoring, production PKI or identity, high availability,
+deployment approval, compliance determination, mission authority, or
+operational authorization. Configuration must not make any excluded capability
+appear to exist. Gate 0 authorized bounded implementation; only executed and
+published Gates 1-5 evidence plus an explicit project-owner decision can accept
+the release candidate.
 
 ## Legacy Evidence
 
@@ -56,15 +71,20 @@ code from them into the Apache-2.0 project:
 - `SPELL-COTS-2.6.10.zip`: legacy third-party dependency bundle.
 - `SPELL_GUI_4.0.12-win32.win32.x86.zip`: legacy 32-bit Eclipse GUI binary.
 
-The Server, GUI, Language, Driver Development, Development Environment, and
-Build manuals remain required references when a future version touches their
-behavior. Record missing manuals or conflicts; do not invent compatibility.
-Core and GUI legacy versions are independent version series.
+The supplied Server, GUI, Language, Driver Development, Development Environment,
+and Build manuals and GUI build instructions are read-only external evidence.
+For v0.4, use their page-complete review and compatibility ledger for
+classification and traceability, not as implementation source or a
+version-exact executable oracle. Do not copy their code or weakly typed wire
+contracts, and do not place the supplied PDFs, extracted manual text, or legacy
+archives in product images or release packages. Record conflicts and exclusions;
+do not invent compatibility. Core and GUI legacy versions are independent
+version series.
 
 ## Architecture Rules
 
-- Keep the browser, control plane, execution worker, persistence, and future
-  integration adapters as separate trust and ownership boundaries.
+- Keep the browser, control plane, execution worker, persistence, and bundled
+  simulator driver host as separate trust and ownership boundaries.
 - REST is authoritative for commands and snapshots. Mutations require durable
   idempotency keys; state-sensitive commands require expected revisions.
 - WebSocket is downstream-only. Persist ordered events before publication, and
@@ -169,26 +189,36 @@ Core and GUI legacy versions are independent version series.
 - Use exact dependency locks with artifact hashes where the ecosystem supports
   them. Install Python release dependencies with `--require-hashes` and Node
   dependencies with `npm ci`.
-- Produce separate backend, proxy, and frontend SBOMs plus a checksum manifest,
-  and run dependency audits for every release. Critical or High findings
-  require resolution; every other advisory requires a recorded, time-bounded
-  disposition.
+- Produce the exact version-scoped SBOM set required by the active gate and a
+  checksum manifest, and run dependency audits for every release. The v0.4 set
+  is four distinct CycloneDX inventories for backend, driver, frontend build,
+  and proxy image identities under `artifacts/v0.4/sbom`. Critical or High
+  findings require resolution; every other advisory requires a recorded,
+  time-bounded disposition.
 - Build the release package twice from the same frozen source and require
   identical SHA-256 results. The manifest must exclude archives, secrets,
   generated browser screenshots, caches, and IDE files. Screenshot exclusion
   must be path- and file-type-specific; it must retain PNG or other visual
   assets that are part of the product.
-- Bind quick, soak, and real-browser evidence to one shared source fingerprint.
-  Exercise the browser stream with two independent Chromium processes, then
-  compose the three reports in a separate validation step that recomputes their
-  identities, gates, and integrity instead of trusting a pre-composed result.
+- Keep qualification and packaging version-aware. For v0.4, stage every
+  built-in or environment-bound Gate 1-5 result through
+  `scripts/qualify_v04.py`; require the exact test catalog, shared source
+  fingerprint, semantic validation, no missing or skipped mandatory result, and
+  atomic publication under `artifacts/v0.4`. Do not read, satisfy, overwrite, or
+  package retained v0.3 evidence as v0.4 evidence.
+- Generate and validate v0.4 contracts offline from pinned inputs. Inspect
+  source, package bytes, and the exact four images for secrets, manual/PDF or
+  legacy material, generated journals, and runtime generator tooling. Build the
+  v0.4 source package repeatedly from immutable inputs and require identical
+  SHA-256 results before recording any release decision.
 - Preserve unrelated user changes. Do not rewrite or discard them to obtain a
   clean working tree.
 
 ## Version Workflow
 
 1. Read this file, the latest entry at the top of `PROMPT_History.md`, the
-   current release record, provenance, and relevant code/tests.
+   accepted baseline record, the active candidate gate/release record,
+   provenance, and relevant code/tests.
 2. Inspect repository and dependency state. Establish the last verified tag and
    keep unrelated or local-only files out of the change.
 3. Before implementation, add the new version request at the top of
@@ -226,13 +256,18 @@ Scale verification with risk, but every product release must include:
 - Canonical replay, latency, throughput, concurrency, and sustained soak tests
   against version-specific budgets. These are engineering gates, not
   operational SLOs.
-- Fingerprint-bound quick, soak, and two-Chromium real-browser reports composed
-  by an independent validation step. Run the canonical release qualification
-  through `scripts/qualify_release.ps1`.
-- Hash-locked dependency installation, Python and Node audits, SBOM generation,
-  proxy validation, package-manifest inspection, exact screenshot-only evidence
-  exclusion, and two-build reproducibility. Run the canonical complete build
-  and packaging gate through `scripts/build_v03.ps1`.
+- Fingerprint-bound, version-specific built-in and environment-bound evidence,
+  with a separate validator that recomputes catalog completeness, identities,
+  budgets, and integrity. For v0.4 use `python scripts/qualify_v04.py plan`,
+  `run`/`collect`, `status`, and finally `publish`; staged evidence is not release
+  evidence until publication succeeds.
+- Hash-locked dependency installation, Python and Node audits, exact image
+  identity, version-scoped SBOM generation, proxy and driver isolation checks,
+  package-manifest inspection, exact generated-browser evidence exclusion, and
+  repeated-build reproducibility. For v0.4 use
+  `scripts/audit_supply_chain_v04.ps1`, `scripts/generate_sbom_v04.ps1`,
+  `scripts/inspect_release_v04.ps1`, and
+  `scripts/package_release_v04.ps1` within the Gate 5 qualification workflow.
 
 Any unresolved Critical or High defect in safety boundaries, identity,
 authorization, persistence, ordering, migration, recovery, isolation, or source

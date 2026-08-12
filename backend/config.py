@@ -6,6 +6,21 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+DRIVER_TARGET = "spell-driver:50051"
+DRIVER_CA_PATH = Path("/run/spell-driver-client/ca.crt")
+DRIVER_CLIENT_CERT_PATH = Path("/run/spell-driver-client/client.crt")
+DRIVER_CLIENT_KEY_PATH = Path("/run/spell-driver-client/client.key")
+
+
+def _strict_bool(name: str, value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized == "true":
+        return True
+    if normalized == "false":
+        return False
+    raise ValueError(f"{name} must be true or false")
+
+
 @dataclass(frozen=True)
 class Settings:
     database_url: str
@@ -14,6 +29,14 @@ class Settings:
     websocket_queue_size: int
     websocket_keepalive_seconds: float
     command_ack_timeout_seconds: float = 5.0
+    driver_enabled: bool = False
+    driver_target: str = DRIVER_TARGET
+    driver_ca_path: Path = DRIVER_CA_PATH
+    driver_client_cert_path: Path = DRIVER_CLIENT_CERT_PATH
+    driver_client_key_path: Path = DRIVER_CLIENT_KEY_PATH
+    driver_rpc_timeout_seconds: float = 2.0
+    driver_poll_seconds: float = 1.0
+    driver_stale_after_seconds: float = 5.0
 
     def __post_init__(self) -> None:
         if self.websocket_replay_limit <= 0:
@@ -32,6 +55,27 @@ class Settings:
             raise ValueError(
                 "SPELL_COMMAND_ACK_TIMEOUT_SECONDS must be a positive finite number"
             )
+        if self.driver_target != DRIVER_TARGET:
+            raise ValueError("the v0.4 driver target must be the bundled simulator service")
+        for name, value in (
+            ("SPELL_DRIVER_RPC_TIMEOUT_SECONDS", self.driver_rpc_timeout_seconds),
+            ("SPELL_DRIVER_POLL_SECONDS", self.driver_poll_seconds),
+            ("SPELL_DRIVER_STALE_AFTER_SECONDS", self.driver_stale_after_seconds),
+        ):
+            if not math.isfinite(value) or value <= 0:
+                raise ValueError(f"{name} must be a positive finite number")
+        if self.driver_stale_after_seconds <= self.driver_poll_seconds:
+            raise ValueError(
+                "SPELL_DRIVER_STALE_AFTER_SECONDS must exceed SPELL_DRIVER_POLL_SECONDS"
+            )
+        if self.driver_enabled:
+            fixed_paths = (
+                (self.driver_ca_path, DRIVER_CA_PATH),
+                (self.driver_client_cert_path, DRIVER_CLIENT_CERT_PATH),
+                (self.driver_client_key_path, DRIVER_CLIENT_KEY_PATH),
+            )
+            if any(actual != expected for actual, expected in fixed_paths):
+                raise ValueError("driver credential paths must use the fixed service mount")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -46,5 +90,19 @@ class Settings:
             websocket_keepalive_seconds=float(os.getenv("SPELL_WS_KEEPALIVE_SECONDS", "5")),
             command_ack_timeout_seconds=float(
                 os.getenv("SPELL_COMMAND_ACK_TIMEOUT_SECONDS", "5")
+            ),
+            driver_enabled=_strict_bool(
+                "SPELL_DRIVER_ENABLED", os.getenv("SPELL_DRIVER_ENABLED", "false")
+            ),
+            driver_target=DRIVER_TARGET,
+            driver_ca_path=DRIVER_CA_PATH,
+            driver_client_cert_path=DRIVER_CLIENT_CERT_PATH,
+            driver_client_key_path=DRIVER_CLIENT_KEY_PATH,
+            driver_rpc_timeout_seconds=float(
+                os.getenv("SPELL_DRIVER_RPC_TIMEOUT_SECONDS", "2")
+            ),
+            driver_poll_seconds=float(os.getenv("SPELL_DRIVER_POLL_SECONDS", "1")),
+            driver_stale_after_seconds=float(
+                os.getenv("SPELL_DRIVER_STALE_AFTER_SECONDS", "5")
             ),
         )

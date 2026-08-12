@@ -1,0 +1,4 @@
+services:
+  spell-driver:
+    volumes:
+      - ./driver_host/host-epoch2-qualification.json:/etc/spell-driver/host.json:ro

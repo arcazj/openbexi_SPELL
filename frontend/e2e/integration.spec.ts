@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
+import { resolve } from "node:path";
 
 test.skip(
   !process.env.SPELL_REAL_BACKEND || !process.env.SPELL_E2E_TOKEN,
@@ -9,6 +10,14 @@ test.skip(
 test.setTimeout(60_000);
 
 const externalRequestsByPage = new WeakMap<Page, string[]>();
+
+function artifactPath(name: string): string {
+  return resolve(
+    process.cwd(),
+    process.env.SPELL_E2E_ARTIFACT_DIRECTORY ?? "../artifacts/v0.3",
+    name,
+  );
+}
 
 test.beforeEach(async ({ page }) => {
   const token = process.env.SPELL_E2E_TOKEN;
@@ -87,7 +96,7 @@ test("recovers a crashed prompt workflow and loads its report", async ({ page },
   await expect(page.getByRole("radio", { name: "acknowledge" })).toBeChecked();
   await expectControlTextFits(page);
   if (testInfo.project.name === "mobile") {
-    await page.screenshot({ path: "../artifacts/v0.3/mobile-recovered-prompt.png" });
+    await page.screenshot({ path: artifactPath("mobile-recovered-prompt.png") });
   }
   await page.getByRole("button", { name: "Commit response" }).click();
 
@@ -95,7 +104,7 @@ test("recovers a crashed prompt workflow and loads its report", async ({ page },
   await page.getByRole("button", { name: "As-run report" }).click();
   await expect(page.getByRole("button", { name: "Export JSON" })).toBeVisible();
   if (testInfo.project.name === "chromium") {
-    await page.screenshot({ path: "../artifacts/v0.3/desktop-as-run-report.png" });
+    await page.screenshot({ path: artifactPath("desktop-as-run-report.png") });
   }
   await expectLoopbackOnly(page);
 });
@@ -114,7 +123,7 @@ test("validates and executes the typed v0.3 language procedure", async ({ page }
   await expect(validation.getByText("voltage", { exact: true })).toBeVisible();
   await expectNoBlockingAccessibilityFindings(page);
   if (testInfo.project.name === "chromium") {
-    await page.screenshot({ path: "../artifacts/v0.3/desktop-v03-validation.png" });
+    await page.screenshot({ path: artifactPath("desktop-v03-validation.png") });
   }
   await validation.getByRole("button", { name: "Close validation result" }).click();
 

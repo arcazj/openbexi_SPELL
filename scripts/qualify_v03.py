@@ -35,7 +35,6 @@ if str(ROOT) not in sys.path:
 from fastapi.testclient import TestClient
 from sqlalchemy import func, insert, select
 
-from backend.app import create_app
 from backend.auth import AuthConfig, issue_local_dev_token
 from backend.config import Settings
 from backend.database import utc_now
@@ -1023,6 +1022,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             peer_host="127.0.0.1",
             lifetime_seconds=900,
         )
+        from backend.app import create_app
+
         with TestClient(create_app(settings, auth_config=auth_config)) as client:
             context = QualificationContext(client=client, token=token)
             if run_quick:

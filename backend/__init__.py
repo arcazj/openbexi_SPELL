@@ -1,8 +1,8 @@
-"""SPELL v0.3 simulator-only backend."""
+"""SPELL v0.4 local synthetic simulator backend."""
 
 import sys
 
 if sys.version_info < (3, 10):
-    raise RuntimeError("SPELL v0.3 requires Python 3.10 or newer; Python 3.13 is verified")
+    raise RuntimeError("SPELL v0.4 requires Python 3.10 or newer; Python 3.13 is verified")
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

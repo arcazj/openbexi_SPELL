@@ -12,10 +12,45 @@ from typing import Any
 
 MAX_INTEGER_BITS = 4_096
 MAX_STRING_LENGTH = 100_000
+WORKER_ENVIRONMENT_ALLOWLIST = frozenset(
+    {
+        "COMSPEC",
+        "LANG",
+        "LC_ALL",
+        "LC_CTYPE",
+        "PATH",
+        "PATHEXT",
+        "PYTHONIOENCODING",
+        "PYTHONUTF8",
+        "SYSTEMROOT",
+        "TEMP",
+        "TMP",
+        "TZ",
+        "WINDIR",
+    }
+)
 
 
 class ExpressionEvaluationError(ValueError):
     pass
+
+
+def sanitized_worker_environment() -> dict[str, str]:
+    """Return the inert runtime subset a spawned procedure worker may inherit."""
+
+    return {
+        name: value
+        for name, value in os.environ.items()
+        if name in WORKER_ENVIRONMENT_ALLOWLIST
+    }
+
+
+def _replace_worker_environment() -> None:
+    """Drop inherited service configuration before processing execution IR."""
+
+    retained = sanitized_worker_environment()
+    os.environ.clear()
+    os.environ.update(retained)
 
 
 def evaluate_expression(expression: Any, variables: dict[str, Any]) -> Any:
@@ -164,6 +199,8 @@ def worker_main(
     output: Queue,
 ) -> None:
     """Execute validated IR in a spawned process. Source code never enters this process."""
+
+    _replace_worker_environment()
 
     def send(kind: str, **fields: Any) -> None:
         output.put({"kind": kind, "generation": generation, **fields})

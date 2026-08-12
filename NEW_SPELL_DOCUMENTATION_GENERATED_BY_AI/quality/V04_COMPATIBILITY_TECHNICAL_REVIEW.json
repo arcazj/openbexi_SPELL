@@ -1,0 +1,97 @@
+{
+  "schema_version": "ng-spell-v04-compatibility-technical-review/1",
+  "review_id": "local-v0.4-seven-source-exhaustive-disposition",
+  "status": "PASS",
+  "reviewed_date": "2026-07-18",
+  "method": "Fresh independent source-grounding review passes against the exact supplied PDFs plus deterministic structural validation.",
+  "source_results": [
+    {
+      "source_code": "LRM244",
+      "source_hash": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+      "row_count": 763,
+      "canonical_rows_sha256": "a0a53e2a0408ef8935c1882fdba1890c3314272ddae4f3c0537e591842d511a4",
+      "review_pass": "independent-lrm244-source-rereview-20260718-03",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "DDM244",
+      "source_hash": "057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5",
+      "row_count": 207,
+      "canonical_rows_sha256": "bb45d7bd4438cb797dc7904d3e41f4790d47cec9a457eee863cfad573fcf4ec5",
+      "review_pass": "independent-ddm244-source-rereview-20260718-02",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "GUI244",
+      "source_hash": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6",
+      "row_count": 349,
+      "canonical_rows_sha256": "e76eeae3c55af2562d4f52e9a1939643998d2ddde3b7f72d3c7a222167b25f58",
+      "review_pass": "independent-gui244-source-rereview-20260718-03",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "DEV244",
+      "source_hash": "cedf617a4d551701394f75a8ec1769a402059a4c7b659ed87079ce5148074a81",
+      "row_count": 164,
+      "canonical_rows_sha256": "cb664cae47e7ffb544fedc9307eb8f465fcd7859a7ae85f6d88e71ef4bcdbc78",
+      "review_pass": "independent-dev244-source-rereview-20260718-03",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "SRV244",
+      "source_hash": "ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9",
+      "row_count": 113,
+      "canonical_rows_sha256": "27f6bf5a7e1504c0776b18502401a5736357c5253a2340b983d67a88700a831b",
+      "review_pass": "independent-srv244-source-rereview-20260718-02",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "BLD244",
+      "source_hash": "6ab753a3c8b07465e92a48ab8c1ab28693062942a456ac540c80baac7e17e9e6",
+      "row_count": 65,
+      "canonical_rows_sha256": "c65bcdc273cd2435fab31ec65fb01e765e7d70773532f16be9908a462b2b3f4b",
+      "review_pass": "independent-bld244-source-rereview-20260718-02",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    },
+    {
+      "source_code": "GUI402",
+      "source_hash": "5d8c93bec655499b42f921336640c42eb9dcd68f8979eced3e74758aef71dba6",
+      "row_count": 21,
+      "canonical_rows_sha256": "48062c47b419808f5928c153b941929325df025473769442181cccae52757896",
+      "review_pass": "independent-gui402-source-rereview-20260718-02",
+      "decision": "PASS",
+      "blocking_findings": 0,
+      "high_findings": 0
+    }
+  ],
+  "catalog_binding": {
+    "canonical_rows_sha256": "53037f4e958d776d4b4e1237d986740b2c90f4a93b0ba8a9becf099befb28d2f",
+    "artifact_manifest_sha256": "cd33f5d43294ef42d37b43c8bbe23c541f3da9dcdbee1b356bd9fef9ff6f5b20",
+    "example_catalog_sha256": "b9199640281b5ff299d737b719640f1fe5d843eaa0b921ad4ede2b49dca08850"
+  },
+  "limitations": [
+    "AI-assisted independent technical source review; not a human approval.",
+    "Static source-disposition review only; not runtime semantic conformance or implementation verification.",
+    "No row-by-row owner source-review claim, operational authorization, or compliance determination."
+  ],
+  "claims": {
+    "human_approval": false,
+    "row_by_row_owner_source_review": false,
+    "implementation_verified": false,
+    "runtime_semantic_conformance": false,
+    "operational_authorization": false,
+    "compliance_determination": false
+  }
+}
