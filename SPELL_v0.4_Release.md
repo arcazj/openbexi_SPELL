@@ -14,8 +14,8 @@ creates the annotated `v0.4.0` tag over the fixed release commit.
 | Release name | Typed Simulator Driver and Context Foundation |
 | Accepted baseline | `v0.3.0` (`7bccbb4eb096b22d0d1f2f765d5172f6dde244f1`) |
 | Scope profile | Local-only, synthetic non-CUI simulator engineering |
-| Candidate source commit | `f9a2cdbb29f18eefffbf9390480fa0a6be21487f` |
-| Qualification source fingerprint | `abf96e9f9f756e86fe2040d3ce6046b941008395217e3ebb2e2cf2677199718c` |
+| Candidate source commit | `aadc697f99a0bcad413143883c49d90fe9dce7a2` |
+| Qualification source fingerprint | `c5673a16be3ac82f7d5d6c29c197bb144b1769c696727c0a6d60da752e2fb183` |
 | Evidence identity | Canonical machine evidence and annotated tag; no self-derived digest is embedded in this packaged record |
 | Final archive SHA-256 | External `.sha256` sidecar and annotated tag only; never embedded in this packaged record |
 | Decision date | 2026-08-12 |
@@ -47,7 +47,7 @@ candidate scope, not delivered or accepted release behavior.
 ## As-Run Gate Results
 
 One canonical source-bound Preliminary pass ran from
-`2026-08-12T07:48:57.599599Z` through `2026-08-12T08:34:33.222899Z`.
+`2026-08-12T10:09:54.035249Z` through `2026-08-12T10:55:00.255291Z`.
 All 74 tests and all 209 assertions passed, with zero failures, skips, errors,
 waivers, or open Critical or High findings. These Preliminary results freeze
 the record; they are not final acceptance. The unchanged record must pass the
@@ -90,9 +90,9 @@ runtime remains outside the repository and is not a release-package input.
 | SBOM checksum manifest | `artifacts/v0.4/sbom/SHA256SUMS` | PASS; 4/4 distinct image-bound inventories, 321 components, 4/4 strict schema validations, and negative-tamper rejection; file identities recorded in the manifest |
 | Source release package | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz` | Preliminary reproducibility PASS: two independent generation builds and two independent package builds were byte-identical; final archive deferred until frozen-record Final qualification |
 | External package sidecar | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz.sha256` | Deferred; emitted externally only after the final archive |
-| Browser storage inventory | `artifacts/v0.4/browser-storage.json` | PASS; 630 bytes; SHA-256 `fe7165506c7bffe617f1f6330c6030fbdcc51d9ee82aadcdca154071d0afda82`; local/session storage empty after ephemeral-token removal and service-secret canary matches 0 |
-| Desktop browser image | `artifacts/v0.4/driver-projection-desktop.png` | PASS; 1280x720; 82,611 bytes; SHA-256 `ece543be44be0cb9ac829627593051b7b8b0082345ef7732dbae82a416dbfdcd` |
-| Mobile browser image | `artifacts/v0.4/driver-projection-mobile.png` | PASS; 412x839; 552,431 bytes; SHA-256 `e3cd7302472edaccff843fac3a7963b2c40940bc3901674831f755a2e61956e4` |
+| Browser storage inventory | `artifacts/v0.4/browser-storage.json` | PASS; 630 bytes; SHA-256 `12b3976087c090af5833cc8adfc7e627370b48aede785ec9f8a79c7e0a31986b`; local/session storage empty after ephemeral-token removal and service-secret canary matches 0 |
+| Desktop browser image | `artifacts/v0.4/driver-projection-desktop.png` | PASS; 1280x720; 81,947 bytes; SHA-256 `3be965394ec1763a5be93e9c390de34699d052c8bda5f9c006a9ccdccb78cfe5` |
+| Mobile browser image | `artifacts/v0.4/driver-projection-mobile.png` | PASS; 412x839; 551,118 bytes; SHA-256 `1e30298449fc3cea6f16cc1175dc495f43d9fba2c35439d237ace47e3657b634` |
 
 ### Qualification Environment
 
@@ -107,7 +107,7 @@ Canonical test records identify `scripts/qualify_v04.py` under both Windows
 and Linux with Python 3.13.14.
 
 The source-bound qualification image was
-`sha256:8ada56a9401309978ea36c9adfe68f7522cf593de70546ee860a79f733eaac46`.
+`sha256:53563912a8053855fd153cae686cc835d1de3fd90176d2ee9ee01a98181886ab`.
 The four audited product images are the image identities recorded with the
 SBOM rows above. The separately audited Compose dependencies were `pki-init`
 `sha256:c07ec31348ed08dfaf46e448b86bf9e7d7f1e8412e5e88835e63105d203c61ab`
@@ -144,10 +144,10 @@ direct driver connection, and no mutation control.
 
 | Test | Approved local budget | Preliminary measurement |
 | --- | --- | --- |
-| `V04-PERF-001` | At least 1,000 samples at 100/s; p95 at most 50 ms; max at most 250 ms | 1,000 samples in 9.516304 s at 105.083/s; p95 3.457 ms; max 5.924 ms; 0 errors |
-| `V04-PERF-002` | At least 1,000 operations at 20/s; acceptance p95 at most 250 ms; terminal p95 at most 500 ms | 1,000 operations in 48.736848 s at 20.518/s; acceptance p95 4.000 ms; terminal p95/max 8.748/17.325 ms; 0 duplicates, stuck operations, or errors |
-| `V04-PERF-003` | At least 100 cancellations with p95/max at most 500/1,000 ms; at least 25 restarts with readiness and reconciliation max at most 5,000 ms | 100 cancellations and 25 restarts; cancel p95/max 17.588/18.007 ms; readiness max 10.731 ms; reconciliation max 12.274 ms; 0 duplicates, stuck operations, or errors |
-| `V04-PERF-004` | At least 600 s and 12,000 operations at 20/s; growth at most 32 MiB; slope at most 2 MiB/min; zero loss, duplicate, stuck, or crash | 12,120 operations in 600.000746 s at 20.2/s; post-warmup growth 1.012 MiB and slope 0.124 MiB/min; 0 loss, duplicate, stuck, crash, error, or residual child process |
+| `V04-PERF-001` | At least 1,000 samples at 100/s; p95 at most 50 ms; max at most 250 ms | 1,000 samples in 9.516233 s at 105.084/s; p95 3.169 ms; max 5.713 ms; 0 errors |
+| `V04-PERF-002` | At least 1,000 operations at 20/s; acceptance p95 at most 250 ms; terminal p95 at most 500 ms | 1,000 operations in 48.735625 s at 20.519/s; acceptance p95 4.000 ms; terminal p95/max 8.703/11.531 ms; 0 duplicates, stuck operations, or errors |
+| `V04-PERF-003` | At least 100 cancellations with p95/max at most 500/1,000 ms; at least 25 restarts with readiness and reconciliation max at most 5,000 ms | 100 cancellations and 25 restarts; cancel p95/max 17.094/17.699 ms; readiness max 10.971 ms; reconciliation max 12.708 ms; 0 duplicates, stuck operations, or errors |
+| `V04-PERF-004` | At least 600 s and 12,000 operations at 20/s; growth at most 32 MiB; slope at most 2 MiB/min; zero loss, duplicate, stuck, or crash | 12,120 operations in 600.000992 s at 20.2/s; post-warmup growth 1.066 MiB and slope 0.129 MiB/min; 0 loss, duplicate, stuck, crash, error, or residual child process |
 
 These are bounded local engineering measurements, not operational SLOs.
 
@@ -164,7 +164,7 @@ findings were 0/0.
 
 The four SBOMs were distinct, licensed, image-bound inventories and all passed
 the bundled CycloneDX strict validator, including a negative tamper control.
-Inspection covered six images, 56 layers, and 28,369 files across image,
+Inspection covered six images, 56 layers, and 28,371 files across image,
 source, and candidate-package inputs. It found zero hardening or layer-scan
 failures and zero secret files, PDFs, manual text files, legacy archives,
 runtime generators, or runtime journals across the applicable inspected
@@ -249,20 +249,20 @@ compliance determination and grants no operational authorization.
 ## Project-Owner Decision
 
 The project owner recorded this conditional decision after the complete
-Preliminary validation and before the final SC004/package-binding run. It
-becomes effective only when every mandatory canonical gate validates in the
-unchanged Final rerun and the project owner's annotated `v0.4.0` tag is created
-over the fixed release commit. The tag records the exact identities that cannot
-be embedded here.
+canonical Preliminary validation and before the frozen-record complete Final
+rerun and final package publication. It becomes effective only when every
+mandatory canonical gate validates in the unchanged Final rerun and the
+project owner's annotated `v0.4.0` tag is created over the fixed release
+commit. The tag records the exact identities that cannot be embedded here.
 
 | Decision field | As-run value |
 | --- | --- |
 | Decision | Conditionally accept SPELL v0.4.0 Candidate A for the local synthetic non-CUI simulator engineering scope. |
-| Decision basis | Canonical Preliminary qualification passed 74/74 tests and 209/209 assertions with zero failures, skips, errors, waivers, open Critical/High findings, or blocking defects; all four image-bound SBOMs passed validation. Acceptance becomes effective only after the frozen-record complete Final rerun passes and the annotated `v0.4.0` tag is created. |
+| Decision basis | Canonical Preliminary qualification for candidate source commit `aadc697f99a0bcad413143883c49d90fe9dce7a2` and qualification source fingerprint `c5673a16be3ac82f7d5d6c29c197bb144b1769c696727c0a6d60da752e2fb183` passed 74/74 tests and 209/209 assertions with zero failures, skips, errors, waivers, open Critical/High findings, or blocking defects; all four image-bound SBOMs passed validation. Acceptance becomes effective only after the frozen-record complete Final rerun passes, the final archive and external sidecar validate, and the annotated `v0.4.0` tag is created. |
 | Accepted exceptions | None. |
 | Blocking defects | None. |
 | Deciding project owner | JC Arcaz |
-| Decision timestamp | `2026-08-12T08:40:47.270Z` |
+| Decision timestamp | `2026-08-12T10:57:38.378Z` |
 | Release commit | Selected by the annotated tag; never self-embedded |
 | Annotated tag | Selected externally after committed evidence validates; never self-embedded |
 
