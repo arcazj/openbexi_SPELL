@@ -1,9 +1,10 @@
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, ServerCog, Workflow, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AUTH_CHANGED_EVENT, getAccessToken } from "./api";
 import { AccessTokenGate } from "./components/AccessTokenGate";
 import { ConsoleHeader } from "./components/ConsoleHeader";
 import { DataDock } from "./components/DataDock";
+import { DriverProjection } from "./components/DriverProjection";
 import { ExecutionWorkspace } from "./components/ExecutionWorkspace";
 import { ProcedureCatalog } from "./components/ProcedureCatalog";
 import { useAppDispatch, useAppSelector } from "./hooks";
@@ -14,6 +15,7 @@ export default function App() {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.console.error);
   const [authenticated, setAuthenticated] = useState(() => Boolean(getAccessToken()));
+  const [activeView, setActiveView] = useState<"execution" | "driver">("execution");
   useExecutionStream(authenticated);
 
   useEffect(() => {
@@ -46,14 +48,70 @@ export default function App() {
             </button>
           </div>
         )}
-      </div>
-      <div className="console-layout">
-        <ProcedureCatalog />
-        <div className="work-region">
-          <ExecutionWorkspace />
-          <DataDock />
+        <div className="workspace-tabs" role="tablist" aria-label="Console views">
+          <button
+            id="workspace-tab-execution"
+            type="button"
+            role="tab"
+            aria-selected={activeView === "execution"}
+            aria-controls="workspace-panel-execution"
+            tabIndex={activeView === "execution" ? 0 : -1}
+            onClick={() => setActiveView("execution")}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight" || event.key === "End") {
+                event.preventDefault();
+                setActiveView("driver");
+                document.getElementById("workspace-tab-driver")?.focus();
+              }
+            }}
+          >
+            <Workflow aria-hidden="true" size={15} />
+            <span>Execution</span>
+          </button>
+          <button
+            id="workspace-tab-driver"
+            type="button"
+            role="tab"
+            aria-selected={activeView === "driver"}
+            aria-controls="workspace-panel-driver"
+            tabIndex={activeView === "driver" ? 0 : -1}
+            onClick={() => setActiveView("driver")}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft" || event.key === "Home") {
+                event.preventDefault();
+                setActiveView("execution");
+                document.getElementById("workspace-tab-execution")?.focus();
+              }
+            }}
+          >
+            <ServerCog aria-hidden="true" size={15} />
+            <span>Driver foundation</span>
+          </button>
         </div>
       </div>
+      {activeView === "execution" ? (
+        <div
+          id="workspace-panel-execution"
+          className="console-layout"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-execution"
+        >
+          <ProcedureCatalog />
+          <div className="work-region">
+            <ExecutionWorkspace />
+            <DataDock />
+          </div>
+        </div>
+      ) : (
+        <div
+          id="workspace-panel-driver"
+          className="driver-shell"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-driver"
+        >
+          <DriverProjection />
+        </div>
+      )}
     </div>
   );
 }

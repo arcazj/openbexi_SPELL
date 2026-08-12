@@ -1,0 +1,147 @@
+{
+  "authorization_blockers": [],
+  "baseline": "0.1.0-draft.1",
+  "checks": {
+    "ascii_files": 65,
+    "compatibility_evidence": {
+      "approved_rows": 1682,
+      "candidate_scope_reconciled": true,
+      "decomposed_rows": 0,
+      "deferred_rows": 1557,
+      "disposition_approved_rows": 1682,
+      "example_count": 195,
+      "global_reconciled": true,
+      "implemented_rows": 0,
+      "indexed_rows": 0,
+      "local_v0_4_disposition_complete": true,
+      "row_count": 1682,
+      "schema_present": true,
+      "schema_valid": true,
+      "scope_reconciled": true,
+      "source_count": 7,
+      "technical_review_verified": true,
+      "v0_4_rows": 125,
+      "verified_rows": 0
+    },
+    "document_inventory": {
+      "allocated_paths": 45,
+      "markdown_paths": 45
+    },
+    "gate_input_structure": {
+      "available_proposed_adrs": 5,
+      "open_decisions_total": 24,
+      "organization_decisions_excluded": 10,
+      "required_adrs": 0,
+      "required_g0_decisions": 0,
+      "required_signer_roles": 1
+    },
+    "markdown_structure": {
+      "markdown_files": 45,
+      "tables": 151
+    },
+    "relative_links": 137,
+    "source_hashes": 7,
+    "state_model_requirement_references": 2
+  },
+  "claims": {
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false,
+    "g0_approved": true,
+    "implementation_authorized": true,
+    "operational_authorization": false,
+    "product_implementation_started": false,
+    "release_accepted": false,
+    "scope_approved_by_project_owner": true
+  },
+  "gate": "G0/V04-GATE-0",
+  "gate_scope": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "gate_status": "PASS",
+  "gate_summary": {
+    "approval_evidence": {
+      "approval_mode": "RECORDED_PROJECT_OWNER_ATTESTATION",
+      "compatibility_scope_approval_verified": true,
+      "cryptographic_signature_verified": false,
+      "identity_cryptographically_verified": false,
+      "manifest_verified": true,
+      "owner_name": "JC Arcaz",
+      "owner_scope_approval_valid": true,
+      "records_present": 1,
+      "status": "OWNER_SCOPE_APPROVED_IMPLEMENTATION_AUTHORIZED"
+    },
+    "broader_spec_composite_owners_outside_local_gate": 6,
+    "broader_spec_rows_outside_local_gate": 366,
+    "detailed_compatibility": {
+      "approved_rows": 1682,
+      "candidate_scope_reconciled": true,
+      "decomposed_rows": 0,
+      "deferred_rows": 1557,
+      "disposition_approved_rows": 1682,
+      "example_count": 195,
+      "global_reconciled": true,
+      "implemented_rows": 0,
+      "indexed_rows": 0,
+      "local_v0_4_disposition_complete": true,
+      "row_count": 1682,
+      "schema_present": true,
+      "schema_valid": true,
+      "scope_reconciled": true,
+      "source_count": 7,
+      "technical_review_verified": true,
+      "v0_4_rows": 125,
+      "verified_rows": 0
+    },
+    "open_decisions_total": 24,
+    "organization_decisions_excluded": 10,
+    "required_local_adrs": 0,
+    "required_owner_records": 1,
+    "unresolved_g0_decisions": 0,
+    "unresolved_local_entry_decisions": []
+  },
+  "input_sha256": {
+    "allocation_csv": "12a94ed9c325067f515653505dda72209f61df8bd6bdea73a8f64baa57203218",
+    "allocation_rules": "a9132a8a295f2e8a63e658e422b6ba51acfabba98cc57063137e1ca230ad6218",
+    "approval_ledger": "7eb13abebfe3c9996cd16f304620171933211723270bb136294803f031e60c94",
+    "candidate_documentation_tree": "2761cee9f230ce331b2b264753d189666db71c977cea7d4b4ce1ac6dc4dbba0b",
+    "compatibility_ledger": "7d08e65df3c7a312dfeb3ec9913f522943ded35bc71c6d2c6d5f9c8e9cb86312",
+    "compatibility_reconciliation": "62c8ad5f678ba313330c35d437d0821c5b097955712860a7e7de697d5327bb85",
+    "compatibility_scope_v0_4": "2de37c751c084fad96d1bf1c3842deab57bb697920d0cc0bc15b206a46aee1f5",
+    "compatibility_source_inventory": "5c51f1b06f45003cadfe417e9bffc559b381f1e8a20e2bc9c6f7fc160c09c0b7",
+    "compatibility_validator": "deacb9961e9e93f87ef63d27c8791ddc12e387da267b06cd73f9325a0cbe3320",
+    "detailed_compatibility_ledger": "f1d4e20383c81a1109e93b39e2aac04f04b2366e91eae613170488a6acf8458f",
+    "document_allocation": "28127304f17569eabb1bc685e8275cf6a67fc2de1e700bf89677438f899996da",
+    "document_control": "f3665ee21de655c59e795497f4757b36b08682d13caf507f98279a1ed2f0cfd0",
+    "requirements_register": "0ded4e16d27f9fe780e02ae3bed874853380dd67cf3a06bb3af2250e899723b4",
+    "source_authority": "259f762bd37e9fe5e6ce5d581c3036cda88c8c2d3da2c399f4870c43c48026a8",
+    "state_models": "272b99739050e42f28c8e82f5467aac5db362608b6506c607971d824e0d4aa71",
+    "validator": "f15ff5a06e6cb7be1f851f86998001caa99351d63a481b4ad2a5e6e689f933ea"
+  },
+  "qualification": {
+    "required_image": "python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280",
+    "runtime_implementation": "CPython",
+    "runtime_version": "3.13.14"
+  },
+  "requirements": {
+    "allocation_rows": 366,
+    "family_counts": {
+      "ARC": 40,
+      "COM": 27,
+      "COMP": 22,
+      "DATA": 29,
+      "DEP": 25,
+      "DOC": 11,
+      "EXEC": 28,
+      "GIT": 24,
+      "MODE": 27,
+      "OPS": 10,
+      "REL": 29,
+      "SEC": 23,
+      "SRV": 22,
+      "VNV": 12,
+      "WEB": 37
+    },
+    "total": 366
+  },
+  "schema_version": "ng-spell-g0-readiness-report/3",
+  "structural_errors": [],
+  "structural_status": "PASS"
+}

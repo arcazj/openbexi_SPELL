@@ -41,27 +41,49 @@ services:
       SPELL_WS_QUEUE_SIZE: ${SPELL_WS_QUEUE_SIZE:-256}
       SPELL_WS_KEEPALIVE_SECONDS: ${SPELL_WS_KEEPALIVE_SECONDS:-5}
       SPELL_COMMAND_ACK_TIMEOUT_SECONDS: ${SPELL_COMMAND_ACK_TIMEOUT_SECONDS:-5}
+      SPELL_DRIVER_ENABLED: ${SPELL_DRIVER_ENABLED:-false}
+      SPELL_DRIVER_RPC_TIMEOUT_SECONDS: ${SPELL_DRIVER_RPC_TIMEOUT_SECONDS:-2}
+      SPELL_DRIVER_POLL_SECONDS: ${SPELL_DRIVER_POLL_SECONDS:-1}
+      SPELL_DRIVER_STALE_AFTER_SECONDS: ${SPELL_DRIVER_STALE_AFTER_SECONDS:-5}
     depends_on:
       postgres:
         condition: service_healthy
+      pki-init:
+        condition: service_completed_successfully
+        required: false
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2)"]
+      test: ["CMD", "python", "/app/backend/healthcheck.py"]
       interval: 5s
       timeout: 3s
       retries: 12
+    user: "0:0"
     read_only: true
     tmpfs:
       - /tmp:size=64m,noexec,nosuid
+      - /run/spell-driver-client:rw,noexec,nosuid,nodev,size=64k,mode=0700,uid=10001,gid=10001
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
     security_opt:
       - no-new-privileges:true
     pids_limit: 128
+    volumes:
+      - spell-driver-client-credentials:/run/spell-driver-client-source:ro
     networks:
-      - spell-internal
+      spell-internal:
+        aliases:
+          - spell-api
+      spell-driver-internal: {}
 
   postgres:
-    image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+    build:
+      context: .
+      dockerfile: driver_host/postgres.Dockerfile
+    user: "70:70"
     environment:
       POSTGRES_DB: spell
       POSTGRES_USER: spell
@@ -78,10 +100,94 @@ services:
     networks:
       - spell-internal
 
+  pki-init:
+    profiles:
+      - driver
+    build:
+      context: .
+      dockerfile: driver_host/pki.Dockerfile
+    command:
+      - --client-dir
+      - /run/spell-driver-client-source
+      - --server-dir
+      - /run/spell-driver-server
+      - --client-uid
+      - "0"
+      - --client-gid
+      - "0"
+      - --server-uid
+      - "10002"
+      - --server-gid
+      - "10002"
+    user: "0:0"
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: "0.50"
+    restart: "no"
+    volumes:
+      - spell-driver-client-credentials:/run/spell-driver-client-source
+      - spell-driver-server-credentials:/run/spell-driver-server
+
+  spell-driver:
+    profiles:
+      - driver
+    build:
+      context: .
+      dockerfile: driver_host/Dockerfile
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    user: "10002:10002"
+    stop_signal: SIGINT
+    stop_grace_period: 2s
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          test -r /run/spell-driver-server/server.key &&
+          test -w /var/lib/spell-driver &&
+          kill -0 1
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: "1.00"
+    volumes:
+      - spell-driver-server-credentials:/run/spell-driver-server:ro
+      - spell-driver-journal:/var/lib/spell-driver
+    networks:
+      - spell-driver-internal
+
 volumes:
   spell-postgres-data:
+  spell-driver-client-credentials:
+  spell-driver-server-credentials:
+  spell-driver-journal:
 
 networks:
   spell-edge:
   spell-internal:
+    internal: true
+  spell-driver-internal:
     internal: true

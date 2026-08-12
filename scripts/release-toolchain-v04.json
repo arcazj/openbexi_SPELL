@@ -1,0 +1,54 @@
+{
+  "schema_version": "spell.v04.release-toolchain/1",
+  "host_platform": "windows-amd64-docker-desktop",
+  "tools": [
+    {
+      "name": "docker-cli",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/bin/docker.exe",
+      "sha256": "5c077f7e830dd07109dd062b99c0ad9154714a2a5baf4ec3dcbd44ff9545972d"
+    },
+    {
+      "name": "docker-buildx",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-buildx.exe",
+      "sha256": "2613a23fca0673bd3858035e32b172147e3df4b71c613114c85dce673c235fe2"
+    },
+    {
+      "name": "docker-compose",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-compose.exe",
+      "sha256": "b71712f27e422b55f27305d0d4b040d11e9e07fc8bc296f52475c1883f934326"
+    },
+    {
+      "name": "docker-sbom",
+      "base_directory": "LocalAppData",
+      "relative_path": "OpenBEXI/release-toolchain/docker-sbom-0.6.0-windows-amd64/docker-sbom.exe",
+      "sha256": "e070d15332889311d5652e440d413d38a3b19596d5c080e28e059af0315c5865"
+    },
+    {
+      "name": "docker-scout",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-scout.exe",
+      "sha256": "c2042fdb462a53d711422e98696fa84a3b65191a2782c9f293fa73741f554fa0"
+    },
+    {
+      "name": "python",
+      "base_directory": "LocalAppData",
+      "relative_path": "OpenBEXI/release-toolchain/python-3.13.14-embed-amd64/python.exe",
+      "sha256": "ef8f51028ac5329641985112f8efb1c2d4c47c86b8011ddf7e6fae21e2b4e5a1",
+      "archive_relative_path": "OpenBEXI/release-toolchain/python-3.13.14-embed-amd64.zip",
+      "archive_sha256": "90b4e5b9898b72d744650524bff92377c367f44bd5fbd09e3148656c080ad907",
+      "archive_url": "https://www.python.org/ftp/python/3.13.14/python-3.13.14-embeddable-amd64.zip"
+    }
+  ],
+  "versions": {
+    "docker_cli": "29.7.2",
+    "docker_buildx": "v0.36.0-desktop.1",
+    "docker_compose": "v5.3.1",
+    "docker_sbom": "0.6.0",
+    "syft_provider": "v0.43.0",
+    "docker_scout": "v1.24.0",
+    "host_python": "3.13.14"
+  }
+}

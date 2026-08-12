@@ -7,7 +7,17 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Annotated, Any, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Path as PathParam,
+    Query,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,6 +27,14 @@ from sqlalchemy import select
 from .auth import AuthConfig, AuthenticationError, authenticate_bearer, decode_token
 from .config import Settings
 from .database import create_database
+from .driver_repository import (
+    DriverNotFoundError,
+    DriverRepository,
+    DriverValidationError,
+    MAX_DRIVER_EVENT_REPLAY,
+    MAX_DRIVER_EVENT_SEQUENCE,
+)
+from .driver_gateway import DriverGateway
 from .events import EventHub
 from .migrations import run_migrations
 from .models import Command, Event, Execution, Prompt
@@ -52,6 +70,14 @@ def create_app(
         hub,
         command_ack_timeout_seconds=settings.command_ack_timeout_seconds,
     )
+    driver_repository = DriverRepository(session_factory)
+    driver_gateway = DriverGateway(
+        driver_repository,
+        settings,
+        outbox_publisher=lambda _topic, event: hub.publish(
+            "driver.lifecycle", event
+        ),
+    )
     resolved_auth_config = auth_config
 
     def get_auth_config() -> AuthConfig:
@@ -62,16 +88,23 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        app.state.auth_config = get_auth_config()
-        run_migrations(engine)
-        supervisor.reconcile_orphaned_executions()
+        gateway_started = False
         try:
+            app.state.auth_config = get_auth_config()
+            run_migrations(engine)
+            await driver_gateway.start()
+            gateway_started = True
+            supervisor.reconcile_orphaned_executions()
             yield
         finally:
             try:
-                supervisor.close()
+                if gateway_started:
+                    await driver_gateway.close()
             finally:
-                engine.dispose()
+                try:
+                    supervisor.close()
+                finally:
+                    engine.dispose()
 
     app = FastAPI(
         title="OpenBEXI SPELL Simulator API",
@@ -95,6 +128,8 @@ def create_app(
     app.state.session_factory = session_factory
     app.state.catalog = catalog
     app.state.supervisor = supervisor
+    app.state.driver_repository = driver_repository
+    app.state.driver_gateway = driver_gateway
     app.state.hub = hub
     app.state.auth_config = auth_config
 
@@ -228,7 +263,10 @@ def create_app(
         ] = None,
     ) -> dict[str, Any]:
         if request.context_id != "simulator":
-            raise HTTPException(status_code=422, detail="v0.3 supports only the simulator context")
+            raise HTTPException(
+                status_code=422,
+                detail="only the bundled simulator execution context is supported",
+            )
         key = request.idempotency_key or x_idempotency_key
         if not key:
             raise HTTPException(status_code=422, detail="idempotency_key is required")
@@ -394,6 +432,252 @@ def create_app(
                 "digest": digest,
             },
         }
+
+    def driver_projection(value: dict[str, Any]) -> dict[str, Any]:
+        """Add read-time freshness without exposing the transport boundary."""
+
+        projected = dict(value)
+        observed = projected.get("last_observed_at")
+        if observed is None:
+            projected["stale"] = False
+            projected["staleness"] = "UNKNOWN"
+            return projected
+        try:
+            observed_at = datetime.fromisoformat(str(observed))
+            if observed_at.tzinfo is None or observed_at.utcoffset() is None:
+                raise ValueError("naive timestamp")
+            age_seconds = (datetime.now(timezone.utc) - observed_at).total_seconds()
+        except (TypeError, ValueError):
+            projected["stale"] = True
+            projected["staleness"] = "STALE"
+            return projected
+        projected["stale"] = age_seconds > settings.driver_stale_after_seconds
+        projected["staleness"] = "STALE" if projected["stale"] else "OBSERVED"
+        return projected
+
+    def translate_driver_read_error(exc: Exception) -> HTTPException:
+        if isinstance(exc, DriverNotFoundError):
+            return HTTPException(status_code=404, detail=str(exc))
+        if isinstance(exc, DriverValidationError):
+            return HTTPException(status_code=422, detail=str(exc))
+        return HTTPException(status_code=500, detail="internal server error")
+
+    @app.get("/api/v1/drivers")
+    def list_drivers(
+        _: IdentityDep,
+        limit: int = Query(100, ge=1, le=100),
+        cursor: Annotated[Optional[str], Query(max_length=512)] = None,
+    ) -> dict[str, Any]:
+        try:
+            page = driver_repository.list_drivers(limit=limit, cursor=cursor)
+            return {
+                **page,
+                "items": [driver_projection(item) for item in page["items"]],
+            }
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/drivers/{driver_id}")
+    def get_driver(
+        driver_id: Annotated[str, PathParam(min_length=1, max_length=100)],
+        _: IdentityDep,
+    ) -> dict[str, Any]:
+        try:
+            result = driver_repository.get_driver(driver_id)
+            return {"driver": driver_projection(result["driver"])}
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/driver-contexts")
+    def list_driver_contexts(
+        _: IdentityDep,
+        limit: int = Query(100, ge=1, le=100),
+        cursor: Annotated[Optional[str], Query(max_length=512)] = None,
+    ) -> dict[str, Any]:
+        try:
+            page = driver_repository.list_context_generations(limit=limit, cursor=cursor)
+            return {
+                **page,
+                "items": [driver_projection(item) for item in page["items"]],
+            }
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/driver-contexts/{context_id}/generations/{context_generation}")
+    def get_driver_context_generation(
+        context_id: Annotated[str, PathParam(min_length=1, max_length=100)],
+        context_generation: Annotated[
+            str, PathParam(min_length=1, max_length=100)
+        ],
+        _: IdentityDep,
+    ) -> dict[str, Any]:
+        try:
+            result = driver_repository.get_context_generation(
+                context_id, context_generation
+            )
+            return {
+                "context_generation": driver_projection(result["context_generation"])
+            }
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/driver-bindings")
+    def list_driver_bindings(
+        _: IdentityDep,
+        limit: int = Query(100, ge=1, le=100),
+        cursor: Annotated[Optional[str], Query(max_length=512)] = None,
+    ) -> dict[str, Any]:
+        try:
+            page = driver_repository.list_bindings(limit=limit, cursor=cursor)
+            return {
+                **page,
+                "items": [driver_projection(item) for item in page["items"]],
+            }
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/driver-bindings/{driver_binding_id}")
+    def get_driver_binding(
+        driver_binding_id: Annotated[
+            str, PathParam(min_length=1, max_length=100)
+        ],
+        _: IdentityDep,
+    ) -> dict[str, Any]:
+        try:
+            result = driver_repository.get_binding(driver_binding_id)
+            return {"binding": driver_projection(result["binding"])}
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.get("/api/v1/driver-operations/{operation_id}")
+    def get_driver_operation(
+        operation_id: Annotated[str, PathParam(min_length=1, max_length=100)],
+        _: IdentityDep,
+    ) -> dict[str, Any]:
+        try:
+            return driver_repository.get_operation(operation_id)
+        except (DriverNotFoundError, DriverValidationError) as exc:
+            raise translate_driver_read_error(exc) from exc
+
+    @app.websocket("/api/v1/driver-events/ws")
+    async def websocket_driver_events(
+        websocket: WebSocket,
+        after_sequence: int = Query(0, ge=0, le=MAX_DRIVER_EVENT_SEQUENCE),
+    ) -> None:
+        protocols = websocket.scope.get("subprotocols", [])
+        if len(protocols) != 2 or protocols[0] != "spell-auth":
+            await websocket.close(code=4401, reason="invalid websocket credentials")
+            return
+        try:
+            websocket_identity = decode_token(get_auth_config(), protocols[1])
+        except AuthenticationError:
+            await websocket.close(code=4401, reason="invalid websocket credentials")
+            return
+        seconds_until_expiry = websocket_identity.expires_at - time.time()
+        if seconds_until_expiry <= 0:
+            await websocket.close(code=4401, reason="websocket credentials expired")
+            return
+
+        loop = asyncio.get_running_loop()
+        expiry_deadline = loop.time() + seconds_until_expiry
+        await websocket.accept(subprotocol="spell-auth")
+        subscription = hub.subscribe("driver.lifecycle")
+        last_sent = after_sequence
+        replay_limit = min(
+            settings.websocket_replay_limit, MAX_DRIVER_EVENT_REPLAY - 1
+        )
+
+        async def resync(reason: str, authoritative_sequence: int) -> None:
+            await websocket.send_json(
+                {
+                    "event_type": "stream.resync_required",
+                    "stream": "driver.lifecycle",
+                    "payload": {
+                        "reason": reason,
+                        "authoritative_sequence": authoritative_sequence,
+                    },
+                }
+            )
+            await websocket.close(
+                code=4409, reason="snapshot resynchronization required"
+            )
+
+        async def replay_committed() -> bool:
+            nonlocal last_sent
+            window = driver_repository.replay_driver_events(
+                after_sequence=last_sent, limit=replay_limit + 1
+            )
+            authoritative_sequence = int(window["last_sequence"])
+            if last_sent > authoritative_sequence:
+                await resync("sequence_ahead_of_authority", authoritative_sequence)
+                return False
+            if not window["cursor_available"]:
+                await resync("cursor_unavailable", authoritative_sequence)
+                return False
+            replay = window["items"]
+            if len(replay) > replay_limit:
+                await resync("replay_limit_exceeded", authoritative_sequence)
+                return False
+            for item in replay:
+                if loop.time() >= expiry_deadline:
+                    await websocket.close(
+                        code=4401, reason="websocket credentials expired"
+                    )
+                    return False
+                sequence = int(item["sequence"])
+                if sequence <= last_sent:
+                    continue
+                await websocket.send_json(item)
+                last_sent = sequence
+            return True
+
+        try:
+            # Subscribe before replay so a commit racing with the query is either
+            # read durably, observed live, or both and then deduplicated.
+            if not await replay_committed():
+                return
+            while True:
+                seconds_remaining = expiry_deadline - loop.time()
+                if seconds_remaining <= 0:
+                    await websocket.close(
+                        code=4401, reason="websocket credentials expired"
+                    )
+                    return
+                if subscription.overflowed:
+                    authoritative_sequence = int(
+                        driver_repository.driver_event_cursor()["last_sequence"]
+                    )
+                    await resync("client_queue_overflow", authoritative_sequence)
+                    return
+                try:
+                    await asyncio.wait_for(
+                        subscription.queue.get(),
+                        timeout=min(
+                            settings.websocket_keepalive_seconds, seconds_remaining
+                        ),
+                    )
+                except asyncio.TimeoutError:
+                    if loop.time() >= expiry_deadline:
+                        await websocket.close(
+                            code=4401, reason="websocket credentials expired"
+                        )
+                        return
+                    await websocket.send_json(
+                        {
+                            "event_type": "stream.keepalive",
+                            "stream": "driver.lifecycle",
+                            "last_sequence": last_sent,
+                        }
+                    )
+                    continue
+                # A live frame is only a wake-up signal. Re-read the committed
+                # outbox so ordering and payload authority never depend on fan-out.
+                if not await replay_committed():
+                    return
+        except WebSocketDisconnect:
+            pass
+        finally:
+            hub.unsubscribe("driver.lifecycle", subscription)
 
     @app.websocket("/api/v1/ws")
     async def websocket_events(

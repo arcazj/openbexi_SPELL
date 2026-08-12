@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, MetaData, String, Table, inspect, select
 from sqlalchemy.engine import Connection, Engine
 
-from .versions import v0001_initial, v0002_execution_variables
+from .versions import v0001_initial, v0002_execution_variables, v0003_driver_foundation
 
 
-MIGRATIONS = (v0001_initial, v0002_execution_variables)
+MIGRATIONS = (v0001_initial, v0002_execution_variables, v0003_driver_foundation)
 metadata = MetaData()
 schema_migrations = Table(
     "schema_migrations",

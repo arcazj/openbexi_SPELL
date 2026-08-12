@@ -1,7 +1,12 @@
-# SPELL Operations Console
+# SPELL v0.4 Candidate Operations Console
 
-React and strict TypeScript real-time 2D console for the OpenBEXI SPELL v0.3
-simulator. It uses Redux Toolkit for authoritative UI state, native WebSocket
+React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
+v0.4 local-only, synthetic non-CUI simulator candidate. It retains the accepted
+v0.3 execution and restricted-IR schema contracts and adds an authenticated,
+read-only projection of the bundled simulator driver foundation. Browser driver
+mutations and direct browser-to-driver access are outside the v0.4 scope.
+
+The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide
 icons.
 
@@ -28,10 +33,13 @@ npm run test:e2e
 ```
 
 The mocked browser suite runs without a backend. Real integration requires the
-local Compose stack plus `SPELL_REAL_BACKEND=1` and `SPELL_E2E_TOKEN` set to a
-currently valid signed JWT.
+local Compose stack plus `SPELL_REAL_BACKEND=1`, `SPELL_E2E_BASE_URL` set to its
+loopback proxy URL, and `SPELL_E2E_TOKEN` set to a currently valid signed JWT.
 
-From the repository root, `scripts/qualify_release.ps1` runs the canonical
-fingerprint-bound stream gate in two independent Chromium processes, and
-`scripts/build_v03.ps1` runs the complete release verification and packaging
-workflow.
+From the repository root, `python scripts/qualify_v04.py plan` displays the
+version-scoped Gate 1-5 catalog. Built-in and environment-bound browser results
+are staged with its `run` and `collect` commands, checked with `status`, and only
+become canonical v0.4 evidence after `publish` validates the complete shared
+source fingerprint. Supply-chain and package commands are documented in
+`PROMPT_Instructions.md`; successful frontend tests alone do not accept the
+candidate or establish an operational or compliance claim.

@@ -17,6 +17,7 @@ from backend.app import create_app
 from backend.auth import AuthConfig, issue_local_dev_token
 from backend.config import Settings
 from backend.database import Base, create_database as create_test_database
+from backend.migrations import schema_migrations
 from backend.models import Command, Event, Execution
 from backend.supervisor import ConflictError, WorkerHandle
 
@@ -627,8 +628,9 @@ def test_control_plane_restart_requires_explicit_recovery(
     )
     if os.getenv("SPELL_TEST_DATABASE_URL"):
         engine, _ = create_test_database(database_url)
-        Base.metadata.drop_all(engine)
-        Base.metadata.create_all(engine)
+        with engine.begin() as connection:
+            schema_migrations.drop(connection, checkfirst=True)
+            Base.metadata.drop_all(connection)
         engine.dispose()
     settings = Settings(
         database_url=database_url,

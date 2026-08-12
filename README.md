@@ -149,14 +149,47 @@ versioned artifacts path; product PNG and other visual assets remain included.
 | --- | --- |
 | [`PROMPT_Instructions.md`](PROMPT_Instructions.md) | Durable architecture, safety, and release rules |
 | [`PROMPT_History.md`](PROMPT_History.md) | Latest-first approved request and version history |
+| [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md) | Living delivered-version and candidate-release roadmap |
+| [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md) | Evidence-qualified version dates and elapsed-time record |
+| [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md) | Page-complete supplied-manual inventory, compatibility policy, behavior map, safety deviations, and roadmap consequence |
+| [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md) | Authoritative next-generation design specification for implementation scope; currently Draft and not an implementation or operational authorization |
+| [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL-0.1.0-draft.1.pdf`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL-0.1.0-draft.1.pdf) | Validated Draft tagged PDF manual for the intended next-generation web interface, RBAC startup, modes, secure handover, operations, and procedure development |
 | [`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md) | Approved v0.3 scope and exclusions |
+| [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md) | Project-owner-approved local synthetic non-CUI Candidate A scope; Gate 0 passed and bounded product engineering authorized |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-The required legacy Development Environment manual remains unavailable. Its
-absence does not authorize invented legacy behavior or a procedure authoring
-environment.
+SPELL v0.3.0 remains the accepted product baseline. JC Arcaz approved the
+bounded local v0.4 Candidate A scope, its exclusions, budgets, and test plan.
+Gate 0 passed under the digest-pinned Python 3.13 image after exact manifest
+binding and compatibility qualification. This authorizes only the bounded v0.4
+product-engineering work; the v0.4 documents do not yet describe delivered
+runtime behavior or a release result.
+
+The Development Environment manual was absent from the original v0.1 evidence
+but was supplied separately on 2026-07-17. All seven PDFs now under
+`SPELL-DOCUMENTATION/`, totaling 304 pages, were reviewed. The recovered manual
+supports a later separate web authoring environment; it does not authorize that
+product work before its roadmap gate or permit copying legacy Eclipse/Java code.
+The validated exhaustive compatibility catalog contains 1,682 rows across all
+seven source records, all 304 pages, and all 195 Language Reference examples.
+It assigns 125 rows to the exact Candidate A slice and 1,557 rows to
+Deferred/`EXCLUDE`; each row has a unique planned test identity. Deferred rows
+are static source and negative-scope evidence, not implementations or executed
+semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
+qualification pass; organization-only approvals are outside this local gate.
+Release acceptance still requires every approved v0.4 Gate 1-5 criterion.
+
+The next-generation design specification was prepared on 2026-07-18 under
+`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4
+manuals as external hash-pinned authorities and provides a modern web, server,
+data, reliability, Git, security, and operations blueprint. It is the
+authoritative source for next-generation implementation scope, including the
+Draft GUI User Manual. Its status is `0.1.0-draft.1`: accountable human review,
+open-decision closure, detailed feature compatibility rows, and a signed
+approval baseline remain required before implementation starts or any
+operational use is authorized.
 
 ## License
 

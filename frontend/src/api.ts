@@ -1,8 +1,13 @@
 import type {
   AsRunReport,
   CommandReceipt,
+  DriverBinding,
+  DriverContextGeneration,
+  DriverOperation,
+  DriverRecord,
   ExecutionSnapshot,
   HealthStatus,
+  PageResult,
   ProcedureSummary,
   ProcedureValidationResult,
 } from "./types";
@@ -103,6 +108,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 function unwrapList<T>(body: T[] | { items: T[] }): T[] {
   return Array.isArray(body) ? body : body.items;
+}
+
+function pageQuery(limit: number, cursor?: string): string {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (cursor) query.set("cursor", cursor);
+  return query.toString();
+}
+
+function unwrapResource<T>(body: T | Record<string, T>, key: string): T {
+  if (typeof body === "object" && body !== null && key in body) {
+    return (body as Record<string, T>)[key] as T;
+  }
+  return body as T;
 }
 
 function unwrapExecution(
@@ -223,7 +241,7 @@ export const api = {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.3.0"),
+      version: String(raw.version ?? "0.4.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,
@@ -309,6 +327,58 @@ export const api = {
     const report = await request<AsRunReport>(`/executions/${encodeURIComponent(executionId)}/report`);
     return { ...report, state: report.state.toUpperCase() as AsRunReport["state"] };
   },
+
+  async drivers(limit = 100, cursor?: string): Promise<PageResult<DriverRecord>> {
+    return request<PageResult<DriverRecord>>(`/drivers?${pageQuery(limit, cursor)}`);
+  },
+
+  async driver(driverId: string): Promise<DriverRecord> {
+    const body = await request<DriverRecord | { driver: DriverRecord }>(
+      `/drivers/${encodeURIComponent(driverId)}`,
+    );
+    return unwrapResource(body, "driver");
+  },
+
+  async driverContexts(
+    limit = 100,
+    cursor?: string,
+  ): Promise<PageResult<DriverContextGeneration>> {
+    return request<PageResult<DriverContextGeneration>>(
+      `/driver-contexts?${pageQuery(limit, cursor)}`,
+    );
+  },
+
+  async driverContext(
+    contextId: string,
+    contextGeneration: string | number,
+  ): Promise<DriverContextGeneration> {
+    const body = await request<
+      DriverContextGeneration | { context_generation: DriverContextGeneration }
+    >(
+      `/driver-contexts/${encodeURIComponent(contextId)}/generations/${encodeURIComponent(String(contextGeneration))}`,
+    );
+    return unwrapResource(body, "context_generation");
+  },
+
+  async driverBindings(limit = 100, cursor?: string): Promise<PageResult<DriverBinding>> {
+    return request<PageResult<DriverBinding>>(
+      `/driver-bindings?${pageQuery(limit, cursor)}`,
+    );
+  },
+
+  async driverBinding(driverBindingId: string): Promise<DriverBinding> {
+    const body = await request<DriverBinding | { binding: DriverBinding }>(
+      `/driver-bindings/${encodeURIComponent(driverBindingId)}`,
+    );
+    return unwrapResource(body, "binding");
+  },
+
+  async driverOperation(operationId: string): Promise<DriverOperation> {
+    const body = await request<DriverOperation | { operation: DriverOperation }>(
+      `/driver-operations/${encodeURIComponent(operationId)}`,
+    );
+    return unwrapResource(body, "operation");
+  },
 };
 
 export function websocketUrl(executionId: string, afterSequence: number): string {
@@ -318,6 +388,12 @@ export function websocketUrl(executionId: string, afterSequence: number): string
     after_sequence: String(afterSequence),
   });
   return `${scheme}//${window.location.host}${API_ROOT}/ws?${query.toString()}`;
+}
+
+export function driverWebsocketUrl(afterSequence: number): string {
+  const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const query = new URLSearchParams({ after_sequence: String(afterSequence) });
+  return `${scheme}//${window.location.host}${API_ROOT}/driver-events/ws?${query.toString()}`;
 }
 
 export function websocketProtocols(): string[] {

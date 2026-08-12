@@ -1,0 +1,1892 @@
+{
+  "schema_version": "1.0.0",
+  "document_id": "SPELL-STATE-MACHINES",
+  "status": "draft",
+  "requirements": [
+    "SRV-021",
+    "EXEC-027"
+  ],
+  "model_contract": {
+    "from_type": "non-empty array of source-state names; generators expand one case per member",
+    "to_type": "one destination-state name",
+    "actor_type": "non-empty array; every listed actor must be authorized",
+    "transition_commit": "compare-and-set entity revision, append audit event, append outbox event, and update state in one transaction",
+    "mutation_fence": "validate the current signed satellite assignment plus AssignmentGeneration, AuthorityIncarnationId, and LeaderEpoch; interactive mutation also validates ControlLeaseRevision, ControlFencingToken, and ClientInstanceProof",
+    "terminal_rule": "a terminal state has no outgoing transition; retry, reload, recover-after-terminal, or rerun allocates a new entity ID",
+    "rejection_rule": "a rejected guard does not change target state or revision and returns the declared stable code",
+    "publication_rule": "only committed state may be published"
+  },
+  "actors": [
+    {
+      "id": "SATELLITE_ASSIGNMENT_AUTHORITY",
+      "kind": "trusted-service",
+      "responsibility": "Issue signed satellite-to-domain authority assignments and monotonically allocate AssignmentGeneration and AuthorityIncarnationId."
+    },
+    {
+      "id": "CLIENT_GATEWAY",
+      "kind": "service",
+      "responsibility": "Authenticate requests, bind idempotency keys, and reject stale client projections before command persistence."
+    },
+    {
+      "id": "DOMAIN_SUPERVISOR",
+      "kind": "service",
+      "responsibility": "Own the Satellite Control Domain lifecycle and enforce the current authority fence."
+    },
+    {
+      "id": "LEADER_COORDINATOR",
+      "kind": "service",
+      "responsibility": "Acquire or observe leadership and monotonically advance LeaderEpoch within the current signed satellite assignment."
+    },
+    {
+      "id": "SCHEDULER",
+      "kind": "service",
+      "responsibility": "Validate admission policy and commit resource reservations."
+    },
+    {
+      "id": "EXECUTION_SUPERVISOR",
+      "kind": "service",
+      "responsibility": "Apply execution transitions, own checkpoints, and isolate workers."
+    },
+    {
+      "id": "EXECUTION_WORKER",
+      "kind": "isolated-service",
+      "responsibility": "Interpret approved IR and propose safe-point, wait, prompt, and operation events; it cannot commit authoritative state."
+    },
+    {
+      "id": "CONTROL_SERVICE",
+      "kind": "service",
+      "responsibility": "Validate controller leases and settle internal control commands."
+    },
+    {
+      "id": "CONTROLLER",
+      "kind": "human",
+      "responsibility": "Hold the sole domain control lease and request authorized execution mutations or prompt settlements."
+    },
+    {
+      "id": "CONTROL_REQUESTER",
+      "kind": "human",
+      "responsibility": "Use a non-control workspace while separately eligible for Controller capability; may submit, withdraw, decline, or acknowledge one named handover request but has no execution authority until atomic transfer commits."
+    },
+    {
+      "id": "MONITOR",
+      "kind": "human",
+      "responsibility": "Observe projections only; this actor is never authorized on a mutating transition."
+    },
+    {
+      "id": "EDITOR",
+      "kind": "human",
+      "responsibility": "Change source through the Git workflow only; this actor is never authorized to mutate an active execution by edit action."
+    },
+    {
+      "id": "RECOVERY_COORDINATOR",
+      "kind": "service",
+      "responsibility": "Reconcile committed state, checkpoints, commands, prompts, and driver journals after interruption."
+    },
+    {
+      "id": "DRIVER_GATEWAY",
+      "kind": "service",
+      "responsibility": "Fence and journal typed effect requests and prepare them for final authorization; it has no satellite or GCS effect credential or direct effect egress."
+    },
+    {
+      "id": "DRIVER_HOST",
+      "kind": "isolated-service",
+      "responsibility": "Resolve typed adapter behavior and return bounded evidence through the Effect Authorization Point; it has no direct satellite or GCS effect credential or bypass egress."
+    },
+    {
+      "id": "EFFECT_AUTHORIZATION_POINT",
+      "kind": "security-critical-service",
+      "responsibility": "Own the sole external-effect credential and egress; hold PostgreSQL final-guard locks, linearly consume the SAA one-use attempt permit, commit the local permit and SAA receipt before send, and fail closed without claiming distributed ACID."
+    },
+    {
+      "id": "CLOCK",
+      "kind": "trusted-service",
+      "responsibility": "Fire durable deadlines using authoritative database time."
+    },
+    {
+      "id": "SYSTEM_ADMIN",
+      "kind": "human",
+      "responsibility": "Request audited drain, shutdown, forced takeover, or unresolved-operation disposition under dedicated privilege."
+    }
+  ],
+  "identity_fences": [
+    {
+      "name": "AuthorityIncarnationId",
+      "rule": "Allocated only by the Satellite Assignment Authority for one signed assignment; a replacement never reuses it."
+    },
+    {
+      "name": "AssignmentGeneration",
+      "rule": "Monotonic per satellite assignment; every mutation and final effect check must match the current signed domain, satellite, authority-incarnation, and assignment-generation tuple."
+    },
+    {
+      "name": "LeaderEpoch",
+      "rule": "Monotonic per domain; every authoritative mutation must match the current value."
+    },
+    {
+      "name": "ControlFencingToken",
+      "rule": "Monotonic per domain control grant; every controller mutation must match an unexpired lease."
+    },
+    {
+      "name": "ControllerLeaseId",
+      "rule": "Unique for one controller grant. Renewal and cancelled handover retain it; acquisition, accepted handover, forced takeover, or reacquisition allocates a new value."
+    },
+    {
+      "name": "ControlLeaseRevision",
+      "rule": "Monotonic within one control-lease record; acquisition, renewal, release, expiry, revocation, and handover compare-and-set this revision without decreasing or reusing the control fence."
+    },
+    {
+      "name": "ClientInstanceProof",
+      "rule": "Session-bound proof of possession for a non-exportable client-instance key; interactive mutations must verify it and cannot replay it from another tab, device, server, or request context."
+    },
+    {
+      "name": "ExecutionId",
+      "rule": "Immutable for one run; terminal executions are never reused by reload, recovery, or rerun."
+    },
+    {
+      "name": "ExecutionRevision",
+      "rule": "Incremented by each committed execution transition and checked by compare-and-set."
+    },
+    {
+      "name": "CommandId",
+      "rule": "Unique for one internal control request; an idempotency-key replay returns the same command."
+    },
+    {
+      "name": "PromptId",
+      "rule": "Unique for one durable prompt; PromptRevision protects the sole settlement."
+    },
+    {
+      "name": "OperationId",
+      "rule": "Stable across transport retry, reconciliation, and every authorized NO_EFFECT retry; RequestDigest remains unchanged and a retry never allocates a substitute OperationId."
+    },
+    {
+      "name": "AttemptId",
+      "rule": "Opaque, globally unique, and immutable for one attempt; each accepted AttemptId owns one immutable authority, generation, leader, controller, driver, and execution fence tuple, and an authorized retry allocates a new AttemptId."
+    },
+    {
+      "name": "DriverHostGeneration",
+      "rule": "Changes at every host start and fences every response from an older host."
+    },
+    {
+      "name": "ContextGeneration",
+      "rule": "Identifies one immutable opened context configuration."
+    },
+    {
+      "name": "ExecutionAttachmentGeneration",
+      "rule": "Identifies one immutable execution attachment and changes for a replacement run or approved reload."
+    },
+    {
+      "name": "DriverBindingId",
+      "rule": "Binds exact host, context, and execution-attachment generations."
+    }
+  ],
+  "safe_points": [
+    {
+      "id": "BEFORE_STATEMENT",
+      "checkpoint_eligible": true,
+      "rule": "No statement side effect has begun."
+    },
+    {
+      "id": "AFTER_PURE_STATEMENT",
+      "checkpoint_eligible": true,
+      "rule": "The statement is complete and has no unresolved external operation."
+    },
+    {
+      "id": "WAIT_BOUNDARY",
+      "checkpoint_eligible": true,
+      "rule": "The wait registration or settlement and its consumed evidence are committed."
+    },
+    {
+      "id": "PROMPT_BOUNDARY",
+      "checkpoint_eligible": true,
+      "rule": "Prompt open or settlement and the execution transition are durably correlated."
+    },
+    {
+      "id": "DRIVER_OPERATION_SETTLED",
+      "checkpoint_eligible": true,
+      "rule": "The operation is settled and its effect certainty is recorded."
+    },
+    {
+      "id": "CHILD_JOIN_SETTLED",
+      "checkpoint_eligible": true,
+      "rule": "All required child outcomes and data transfers are committed."
+    },
+    {
+      "id": "CLEANUP_BOUNDARY",
+      "checkpoint_eligible": false,
+      "rule": "A cleanup hook result is committed; continuation is only to the next cleanup or terminal disposition."
+    }
+  ],
+  "effect_certainty": {
+    "enum": [
+      "NO_EFFECT",
+      "EFFECT_CONFIRMED",
+      "EFFECT_POSSIBLE",
+      "EFFECT_UNKNOWN"
+    ],
+    "definitions": {
+      "NO_EFFECT": "Authoritative evidence proves that no external effect occurred.",
+      "EFFECT_CONFIRMED": "Authoritative evidence proves that the defined external effect occurred.",
+      "EFFECT_POSSIBLE": "Dispatch authorization, the SAA receipt, and the local permit commit are durable before send; the effect boundary may have been crossed and the external effect may have occurred.",
+      "EFFECT_UNKNOWN": "Available evidence is missing, contradictory, or fails integrity validation."
+    },
+    "retry_rule": "Automatic or operator-requested resend is forbidden unless certainty is authoritatively NO_EFFECT, the capability policy permits retry, OperationId and RequestDigest are retained, AttemptNumber increments, a new opaque AttemptId plus new EffectPermitId and SaaAttemptPermitId are allocated, and the new attempt is bound to the then-current fence tuple without rewriting prior-attempt history."
+  },
+  "effect_authorization_point": {
+    "id": "EAP-CONTRACT",
+    "actor": "EFFECT_AUTHORIZATION_POINT",
+    "scope": "Every EffectClass other than NONE",
+    "local_authority": "current writable primary PostgreSQL control database with required synchronous quorum",
+    "saa_authority": "Satellite Assignment Authority linearizable one-use attempt-permit service",
+    "local_permit_identity": "EffectPermitId bound one-to-one to OperationId plus AttemptId, RequestDigest, SaaAttemptPermitId, and that attempt's complete immutable accepted authority and fence tuple",
+    "saa_attempt_permit_identity": "SaaAttemptPermitId bound one-to-one to the current effect_enabled SAA grant, OperationId, AttemptId, RequestDigest, EffectClass, AssignmentGeneration, AuthorityIncarnationId, and DispatchAuthorityId",
+    "local_permit_states": ["PENDING", "CONSUMED", "CANCELLED", "EXPIRED"],
+    "ordered_protocol": [
+      {
+        "phase": "LOCAL_LOCK_AND_VALIDATE",
+        "rule": "Begin one primary-PostgreSQL transaction, lock the current local assignment projection, leader, controller-lease pointer and grant, driver binding, execution, operation, and EffectPermitId rows, then validate every local final guard while those locks are held."
+      },
+      {
+        "phase": "SAA_LINEARIZABLE_CONSUME",
+        "rule": "While the local transaction and locks remain open, ask SAA to atomically consume the unconsumed SaaAttemptPermitId against the current effect_enabled grant. SAA serializes this decision with assignment revocation and returns a unique signed consume receipt only to the winner."
+      },
+      {
+        "phase": "LOCAL_COMMIT",
+        "rule": "After a successful SAA consume, persist SaaPermitConsumeReceiptDigest, change EffectPermitId from PENDING to CONSUMED, persist the complete accepted and current fence evidence, set Stage to DISPATCHED and EffectCertainty to EFFECT_POSSIBLE, and commit the local transaction before any send."
+      },
+      {
+        "phase": "SEND",
+        "rule": "Only after the local commit is confirmed may the prepared request leave through the Effect Authorization Point sole effect credential and egress."
+      }
+    ],
+    "serialization": {
+      "local": "Lease release, expiry, revocation, handover, takeover, and effect authorization serialize through the same PostgreSQL rows and locks. If a lease-changing transaction commits first, EAP validation rejects; if the EAP local commit wins, a later lease change cannot erase the already authorized in-flight attempt.",
+      "saa": "SaaAttemptPermitId consumption and assignment revocation serialize at SAA. If revocation wins, consume rejects; if consume wins, the receipt remains valid for that one attempt and later revocation blocks future permits without erasing the consumed authorization.",
+      "no_distributed_acid": "PostgreSQL and SAA are independent authorities. This protocol is deliberately ordered and recoverable; it does not claim or require a distributed ACID transaction."
+    },
+    "final_guard": [
+      "Satellite Assignment Authority is online and the one-use SaaAttemptPermitId is unconsumed and bound to the current effect_enabled grant with the same AssignmentGeneration, AuthorityIncarnationId, SatelliteId, DomainId, and fresh DispatchAuthorityId recorded in the current attempt's immutable accepted tuple",
+      "the locked local domain state is ACTIVE or explicitly effect-capable DEGRADED under the current DegradationPolicyRevision; STANDBY, DRAINING, STOPPED, and FAILED never authorize an external effect",
+      "the current elected LeaderEpoch and leader identity match the current attempt's immutable accepted tuple",
+      "for interactive effects, the ControllerLeaseId in the current attempt's immutable accepted tuple remains ACTIVE and unexpired with the same holder subject, session, client key, and ControlFencingToken and a valid request ClientInstanceProof",
+      "DriverHostGeneration, ContextGeneration, ExecutionAttachmentGeneration, DriverBindingId, ExecutionId, and ExecutionRevision match the current attempt's immutable accepted tuple",
+      "EffectPermitId is PENDING, unexpired, unused, and bound to the same OperationId, AttemptId, SaaAttemptPermitId, RequestDigest, and EffectClass",
+      "the primary database is writable with required quorum and every assignment, authority, lease, clock, and driver observation meets its freshness bound"
+    ],
+    "failure_outcomes": {
+      "saa_consume_failed": "Roll back the local transaction, retain NO_EFFECT, and do not send.",
+      "saa_consume_succeeded_local_commit_failed": "Do not send. The consumed SaaAttemptPermitId and its receipt are abandoned permanently and never reused; recovery reconciles the attempt from SAA and local evidence before any new attempt is admitted.",
+      "local_commit_succeeded": "The attempt is durably EFFECT_POSSIBLE before send. Later SAA revocation or lease loss cannot erase that in-flight attempt and cannot justify resend.",
+      "crash_after_local_commit": "Recover as EFFECT_POSSIBLE and reconcile by stable operation, attempt, local permit, SAA receipt, and external evidence; never infer NO_EFFECT or resend."
+    },
+    "credential_rule": "Only EFFECT_AUTHORIZATION_POINT holds the satellite or GCS effect credential and effect-capable network route; browser, worker, gateway, and driver host paths cannot bypass it.",
+    "failure_rule": "Quorum loss, primary uncertainty, stale or unavailable assignment authority, clock uncertainty, stale fence, expired permit, integrity failure, or egress ownership uncertainty rejects before effect and suspends the owning execution when control or effect certainty cannot be proved."
+  },
+  "restart_registry": [
+    {
+      "id": "RST-COMMAND",
+      "resource": "ControlCommand",
+      "identity": ["CommandId", "CommandRevision", "IdempotencyKey", "TargetEntityId", "AcceptedTargetRevision"],
+      "nonterminal_states": ["RECEIVED", "VALIDATING", "ACCEPTED", "WAITING_SAFE_POINT", "APPLYING", "RECONCILING"],
+      "algorithm": "Fence the prior owner, find a target event by CommandId, settle when committed, requeue the same CommandId only when no application occurred and every original guard remains valid, otherwise supersede or retain RECONCILING.",
+      "time_rule": "Preserve original acceptance, safe-point, and application deadlines from database time.",
+      "idempotency_rule": "Never allocate a replacement CommandId for retry or recovery."
+    },
+    {
+      "id": "RST-PROMPT",
+      "resource": "OperatorPrompt",
+      "identity": ["PromptId", "PromptRevision", "ExecutionId", "PromptDeadline", "SettlementId"],
+      "nonterminal_states": ["CREATED", "OPEN"],
+      "algorithm": "Reconcile the single settlement compare-and-set, republish the same OPEN PromptId when unsettled, and return the winning immutable settlement when settled.",
+      "time_rule": "Use the original database deadline and no-controller grace; restart never extends either.",
+      "idempotency_rule": "Response, timeout, cancellation, and termination race for one SettlementId and exactly one winner."
+    },
+    {
+      "id": "RST-RESERVATION",
+      "resource": "AdmissionReservation",
+      "identity": ["ReservationId", "ExecutionId", "ConstraintSetDigest", "ReservationRevision"],
+      "nonterminal_states": ["PENDING", "HELD", "RELEASING"],
+      "algorithm": "Reconcile the owning execution, scheduler decision, attachment hooks, and associated operation dispositions; retain or reacquire no capacity by inference and release only after the owning work has a durable disposition.",
+      "time_rule": "Preserve original queue and reservation deadlines and starvation-order evidence.",
+      "idempotency_rule": "Reservation acquisition and release compare-and-set ReservationRevision and never double-count capacity."
+    },
+    {
+      "id": "RST-CHECKPOINT",
+      "resource": "ExecutionCheckpoint",
+      "identity": ["CheckpointId", "ExecutionId", "ExecutionRevision", "CheckpointSequence", "CompatibilityDigest"],
+      "nonterminal_states": ["PROPOSED", "COMMITTING"],
+      "algorithm": "Discard an uncommitted proposal, validate the latest committed checkpoint against the pinned runtime and configuration, then replay only committed events after its sequence; never cross an unresolved external effect.",
+      "time_rule": "Preserve every wait, prompt, schedule, and operation target embedded in the checkpoint.",
+      "idempotency_rule": "CheckpointSequence is monotonic per ExecutionId and a duplicate digest returns the committed checkpoint."
+    },
+    {
+      "id": "RST-SCHEDULE",
+      "resource": "DurableScheduleOccurrence",
+      "identity": ["ScheduleId", "ScheduleRevision", "OccurrenceId", "OccurrenceTarget", "IdempotencyKey"],
+      "required_data": ["OriginalTarget", "AuthoritativeClockSource", "UncertaintyPolicy", "ResumptionCondition", "MisfirePolicy", "MaximumCatchUpOccurrences", "AssignmentGeneration", "AuthorityIncarnationId", "LeaderEpoch"],
+      "nonterminal_states": ["PLANNED", "DUE", "CLAIMED", "RECONCILING"],
+      "misfire_policy_enum": ["SKIP", "FIRE_ONCE", "CATCH_UP_BOUNDED"],
+      "algorithm": "Recompute due status from OriginalTarget using the same authoritative clock and uncertainty policy, derive stable OccurrenceId from ScheduleId plus scheduled target, claim it by compare-and-set, and submit at most the bounded policy result through normal admission and effect authorization.",
+      "time_rule": "Never replace OriginalTarget with restart time; CATCH_UP_BOUNDED cannot exceed MaximumCatchUpOccurrences and coalesces or leaves later occurrences according to the pinned policy.",
+      "idempotency_rule": "Each OccurrenceId has one idempotency key and can produce at most one admitted execution or effect intent.",
+      "failure_rule": "Do not claim or fire while clock uncertainty exceeds policy, the Satellite Assignment Authority or leader is unavailable or stale, or the prior occurrence outcome is unresolved."
+    },
+    {
+      "id": "RST-DRIVER-OPERATION",
+      "resource": "DriverEffectOperation",
+      "identity": ["OperationId", "OperationRevision", "RequestDigest", "AttemptNumber", "AttemptId", "EffectPermitId", "SaaAttemptPermitId", "SaaPermitConsumeReceiptDigest"],
+      "nonterminal_states": ["REQUESTED", "ACCEPTED", "DISPATCHED", "RECONCILING"],
+      "algorithm": "Fence the prior owner, reconcile the same OperationId and AttemptId against the local permit, SAA one-use permit and consume receipt, gateway, driver, Effect Authorization Point, and external evidence, and never resend unless authoritative evidence sets EffectCertainty to NO_EFFECT.",
+      "time_rule": "Preserve the original operation deadline, attempt history, and reconciliation deadline.",
+      "idempotency_rule": "A retry retains OperationId and RequestDigest, increments AttemptNumber, and allocates a new AttemptId, EffectPermitId, and SaaAttemptPermitId only after NO_EFFECT proof; a successor OperationId is new intent."
+    }
+  ],
+  "global_invariants": [
+    "No enum in this model contains CONTROL_HOLD; control loss is execution state SUSPENDED with hold_reason CONTROL_LOST and saved_resume_target.",
+    "A state marked terminal has no outgoing transition and cannot reactivate.",
+    "An AuthorityIncarnationId enters ACTIVE at most once; authority loss ends FAILED and planned deactivation ends STOPPED, so later activation requires a fresh SAA assignment generation, authority incarnation, and dispatch authority.",
+    "A reload, rerun, or recovery requested after FINISHED, ABORTED, or ERROR creates a new ExecutionId and links predecessor_execution_id.",
+    "Every mutation validates the current signed satellite assignment and matches AssignmentGeneration, AuthorityIncarnationId, and LeaderEpoch; controller mutations also match ControlLeaseRevision, an unexpired ControlFencingToken, and ClientInstanceProof.",
+    "Every entity mutation is a revision compare-and-set and is committed with audit and outbox evidence before publication.",
+    "At most one current ControllerLeaseId in ACTIVE or HANDOVER_PENDING exists per DomainId and AuthorityIncarnationId; terminal lease records remain immutable history.",
+    "Every new controller grant allocates a new ControllerLeaseId and strictly increases ControlFencingToken; renewal changes only ControlLeaseRevision and expiry.",
+    "Final external-effect validation reads the current lease and does not require current ControlLeaseRevision to equal the revision accepted with the command; it requires the same ControllerLeaseId, ACTIVE state, unexpired database-time lease, same holder session and client key, current ControlFencingToken and AuthorityIncarnationId, and a valid request ClientInstanceProof, while retaining both revisions as evidence.",
+    "A stale authority, controller, host, context, attachment, binding, execution, command, prompt, or operation generation is rejected before effect.",
+    "A checkpoint never crosses an operation in EFFECT_POSSIBLE or EFFECT_UNKNOWN.",
+    "EffectCertainty exists only for EffectClass values other than NONE; typed read-only NONE requests omit certainty and never enter the external effect operation machine.",
+    "Every external effect requires an EAP protocol that holds PostgreSQL authority, lease, operation, and permit locks; linearly consumes one SAA attempt permit for the current effect_enabled grant; commits the local permit plus SAA receipt and EFFECT_POSSIBLE before send; and uses the sole effect credential and egress without claiming distributed ACID.",
+    "Entering DRAINING requires a linearly committed SAA state with effect_enabled false before the local domain transition; DRAINING cannot consume an SAA attempt permit or authorize a new external effect.",
+    "Cleanup runs in reverse registered order, continues after individual failure, records every result, and performs configuration cleanup last.",
+    "MONITOR and EDITOR cannot appear as actors on a mutating transition."
+  ],
+  "machines": {
+    "domain": {
+      "machine_id": "domain",
+      "entity": "SatelliteControlDomainAuthority",
+      "entity_id": "DomainId plus AuthorityIncarnationId",
+      "revision": "DomainRevision",
+      "initial_state": "STARTING",
+      "state_data": {
+        "required": ["DomainId", "SatelliteId", "DomainRevision", "AssignmentGrantId", "SaaAssignmentState", "EffectEnabled", "AssignmentGeneration", "AuthorityIncarnationId", "HasEverBeenActive", "LeaderEpoch", "DispatchAuthorityId", "DispatchAuthorityExpiresAt", "PriorEffectPathFenceEvidenceId", "ConfigurationDigest", "DegradationPolicyRevision"],
+        "rules": ["AssignmentGrantId, AssignmentGeneration, AuthorityIncarnationId, and DispatchAuthorityId are allocated by the Satellite Assignment Authority outside restored domain history", "SaaAssignmentState and EffectEnabled are a signed current SAA projection; local ACTIVE or effect-capable DEGRADED requires SAA ACTIVE with EffectEnabled true", "local DRAINING requires SAA DRAINING with EffectEnabled false and cannot return to an effect-enabled state", "HasEverBeenActive changes from false to true exactly once in DOM-003 and never returns to false", "DispatchAuthorityId is short lived and cannot survive deactivation, restore, cutover, or failback"]
+      },
+      "states": [
+        {"name": "STARTING", "terminal": false, "description": "Configuration, schema, clock, dependency, and fence checks are running."},
+        {"name": "STANDBY", "terminal": false, "description": "Healthy, never-before-active authority incarnation awaiting its one permitted activation."},
+        {"name": "ACTIVE", "terminal": false, "description": "Current fenced leader with required control dependencies healthy."},
+        {"name": "DEGRADED", "terminal": false, "description": "Current leader with an impaired dependency and an explicit reduced-operation policy."},
+        {"name": "DRAINING", "terminal": false, "description": "SAA effect_enabled is false; no new external effect is possible while operations, prompts, reservations, reconciliation, and cleanup settle."},
+        {"name": "STOPPED", "terminal": true, "description": "This authority incarnation shut down cleanly."},
+        {"name": "FAILED", "terminal": true, "description": "This authority incarnation cannot safely continue."}
+      ],
+      "timers": [
+        {"id": "DOMAIN_START_DEADLINE", "source": "deployment reliability profile", "expiry": "transition STARTING to FAILED"},
+        {"id": "LEADER_LEASE_DEADLINE", "source": "database time", "expiry": "fence writes and leave ACTIVE or DEGRADED"},
+        {"id": "DEGRADATION_DEADLINE", "source": "the classified dependency and pinned DegradationPolicyRevision", "expiry": "fire DOM-010 unless DOM-005 commits recovery first; continuation never extends this deadline implicitly"},
+        {"id": "DOMAIN_DRAIN_DEADLINE", "source": "deployment reliability profile", "expiry": "preserve unsettled evidence and transition to FAILED unless a declared degraded drain policy applies"}
+      ],
+      "transitions": [
+        {
+          "id": "DOM-001",
+          "from": ["STARTING"],
+          "to": "STANDBY",
+          "trigger": "startup_checks_passed",
+          "actor": ["DOMAIN_SUPERVISOR"],
+          "preconditions": ["current signed satellite assignment validates", "AssignmentGeneration and AuthorityIncarnationId match that assignment", "configuration digest approved", "database schema compatible", "authoritative clock available", "no local integrity failure"],
+          "effects": ["commit health evidence", "enable leadership candidacy", "increment DomainRevision"],
+          "timeout": {"timer": "DOMAIN_START_DEADLINE", "on_expiry": "fire DOM-002"},
+          "recovery": {"strategy": "restart with a new AuthorityIncarnationId after fault correction", "target": "new STARTING entity"},
+          "rejection": {"code": "STARTUP_PRECONDITION_FAILED", "disposition": "remain STARTING until deadline or explicit failure"}
+        },
+        {
+          "id": "DOM-002",
+          "from": ["STARTING"],
+          "to": "FAILED",
+          "trigger": "startup_failed_or_timed_out",
+          "actor": ["DOMAIN_SUPERVISOR", "CLOCK"],
+          "preconditions": ["failure or deadline evidence is durable"],
+          "effects": ["fence all mutations", "record safe diagnostic", "release partial reservations best effort"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "correct cause and create a new AuthorityIncarnationId", "target": "new STARTING entity"},
+          "rejection": {"code": "FAILURE_EVIDENCE_MISSING", "disposition": "remain STARTING"}
+        },
+        {
+          "id": "DOM-003",
+          "from": ["STANDBY"],
+          "to": "ACTIVE",
+          "trigger": "leadership_acquired",
+          "actor": ["LEADER_COORDINATOR", "DOMAIN_SUPERVISOR"],
+          "preconditions": ["HasEverBeenActive is false", "Satellite Assignment Authority is online and proves this signed AssignmentGrantId, AssignmentGeneration, and AuthorityIncarnationId are current, fresh, allocated outside restored history, and never previously activated", "PriorEffectPathFenceEvidenceId proves every earlier legacy, site, cluster, and authority-incarnation effect path for SatelliteId is externally fenced", "all unresolved prior commands and external effects are reconciled or durably held under approved disposition", "a fresh short-lived DispatchAuthorityId is issued for this assignment and authority incarnation", "durable leader lease acquired", "LeaderEpoch atomically incremented", "AuthorityIncarnationId matches lease", "write-path dependency checks pass"],
+          "effects": ["atomically set HasEverBeenActive true", "bind fresh DispatchAuthorityId and expiry", "publish new authority fence", "enable policy-authorized mutations only after all activation preconditions commit"],
+          "timeout": {"timer": "LEADER_LEASE_DEADLINE", "on_expiry": "fence mutations and fire DOM-006"},
+          "recovery": {"strategy": "return to STANDBY only when activation did not commit and HasEverBeenActive remains false; otherwise terminate this incarnation and allocate a fresh assignment and incarnation", "target": "STANDBY or new STARTING entity"},
+          "rejection": {"code": "LEADERSHIP_NOT_ACQUIRED", "disposition": "remain STANDBY"}
+        },
+        {
+          "id": "DOM-004",
+          "from": ["ACTIVE"],
+          "to": "DEGRADED",
+          "trigger": "required_dependency_degraded",
+          "actor": ["DOMAIN_SUPERVISOR"],
+          "preconditions": ["degradation is classified", "approved degradation policy exists", "leadership fence remains valid"],
+          "effects": ["close prohibited admission paths", "suspend affected executions at safe points", "publish affected capabilities and staleness"],
+          "timeout": {"timer": "DEGRADATION_DEADLINE", "on_expiry": "fire DOM-010 unless DOM-005 commits recovery first"},
+          "recovery": {"strategy": "continue only operations explicitly allowed by the degradation policy", "target": "DEGRADED"},
+          "rejection": {"code": "DEGRADATION_UNCLASSIFIED", "disposition": "fire DOM-010 fail-closed transition"}
+        },
+        {
+          "id": "DOM-005",
+          "from": ["DEGRADED"],
+          "to": "ACTIVE",
+          "trigger": "required_dependencies_recovered",
+          "actor": ["DOMAIN_SUPERVISOR"],
+          "preconditions": ["all required health checks pass for the stabilization interval", "LeaderEpoch and AuthorityIncarnationId remain current", "affected entities reconciled"],
+          "effects": ["restore admitted capability set", "retain operator-visible degradation history"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "remain DEGRADED on any failed health assertion", "target": "DEGRADED"},
+          "rejection": {"code": "DEPENDENCY_NOT_STABLE", "disposition": "remain DEGRADED"}
+        },
+        {
+          "id": "DOM-006",
+          "from": ["ACTIVE", "DEGRADED"],
+          "to": "FAILED",
+          "trigger": "authority_fenced_or_lease_lost",
+          "actor": ["LEADER_COORDINATOR", "DOMAIN_SUPERVISOR"],
+          "preconditions": ["higher AssignmentGeneration or LeaderEpoch observed, signed assignment revoked, or current assignment or leader lease cannot be proven valid"],
+          "effects": ["reject all writes immediately", "revoke or expire DispatchAuthorityId", "stop dispatch and externally fence this effect path", "mark affected executions for SUSPENDED or RECOVERING reconciliation", "mark AuthorityIncarnationId terminal", "retain read-only forensic observation"],
+          "timeout": {"timer": "LEADER_LEASE_DEADLINE", "on_expiry": "fence locally even if database is unavailable"},
+          "recovery": {"strategy": "reconcile under read-only recovery and request a new SAA AssignmentGrantId, AssignmentGeneration, AuthorityIncarnationId, and DispatchAuthorityId", "target": "new STARTING entity"},
+          "rejection": {"code": "FENCE_EVENT_INVALID", "disposition": "if authority validity is uncertain, fire DOM-010"}
+        },
+        {
+          "id": "DOM-007",
+          "from": ["ACTIVE", "DEGRADED", "STANDBY"],
+          "to": "DRAINING",
+          "trigger": "drain_requested",
+          "actor": ["SYSTEM_ADMIN", "DOMAIN_SUPERVISOR", "SATELLITE_ASSIGNMENT_AUTHORITY"],
+          "preconditions": ["request is authorized and audited", "drain_target is STOPPED", "current authority fence is recorded", "SAA has linearly committed this AssignmentGrantId to DRAINING with effect_enabled false and disabled every new SaaAttemptPermitId", "the signed SAA drain proof matches SatelliteId, DomainId, AssignmentGeneration, AuthorityIncarnationId, and assignment revision"],
+          "effects": ["persist the signed SAA drain proof and local EffectEnabled false", "close admission", "stop new external dispatch", "settle or fence commands, prompts, operations, and reservations", "run ordered cleanup"],
+          "timeout": {"timer": "DOMAIN_DRAIN_DEADLINE", "on_expiry": "fire DOM-010 unless approved degraded drain can prove safety"},
+          "recovery": {"strategy": "resume drain from durable per-entity dispositions", "target": "DRAINING"},
+          "rejection": {"code": "DRAIN_NOT_AUTHORIZED_OR_NOT_EFFECT_DISABLED", "disposition": "no local state change; SAA permit unavailability or a committed SAA drain still prevents new effect and requires reconciliation"}
+        },
+        {
+          "id": "DOM-009",
+          "from": ["DRAINING"],
+          "to": "STOPPED",
+          "trigger": "planned_deactivation_completed",
+          "actor": ["DOMAIN_SUPERVISOR"],
+          "preconditions": ["drain_target is STOPPED", "signed SAA state remains DRAINING or REVOKED with effect_enabled false", "all work is settled or durably fenced", "leadership and controller lease are released", "cleanup evidence is durable"],
+          "effects": ["revoke or expire DispatchAuthorityId", "externally fence this effect path", "close service endpoints", "mark AuthorityIncarnationId terminal"],
+          "timeout": {"timer": "DOMAIN_DRAIN_DEADLINE", "on_expiry": "fire DOM-010"},
+          "recovery": {"strategy": "start with a new AuthorityIncarnationId", "target": "new STARTING entity"},
+          "rejection": {"code": "SHUTDOWN_INCOMPLETE", "disposition": "remain DRAINING"}
+        },
+        {
+          "id": "DOM-010",
+          "from": ["STANDBY", "ACTIVE", "DEGRADED", "DRAINING"],
+          "to": "FAILED",
+          "trigger": "unrecoverable_integrity_or_safety_failure",
+          "actor": ["DOMAIN_SUPERVISOR"],
+          "preconditions": ["failure is durably classified", "continuation cannot satisfy the declared safe policy"],
+          "effects": ["fence all mutation and dispatch", "preserve forensic and recovery evidence", "notify operators"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "administrative correction followed by a new AuthorityIncarnationId", "target": "new STARTING entity"},
+          "rejection": {"code": "FAILURE_NOT_CLASSIFIED", "disposition": "remain fail-closed and escalate"}
+        }
+      ],
+      "invariants": [
+        "ACTIVE or DEGRADED commits require the current signed assignment, AssignmentGeneration, AuthorityIncarnationId, and LeaderEpoch.",
+        "Only one AuthorityIncarnationId can commit within one LeaderEpoch.",
+        "DOM-003 is the only entry into ACTIVE from outside the ACTIVE-DEGRADED envelope and can commit only once for an AuthorityIncarnationId.",
+        "An incarnation that leaves ACTIVE or DEGRADED through authority loss becomes terminal FAILED and cannot return to STANDBY or ACTIVE.",
+        "A planned DRAINING deactivation ends terminal STOPPED and never returns the same incarnation to STANDBY.",
+        "DRAINING requires signed SAA effect_enabled false, permits settlement and reconciliation only, and cannot authorize or consume a new effect permit.",
+        "STANDBY never accepts a mutation or dispatches an operation.",
+        "DEGRADED permits only the versioned degradation-policy capability set.",
+        "STOPPED and FAILED are terminal for that AuthorityIncarnationId."
+      ]
+    },
+    "controller_lease": {
+      "machine_id": "controller_lease",
+      "entity": "ControllerLeaseGrant",
+      "entity_id": "ControllerLeaseId",
+      "revision": "ControlLeaseRevision",
+      "initial_state": "ACTIVE",
+      "domain_projection": {
+        "AVAILABLE": "No current unexpired ControllerLeaseId in ACTIVE or HANDOVER_PENDING exists for DomainId plus AuthorityIncarnationId. AVAILABLE is a derived domain projection, not a ControllerLeaseGrant state.",
+        "singleton_rule": "The domain current-lease pointer and grant creation or replacement commit atomically; only its referenced grant can authorize control."
+      },
+      "state_data": {
+        "required": ["DomainId", "SatelliteId", "AssignmentGeneration", "AuthorityIncarnationId", "ControllerLeaseId", "ControlLeaseRevision", "ControlFencingToken", "HolderSubjectId", "HolderSessionId", "ClientInstanceKeyId", "IssuedAtDatabaseTime", "ExpiresAtDatabaseTime", "GrantReason", "PolicyRevision"],
+        "conditional": ["HandoverRequestId", "HandoverRequestRevision", "HandoverRequestStatus", "HandoverRequestDigest", "HandoverRequestIdempotencyKey", "HandoverCandidateSubjectId", "HandoverCandidateSessionId", "HandoverCandidateKeyId", "HandoverRequestReason", "HandoverRequestedAtDatabaseTime", "HandoverDeadline", "HandoverApprovalId", "HandoverApproverSubjectId", "HandoverApproverSessionId", "HandoverApproverClientKeyId", "HandoverApprovedAtDatabaseTime", "HandoverApprovalDigest", "ResponsibilityAcknowledgementId", "ResponsibilityAcknowledgedAtDatabaseTime", "ResponsibilityContextDigest", "ModeProjectionCorrelationId", "PredecessorControllerLeaseId", "SuccessorControllerLeaseId", "TerminationReason", "TerminationActor", "TerminationTime"]
+      },
+      "handover_request_contract": {
+        "phases": ["REQUESTED", "HOLDER_APPROVED", "WITHDRAWN", "DECLINED", "CANCELLED", "EXPIRED", "SUPERSEDED", "TRANSFERRED"],
+        "singleton_rule": "At most one REQUESTED or HOLDER_APPROVED handover request may exist for the domain current-lease pointer; request creation does not change the ACTIVE holder or grant execution authority.",
+        "ordering_rule": "The current holder approves the exact request before the named requester may submit a request-bound responsibility acknowledgement; acknowledgement and transfer commit atomically.",
+        "mode_rule": "The transfer transaction commits authoritative Execution Mode and permitted former-holder non-control projections plus outbox rows; the relay publishes them only after commit, and browser receipt is not the authority boundary.",
+        "audit_rule": "Every source event records trusted database event time, both human identity/session/client-key bindings where applicable, policy revision, reason, outcome, request and correlation IDs, and old/new lease revision and fence evidence. An independent sink receipt records ingestion time and binds the source event ID and digest."
+      },
+      "creation": {
+        "id": "CTL-CREATE",
+        "to": "ACTIVE",
+        "trigger": "acquisition_or_reacquisition_committed",
+        "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+        "preconditions": ["domain projection is AVAILABLE", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, and LeaderEpoch validate", "domain state permits controller acquisition", "subject and role are authorized", "holder session is current", "request ClientInstanceProof validates against the non-exportable ClientInstanceKeyId and request digest", "database time is trusted", "requested lease term satisfies policy", "reacquisition acknowledges active executions, prompts, alarms, and uncertain effects", "idempotency key is unused or returns this same creation"],
+        "effects": ["allocate a new ControllerLeaseId", "atomically increment ControlFencingToken above every prior grant in the domain", "initialize ControlLeaseRevision to 1", "bind holder subject, session, and client key", "set issue and expiry from database time", "atomically install the domain current-lease pointer", "append audit and outbox evidence"],
+        "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "return reconciliation pending until creation is resolved by idempotency key; never create a second grant"},
+        "recovery": {"strategy": "read the current-lease pointer and creation record by idempotency key", "target": "existing ACTIVE grant or domain AVAILABLE projection"},
+        "rejection": {"code": "CONTROL_LEASE_ACQUISITION_REJECTED", "disposition": "no grant, fence, or domain current-lease pointer changes"}
+      },
+      "mutation_authentication": {
+        "human_rule": "Every human-initiated lease or handover-request mutation validates the current signed assignment and AuthorityIncarnationId, the exact expected ControlLeaseRevision at acceptance, the actor's authorized session and mode-specific capability, and a request-bound ClientInstanceProof from that actor's non-exportable key; requester proof never substitutes for current-holder approval proof.",
+        "service_rule": "CLOCK, identity, assignment, and authority events use mutually authenticated service evidence, current assignment and authority fences, and database time; they cannot impersonate a holder proof.",
+        "database_time_rule": "Issue, renewal, handover request, holder approval, responsibility acknowledgement, release, expiry, revocation, and replacement decisions use database time only."
+      },
+      "effect_boundary_guard": {
+        "acceptance": "Command acceptance checks exact expected ControlLeaseRevision and records accepted_control_lease_revision.",
+        "final_effect": "Immediately before an external effect, EFFECT_AUTHORIZATION_POINT holds the PostgreSQL authority, lease, operation, and local-permit locks; validates the same ControllerLeaseId in ACTIVE state before ExpiresAtDatabaseTime with the same holder, session, client key, fence, assignment, authority, and request proof; linearly consumes the SAA one-use attempt permit for the current effect_enabled grant; then commits the local permit and SAA receipt before send.",
+        "renewal_nuance": "Final effect validation does not require current ControlLeaseRevision to equal accepted_control_lease_revision because a benign renewal or non-authorizing handover-request metadata transition may advance it without changing the ACTIVE holder or fence. Holder approval changes state to HANDOVER_PENDING and therefore rejects effect. Record current_control_lease_revision with accepted_control_lease_revision as effect evidence.",
+        "failure": "A failed SAA consume rolls back the local transaction. A successful SAA consume followed by local commit failure sends nothing and permanently abandons that SAA permit. A successful local commit makes the attempt EFFECT_POSSIBLE before send. PostgreSQL and SAA serialize changes independently; this is not distributed ACID."
+      },
+      "states": [
+        {"name": "ACTIVE", "terminal": false, "description": "This grant is the current domain lease, is unexpired, and may authorize control when every session, client-proof, revision, fence, assignment, and policy guard passes; a REQUESTED handover may coexist but grants the requester no authority."},
+        {"name": "HANDOVER_PENDING", "terminal": false, "description": "The current holder approved one named request and the requester must acknowledge responsibility before the deadline; no new external effect is authorized while this state is current."},
+        {"name": "RELEASED", "terminal": true, "description": "The holder voluntarily released this grant; the domain projection becomes AVAILABLE unless replacement is atomic."},
+        {"name": "EXPIRED", "terminal": true, "description": "Database time reached expiry before a valid renewal committed."},
+        {"name": "REVOKED", "terminal": true, "description": "Administrative, identity, assignment, authority, or integrity policy terminated this grant."},
+        {"name": "TRANSFERRED", "terminal": true, "description": "An accepted handover or forced takeover atomically replaced this grant with a new ControllerLeaseId and higher ControlFencingToken."}
+      ],
+      "termination_reasons": ["VOLUNTARY_RELEASE", "LEASE_EXPIRED", "ADMINISTRATIVE_REVOCATION", "SESSION_INVALIDATED", "CLIENT_KEY_INVALIDATED", "ASSIGNMENT_REPLACED", "AUTHORITY_REPLACED", "INTEGRITY_FAILURE", "HANDOVER_ACCEPTED", "FORCED_TAKEOVER"],
+      "timers": [
+        {"id": "LEASE_MUTATION_DEADLINE", "source": "database time", "expiry": "reconcile by idempotency key and revision before reporting an outcome"},
+        {"id": "LEASE_RENEWAL_CUTOFF", "source": "database time and policy", "expiry": "renewal is rejected; expiry transition remains authoritative"},
+        {"id": "LEASE_EXPIRY", "source": "ExpiresAtDatabaseTime", "expiry": "ACTIVE or HANDOVER_PENDING transitions exactly once to EXPIRED"},
+        {"id": "HANDOVER_DEADLINE", "source": "database time and the original named handover request", "expiry": "an unapproved ACTIVE request clears; HANDOVER_PENDING returns to ACTIVE only if the grant remains unexpired and authorized, otherwise expiry or revocation terminalizes it and clears the current pointer"}
+      ],
+      "transitions": [
+        {
+          "id": "CTL-001",
+          "from": ["ACTIVE"],
+          "to": "ACTIVE",
+          "trigger": "lease_renewed",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["same holder subject, session, and ClientInstanceKeyId remain current", "request ClientInstanceProof validates", "expected ControlLeaseRevision matches at mutation acceptance", "database time is before LEASE_RENEWAL_CUTOFF and current expiry", "signed assignment, AssignmentGeneration, AuthorityIncarnationId, LeaderEpoch, ControllerLeaseId, and ControlFencingToken remain current", "requested expiry satisfies maximum-term policy"],
+          "effects": ["retain ControllerLeaseId and ControlFencingToken", "increment ControlLeaseRevision", "set new ExpiresAtDatabaseTime", "record prior and new expiry", "append audit and outbox evidence"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile by idempotency key and ControlLeaseRevision; never issue a second renewal mutation"},
+          "recovery": {"strategy": "read current grant revision and renewal event", "target": "ACTIVE or terminal recorded state"},
+          "rejection": {"code": "CONTROL_LEASE_RENEWAL_REJECTED", "disposition": "leave lease state, revision, fence, and expiry unchanged"}
+        },
+        {
+          "id": "CTL-002",
+          "from": ["ACTIVE"],
+          "to": "ACTIVE",
+          "trigger": "handover_requested_from_monitoring",
+          "actor": ["CONTROL_REQUESTER", "CONTROL_SERVICE"],
+          "preconditions": ["requester startup and mode-authorization projection is current and selects Monitoring Mode", "requester has effective Controller capability for this domain and environment", "requester subject, session, authorization, and ClientInstanceKeyId validate and differ from the current holder binding", "requester ClientInstanceProof is bound to HandoverRequestId, request digest, domain, lease, expected ControlLeaseRevision, idempotency key, and reason", "no REQUESTED or HOLDER_APPROVED handover request exists for the current lease", "database time is before lease expiry", "handover deadline is before or equal to lease expiry", "current assignment, authority, lease ID, and fence match", "idempotency key is unused or resolves to this HandoverRequestId and request digest"],
+          "effects": ["retain ACTIVE state, ControllerLeaseId, current holder, and ControlFencingToken", "increment ControlLeaseRevision and initialize HandoverRequestRevision to 1", "set HandoverRequestStatus REQUESTED", "bind HandoverRequestId, requester subject, session, client key, reason, trusted request time, original deadline, policy revision, request digest, and idempotency key", "grant no lease, runtime mutation, prompt, or effect authority to the requester", "append request audit and outbox evidence", "notify the current holder, requester, and authorized monitors"],
+          "timeout": {"timer": "HANDOVER_DEADLINE", "on_expiry": "fire CTL-005 unless lease expiry, cancellation, withdrawal, decline, approval, or terminal transition wins"},
+          "recovery": {"strategy": "republish the same non-authorizing request and original deadline", "target": "ACTIVE with the same REQUESTED handover, or the winning recorded state"},
+          "rejection": {"code": "CONTROL_HANDOVER_REQUEST_REJECTED", "disposition": "remain ACTIVE with no new request or candidate binding"}
+        },
+        {
+          "id": "CTL-012",
+          "from": ["ACTIVE"],
+          "to": "HANDOVER_PENDING",
+          "trigger": "handover_approved_by_current_holder",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["HandoverRequestStatus is REQUESTED and HandoverRequestId, requester binding, and original deadline match", "approving subject, session, and client key equal the current holder binding", "holder ClientInstanceProof is bound to the exact handover request, approval digest, and expected ControlLeaseRevision", "candidate remains authorized for Controller capability in this domain and environment", "database time is before handover and lease expiry", "current assignment, authority, lease ID, and fence match", "no responsibility acknowledgement exists"],
+          "effects": ["retain ControllerLeaseId and ControlFencingToken", "increment ControlLeaseRevision and HandoverRequestRevision", "set HandoverRequestStatus HOLDER_APPROVED", "record HandoverApprovalId, approver subject, session, client key, trusted approval time, and approval digest", "block new external effects until cancellation, requester decline, expiry, or transfer", "append approval audit and outbox evidence", "notify the requester that responsibility acknowledgement is required"],
+          "timeout": {"timer": "HANDOVER_DEADLINE", "on_expiry": "fire CTL-005 unless lease expiry or another terminal transition wins"},
+          "recovery": {"strategy": "republish the same approved request, approval evidence, and original deadline", "target": "HANDOVER_PENDING or the winning recorded state"},
+          "rejection": {"code": "CONTROL_HANDOVER_APPROVAL_REJECTED", "disposition": "remain ACTIVE with the REQUESTED handover unchanged"}
+        },
+        {
+          "id": "CTL-003",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "ACTIVE",
+          "trigger": "handover_cancelled_by_holder",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["HandoverRequestStatus is REQUESTED or HOLDER_APPROVED", "requesting subject, session, and client key equal current holder binding", "request ClientInstanceProof binds the exact HandoverRequestId and validates", "expected ControlLeaseRevision matches", "database time is before lease and handover expiry", "current assignment, authority, lease ID, and fence match"],
+          "effects": ["retain ControllerLeaseId and ControlFencingToken", "increment ControlLeaseRevision and HandoverRequestRevision", "set handover request outcome CANCELLED", "clear active request, candidate, approval, and acknowledgement fields after audit persistence", "record cancellation identity, trusted time, and reason", "restore or retain ACTIVE effect eligibility subject to final effect guard", "append cancellation audit and outbox evidence"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile cancellation against expiry or transfer winner"},
+          "recovery": {"strategy": "read revision and handover terminal event", "target": "ACTIVE, HANDOVER_PENDING, or terminal recorded state"},
+          "rejection": {"code": "CONTROL_HANDOVER_CANCEL_REJECTED", "disposition": "remain in the current ACTIVE or HANDOVER_PENDING state with the request unchanged"}
+        },
+        {
+          "id": "CTL-004",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "ACTIVE",
+          "trigger": "handover_withdrawn_or_declined_by_requester",
+          "actor": ["CONTROL_REQUESTER", "CONTROL_SERVICE"],
+          "preconditions": ["HandoverRequestStatus is REQUESTED or HOLDER_APPROVED", "requesting subject, session, and client key equal candidate binding", "candidate request ClientInstanceProof binds the exact HandoverRequestId and validates", "expected ControlLeaseRevision matches", "database time is before lease and handover expiry", "current assignment, authority, lease ID, and fence match"],
+          "effects": ["retain ControllerLeaseId and ControlFencingToken", "increment ControlLeaseRevision and HandoverRequestRevision", "set handover request outcome WITHDRAWN when the prior phase was REQUESTED or DECLINED when it was HOLDER_APPROVED", "clear active request, candidate, approval, and acknowledgement fields after audit persistence", "record requester identity, trusted time, reason, and disposition", "restore or retain ACTIVE holder effect eligibility subject to final effect guard", "append withdrawal or decline audit and outbox evidence"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile withdrawal or decline against expiry or transfer winner"},
+          "recovery": {"strategy": "read revision and handover terminal event", "target": "ACTIVE, HANDOVER_PENDING, or terminal recorded state"},
+          "rejection": {"code": "CONTROL_HANDOVER_REQUESTER_DISPOSITION_REJECTED", "disposition": "remain in the current ACTIVE or HANDOVER_PENDING state with the request unchanged"}
+        },
+        {
+          "id": "CTL-005",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "ACTIVE",
+          "trigger": "handover_request_expired",
+          "actor": ["CLOCK", "CONTROL_SERVICE"],
+          "preconditions": ["HandoverRequestStatus is REQUESTED or HOLDER_APPROVED", "database time is at or after HandoverDeadline but before ExpiresAtDatabaseTime", "same lease and HandoverRequestId remain current", "no transfer or terminal event committed", "assignment and authority remain current"],
+          "effects": ["retain ControllerLeaseId and ControlFencingToken", "increment ControlLeaseRevision and HandoverRequestRevision", "set handover request outcome EXPIRED", "clear active request, candidate, approval, and acknowledgement fields after audit persistence", "record original deadline and database firing time", "restore or retain ACTIVE holder effect eligibility subject to final effect guard", "append expiry audit and outbox evidence"],
+          "timeout": {"timer": "HANDOVER_DEADLINE", "on_expiry": "this transition races by compare-and-set"},
+          "recovery": {"strategy": "re-evaluate original deadline using database time and compare-and-set", "target": "ACTIVE, HANDOVER_PENDING, or terminal recorded state"},
+          "rejection": {"code": "HANDOVER_DEADLINE_NOT_REACHED_OR_ALREADY_SETTLED", "disposition": "return current lease state"}
+        },
+        {
+          "id": "CTL-006",
+          "from": ["HANDOVER_PENDING"],
+          "to": "TRANSFERRED",
+          "trigger": "responsibility_acknowledged_and_handover_transferred",
+          "actor": ["CONTROL_REQUESTER", "CONTROL_SERVICE"],
+          "preconditions": ["HandoverRequestStatus is HOLDER_APPROVED and the exact HandoverRequestId and HandoverApprovalId remain current", "requesting subject, session, and client key equal candidate binding", "candidate ClientInstanceProof binds the request, approval, responsibility acknowledgement, current operational-context digest, expected old ControlLeaseRevision, and transfer idempotency key", "acknowledgement explicitly accepts controller responsibility for the named server, domain, satellite, active executions, prompts, alarms, outstanding commands, and possible or unknown effects", "expected old ControlLeaseRevision matches", "database time is before handover and lease expiry", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, LeaderEpoch, old ControllerLeaseId, and old ControlFencingToken match", "candidate startup and mode-authorization projection remains current, selects Monitoring Mode, and authorizes the transfer projection to Execution Mode", "candidate remains authorized for Controller capability and Execution Mode", "idempotency key is unused or resolves to this transfer"],
+          "effects": ["in one transaction record ResponsibilityAcknowledgementId, trusted acknowledgement time, and ResponsibilityContextDigest", "increment old ControlLeaseRevision without changing its ControlFencingToken", "set HandoverRequestStatus TRANSFERRED and old state TRANSFERRED with termination reason HANDOVER_ACCEPTED", "allocate a new ControllerLeaseId", "strictly increment ControlFencingToken for the new grant", "initialize new ControlLeaseRevision to 1 and state ACTIVE", "bind candidate subject, session, and client key as new holder", "atomically replace the domain current-lease pointer", "record predecessor and successor IDs and ModeProjectionCorrelationId", "commit acknowledgement, transfer, authoritative mode projections, local audit, and outbox rows atomically", "publish Execution Mode for the new holder and Monitoring Mode or another permitted non-control mode for the former holder from the committed outbox under one correlation", "notify all operators after commit"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile both lease IDs and domain pointer by idempotency key; never create another successor"},
+          "recovery": {"strategy": "read atomic transfer record, predecessor, successor, and current pointer", "target": "old TRANSFERRED plus new ACTIVE, or old HANDOVER_PENDING if no commit"},
+          "rejection": {"code": "CONTROL_HANDOVER_ACKNOWLEDGEMENT_REJECTED", "disposition": "old grant remains HANDOVER_PENDING and no acknowledgement, successor, fence, or mode change is committed"}
+        },
+        {
+          "id": "CTL-007",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "RELEASED",
+          "trigger": "lease_released_by_holder",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["requesting subject, session, and client key equal holder binding", "holder request ClientInstanceProof validates", "expected ControlLeaseRevision matches", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, ControllerLeaseId, and ControlFencingToken match", "database time is recorded"],
+          "effects": ["retain ControlFencingToken", "increment ControlLeaseRevision", "set termination reason VOLUNTARY_RELEASE", "settle any active handover request as CANCELLED with the release correlation", "clear domain current-lease pointer atomically", "derive domain projection AVAILABLE", "drive affected executions to SUSPENDED with hold_reason CONTROL_LOST", "audit release"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile by idempotency key and current pointer"},
+          "recovery": {"strategy": "return immutable release if committed; otherwise retain the current nonterminal state", "target": "RELEASED or prior state"},
+          "rejection": {"code": "CONTROL_LEASE_RELEASE_REJECTED", "disposition": "leave state, revision, fence, and current pointer unchanged"}
+        },
+        {
+          "id": "CTL-008",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "EXPIRED",
+          "trigger": "lease_expired",
+          "actor": ["CLOCK", "CONTROL_SERVICE"],
+          "preconditions": ["database time is at or after ExpiresAtDatabaseTime", "same lease is still the domain current-lease pointer", "no renewal or terminal transition won", "current AuthorityIncarnationId is recorded even if it has just been fenced"],
+          "effects": ["retain ControlFencingToken", "increment ControlLeaseRevision", "set termination reason LEASE_EXPIRED", "settle any active handover request as EXPIRED with the lease-expiry correlation", "clear domain current-lease pointer", "derive domain projection AVAILABLE", "drive affected executions to SUSPENDED with hold_reason CONTROL_LOST", "record original expiry and firing time"],
+          "timeout": {"timer": "LEASE_EXPIRY", "on_expiry": "this transition races by compare-and-set"},
+          "recovery": {"strategy": "re-evaluate original expiry using database time; never extend the lease implicitly", "target": "EXPIRED or winning recorded state"},
+          "rejection": {"code": "LEASE_NOT_EXPIRED_OR_ALREADY_SETTLED", "disposition": "return current lease state"}
+        },
+        {
+          "id": "CTL-009",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "REVOKED",
+          "trigger": "lease_revoked_by_administrator",
+          "actor": ["SYSTEM_ADMIN", "CONTROL_SERVICE"],
+          "preconditions": ["dedicated revocation privilege is authorized", "administrator session and request ClientInstanceProof validate", "expected ControlLeaseRevision matches", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, ControllerLeaseId, and ControlFencingToken match", "reason is allowlisted and durable", "database time is recorded"],
+          "effects": ["retain ControlFencingToken", "increment ControlLeaseRevision", "set terminal revocation reason and actor", "settle any active handover request as SUPERSEDED with the revocation correlation", "clear domain current-lease pointer if it still references this grant", "derive domain projection AVAILABLE", "drive affected executions to SUSPENDED with hold_reason CONTROL_LOST", "raise configured security or operations notification"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "fence interactive effects locally and reconcile revocation before accepting control"},
+          "recovery": {"strategy": "read revocation event and current pointer; never restore the revoked grant", "target": "REVOKED or prior state if no revocation committed"},
+          "rejection": {"code": "CONTROL_LEASE_REVOCATION_REJECTED", "disposition": "if authority validity is uncertain, reject effects while state is reconciled"}
+        },
+        {
+          "id": "CTL-010",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "TRANSFERRED",
+          "trigger": "forced_takeover_committed",
+          "actor": ["SYSTEM_ADMIN", "CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["OD-006 and OD-019 are closed with an approved policy that explicitly enables forced takeover", "dedicated forced-takeover privilege and required separation of duty are satisfied", "administrator and new-holder sessions and request ClientInstanceProof values validate", "expected old ControlLeaseRevision matches at acceptance", "reason and acknowledgement of active executions, prompts, alarms, and uncertain effects are durable", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, LeaderEpoch, old ControllerLeaseId, and old ControlFencingToken match", "database time is before old lease expiry or policy explicitly permits takeover of an expiry race", "idempotency key is unused or resolves to this takeover"],
+          "effects": ["increment old ControlLeaseRevision without changing its ControlFencingToken", "set old state TRANSFERRED and termination reason FORCED_TAKEOVER", "settle any active normal handover request as SUPERSEDED with the forced-takeover correlation", "allocate a new ControllerLeaseId", "strictly increment ControlFencingToken", "initialize new ControlLeaseRevision to 1 and state ACTIVE", "bind new holder subject, session, and client key", "atomically replace domain current-lease pointer", "record predecessor and successor IDs and takeover approvals", "drive affected executions to SUSPENDED with hold_reason CONTROL_LOST until the new controller acknowledges and explicitly resumes", "notify all operators"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reconcile both lease IDs, approvals, and current pointer by idempotency key; never create another successor"},
+          "recovery": {"strategy": "read atomic takeover record, predecessor, successor, and current pointer", "target": "old TRANSFERRED plus new ACTIVE, or old nonterminal state if no commit"},
+          "rejection": {"code": "FORCED_CONTROL_TAKEOVER_REJECTED", "disposition": "old grant and fence remain unchanged; no successor is created"}
+        },
+        {
+          "id": "CTL-011",
+          "from": ["ACTIVE", "HANDOVER_PENDING"],
+          "to": "REVOKED",
+          "trigger": "lease_revoked_by_trusted_service_event",
+          "actor": ["CONTROL_SERVICE"],
+          "preconditions": ["a mutually authenticated identity, client-key, assignment, authority, or integrity event binds the exact ControllerLeaseId", "event issuer is authorized for the declared reason", "event and current signed assignment identify the applicable AssignmentGeneration and AuthorityIncarnationId", "control service reads and compare-and-sets the current ControlLeaseRevision", "database time is recorded"],
+          "effects": ["retain ControlFencingToken", "increment ControlLeaseRevision", "set terminal service-event revocation reason and issuer", "settle any active handover request as SUPERSEDED with the trusted-event correlation", "clear domain current-lease pointer if it still references this grant", "derive domain projection AVAILABLE", "drive affected executions to SUSPENDED with hold_reason CONTROL_LOST", "raise configured security or operations notification"],
+          "timeout": {"timer": "LEASE_MUTATION_DEADLINE", "on_expiry": "reject interactive effects locally and reconcile the trusted event before accepting control"},
+          "recovery": {"strategy": "replay the idempotent trusted event against the current grant revision; never restore a revoked grant", "target": "REVOKED or winning recorded state"},
+          "rejection": {"code": "CONTROL_LEASE_SERVICE_REVOCATION_REJECTED", "disposition": "quarantine invalid events; if authority validity is uncertain, reject effects while state is reconciled"}
+        }
+      ],
+      "invariants": [
+        "AVAILABLE is a derived domain projection and never a ControllerLeaseGrant state.",
+        "Only the domain current-lease pointer can authorize control, and it references at most one ACTIVE or HANDOVER_PENDING grant.",
+        "A new grant always has a new ControllerLeaseId and strictly higher ControlFencingToken.",
+        "Renewal, handover request, holder approval, handover cancellation, requester withdrawal or decline, release, expiry, and revocation retain ControlFencingToken and increment ControlLeaseRevision.",
+        "At most one REQUESTED or HOLDER_APPROVED handover exists for the current lease; a request while ACTIVE grants no authority and does not inhibit the current holder.",
+        "HANDOVER_PENDING means the current holder approved the exact request; it authorizes no new external effect and cannot transfer before the requester responsibility acknowledgement.",
+        "A normal handover successor is created only by the atomic responsibility-acknowledgement transfer, which terminalizes the old grant, advances the fence, replaces the current pointer, and commits both affected mode projections under one correlation.",
+        "Request, approval, acknowledgement, cancellation, withdrawal, decline, expiry, and transfer retain trusted event time, actor identity/session/client-key binding, policy revision, reason, outcome, correlation, and applicable old/new lease and fence evidence in audit.",
+        "RELEASED, EXPIRED, REVOKED, and TRANSFERRED are terminal for their ControllerLeaseId.",
+        "Controller loss drives affected executions to SUSPENDED with hold_reason CONTROL_LOST; CONTROL_HOLD is not a state.",
+        "Effect validation preserves accepted and current lease revisions but does not reject a benign renewal or non-authorizing handover-request metadata transition solely because those revisions differ; holder approval blocks effect by changing the lease state."
+      ]
+    },
+    "execution": {
+      "machine_id": "execution",
+      "entity": "ProcedureExecution",
+      "entity_id": "ExecutionId",
+      "revision": "ExecutionRevision",
+      "initial_state": "REQUESTED",
+      "state_data": {
+        "required": ["ExecutionId", "ExecutionRevision", "State", "BundleDigest", "LanguageProfile", "ContextGeneration", "SourcePosition", "Variables", "CallStack", "OutstandingOperationIds", "ControllerRelationship", "TerminalDisposition", "AssignmentGeneration", "AuthorityIncarnationId", "LeaderEpoch", "requested_terminal"],
+        "conditional": ["hold_reason", "saved_resume_target", "pause_reason", "paused_resume_target", "checkpoint_id", "predecessor_execution_id", "current_prompt_id", "current_operation_id", "cleanup_cursor"]
+      },
+      "wait_persistence": {
+        "required": ["WaitId", "WaitRevision", "OriginalTarget", "AuthoritativeClockSource", "UncertaintyPolicy", "ResumptionCondition", "ConsumedSequenceCursor", "RegisteredAtDatabaseTime", "Deadline", "SettlementId"],
+        "rules": ["OriginalTarget, AuthoritativeClockSource, UncertaintyPolicy, and ResumptionCondition are immutable for one WaitId", "restart rebuilds observation from ConsumedSequenceCursor and never substitutes restart time for OriginalTarget", "clock uncertainty beyond UncertaintyPolicy prevents settlement or resumption until authoritative time is restored or the pinned failure behavior settles the wait exactly once"]
+      },
+      "states": [
+        {"name": "REQUESTED", "terminal": false, "legacy_projection": ["UNINIT"], "description": "A new immutable execution identity and request exist."},
+        {"name": "VALIDATING", "terminal": false, "legacy_projection": ["UNINIT"], "description": "Source bundle, dependencies, policy, and compatibility are being validated."},
+        {"name": "ADMISSION_PENDING", "terminal": false, "legacy_projection": ["UNINIT"], "description": "Validation passed; capacity and resource admission are pending."},
+        {"name": "LOADING", "terminal": false, "legacy_projection": ["UNINIT", "RELOADING"], "description": "Worker, context attachment, approved IR, and initial checkpoint are loading."},
+        {"name": "PAUSED", "terminal": false, "legacy_projection": ["LOADED", "PAUSED"], "description": "Execution is stopped at a committed safe point."},
+        {"name": "RUNNING", "terminal": false, "legacy_projection": ["RUNNING"], "description": "Approved IR is executing between safe points."},
+        {"name": "WAITING", "terminal": false, "legacy_projection": ["WAITING"], "description": "A durable time, telemetry, event, or child condition is pending."},
+        {"name": "PROMPT", "terminal": false, "legacy_projection": ["PROMPT"], "description": "A correlated durable prompt is OPEN."},
+        {"name": "INTERRUPTED", "terminal": false, "legacy_projection": ["INTERRUPTED"], "description": "An interruptible wait or operation was confirmed interrupted at a safe point."},
+        {"name": "SUSPENDED", "terminal": false, "legacy_projection": ["ERROR", "UNKNOWN"], "description": "Safety hold with hold_reason and saved_resume_target; CONTROL_HOLD is never a state."},
+        {"name": "RECOVERING", "terminal": false, "legacy_projection": ["ERROR", "RELOADING"], "description": "Checkpoint, prompt, command, reservation, and operation reconciliation is in progress."},
+        {"name": "STOPPING", "terminal": false, "legacy_projection": ["RUNNING", "PAUSED", "WAITING", "PROMPT"], "description": "No new procedure work begins; outstanding effects settle and cleanup runs."},
+        {"name": "FINISHED", "terminal": true, "legacy_projection": ["FINISHED"], "description": "Successful return and required cleanup are durably complete."},
+        {"name": "ABORTED", "terminal": true, "legacy_projection": ["ABORTED"], "description": "Abort and required cleanup are durably complete."},
+        {"name": "ERROR", "terminal": true, "legacy_projection": ["ERROR"], "description": "This ExecutionId cannot safely continue; a recovery attempt creates a new ExecutionId."}
+      ],
+      "hold_reasons": ["CONTROL_LOST", "LEADER_LOST", "DEPENDENCY_LOST", "EFFECT_RECONCILIATION", "CLOCK_UNTRUSTED", "POLICY_HOLD", "RESOURCE_INTEGRITY"],
+      "saved_resume_targets": ["PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "STOPPING"],
+      "paused_resume_targets": ["RUNNING", "WAITING", "PROMPT"],
+      "timers": [
+        {"id": "VALIDATION_DEADLINE", "expiry": "request abort-to-ERROR cleanup through STOPPING if resources were attached"},
+        {"id": "ADMISSION_DEADLINE", "expiry": "remain queued with a durable reason or terminate according to versioned admission policy"},
+        {"id": "LOAD_DEADLINE", "expiry": "stop loading, compensate completed hooks, and settle ERROR"},
+        {"id": "SAFE_POINT_DEADLINE", "expiry": "latch the command overdue; do not interrupt an uncertain external effect"},
+        {"id": "WAIT_DEADLINE", "source": "the immutable database-time deadline on the current WaitId", "expiry": "one fenced wait-settlement compare-and-set applies the pinned timeout semantics; restart never changes the deadline"},
+        {"id": "EXECUTION_PROMPT_DEADLINE", "source": "the same database-time deadline referenced by the current PromptId and its PROMPT_RESPONSE_DEADLINE", "expiry": "request the durable-prompt settlement compare-and-set; the execution changes only after the prompt settlement is committed"},
+        {"id": "HOLD_DEADLINE", "source": "HoldDeadline persisted from hold_reason and the pinned HoldReasonDeadlinePolicyRevision", "expiry": "remain SUSPENDED or request policy-authorized STOPPING; never resume, settle an uncertain effect, or resend automatically"},
+        {"id": "RECOVERY_DEADLINE", "expiry": "SUSPENDED if reconciliation can continue safely, otherwise STOPPING to ERROR"},
+        {"id": "STOPPING_DEADLINE", "expiry": "SUSPENDED on uncertain effect or ERROR after best-effort cleanup evidence"},
+        {"id": "ERROR_CLOSURE_DEADLINE", "source": "the persisted terminal-error closure deadline set when requested_terminal is ERROR or cleanup or recovery proves ERROR is required", "expiry": "permit EXE-037 only when best-effort cleanup and visible-uncertainty evidence are sufficient; otherwise retain the nonterminal state"}
+      ],
+      "transitions": [
+        {
+          "id": "EXE-001",
+          "from": ["REQUESTED"],
+          "to": "VALIDATING",
+          "trigger": "validation_started",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["request and idempotency binding committed", "domain admits validation", "current authority fence matches"],
+          "effects": ["pin bundle digest and language profile", "start VALIDATION_DEADLINE"],
+          "timeout": {"timer": "VALIDATION_DEADLINE", "on_expiry": "request requested_terminal ERROR and fire EXE-032"},
+          "recovery": {"strategy": "rerun pure validation against the pinned digest", "target": "VALIDATING"},
+          "rejection": {"code": "VALIDATION_NOT_ADMITTED", "disposition": "remain REQUESTED"}
+        },
+        {
+          "id": "EXE-002",
+          "from": ["VALIDATING"],
+          "to": "ADMISSION_PENDING",
+          "trigger": "validation_passed",
+          "actor": ["EXECUTION_SUPERVISOR", "SCHEDULER"],
+          "preconditions": ["diagnostics contain no blocking issue", "dependencies and compatibility profile are pinned", "requested capabilities are declared"],
+          "effects": ["commit validation report", "enqueue immutable admission request", "start ADMISSION_DEADLINE"],
+          "timeout": {"timer": "ADMISSION_DEADLINE", "on_expiry": "apply versioned queue-expiry policy"},
+          "recovery": {"strategy": "reconstruct queue position and constraints from durable admission request", "target": "ADMISSION_PENDING"},
+          "rejection": {"code": "VALIDATION_REPORT_INCOMPLETE", "disposition": "remain VALIDATING"}
+        },
+        {
+          "id": "EXE-003",
+          "from": ["VALIDATING"],
+          "to": "ERROR",
+          "trigger": "validation_failed",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["no runtime attachment or external effect exists", "stable diagnostics are committed"],
+          "effects": ["settle request as failed", "release validation-only resources", "publish terminal diagnostics"],
+          "timeout": {"timer": "VALIDATION_DEADLINE", "on_expiry": "same terminal transition with timeout diagnostic"},
+          "recovery": {"strategy": "correct source or policy and create a new ExecutionId", "target": "new REQUESTED entity"},
+          "rejection": {"code": "RUNTIME_RESOURCES_EXIST", "disposition": "route through STOPPING before ERROR"}
+        },
+        {
+          "id": "EXE-004",
+          "from": ["ADMISSION_PENDING"],
+          "to": "LOADING",
+          "trigger": "admission_committed",
+          "actor": ["SCHEDULER", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["all quotas and exclusive resources reserved transactionally", "domain state permits load", "context and driver generations are current"],
+          "effects": ["bind reservation IDs", "allocate worker and attachment generation", "start LOAD_DEADLINE"],
+          "timeout": {"timer": "LOAD_DEADLINE", "on_expiry": "request requested_terminal ERROR and fire EXE-032"},
+          "recovery": {"strategy": "reconcile reservations and attachment hooks before continuing", "target": "RECOVERING"},
+          "rejection": {"code": "ADMISSION_CONSTRAINT_CHANGED", "disposition": "remain ADMISSION_PENDING with durable reason"}
+        },
+        {
+          "id": "EXE-005",
+          "from": ["ADMISSION_PENDING"],
+          "to": "ERROR",
+          "trigger": "admission_permanently_rejected",
+          "actor": ["SCHEDULER"],
+          "preconditions": ["rejection is non-retryable under the pinned policy", "no reservation remains"],
+          "effects": ["commit typed rejection", "publish terminal outcome"],
+          "timeout": {"timer": "ADMISSION_DEADLINE", "on_expiry": "policy decides whether rejection is permanent"},
+          "recovery": {"strategy": "change request or policy and create a new ExecutionId", "target": "new REQUESTED entity"},
+          "rejection": {"code": "ADMISSION_REJECTION_NOT_FINAL", "disposition": "remain ADMISSION_PENDING"}
+        },
+        {
+          "id": "EXE-006",
+          "from": ["LOADING"],
+          "to": "PAUSED",
+          "trigger": "initial_load_committed",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["approved IR loaded", "attachment hooks complete", "initial checkpoint committed", "no unresolved operation"],
+          "effects": ["set pause_reason INITIAL_LOAD metadata", "set current location to first executable safe point", "release load timer"],
+          "timeout": {"timer": "LOAD_DEADLINE", "on_expiry": "route through STOPPING to ERROR"},
+          "recovery": {"strategy": "reconcile attachment and checkpoint", "target": "RECOVERING"},
+          "rejection": {"code": "LOAD_NOT_SETTLED", "disposition": "remain LOADING"}
+        },
+        {
+          "id": "EXE-007",
+          "from": ["LOADING"],
+          "to": "ERROR",
+          "trigger": "load_failed_after_compensation",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["every completed setup hook has a cleanup disposition", "no external effect is uncertain", "reservations are released"],
+          "effects": ["commit diagnostics and cleanup trace", "mark attachment generation terminal"],
+          "timeout": {"timer": "LOAD_DEADLINE", "on_expiry": "route through STOPPING if compensation is incomplete"},
+          "recovery": {"strategy": "correct cause and create a new ExecutionId", "target": "new REQUESTED entity"},
+          "rejection": {"code": "COMPENSATION_INCOMPLETE", "disposition": "route to RECOVERING or STOPPING"}
+        },
+        {
+          "id": "EXE-008",
+          "from": ["PAUSED", "INTERRUPTED"],
+          "to": "RUNNING",
+          "trigger": "run_or_resume_applied",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["accepted command targets current ExecutionRevision", "controller fence is current", "safe point is committed", "paused_resume_target is absent or RUNNING when source is PAUSED", "interrupt settlement is complete when source is INTERRUPTED", "no active hold or uncertain effect"],
+          "effects": ["settle command", "clear initial-load, paused-resume, or interrupt metadata", "dispatch worker from checkpoint"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "command fails without state change"},
+          "recovery": {"strategy": "use target revision and checkpoint to determine whether run committed", "target": "RECOVERING"},
+          "rejection": {"code": "RUN_GUARD_FAILED", "disposition": "no state change; settle command REJECTED or SUPERSEDED"}
+        },
+        {
+          "id": "EXE-008-WAIT",
+          "from": ["PAUSED"],
+          "to": "WAITING",
+          "trigger": "resume_preserved_wait_applied",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["paused_resume_target is WAITING", "accepted RUN command targets current ExecutionRevision", "original wait subscription and cursor remain valid", "controller and authority fences match"],
+          "effects": ["clear paused_resume_target", "reactivate the same wait without duplicate registration", "settle command"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "remain PAUSED"},
+          "recovery": {"strategy": "reconcile wait subscription, command, and execution revision", "target": "RECOVERING"},
+          "rejection": {"code": "PRESERVED_WAIT_INVALID", "disposition": "remain PAUSED and reconcile or terminate by policy"}
+        },
+        {
+          "id": "EXE-008-PROMPT",
+          "from": ["PAUSED"],
+          "to": "PROMPT",
+          "trigger": "resume_preserved_prompt_applied",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["paused_resume_target is PROMPT", "accepted RUN command targets current ExecutionRevision", "same current_prompt_id remains OPEN", "controller and authority fences match"],
+          "effects": ["clear paused_resume_target", "republish the same OPEN prompt", "settle command"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "remain PAUSED"},
+          "recovery": {"strategy": "reconcile prompt, command, and execution revision", "target": "RECOVERING"},
+          "rejection": {"code": "PRESERVED_PROMPT_INVALID", "disposition": "remain PAUSED and reconcile"}
+        },
+        {
+          "id": "EXE-009",
+          "from": ["RUNNING"],
+          "to": "PAUSED",
+          "trigger": "pause_applied_at_safe_point",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["accepted pause command exists", "worker reached declared safe point", "no operation is EFFECT_POSSIBLE or EFFECT_UNKNOWN"],
+          "effects": ["commit checkpoint", "set paused_resume_target RUNNING", "settle pause command", "stop worker instruction dispatch"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "latch command overdue; do not force an effect boundary"},
+          "recovery": {"strategy": "reconcile checkpoint and command by revision", "target": "RECOVERING"},
+          "rejection": {"code": "SAFE_POINT_NOT_REACHED", "disposition": "remain RUNNING and keep or expire command by policy"}
+        },
+        {
+          "id": "EXE-009-WAIT",
+          "from": ["WAITING"],
+          "to": "PAUSED",
+          "trigger": "waiting_pause_applied",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["accepted PAUSE command exists", "wait registration and cursor are committed", "settlement has not won"],
+          "effects": ["deactivate subscription delivery without deleting the durable wait", "set paused_resume_target WAITING", "settle pause command"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "latch command overdue; do not lose wait evidence"},
+          "recovery": {"strategy": "reconcile wait settlement race before PAUSED is claimed", "target": "RECOVERING"},
+          "rejection": {"code": "WAIT_ALREADY_SETTLED", "disposition": "settle wait first and supersede pause if no longer applicable"}
+        },
+        {
+          "id": "EXE-009-PROMPT",
+          "from": ["PROMPT"],
+          "to": "PAUSED",
+          "trigger": "prompt_pause_applied",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["accepted PAUSE command exists", "same current_prompt_id remains OPEN", "prompt settlement has not won"],
+          "effects": ["make prompt temporarily non-answerable without settling it", "retain original prompt deadline", "set paused_resume_target PROMPT", "settle pause command"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "latch command overdue; prompt deadline still applies"},
+          "recovery": {"strategy": "reconcile prompt settlement race before PAUSED is claimed", "target": "RECOVERING"},
+          "rejection": {"code": "PROMPT_ALREADY_SETTLED", "disposition": "apply prompt outcome first and supersede pause if no longer applicable"}
+        },
+        {
+          "id": "EXE-009-WAIT-SETTLED",
+          "from": ["PAUSED"],
+          "to": "PAUSED",
+          "trigger": "preserved_wait_settled_while_paused",
+          "actor": ["EXECUTION_SUPERVISOR", "CLOCK"],
+          "preconditions": ["paused_resume_target is WAITING", "the original wait won one durable settlement", "the wait outcome permits continuation"],
+          "effects": ["store wait result in the paused checkpoint", "set paused_resume_target RUNNING", "retain PAUSED until an explicit RUN command"],
+          "timeout": {"timer": "WAIT_DEADLINE", "on_expiry": "settle the wait exactly once before this transition"},
+          "recovery": {"strategy": "reconcile wait settlement and paused checkpoint by stable wait ID", "target": "RECOVERING"},
+          "rejection": {"code": "PRESERVED_WAIT_NOT_SETTLED", "disposition": "remain PAUSED with paused_resume_target WAITING"}
+        },
+        {
+          "id": "EXE-009-PROMPT-SETTLED",
+          "from": ["PAUSED"],
+          "to": "PAUSED",
+          "trigger": "preserved_prompt_settled_while_paused",
+          "actor": ["EXECUTION_SUPERVISOR", "CLOCK"],
+          "preconditions": ["paused_resume_target is PROMPT", "the same PromptId is SETTLED", "the prompt outcome permits continuation"],
+          "effects": ["store the validated prompt outcome in the paused checkpoint", "clear current_prompt_id", "set paused_resume_target RUNNING", "retain PAUSED until an explicit RUN command"],
+          "timeout": {"timer": "EXECUTION_PROMPT_DEADLINE", "on_expiry": "settle the prompt exactly once before this transition"},
+          "recovery": {"strategy": "reconcile prompt settlement and paused checkpoint by PromptId", "target": "RECOVERING"},
+          "rejection": {"code": "PRESERVED_PROMPT_NOT_SETTLED", "disposition": "remain PAUSED with paused_resume_target PROMPT; terminating outcomes use EXE-032"}
+        },
+        {
+          "id": "EXE-010",
+          "from": ["PAUSED", "INTERRUPTED"],
+          "to": "PAUSED",
+          "trigger": "single_safe_action_applied",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["command is STEP, STEP_OVER, SKIP, GOTO, or approved EXECUTE_FRAGMENT", "target revision and controller fence match", "resulting location is a safe point", "no unresolved external operation"],
+          "effects": ["commit new checkpoint and location", "increment ExecutionRevision", "settle command with source evidence"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "enter RECOVERING if application outcome is not provable"},
+          "recovery": {"strategy": "compare checkpoint, command, and execution revisions", "target": "RECOVERING"},
+          "rejection": {"code": "SAFE_ACTION_NOT_ALLOWED", "disposition": "remain PAUSED"}
+        },
+        {
+          "id": "EXE-010-WAIT",
+          "from": ["WAITING"],
+          "to": "WAITING",
+          "trigger": "approved_fragment_started_beside_wait",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["command is EXECUTE_FRAGMENT", "fragment is signed, allowlisted, bounded IR", "a new child ExecutionId is allocated", "parent wait registration remains immutable", "controller and authority fences match"],
+          "effects": ["link child execution", "increment parent ExecutionRevision", "leave parent WAITING", "settle command with child ExecutionId"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "do not create child; settle or reconcile command"},
+          "recovery": {"strategy": "reconcile child allocation by CommandId", "target": "RECOVERING"},
+          "rejection": {"code": "FRAGMENT_CHILD_NOT_ADMITTED", "disposition": "remain WAITING"}
+        },
+        {
+          "id": "EXE-010-PROMPT",
+          "from": ["PROMPT"],
+          "to": "PROMPT",
+          "trigger": "approved_fragment_started_beside_prompt",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["command is EXECUTE_FRAGMENT", "fragment is signed, allowlisted, bounded IR", "a new child ExecutionId is allocated", "same PromptId remains OPEN", "controller and authority fences match"],
+          "effects": ["link child execution", "increment parent ExecutionRevision", "leave parent PROMPT", "settle command with child ExecutionId"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "do not create child; settle or reconcile command"},
+          "recovery": {"strategy": "reconcile child allocation by CommandId", "target": "RECOVERING"},
+          "rejection": {"code": "FRAGMENT_CHILD_NOT_ADMITTED", "disposition": "remain PROMPT"}
+        },
+        {
+          "id": "EXE-011",
+          "from": ["RUNNING"],
+          "to": "WAITING",
+          "trigger": "wait_registered",
+          "actor": ["EXECUTION_WORKER", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["wait definition is bounded and validated", "OriginalTarget, AuthoritativeClockSource, UncertaintyPolicy, ResumptionCondition, and ConsumedSequenceCursor are present", "wait subscription and checkpoint commit atomically", "current authority fence matches"],
+          "effects": ["persist immutable original target, authoritative clock source, uncertainty policy, resumption condition, deadline, and consumed-sequence cursor", "publish WAITING"],
+          "timeout": {"timer": "WAIT_DEADLINE", "on_expiry": "fire EXE-012 with timeout result or route to STOPPING by language semantics"},
+          "recovery": {"strategy": "rebuild subscription from committed cursor without replaying consumed evidence", "target": "RECOVERING"},
+          "rejection": {"code": "WAIT_REGISTRATION_FAILED", "disposition": "remain RUNNING at prior safe point or STOPPING to ERROR"}
+        },
+        {
+          "id": "EXE-012",
+          "from": ["WAITING"],
+          "to": "RUNNING",
+          "trigger": "wait_settled",
+          "actor": ["EXECUTION_SUPERVISOR", "CLOCK"],
+          "preconditions": ["one predicate outcome won by compare-and-set", "evidence sequence and quality are committed", "authoritative clock uncertainty is within the pinned UncertaintyPolicy", "original ResumptionCondition is satisfied or pinned timeout behavior permits continuation"],
+          "effects": ["close subscription", "commit wait result and checkpoint", "resume after wait instruction"],
+          "timeout": {"timer": "WAIT_DEADLINE", "on_expiry": "settle the wait once using timeout semantics"},
+          "recovery": {"strategy": "return recorded wait result; never evaluate the same settlement twice", "target": "RECOVERING"},
+          "rejection": {"code": "WAIT_ALREADY_SETTLED", "disposition": "return recorded winner without state change"}
+        },
+        {
+          "id": "EXE-013",
+          "from": ["RUNNING"],
+          "to": "PROMPT",
+          "trigger": "prompt_opened",
+          "actor": ["EXECUTION_WORKER", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["prompt schema is valid", "PromptId and OPEN prompt commit with execution checkpoint", "prompt deadline uses database time"],
+          "effects": ["set current_prompt_id", "publish prompt and PROMPT state from the same committed sequence"],
+          "timeout": {"timer": "EXECUTION_PROMPT_DEADLINE", "on_expiry": "CLOCK requests one prompt settlement"},
+          "recovery": {"strategy": "republish the same OPEN PromptId from durable state", "target": "PROMPT"},
+          "rejection": {"code": "PROMPT_OPEN_FAILED", "disposition": "remain RUNNING at prior safe point or STOPPING to ERROR"}
+        },
+        {
+          "id": "EXE-014",
+          "from": ["PROMPT"],
+          "to": "RUNNING",
+          "trigger": "prompt_settled_for_continuation",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["correlated prompt is SETTLED exactly once", "settlement outcome permits continuation", "validated value is committed", "execution revision still references PromptId"],
+          "effects": ["copy validated result to execution checkpoint", "clear current_prompt_id", "continue after prompt instruction"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "replay the recorded settlement result, not the response attempt", "target": "RECOVERING"},
+          "rejection": {"code": "PROMPT_NOT_SETTLED", "disposition": "remain PROMPT"}
+        },
+        {
+          "id": "EXE-015",
+          "from": ["PROMPT"],
+          "to": "STOPPING",
+          "trigger": "prompt_settlement_requires_termination",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["prompt settlement is terminal", "language and mission policy map outcome to ABORTED or ERROR"],
+          "effects": ["set requested_terminal", "clear new work", "start ordered cleanup"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "fire EXE-036 when uncertainty remains; otherwise fire EXE-037"},
+          "recovery": {"strategy": "resume cleanup from durable cleanup_cursor", "target": "RECOVERING"},
+          "rejection": {"code": "PROMPT_OUTCOME_NOT_TERMINATING", "disposition": "remain PROMPT or use EXE-014"}
+        },
+        {
+          "id": "EXE-016",
+          "from": ["RUNNING", "WAITING", "PAUSED"],
+          "to": "INTERRUPTED",
+          "trigger": "interrupt_confirmed_at_safe_point",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR", "DRIVER_GATEWAY"],
+          "preconditions": ["accepted interrupt command exists", "target wait or operation is interruptible", "operation cancellation or wait closure is confirmed", "effect certainty is not unresolved"],
+          "effects": ["commit interruption checkpoint", "settle command", "retain interrupted target evidence"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "SUSPENDED with EFFECT_RECONCILIATION if outcome is uncertain"},
+          "recovery": {"strategy": "reconcile the target operation before claiming INTERRUPTED", "target": "RECOVERING"},
+          "rejection": {"code": "INTERRUPT_NOT_CONFIRMED", "disposition": "no execution-state change"}
+        },
+        {
+          "id": "EXE-017",
+          "from": ["PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED"],
+          "to": "SUSPENDED",
+          "trigger": "safety_hold_entered",
+          "actor": ["DOMAIN_SUPERVISOR", "EXECUTION_SUPERVISOR", "RECOVERY_COORDINATOR"],
+          "preconditions": ["hold_reason is declared", "saved_resume_target equals the source state", "a declared safe point or fenced recovery boundary is committed", "current checkpoint and outstanding effects are recorded"],
+          "effects": ["prevent new instruction or operator-dependent decision", "persist hold_reason and saved_resume_target", "notify controller and monitors"],
+          "timeout": {"timer": "HOLD_DEADLINE", "on_expiry": "remain SUSPENDED or request STOPPING under approved policy; never auto-resend"},
+          "recovery": {"strategy": "re-evaluate hold prerequisites and reconcile current prompt or operation", "target": "SUSPENDED"},
+          "rejection": {"code": "HOLD_METADATA_INVALID", "disposition": "fail closed and route through RECOVERING"}
+        },
+        {
+          "id": "EXE-018",
+          "from": ["SUSPENDED"],
+          "to": "PAUSED",
+          "trigger": "hold_cleared_to_paused",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is PAUSED", "hold cause is cleared", "controller acknowledged current alarms and uncertain effects", "all fences and revisions match"],
+          "effects": ["clear hold metadata", "retain checkpoint", "settle acknowledgement command"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "remain SUSPENDED until the transition commit is proven", "target": "SUSPENDED"},
+          "rejection": {"code": "HOLD_NOT_CLEARED", "disposition": "remain SUSPENDED"}
+        },
+        {
+          "id": "EXE-019",
+          "from": ["SUSPENDED"],
+          "to": "RUNNING",
+          "trigger": "hold_cleared_to_running",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is RUNNING", "hold cause and all uncertain effects are cleared", "explicit controller resume is accepted unless approved auto-resume policy applies", "checkpoint and fences match"],
+          "effects": ["clear hold metadata", "resume from committed checkpoint", "audit explicit or policy-driven resume"],
+          "timeout": {"timer": "SAFE_POINT_DEADLINE", "on_expiry": "remain SUSPENDED"},
+          "recovery": {"strategy": "determine commit from revision and checkpoint", "target": "RECOVERING"},
+          "rejection": {"code": "RUN_RESUME_NOT_SAFE", "disposition": "remain SUSPENDED"}
+        },
+        {
+          "id": "EXE-020",
+          "from": ["SUSPENDED"],
+          "to": "WAITING",
+          "trigger": "hold_cleared_to_waiting",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is WAITING", "hold cause is cleared", "wait subscription restored from committed cursor", "fences match"],
+          "effects": ["clear hold metadata", "activate the same durable wait without duplicate settlement"],
+          "timeout": {"timer": "WAIT_DEADLINE", "on_expiry": "settle wait exactly once"},
+          "recovery": {"strategy": "remain SUSPENDED until subscription and state commit atomically", "target": "SUSPENDED"},
+          "rejection": {"code": "WAIT_NOT_RESTORED", "disposition": "remain SUSPENDED"}
+        },
+        {
+          "id": "EXE-021",
+          "from": ["SUSPENDED"],
+          "to": "PROMPT",
+          "trigger": "hold_cleared_to_prompt",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is PROMPT", "hold cause is cleared", "same PromptId remains OPEN", "an active controller may answer or policy permits prompt to remain open"],
+          "effects": ["clear hold metadata", "republish authoritative OPEN prompt"],
+          "timeout": {"timer": "EXECUTION_PROMPT_DEADLINE", "on_expiry": "settle prompt exactly once"},
+          "recovery": {"strategy": "remain SUSPENDED if prompt correlation is not provable", "target": "SUSPENDED"},
+          "rejection": {"code": "PROMPT_NOT_OPEN", "disposition": "remain SUSPENDED and reconcile"}
+        },
+        {
+          "id": "EXE-022",
+          "from": ["SUSPENDED"],
+          "to": "INTERRUPTED",
+          "trigger": "hold_cleared_to_interrupted",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is INTERRUPTED", "hold cause is cleared", "interruption evidence and checkpoint are valid"],
+          "effects": ["clear hold metadata", "restore interrupt disposition"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "remain SUSPENDED on any evidence gap", "target": "SUSPENDED"},
+          "rejection": {"code": "INTERRUPTION_NOT_PROVEN", "disposition": "remain SUSPENDED"}
+        },
+        {
+          "id": "EXE-023",
+          "from": ["SUSPENDED"],
+          "to": "STOPPING",
+          "trigger": "hold_cleared_to_stopping_or_abort_authorized",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved_resume_target is STOPPING or an authorized abort exists", "uncertain operations are reconciled or cleanup policy explicitly preserves their certainty", "controller fence matches when human-requested"],
+          "effects": ["set requested_terminal", "clear hold metadata after evidence is committed", "resume cleanup at cleanup_cursor"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "fire EXE-036 when uncertainty remains; otherwise fire EXE-037"},
+          "recovery": {"strategy": "resume cleanup from durable cursor", "target": "RECOVERING"},
+          "rejection": {"code": "STOPPING_NOT_SAFE", "disposition": "remain SUSPENDED"}
+        },
+        {
+          "id": "EXE-024",
+          "from": ["LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "STOPPING"],
+          "to": "RECOVERING",
+          "trigger": "authority_service_or_worker_recovery_started",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["a new current authority fence exists", "prior worker and authority writes are fenced", "saved recovery target and checkpoint are durable"],
+          "effects": ["stop new dispatch", "reconcile command, prompt, reservation, cleanup, and operation records", "start RECOVERY_DEADLINE"],
+          "timeout": {"timer": "RECOVERY_DEADLINE", "on_expiry": "SUSPENDED when safe reconciliation can continue; otherwise STOPPING to ERROR"},
+          "recovery": {"strategy": "idempotently repeat reconciliation queries by stable IDs", "target": "RECOVERING"},
+          "rejection": {"code": "RECOVERY_FENCE_NOT_ESTABLISHED", "disposition": "remain fail-closed without worker dispatch"}
+        },
+        {
+          "id": "EXE-025",
+          "from": ["RECOVERING"],
+          "to": "PAUSED",
+          "trigger": "recovery_settled_to_paused",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["recovery target is PAUSED or policy requires operator inspection", "checkpoint is compatible", "all effects are settled"],
+          "effects": ["bind replacement worker if needed", "commit recovery report", "stop RECOVERY_DEADLINE"],
+          "timeout": {"timer": "RECOVERY_DEADLINE", "on_expiry": "remain RECOVERING or fire EXE-030"},
+          "recovery": {"strategy": "repeat reconciliation", "target": "RECOVERING"},
+          "rejection": {"code": "RECOVERY_INCOMPLETE", "disposition": "remain RECOVERING"}
+        },
+        {
+          "id": "EXE-026",
+          "from": ["RECOVERING"],
+          "to": "RUNNING",
+          "trigger": "recovery_settled_to_running",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved recovery target is RUNNING", "approved auto-resume policy permits it or controller explicitly resumes", "checkpoint is compatible", "no uncertain effect, prompt, wait, or command remains"],
+          "effects": ["bind replacement worker", "commit recovery report", "resume after checkpoint"],
+          "timeout": {"timer": "RECOVERY_DEADLINE", "on_expiry": "fire EXE-030"},
+          "recovery": {"strategy": "return to RECOVERING on dispatch ambiguity", "target": "RECOVERING"},
+          "rejection": {"code": "AUTO_RESUME_NOT_PERMITTED", "disposition": "use EXE-025 to PAUSED"}
+        },
+        {
+          "id": "EXE-027",
+          "from": ["RECOVERING"],
+          "to": "WAITING",
+          "trigger": "recovery_settled_to_waiting",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved recovery target is WAITING", "subscription restored from cursor", "settlement race reconciled"],
+          "effects": ["commit recovery report", "reactivate the same durable wait"],
+          "timeout": {"timer": "WAIT_DEADLINE", "on_expiry": "settle wait exactly once"},
+          "recovery": {"strategy": "remain RECOVERING on subscription ambiguity", "target": "RECOVERING"},
+          "rejection": {"code": "WAIT_RECOVERY_INCOMPLETE", "disposition": "remain RECOVERING"}
+        },
+        {
+          "id": "EXE-028",
+          "from": ["RECOVERING"],
+          "to": "PROMPT",
+          "trigger": "recovery_settled_to_prompt",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved recovery target is PROMPT", "same PromptId is OPEN", "settlement race is reconciled"],
+          "effects": ["commit recovery report", "republish the existing prompt"],
+          "timeout": {"timer": "EXECUTION_PROMPT_DEADLINE", "on_expiry": "settle prompt exactly once"},
+          "recovery": {"strategy": "remain RECOVERING on prompt ambiguity", "target": "RECOVERING"},
+          "rejection": {"code": "PROMPT_RECOVERY_INCOMPLETE", "disposition": "remain RECOVERING"}
+        },
+        {
+          "id": "EXE-029",
+          "from": ["RECOVERING"],
+          "to": "INTERRUPTED",
+          "trigger": "recovery_settled_to_interrupted",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved recovery target is INTERRUPTED", "interruption and effect certainty are proved"],
+          "effects": ["commit recovery report", "restore interruption checkpoint"],
+          "timeout": {"timer": "RECOVERY_DEADLINE", "on_expiry": "fire EXE-030"},
+          "recovery": {"strategy": "remain RECOVERING on evidence gap", "target": "RECOVERING"},
+          "rejection": {"code": "INTERRUPTION_RECOVERY_INCOMPLETE", "disposition": "remain RECOVERING"}
+        },
+        {
+          "id": "EXE-030",
+          "from": ["RECOVERING"],
+          "to": "SUSPENDED",
+          "trigger": "recovery_requires_hold",
+          "actor": ["RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["continuation cannot yet be proved safe", "hold_reason and saved_resume_target are set", "evidence remains durable and queryable"],
+          "effects": ["publish reconciliation need", "prevent instruction dispatch", "notify controller and monitors"],
+          "timeout": {"timer": "HOLD_DEADLINE", "on_expiry": "remain SUSPENDED or request STOPPING by approved policy"},
+          "recovery": {"strategy": "continue reconciliation by stable IDs", "target": "SUSPENDED"},
+          "rejection": {"code": "HOLD_METADATA_INVALID", "disposition": "request STOPPING to ERROR"}
+        },
+        {
+          "id": "EXE-031",
+          "from": ["RECOVERING"],
+          "to": "STOPPING",
+          "trigger": "recovery_resumes_cleanup",
+          "actor": ["RECOVERY_COORDINATOR", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["saved recovery target is STOPPING", "cleanup cursor and requested_terminal are valid", "operation certainty permits next cleanup"],
+          "effects": ["commit recovery report", "resume ordered cleanup"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "fire EXE-036 when uncertainty remains; otherwise fire EXE-037"},
+          "recovery": {"strategy": "resume from cleanup_cursor", "target": "RECOVERING"},
+          "rejection": {"code": "CLEANUP_RECOVERY_INCOMPLETE", "disposition": "remain RECOVERING or use EXE-030"}
+        },
+        {
+          "id": "EXE-032",
+          "from": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING"],
+          "to": "STOPPING",
+          "trigger": "termination_requested_or_runtime_failed",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE", "EXECUTION_SUPERVISOR", "CLOCK"],
+          "preconditions": ["requested_terminal is FINISHED, ABORTED, or ERROR", "FINISHED is permitted only by normal return or allowed Finish command source", "controller fence matches for human request", "outstanding operation evidence is recorded"],
+          "effects": ["stop new instructions and prompts", "cancel only cancellable waits and operations", "start reverse-order cleanup", "start STOPPING_DEADLINE"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "fire EXE-037 if no uncertainty; otherwise fire EXE-036"},
+          "recovery": {"strategy": "resume cleanup from durable cursor and operation records", "target": "RECOVERING"},
+          "rejection": {"code": "TERMINATION_REQUEST_INVALID", "disposition": "no state change; settle command REJECTED"}
+        },
+        {
+          "id": "EXE-033",
+          "from": ["RUNNING"],
+          "to": "STOPPING",
+          "trigger": "procedure_returned_normally",
+          "actor": ["EXECUTION_WORKER", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["return checkpoint is committed", "no unresolved child, prompt, wait, or operation", "requested_terminal is set to FINISHED"],
+          "effects": ["stop instruction dispatch", "start reverse-order cleanup", "start STOPPING_DEADLINE"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "fire EXE-036 when uncertainty remains; otherwise fire EXE-037"},
+          "recovery": {"strategy": "resume cleanup from durable cursor", "target": "RECOVERING"},
+          "rejection": {"code": "RETURN_NOT_SETTLED", "disposition": "remain RUNNING at prior safe point or enter RECOVERING"}
+        },
+        {
+          "id": "EXE-034",
+          "from": ["STOPPING"],
+          "to": "FINISHED",
+          "trigger": "successful_cleanup_settled",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["requested_terminal is FINISHED", "all operations, children, prompts, and waits are settled", "every cleanup hook has a durable result", "resources are released", "no uncertainty remains"],
+          "effects": ["commit final checkpoint and as-run closure", "mark ExecutionId terminal", "publish FINISHED after cleanup"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "use EXE-036 or EXE-035 according to evidence"},
+          "recovery": {"strategy": "return immutable terminal record; rerun creates a new ExecutionId", "target": "new REQUESTED entity only"},
+          "rejection": {"code": "FINISH_PRECONDITION_FAILED", "disposition": "remain STOPPING"}
+        },
+        {
+          "id": "EXE-035",
+          "from": ["STOPPING"],
+          "to": "ABORTED",
+          "trigger": "abort_cleanup_settled",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["requested_terminal is ABORTED", "every cleanup hook has a durable result", "resources are released or durably quarantined", "no unresolved effect is hidden"],
+          "effects": ["commit as-run closure", "mark ExecutionId terminal", "publish ABORTED only after cleanup"],
+          "timeout": {"timer": "STOPPING_DEADLINE", "on_expiry": "use EXE-036 or EXE-037 according to uncertainty"},
+          "recovery": {"strategy": "return immutable terminal record; reload creates a new ExecutionId", "target": "new REQUESTED entity only"},
+          "rejection": {"code": "ABORT_PRECONDITION_FAILED", "disposition": "remain STOPPING"}
+        },
+        {
+          "id": "EXE-036",
+          "from": ["STOPPING"],
+          "to": "SUSPENDED",
+          "trigger": "cleanup_or_effect_requires_reconciliation",
+          "actor": ["EXECUTION_SUPERVISOR", "RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["an operation is EFFECT_POSSIBLE or EFFECT_UNKNOWN, or cleanup ownership is uncertain", "hold_reason is EFFECT_RECONCILIATION", "saved_resume_target is STOPPING"],
+          "effects": ["preserve cleanup cursor and requested_terminal", "release only resources safe to release", "notify operators", "forbid resend"],
+          "timeout": {"timer": "HOLD_DEADLINE", "on_expiry": "remain held or accept explicit unresolved disposition; never auto-resend"},
+          "recovery": {"strategy": "query driver journal and infrastructure by stable IDs", "target": "SUSPENDED"},
+          "rejection": {"code": "UNCERTAINTY_NOT_RECORDED", "disposition": "remain STOPPING fail-closed"}
+        },
+        {
+          "id": "EXE-037",
+          "from": ["STOPPING", "RECOVERING"],
+          "to": "ERROR",
+          "trigger": "terminal_error_settled",
+          "actor": ["EXECUTION_SUPERVISOR", "RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["requested_terminal is ERROR or required cleanup cannot safely complete", "best-effort cleanup results are committed", "uncertainty is visible and no automatic continuation is possible"],
+          "effects": ["quarantine unreleased resources", "commit terminal diagnostics and as-run closure", "mark ExecutionId terminal"],
+          "timeout": {"timer": "ERROR_CLOSURE_DEADLINE", "on_expiry": "same transition only when evidence is sufficient to close safely"},
+          "recovery": {"strategy": "an authorized recovery creates a new ExecutionId linked to this terminal record", "target": "new REQUESTED entity"},
+          "rejection": {"code": "ERROR_CLOSURE_INCOMPLETE", "disposition": "remain STOPPING, RECOVERING, or SUSPENDED"}
+        }
+      ],
+      "invariants": [
+        "The execution-state enum is exactly REQUESTED, VALIDATING, ADMISSION_PENDING, LOADING, PAUSED, RUNNING, WAITING, PROMPT, INTERRUPTED, SUSPENDED, RECOVERING, STOPPING, FINISHED, ABORTED, ERROR.",
+        "CONTROL_HOLD is not an execution state.",
+        "SUSPENDED always has hold_reason and saved_resume_target.",
+        "FINISHED, ABORTED, and ERROR are terminal and never transition.",
+        "Every new run, reload, or recovery from a terminal record has a new ExecutionId.",
+        "FINISHED and ABORTED are published only after required cleanup results are durable.",
+        "No worker can directly commit ExecutionRevision.",
+        "A safe-point mutation cannot cross an unresolved external operation."
+      ]
+    },
+    "internal_control_command": {
+      "machine_id": "internal_control_command",
+      "entity": "ControlCommand",
+      "entity_id": "CommandId",
+      "revision": "CommandRevision",
+      "initial_state": "RECEIVED",
+      "state_data": {
+        "required": ["CommandId", "CommandRevision", "State", "IdempotencyKey", "RequestDigest", "CommandType", "PrincipalId", "SessionId", "ClientInstanceKeyId", "DomainId", "AssignmentGeneration", "AuthorityIncarnationId", "LeaderEpoch", "ControllerLeaseId", "AcceptedControlLeaseRevision", "ControlFencingToken", "TargetEntityId", "ExpectedTargetRevision", "Reason", "RejectionCode", "ResultingTargetRevision"],
+        "rules": ["Reason, RejectionCode, and ResultingTargetRevision are nullable only when not applicable to the current stage", "an IdempotencyKey replay with the same RequestDigest returns the existing CommandId", "an IdempotencyKey replay with a different RequestDigest selects IDEMPOTENCY_KEY_CONFLICT"]
+      },
+      "states": [
+        {"name": "RECEIVED", "terminal": false, "description": "Request body and idempotency binding are durably received."},
+        {"name": "VALIDATING", "terminal": false, "description": "Authorization, lease, fence, schema, target revision, and command policy are checked."},
+        {"name": "ACCEPTED", "terminal": false, "description": "Command is valid and awaits immediate application or safe-point scheduling."},
+        {"name": "WAITING_SAFE_POINT", "terminal": false, "description": "Command is queued for an explicit safe point."},
+        {"name": "APPLYING", "terminal": false, "description": "The target compare-and-set transaction is in progress."},
+        {"name": "RECONCILING", "terminal": false, "description": "Recovery is determining whether the target transition committed."},
+        {"name": "SETTLED", "terminal": true, "description": "The requested target mutation committed with a recorded outcome."},
+        {"name": "REJECTED", "terminal": true, "description": "Validation failed before acceptance; target state did not change."},
+        {"name": "CANCELLED", "terminal": true, "description": "An accepted command was cancelled before target mutation."},
+        {"name": "SUPERSEDED", "terminal": true, "description": "A terminal state, newer incompatible command, or changed target revision made application impossible."},
+        {"name": "FAILED", "terminal": true, "description": "Internal application could not settle normally; no hidden target mutation is allowed."}
+      ],
+      "rejection_taxonomy": [
+        {"code": "AUTHENTICATION_REQUIRED", "guard": "no authenticated principal or session"},
+        {"code": "UNAUTHORIZED_ROLE", "guard": "principal lacks the command permission"},
+        {"code": "SESSION_EXPIRED", "guard": "session is expired, revoked, or outside required assurance"},
+        {"code": "WRONG_DOMAIN", "guard": "request DomainId does not equal target DomainId"},
+        {"code": "INVALID_CLIENT_INSTANCE_PROOF", "guard": "request proof is absent, invalid, replayed in another context, or not bound to SessionId and ClientInstanceKeyId"},
+        {"code": "CONTROL_LEASE_NOT_ACTIVE", "guard": "ControllerLeaseId is missing, terminal, HANDOVER_PENDING, or not the domain current-lease pointer"},
+        {"code": "CONTROL_LEASE_EXPIRED", "guard": "authoritative database time is at or after lease expiry"},
+        {"code": "STALE_CONTROLLER_LEASE", "guard": "request ControllerLeaseId differs from the current active lease"},
+        {"code": "STALE_CONTROL_LEASE_REVISION", "guard": "expected ControlLeaseRevision differs at command acceptance"},
+        {"code": "STALE_CONTROL_FENCE", "guard": "request ControlFencingToken differs from the current token"},
+        {"code": "STALE_ASSIGNMENT_GENERATION", "guard": "request assignment generation is not current"},
+        {"code": "STALE_AUTHORITY_INCARNATION", "guard": "request AuthorityIncarnationId is not current"},
+        {"code": "STALE_LEADER_EPOCH", "guard": "request LeaderEpoch is not current"},
+        {"code": "DUPLICATE_CONFLICT", "guard": "CommandId or client request identity already exists with a conflicting canonical request"},
+        {"code": "IDEMPOTENCY_KEY_CONFLICT", "guard": "IdempotencyKey already binds a different RequestDigest"},
+        {"code": "RESOURCE_REVISION_CONFLICT", "guard": "ExpectedTargetRevision differs from the current target revision"},
+        {"code": "INVALID_COMMAND_SCHEMA", "guard": "bounded command schema or canonical request digest is invalid"},
+        {"code": "COMMAND_NOT_ALLOWED_IN_STATE", "guard": "command policy excludes the current target state"},
+        {"code": "MISSING_REQUIRED_REASON", "guard": "policy requires a reason and none is supplied"},
+        {"code": "TARGET_TERMINAL", "guard": "the target became terminal before acceptance"},
+        {"code": "SAFETY_POLICY_DENIED", "guard": "an admission, degradation, separation-of-duty, or mission safety policy denies the command"},
+        {"code": "RESOURCE_EXHAUSTED", "guard": "bounded command, queue, or control-plane capacity is unavailable"},
+        {"code": "TIMEOUT_BEFORE_ACCEPTANCE", "guard": "validation deadline expires before acceptance"}
+      ],
+      "rejection_selection": {
+        "rule": "CMD-002 stores exactly one code from rejection_taxonomy selected from the authoritative failed guard; no generic public guard-failed code is permitted.",
+        "precedence": ["AUTHENTICATION_REQUIRED", "SESSION_EXPIRED", "WRONG_DOMAIN", "INVALID_CLIENT_INSTANCE_PROOF", "UNAUTHORIZED_ROLE", "STALE_ASSIGNMENT_GENERATION", "STALE_AUTHORITY_INCARNATION", "STALE_LEADER_EPOCH", "CONTROL_LEASE_NOT_ACTIVE", "CONTROL_LEASE_EXPIRED", "STALE_CONTROLLER_LEASE", "STALE_CONTROL_LEASE_REVISION", "STALE_CONTROL_FENCE", "DUPLICATE_CONFLICT", "IDEMPOTENCY_KEY_CONFLICT", "INVALID_COMMAND_SCHEMA", "MISSING_REQUIRED_REASON", "TARGET_TERMINAL", "RESOURCE_REVISION_CONFLICT", "COMMAND_NOT_ALLOWED_IN_STATE", "SAFETY_POLICY_DENIED", "RESOURCE_EXHAUSTED", "TIMEOUT_BEFORE_ACCEPTANCE"],
+        "same_key_same_digest": "return the existing CommandId and disposition without a new transition"
+      },
+      "command_policy": [
+        {"command": "START_NEW", "allowed_execution_states": [], "safe_point_required": false, "result": "create a new ExecutionId in REQUESTED; domain admission rules apply"},
+        {"command": "RUN", "allowed_execution_states": ["PAUSED", "INTERRUPTED"], "safe_point_required": true, "result": "RUNNING, or restore WAITING or PROMPT when paused_resume_target requires it"},
+        {"command": "PAUSE", "allowed_execution_states": ["RUNNING", "WAITING", "PROMPT"], "safe_point_required": true, "result": "PAUSED without discarding a prompt or uncertain operation"},
+        {"command": "STEP", "allowed_execution_states": ["PAUSED", "INTERRUPTED"], "safe_point_required": true, "result": "PAUSED at next statement boundary"},
+        {"command": "STEP_OVER", "allowed_execution_states": ["PAUSED", "INTERRUPTED"], "safe_point_required": true, "result": "PAUSED after current call boundary"},
+        {"command": "SKIP", "allowed_execution_states": ["PAUSED", "INTERRUPTED"], "safe_point_required": true, "result": "PAUSED at validated successor location"},
+        {"command": "GOTO", "allowed_execution_states": ["PAUSED"], "safe_point_required": true, "result": "PAUSED at validated target location"},
+        {"command": "INTERRUPT", "allowed_execution_states": ["RUNNING", "WAITING", "PAUSED"], "safe_point_required": true, "result": "INTERRUPTED only after target interruption is confirmed"},
+        {"command": "ABORT", "allowed_execution_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING"], "safe_point_required": true, "result": "STOPPING with requested_terminal ABORTED"},
+        {"command": "FINISH", "allowed_execution_states": ["RUNNING", "PAUSED", "WAITING", "PROMPT"], "safe_point_required": true, "result": "STOPPING with requested_terminal FINISHED"},
+        {"command": "EXECUTE_FRAGMENT", "allowed_execution_states": ["PAUSED", "WAITING", "PROMPT", "INTERRUPTED"], "safe_point_required": true, "result": "execute only signed, allowlisted, bounded IR; WAITING and PROMPT create a separately admitted child ExecutionId; arbitrary Python is rejected"},
+        {"command": "RESPOND_PROMPT", "allowed_execution_states": ["PROMPT"], "safe_point_required": false, "result": "settle the correlated PromptId by compare-and-set"},
+        {"command": "ACKNOWLEDGE_HOLD", "allowed_execution_states": ["SUSPENDED"], "safe_point_required": true, "result": "clear hold only after cause, alarms, and effect uncertainty are reconciled"},
+        {"command": "RELOAD", "allowed_execution_states": ["FINISHED", "ABORTED", "ERROR"], "safe_point_required": false, "result": "create a new ExecutionId in REQUESTED with predecessor_execution_id; old execution remains terminal"},
+        {"command": "RECOVER", "allowed_execution_states": ["ERROR"], "safe_point_required": false, "result": "create a new ExecutionId in REQUESTED from an approved compatible checkpoint; old execution remains ERROR"}
+      ],
+      "timers": [
+        {"id": "COMMAND_VALIDATION_DEADLINE", "expiry": "REJECTED with TIMEOUT_BEFORE_ACCEPTANCE"},
+        {"id": "COMMAND_SAFE_POINT_DEADLINE", "expiry": "CANCELLED if not applying and cancellation is safe; otherwise RECONCILING"},
+        {"id": "COMMAND_APPLY_DEADLINE", "expiry": "RECONCILING; never report success or retry blindly"}
+      ],
+      "transitions": [
+        {
+          "id": "CMD-001",
+          "from": ["RECEIVED"],
+          "to": "VALIDATING",
+          "trigger": "command_persisted",
+          "actor": ["CLIENT_GATEWAY", "CONTROL_SERVICE"],
+          "preconditions": ["CommandId and idempotency key are bound", "bounded schema parsed", "request digest committed"],
+          "effects": ["start validation deadline", "load target snapshot"],
+          "timeout": {"timer": "COMMAND_VALIDATION_DEADLINE", "on_expiry": "fire CMD-002"},
+          "recovery": {"strategy": "repeat pure validation using committed request digest", "target": "VALIDATING"},
+          "rejection": {"code": "COMMAND_NOT_DURABLE", "disposition": "no command acknowledgment"}
+        },
+        {
+          "id": "CMD-002",
+          "from": ["VALIDATING"],
+          "to": "REJECTED",
+          "trigger": "command_validation_failed",
+          "actor": ["CONTROL_SERVICE", "CLOCK"],
+          "preconditions": ["exactly one rejection code from rejection_taxonomy is selected using rejection_selection precedence", "selected code corresponds to authoritative failed guard evidence", "no target mutation committed"],
+          "effects": ["persist exact RejectionCode and bounded safe reason", "publish terminal command outcome with that exact stable code"],
+          "timeout": {"timer": "COMMAND_VALIDATION_DEADLINE", "on_expiry": "use TIMEOUT_BEFORE_ACCEPTANCE"},
+          "recovery": {"strategy": "return the immutable rejection on duplicate", "target": "REJECTED"},
+          "rejection": {"code": "INTERNAL_REJECTION_SELECTION_FAILURE", "public": false, "disposition": "remain VALIDATING or enter RECONCILING; do not emit a generic public rejection"}
+        },
+        {
+          "id": "CMD-003",
+          "from": ["VALIDATING"],
+          "to": "ACCEPTED",
+          "trigger": "command_validation_passed",
+          "actor": ["CONTROL_SERVICE"],
+          "preconditions": ["actor authorized", "current signed assignment, AssignmentGeneration, AuthorityIncarnationId, and LeaderEpoch match", "same ControllerLeaseId is ACTIVE and unexpired, exact expected ControlLeaseRevision matches, and holder session, client key, ControlFencingToken, and request ClientInstanceProof are current when required", "expected ExecutionRevision or PromptRevision matches", "command policy allows target state"],
+          "effects": ["commit acceptance separately from application", "bind exact target revision and safe-point policy"],
+          "timeout": {"timer": "COMMAND_SAFE_POINT_DEADLINE", "on_expiry": "fire CMD-007 or CMD-009"},
+          "recovery": {"strategy": "reload target and accepted command by CommandId", "target": "RECONCILING"},
+          "rejection": {"code": "ROUTE_TO_EXACT_REJECTION_TAXONOMY", "public": false, "disposition": "use CMD-002 with the exact failed-guard code; no generic public COMMAND_GUARD_FAILED outcome"}
+        },
+        {
+          "id": "CMD-004",
+          "from": ["ACCEPTED"],
+          "to": "WAITING_SAFE_POINT",
+          "trigger": "safe_point_required",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["command policy requires a safe point", "target remains nonterminal", "command ordering policy accepts this command"],
+          "effects": ["enqueue by CommandId and accepted target revision", "start safe-point deadline"],
+          "timeout": {"timer": "COMMAND_SAFE_POINT_DEADLINE", "on_expiry": "fire CMD-007 unless application may have begun"},
+          "recovery": {"strategy": "reconstruct queue from accepted commands", "target": "RECONCILING"},
+          "rejection": {"code": "COMMAND_QUEUE_CONFLICT", "disposition": "fire CMD-008 SUPERSEDED"}
+        },
+        {
+          "id": "CMD-005",
+          "from": ["ACCEPTED", "WAITING_SAFE_POINT"],
+          "to": "APPLYING",
+          "trigger": "application_started",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["immediate command or declared safe point reached", "target revision still matches", "all authority and controller fences match", "no unresolved effect blocks application"],
+          "effects": ["mark application intent", "begin atomic target-state compare-and-set", "start apply deadline"],
+          "timeout": {"timer": "COMMAND_APPLY_DEADLINE", "on_expiry": "fire CMD-010"},
+          "recovery": {"strategy": "inspect target transition event and revisions", "target": "RECONCILING"},
+          "rejection": {"code": "APPLICATION_GUARD_CHANGED", "disposition": "fire CMD-008 SUPERSEDED"}
+        },
+        {
+          "id": "CMD-006",
+          "from": ["APPLYING"],
+          "to": "SETTLED",
+          "trigger": "target_transition_committed",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["target transition and command outcome share one transaction or durable correlation", "resulting target revision is recorded"],
+          "effects": ["commit APPLIED outcome and public settlement", "publish resulting target state"],
+          "timeout": {"timer": "COMMAND_APPLY_DEADLINE", "on_expiry": "reconcile before response"},
+          "recovery": {"strategy": "return committed target event and command settlement", "target": "SETTLED"},
+          "rejection": {"code": "TARGET_COMMIT_NOT_FOUND", "disposition": "fire CMD-010"}
+        },
+        {
+          "id": "CMD-007",
+          "from": ["ACCEPTED", "WAITING_SAFE_POINT"],
+          "to": "CANCELLED",
+          "trigger": "cancelled_before_application",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE", "CLOCK"],
+          "preconditions": ["APPLYING has not begun", "cancellation actor is authorized or deadline expired", "queue removal commits with terminal outcome"],
+          "effects": ["remove pending command", "record cancellation reason", "leave target unchanged"],
+          "timeout": {"timer": "COMMAND_SAFE_POINT_DEADLINE", "on_expiry": "same transition when application has not begun"},
+          "recovery": {"strategy": "return immutable cancellation", "target": "CANCELLED"},
+          "rejection": {"code": "COMMAND_ALREADY_APPLYING", "disposition": "fire CMD-010"}
+        },
+        {
+          "id": "CMD-008",
+          "from": ["ACCEPTED", "WAITING_SAFE_POINT"],
+          "to": "SUPERSEDED",
+          "trigger": "target_or_ordering_made_command_impossible",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["target became terminal, revision changed incompatibly, or a defined newer command supersedes this one", "application has not begun"],
+          "effects": ["record superseding event or revision", "leave target unchanged by this command"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "return immutable supersession evidence", "target": "SUPERSEDED"},
+          "rejection": {"code": "SUPERSESSION_NOT_PROVABLE", "disposition": "remain pending or enter RECONCILING"}
+        },
+        {
+          "id": "CMD-009",
+          "from": ["APPLYING"],
+          "to": "FAILED",
+          "trigger": "application_failed_without_target_commit",
+          "actor": ["CONTROL_SERVICE", "EXECUTION_SUPERVISOR"],
+          "preconditions": ["database evidence proves no target transition committed", "failure is non-retryable for this CommandId"],
+          "effects": ["record internal failure", "leave target revision unchanged", "raise operational alert"],
+          "timeout": {"timer": "COMMAND_APPLY_DEADLINE", "on_expiry": "use CMD-010, not this transition"},
+          "recovery": {"strategy": "new operator intent requires a new CommandId", "target": "new RECEIVED entity"},
+          "rejection": {"code": "TARGET_OUTCOME_UNCERTAIN", "disposition": "fire CMD-010"}
+        },
+        {
+          "id": "CMD-010",
+          "from": ["ACCEPTED", "WAITING_SAFE_POINT", "APPLYING"],
+          "to": "RECONCILING",
+          "trigger": "command_owner_restarted_or_outcome_uncertain",
+          "actor": ["RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["command is nonterminal", "target and audit stores are available or retryable", "old authority is fenced"],
+          "effects": ["stop duplicate application", "query target revision and event by CommandId", "preserve acceptance time and order"],
+          "timeout": {"timer": "COMMAND_APPLY_DEADLINE", "on_expiry": "remain RECONCILING and alert; do not claim failure if target commit is unknown"},
+          "recovery": {"strategy": "repeat read-only reconciliation by CommandId", "target": "RECONCILING"},
+          "rejection": {"code": "RECOVERY_FENCE_MISSING", "disposition": "remain fail-closed"}
+        },
+        {
+          "id": "CMD-011",
+          "from": ["RECONCILING"],
+          "to": "SETTLED",
+          "trigger": "reconciliation_found_target_commit",
+          "actor": ["RECOVERY_COORDINATOR"],
+          "preconditions": ["one target event references CommandId", "resulting revision and payload digest validate"],
+          "effects": ["record recovered settlement", "publish recorded target result once"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "return immutable settlement", "target": "SETTLED"},
+          "rejection": {"code": "TARGET_EVENT_INVALID", "disposition": "remain RECONCILING and raise integrity alert"}
+        },
+        {
+          "id": "CMD-012",
+          "from": ["RECONCILING"],
+          "to": "ACCEPTED",
+          "trigger": "reconciliation_proved_no_application",
+          "actor": ["RECOVERY_COORDINATOR", "CONTROL_SERVICE"],
+          "preconditions": ["no target event committed", "target revision still equals accepted revision", "command remains authorized and ordered", "authority and controller fences are current"],
+          "effects": ["requeue the same CommandId", "record recovery attempt"],
+          "timeout": {"timer": "COMMAND_SAFE_POINT_DEADLINE", "on_expiry": "fire CMD-007"},
+          "recovery": {"strategy": "repeat reconciliation if ownership is lost again", "target": "RECONCILING"},
+          "rejection": {"code": "COMMAND_NO_LONGER_APPLICABLE", "disposition": "fire CMD-013"}
+        },
+        {
+          "id": "CMD-013",
+          "from": ["RECONCILING"],
+          "to": "SUPERSEDED",
+          "trigger": "reconciliation_found_incompatible_target_change",
+          "actor": ["RECOVERY_COORDINATOR"],
+          "preconditions": ["no event for this CommandId committed", "target revision or terminal state makes application invalid"],
+          "effects": ["record target evidence", "leave target unchanged"],
+          "timeout": {"timer": null, "on_expiry": "NONE"},
+          "recovery": {"strategy": "return immutable supersession", "target": "SUPERSEDED"},
+          "rejection": {"code": "TARGET_STATE_UNREADABLE", "disposition": "remain RECONCILING"}
+        }
+      ],
+      "invariants": [
+        "Acceptance never means application or settlement.",
+        "One CommandId produces at most one target transition.",
+        "An idempotency-key replay returns the existing command and never creates another mutation.",
+        "APPLYING uncertainty is reconciled by durable target evidence, never by blind retry.",
+        "Every rejected, cancelled, superseded, or failed command leaves an explicit terminal disposition."
+      ]
+    },
+    "durable_prompt": {
+      "machine_id": "durable_prompt",
+      "entity": "OperatorPrompt",
+      "entity_id": "PromptId",
+      "revision": "PromptRevision",
+      "initial_state": "CREATED",
+      "states": [
+        {"name": "CREATED", "terminal": false, "description": "Prompt schema and correlation exist but are not yet visible or answerable."},
+        {"name": "OPEN", "terminal": false, "description": "Prompt is durably visible and accepts one authorized settlement race."},
+        {"name": "SETTLED", "terminal": true, "description": "Exactly one settlement outcome and evidence are committed."}
+      ],
+      "settlement_outcomes": ["ANSWERED", "CANCELLED", "TIMED_OUT", "NO_CONTROLLER", "EXECUTION_TERMINATED", "ERROR"],
+      "timers": [
+        {"id": "PROMPT_OPEN_DEADLINE", "expiry": "SETTLED with ERROR if publication cannot be correlated safely"},
+        {"id": "PROMPT_RESPONSE_DEADLINE", "expiry": "one CLOCK compare-and-set to SETTLED with TIMED_OUT"},
+        {"id": "NO_CONTROLLER_GRACE", "expiry": "one policy-authorized compare-and-set to SETTLED with NO_CONTROLLER; it does not run unless configured"}
+      ],
+      "transitions": [
+        {
+          "id": "PRM-001",
+          "from": ["CREATED"],
+          "to": "OPEN",
+          "trigger": "prompt_and_execution_checkpoint_committed",
+          "actor": ["EXECUTION_SUPERVISOR"],
+          "preconditions": ["prompt schema, options, default, validation, scope, and deadlines are valid", "ExecutionId and ExecutionRevision correlate", "execution transition to PROMPT commits in the same transaction or ordered sequence"],
+          "effects": ["start response deadline", "publish PromptId once", "record required controller assurance"],
+          "timeout": {"timer": "PROMPT_OPEN_DEADLINE", "on_expiry": "fire PRM-007 with outcome ERROR"},
+          "recovery": {"strategy": "republish the same OPEN PromptId", "target": "OPEN"},
+          "rejection": {"code": "PROMPT_SCHEMA_INVALID", "disposition": "remain CREATED or fire PRM-007"}
+        },
+        {
+          "id": "PRM-003",
+          "from": ["OPEN"],
+          "to": "SETTLED",
+          "trigger": "validated_response_won",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["same ControllerLeaseId is ACTIVE and unexpired, exact expected ControlLeaseRevision matches, and holder session, client key, ControlFencingToken, and request ClientInstanceProof are current", "expected PromptRevision matches", "response validates against the pinned schema", "execution still references PromptId"],
+          "effects": ["set settlement_outcome ANSWERED", "store validated value or protected secret reference", "record actor, assurance, fence, time, and SettlementId", "stop prompt timers"],
+          "timeout": {"timer": "PROMPT_RESPONSE_DEADLINE", "on_expiry": "CLOCK races by the same compare-and-set; one winner only"},
+          "recovery": {"strategy": "return immutable settlement; never reapply response", "target": "SETTLED"},
+          "rejection": {"code": "INVALID_RESPONSE_STALE_FENCE_OR_SETTLED", "disposition": "leave PromptRevision unchanged, append a bounded separate attempt record without secret value, and return winning settlement metadata when one exists"}
+        },
+        {
+          "id": "PRM-004",
+          "from": ["OPEN"],
+          "to": "SETTLED",
+          "trigger": "response_deadline_reached",
+          "actor": ["CLOCK", "CONTROL_SERVICE"],
+          "preconditions": ["database time is at or after deadline", "PromptRevision still matches", "no settlement exists"],
+          "effects": ["set settlement_outcome TIMED_OUT", "record deadline and firing time", "apply pinned language timeout semantics"],
+          "timeout": {"timer": "PROMPT_RESPONSE_DEADLINE", "on_expiry": "this transition"},
+          "recovery": {"strategy": "recompute deadline eligibility from database time and compare-and-set", "target": "SETTLED or OPEN"},
+          "rejection": {"code": "PROMPT_ALREADY_SETTLED", "disposition": "return winning settlement"}
+        },
+        {
+          "id": "PRM-005",
+          "from": ["OPEN"],
+          "to": "SETTLED",
+          "trigger": "controller_cancelled_prompt",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE"],
+          "preconditions": ["prompt type and pinned policy permit cancellation", "controller fence and PromptRevision match"],
+          "effects": ["set settlement_outcome CANCELLED", "record controller and reason", "apply pinned language cancellation semantics"],
+          "timeout": {"timer": "PROMPT_RESPONSE_DEADLINE", "on_expiry": "race with PRM-004; one winner only"},
+          "recovery": {"strategy": "return immutable settlement", "target": "SETTLED"},
+          "rejection": {"code": "PROMPT_CANCEL_NOT_ALLOWED", "disposition": "remain OPEN"}
+        },
+        {
+          "id": "PRM-006",
+          "from": ["OPEN"],
+          "to": "SETTLED",
+          "trigger": "no_controller_policy_expired",
+          "actor": ["CLOCK", "CONTROL_SERVICE"],
+          "preconditions": ["NO_CONTROLLER_GRACE is configured and expired", "no valid controller lease exists", "PromptRevision matches", "pinned language and mission policy define the outcome"],
+          "effects": ["set settlement_outcome NO_CONTROLLER", "record lease evidence and policy revision", "apply configured abort, default, or error behavior"],
+          "timeout": {"timer": "NO_CONTROLLER_GRACE", "on_expiry": "this transition"},
+          "recovery": {"strategy": "derive lease absence from authoritative records and compare-and-set", "target": "SETTLED or OPEN"},
+          "rejection": {"code": "CONTROLLER_PRESENT_OR_POLICY_DISABLED", "disposition": "remain OPEN"}
+        },
+        {
+          "id": "PRM-007",
+          "from": ["CREATED", "OPEN"],
+          "to": "SETTLED",
+          "trigger": "execution_terminated_or_prompt_failed",
+          "actor": ["EXECUTION_SUPERVISOR", "CONTROL_SERVICE"],
+          "preconditions": ["settlement outcome is EXECUTION_TERMINATED or ERROR", "cause and execution revision are durable", "no previous settlement exists"],
+          "effects": ["commit one SettlementId and outcome", "stop timers", "publish terminal prompt event"],
+          "timeout": {"timer": "PROMPT_OPEN_DEADLINE", "on_expiry": "ERROR outcome when creation cannot complete"},
+          "recovery": {"strategy": "return immutable settlement", "target": "SETTLED"},
+          "rejection": {"code": "PROMPT_ALREADY_SETTLED", "disposition": "return winning settlement"}
+        }
+      ],
+      "invariants": [
+        "Exactly one SETTLED transition wins for each PromptId.",
+        "A unique PromptId plus SettlementId constraint and PromptRevision compare-and-set enforce at-most-once settlement.",
+        "An invalid response attempt is not a state transition or settlement, does not change PromptRevision, and does not reset the deadline by default.",
+        "A prompt response requires an active controller fence; monitors and editors cannot respond.",
+        "Password or secret input is never stored in logs, events, audit payloads, or prompt plaintext."
+      ]
+    },
+    "external_driver_operation": {
+      "machine_id": "external_driver_operation",
+      "entity": "DriverEffectOperation",
+      "entity_id": "OperationId",
+      "revision": "OperationRevision",
+      "initial_state": "REQUESTED",
+      "scope": "This state machine applies only when EffectClass is not NONE.",
+      "state_data": {
+        "required": ["OperationId", "OperationRevision", "Stage", "RequestDigest", "Deadline", "AttemptNumber", "AttemptId", "AttemptHistory", "EffectClass", "ReconciliationState", "DomainId", "SatelliteId", "AssignmentObservationId", "AssignmentGeneration", "AuthorityIncarnationId", "DispatchAuthorityId", "LeaderEpoch", "ControllerLeaseId", "AcceptedControlLeaseRevision", "CurrentControlLeaseRevision", "ControlFencingToken", "HolderSessionId", "ClientInstanceKeyId", "DriverHostGeneration", "ContextGeneration", "ExecutionAttachmentGeneration", "DriverBindingId", "ExecutionId", "ExecutionRevision", "JournalIntentDigest", "EvidenceDigest", "SettlementOutcome"],
+        "conditional": ["EffectPermitId", "SaaEffectEnabledGrantId", "SaaAttemptPermitId", "SaaPermitConsumeReceiptDigest", "EffectCertainty", "ResultDigest", "ExternalAcknowledgementId", "AuthorizedUnresolvedDispositionId"],
+        "field_scopes": {
+          "operation": ["OperationId", "OperationRevision", "Stage", "RequestDigest", "Deadline", "EffectClass", "ReconciliationState", "AttemptHistory", "SettlementOutcome", "AuthorizedUnresolvedDispositionId"],
+          "attempt": ["AttemptNumber", "AttemptId", "DomainId", "SatelliteId", "AssignmentObservationId", "AssignmentGeneration", "AuthorityIncarnationId", "DispatchAuthorityId", "LeaderEpoch", "ControllerLeaseId", "AcceptedControlLeaseRevision", "CurrentControlLeaseRevision", "ControlFencingToken", "HolderSessionId", "ClientInstanceKeyId", "DriverHostGeneration", "ContextGeneration", "ExecutionAttachmentGeneration", "DriverBindingId", "ExecutionId", "ExecutionRevision", "JournalIntentDigest", "EvidenceDigest", "EffectPermitId", "SaaEffectEnabledGrantId", "SaaAttemptPermitId", "SaaPermitConsumeReceiptDigest", "EffectCertainty", "ResultDigest", "ExternalAcknowledgementId"]
+        },
+        "rules": ["EffectClass cannot be NONE", "EffectCertainty is required and must use the four-value canonical enum whenever EffectClass is not NONE", "OperationId and RequestDigest are immutable across every attempt", "AttemptNumber starts at 1 and is strictly monotonic per OperationId", "AttemptId is opaque, globally unique, and immutable for one attempt", "AttemptId identifies the current attempt and AttemptHistory retains every prior attempt record, permit, receipt, tuple, and reconciliation evidence", "the complete accepted authority, generation, leader, controller, driver, and execution fence tuple is assigned exactly once when an attempt enters ACCEPTED and is immutable for that AttemptId", "a later final-guard observation such as CurrentControlLeaseRevision is appended as evidence and never rewrites AcceptedControlLeaseRevision or the accepted tuple", "a later attempt binds its own then-current tuple, which may differ from prior-attempt tuples; no prior tuple is rewritten", "EffectPermitId, SaaEffectEnabledGrantId, and SaaAttemptPermitId are required from ACCEPTED onward for every admitted attempt", "SaaPermitConsumeReceiptDigest is required whenever SAA consumption succeeded or the local permit is CONSUMED", "AcceptedControlLeaseRevision and CurrentControlLeaseRevision are both retained as effect evidence"]
+      },
+      "creation": {
+        "id": "OPR-CREATE",
+        "to": "REQUESTED",
+        "trigger": "effect_request_persisted",
+        "actor": ["EXECUTION_SUPERVISOR", "DRIVER_GATEWAY"],
+        "preconditions": ["EffectClass is not NONE", "typed request schema validates", "request digest is computed over canonical content", "OperationId is unused or identifies the same request digest"],
+        "effects": ["allocate OperationId with OperationRevision 1", "set Stage REQUESTED and EffectCertainty NO_EFFECT", "set AttemptNumber 1 and allocate a new opaque globally unique AttemptId", "initialize AttemptHistory for attempt 1 with its accepted fence tuple and permit fields unset until OPR-002", "persist deadline, immutable request digest, effect class, reconciliation state, and empty settlement disposition"],
+        "timeout": {"timer": "OPERATION_ACCEPT_DEADLINE", "on_expiry": "reconcile creation by OperationId and RequestDigest; never create a replacement operation"},
+        "recovery": {"strategy": "load the same OperationId and initial attempt by request idempotency evidence", "target": "REQUESTED or its later durable state"},
+        "rejection": {"code": "INVALID_EFFECT_REQUEST", "disposition": "no DriverEffectOperation is created"}
+      },
+      "read_only_none_contract": {
+        "effect_class": "NONE",
+        "machine": "not applicable",
+        "request_fields": ["RequestId", "RequestRevision", "RequestDigest", "Deadline", "DomainId", "DriverBindingId", "ExecutionId", "ExecutionRevision"],
+        "result_fields": ["RequestId", "ResultDigest", "ObservedAt", "Freshness", "Quality", "TypedOutcome"],
+        "effect_certainty_rule": "EffectCertainty is absent and forbidden; NONE is not a fifth certainty value.",
+        "retry_rule": "Typed read-only retry uses its request idempotency contract and never enters the effect operation state machine."
+      },
+      "state_dimension": "stage",
+      "orthogonal_dimensions": {
+        "effect_certainty": ["NO_EFFECT", "EFFECT_CONFIRMED", "EFFECT_POSSIBLE", "EFFECT_UNKNOWN"],
+        "settlement_outcome": ["SUCCEEDED", "REJECTED", "FAILED", "TIMED_OUT", "CANCELLED", "AUTHORIZED_UNRESOLVED"]
+      },
+      "states": [
+        {"name": "REQUESTED", "terminal": false, "description": "Typed operation request exists; certainty is NO_EFFECT."},
+        {"name": "ACCEPTED", "terminal": false, "description": "Fences, capability, quota, request digest, and pre-effect journal intent are accepted; certainty remains NO_EFFECT."},
+        {"name": "DISPATCHED", "terminal": false, "description": "Dispatch authorization, the SAA receipt, and the local permit commit are durable before send; certainty is EFFECT_POSSIBLE because the boundary may have been crossed and an effect may have occurred."},
+        {"name": "RECONCILING", "terminal": false, "description": "Stable IDs and journals are being queried; no resend is permitted unless certainty becomes NO_EFFECT under policy."},
+        {"name": "SETTLED", "terminal": true, "description": "No further engine action occurs for this operation attempt; final certainty may remain possible or unknown only under authorized unresolved disposition."}
+      ],
+      "timers": [
+        {"id": "OPERATION_ACCEPT_DEADLINE", "expiry": "SETTLED REJECTED with NO_EFFECT if acceptance cannot commit"},
+        {"id": "OPERATION_RESULT_DEADLINE", "expiry": "RECONCILING with EFFECT_POSSIBLE or EFFECT_UNKNOWN; never automatic resend"},
+        {"id": "OPERATION_RECONCILIATION_DEADLINE", "expiry": "remain RECONCILING and hold execution, or accept an authorized unresolved disposition"}
+      ],
+      "transitions": [
+        {
+          "id": "OPR-001",
+          "from": ["REQUESTED"],
+          "to": "SETTLED",
+          "trigger": "operation_rejected_before_acceptance",
+          "actor": ["DRIVER_GATEWAY"],
+          "preconditions": ["certainty is NO_EFFECT", "no driver dispatch occurred", "typed rejection is durable"],
+          "effects": ["set settlement_outcome REJECTED", "retain certainty NO_EFFECT", "release request reservation"],
+          "timeout": {"timer": "OPERATION_ACCEPT_DEADLINE", "on_expiry": "same transition only if no dispatch is proved"},
+          "recovery": {"strategy": "return immutable rejection on duplicate OperationId", "target": "SETTLED"},
+          "rejection": {"code": "NO_EFFECT_NOT_PROVEN", "disposition": "enter RECONCILING rather than settle"}
+        },
+        {
+          "id": "OPR-002",
+          "from": ["REQUESTED"],
+          "to": "ACCEPTED",
+          "trigger": "operation_accepted",
+          "actor": ["DRIVER_GATEWAY"],
+          "preconditions": ["EffectClass is not NONE", "method and payload schema valid", "capability advertised", "quota reserved", "current signed assignment is effect_enabled and AssignmentGeneration, AuthorityIncarnationId, DispatchAuthorityId, LeaderEpoch, DriverHostGeneration, ContextGeneration, ExecutionAttachmentGeneration, DriverBindingId, ExecutionId, and ExecutionRevision are current and mutually consistent", "same ACTIVE ControllerLeaseId, exact expected ControlLeaseRevision, ControlFencingToken, holder session and client key, and request ClientInstanceProof validate at acceptance when operation derives from interactive control", "request digest and pre-effect journal intent commit", "AttemptNumber and AttemptId identify the current attempt and its accepted tuple is not yet assigned", "certainty is NO_EFFECT"],
+          "effects": ["bind the current attempt's complete accepted authority, generation, leader, controller, driver, and execution fence tuple exactly once from the then-current values; no tuple field is inherited from another attempt", "retain the existing AttemptNumber and AttemptId", "create one local PENDING EffectPermitId bound to OperationId, AttemptId, RequestDigest, EffectClass, and the current attempt's immutable accepted tuple", "bind one unconsumed SaaAttemptPermitId issued for the current SaaEffectEnabledGrantId and the same operation, attempt, digest, effect class, assignment generation, authority incarnation, and dispatch authority", "record accepted ControllerLeaseId and AcceptedControlLeaseRevision for interactive control", "record deadline and retry policy", "acknowledge acceptance separately from dispatch"],
+          "timeout": {"timer": "OPERATION_ACCEPT_DEADLINE", "on_expiry": "reconcile acceptance record; never infer dispatch"},
+          "recovery": {"strategy": "reload journal by OperationId and request digest", "target": "ACCEPTED or RECONCILING"},
+          "rejection": {"code": "OPERATION_GUARD_FAILED", "disposition": "use OPR-001 with NO_EFFECT"}
+        },
+        {
+          "id": "OPR-003",
+          "from": ["ACCEPTED"],
+          "to": "SETTLED",
+          "trigger": "cancelled_before_dispatch",
+          "actor": ["DRIVER_GATEWAY", "CONTROL_SERVICE"],
+          "preconditions": ["driver journal proves effect boundary was not crossed", "certainty is NO_EFFECT", "cancellation policy permits it"],
+          "effects": ["atomically cancel the unused local PENDING EffectPermitId", "retire the unconsumed SaaAttemptPermitId or allow it to expire; it is never reused", "set settlement_outcome CANCELLED", "retain certainty NO_EFFECT", "release in-flight quota"],
+          "timeout": {"timer": "OPERATION_RESULT_DEADLINE", "on_expiry": "enter RECONCILING if non-dispatch cannot be proved"},
+          "recovery": {"strategy": "return immutable cancellation", "target": "SETTLED"},
+          "rejection": {"code": "DISPATCH_MAY_HAVE_OCCURRED", "disposition": "enter RECONCILING"}
+        },
+        {
+          "id": "OPR-004",
+          "from": ["ACCEPTED"],
+          "to": "DISPATCHED",
+          "trigger": "authorize_effect_dispatch",
+          "actor": ["EFFECT_AUTHORIZATION_POINT"],
+          "preconditions": ["EffectClass is not NONE", "same OperationId, AttemptId, AttemptNumber, and RequestDigest are journaled", "Effect Authorization Point has begun a transaction on the writable current primary PostgreSQL database with required synchronous quorum and fresh authoritative database time", "the transaction holds the current local assignment projection, leader, controller-lease pointer and grant, driver binding, execution, operation, and EffectPermitId locks", "locked local domain state is ACTIVE or effect-capable DEGRADED under the current DegradationPolicyRevision and is not STANDBY, DRAINING, STOPPED, or FAILED", "current elected leader identity and LeaderEpoch match the current attempt's immutable accepted tuple", "for an interactive effect, the locked current lease is the ControllerLeaseId in the current attempt's immutable accepted tuple and is ACTIVE before expiry with the same holder subject, session, client key, current ControlFencingToken, and a valid request ClientInstanceProof", "current ControlLeaseRevision need not equal AcceptedControlLeaseRevision and both are retained as evidence", "DriverHostGeneration, ContextGeneration, ExecutionAttachmentGeneration, DriverBindingId, ExecutionId, and ExecutionRevision match the current attempt's immutable accepted tuple", "EffectPermitId is PENDING, unexpired, unused, and bound to this OperationId, AttemptId, SaaAttemptPermitId, RequestDigest, EffectClass, and the current attempt's immutable accepted tuple", "SaaAttemptPermitId is bound to the current effect_enabled SaaEffectEnabledGrantId and the same AssignmentGeneration, AuthorityIncarnationId, SatelliteId, DomainId, and fresh DispatchAuthorityId in that attempt's immutable accepted tuple", "deadline has not prohibited dispatch", "certainty is NO_EFFECT", "Effect Authorization Point owns the sole effect credential and egress"],
+          "effects": ["while retaining all PostgreSQL locks, invoke SAA linearizable one-use consume for SaaAttemptPermitId against the current effect_enabled grant", "if SAA consume fails, roll back the local transaction, retain NO_EFFECT, and send nothing", "if SAA consume succeeds, persist SaaPermitConsumeReceiptDigest, accepted and current fence evidence, and atomically change local EffectPermitId from PENDING to CONSUMED, Stage to DISPATCHED, and EffectCertainty to EFFECT_POSSIBLE", "commit the local transaction before send", "only after confirmed local commit, release the prepared request through the Effect Authorization Point sole credential and egress", "record AttemptId, local permit consumption, SAA receipt, dispatch evidence, and host journal cursor", "start result deadline"],
+          "timeout": {"timer": "OPERATION_RESULT_DEADLINE", "on_expiry": "fire OPR-007"},
+          "recovery": {"strategy": "query PostgreSQL by EffectPermitId and SAA by SaaAttemptPermitId; a committed local permit means EFFECT_POSSIBLE even after a crash, while SAA consume with no local commit means no send and permanent abandonment of that SAA permit before reconciliation", "target": "RECONCILING"},
+          "rejection": {"code": "EFFECT_AUTHORIZATION_FAILED", "disposition": "roll back local work and send nothing; if SAA already consumed, abandon that permit and reconcile before a fresh attempt"}
+        },
+        {
+          "id": "OPR-005",
+          "from": ["ACCEPTED"],
+          "to": "RECONCILING",
+          "trigger": "dispatch_effect_evidence_unresolved",
+          "actor": ["DRIVER_GATEWAY", "RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["acceptance committed", "gateway cannot prove whether effect boundary was crossed"],
+          "effects": ["set certainty EFFECT_UNKNOWN", "forbid resend", "move quota to bounded reconciliation pool", "query EffectPermitId, SaaAttemptPermitId, SaaPermitConsumeReceiptDigest, and Effect Authorization Point evidence", "transition owning execution to SUSPENDED with hold_reason EFFECT_RECONCILIATION and saved_resume_target equal to its pre-operation state or STOPPING when cleanup had begun"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain held or use OPR-012"},
+          "recovery": {"strategy": "query driver journal and external reconciliation interface by stable ID", "target": "RECONCILING"},
+          "rejection": {"code": "ACCEPTANCE_NOT_DURABLE", "disposition": "fail domain integrity checks; do not dispatch"}
+        },
+        {
+          "id": "OPR-006",
+          "from": ["DISPATCHED"],
+          "to": "SETTLED",
+          "trigger": "effect_result_confirmed",
+          "actor": ["DRIVER_HOST", "DRIVER_GATEWAY"],
+          "preconditions": ["result matches OperationId, RequestDigest, AttemptId, and that attempt's immutable accepted tuple", "journal integrity validates", "effect evidence is authoritative"],
+          "effects": ["set certainty EFFECT_CONFIRMED", "set settlement_outcome SUCCEEDED or FAILED according to typed result", "persist safe result", "release in-flight quota"],
+          "timeout": {"timer": "OPERATION_RESULT_DEADLINE", "on_expiry": "use OPR-007 instead of guessing"},
+          "recovery": {"strategy": "return immutable result for duplicate OperationId", "target": "SETTLED"},
+          "rejection": {"code": "RESULT_EVIDENCE_INVALID", "disposition": "fire OPR-008 with EFFECT_UNKNOWN"}
+        },
+        {
+          "id": "OPR-007",
+          "from": ["DISPATCHED"],
+          "to": "RECONCILING",
+          "trigger": "result_deadline_or_channel_lost",
+          "actor": ["DRIVER_GATEWAY", "RECOVERY_COORDINATOR", "CLOCK"],
+          "preconditions": ["dispatch evidence remains valid", "no authoritative result is committed"],
+          "effects": ["retain certainty EFFECT_POSSIBLE", "forbid resend", "query local permit, SAA permit and receipt, Effect Authorization Point, and host journals", "transition owning execution to SUSPENDED with hold_reason EFFECT_RECONCILIATION and saved_resume_target equal to its pre-operation state or STOPPING when cleanup had begun"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain held or use OPR-012"},
+          "recovery": {"strategy": "repeat read-only reconciliation by OperationId", "target": "RECONCILING"},
+          "rejection": {"code": "DISPATCH_EVIDENCE_INVALID", "disposition": "use OPR-008 with EFFECT_UNKNOWN"}
+        },
+        {
+          "id": "OPR-008",
+          "from": ["DISPATCHED", "RECONCILING"],
+          "to": "RECONCILING",
+          "trigger": "operation_evidence_integrity_lost",
+          "actor": ["DRIVER_GATEWAY", "RECOVERY_COORDINATOR"],
+          "preconditions": ["journal, attempt-bound generation or fence tuple, digest, or external evidence is missing or contradictory"],
+          "effects": ["set certainty EFFECT_UNKNOWN", "raise integrity alert", "retain local permit, SAA permit and receipt, attempt, dispatch, and all other evidence", "forbid resend", "transition owning execution to SUSPENDED with hold_reason EFFECT_RECONCILIATION and saved_resume_target equal to its pre-operation state or STOPPING when cleanup had begun"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain held or use OPR-012"},
+          "recovery": {"strategy": "use independent authoritative evidence and administrative reconciliation", "target": "RECONCILING"},
+          "rejection": {"code": "INTEGRITY_LOSS_NOT_PROVEN", "disposition": "retain existing certainty and remain RECONCILING"}
+        },
+        {
+          "id": "OPR-009",
+          "from": ["RECONCILING"],
+          "to": "SETTLED",
+          "trigger": "reconciliation_proved_effect",
+          "actor": ["RECOVERY_COORDINATOR", "DRIVER_GATEWAY", "DRIVER_HOST"],
+          "preconditions": ["authoritative evidence binds OperationId, RequestDigest, AttemptId, and that attempt's immutable accepted tuple", "defined effect is proved"],
+          "effects": ["set certainty EFFECT_CONFIRMED", "set typed settlement_outcome", "commit reconciliation evidence", "release reconciliation quota"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain RECONCILING"},
+          "recovery": {"strategy": "return immutable reconciled result", "target": "SETTLED"},
+          "rejection": {"code": "EFFECT_NOT_PROVEN", "disposition": "remain RECONCILING"}
+        },
+        {
+          "id": "OPR-010",
+          "from": ["RECONCILING"],
+          "to": "SETTLED",
+          "trigger": "reconciliation_proved_no_effect",
+          "actor": ["RECOVERY_COORDINATOR", "DRIVER_GATEWAY", "DRIVER_HOST"],
+          "preconditions": ["authoritative evidence binds OperationId, RequestDigest, AttemptId, and that attempt's immutable accepted tuple", "no external effect is proved", "no retry is requested"],
+          "effects": ["set certainty NO_EFFECT", "set settlement_outcome FAILED, TIMED_OUT, or CANCELLED", "commit reconciliation evidence", "release reconciliation quota"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain RECONCILING"},
+          "recovery": {"strategy": "return immutable reconciled result", "target": "SETTLED"},
+          "rejection": {"code": "NO_EFFECT_NOT_PROVEN", "disposition": "remain RECONCILING"}
+        },
+        {
+          "id": "OPR-011",
+          "from": ["RECONCILING"],
+          "to": "ACCEPTED",
+          "trigger": "authorized_retry_after_no_effect_proof",
+          "actor": ["CONTROLLER", "CONTROL_SERVICE", "RECOVERY_COORDINATOR", "DRIVER_GATEWAY"],
+          "preconditions": ["authoritative reconciliation evidence bound to the prior current AttemptId and its immutable accepted tuple proves no external effect", "same OperationId and identical RequestDigest are retained", "capability retry policy permits retry", "retry budget remains", "the then-current signed effect_enabled assignment, authority, leader, controller when interactive, driver host, context, attachment, binding, execution, and revisions independently satisfy acceptance guards and are not required to equal the prior attempt's tuple", "operator reason is recorded when policy requires"],
+          "effects": ["set certainty NO_EFFECT before readmission and retain the prior attempt's authoritative proof", "retain OperationId and RequestDigest", "increment AttemptNumber exactly once", "allocate a new opaque globally unique AttemptId and append its record to AttemptHistory", "bind the new AttemptId exactly once to the then-current complete authority, generation, leader, controller, driver, and execution fence tuple", "allocate a new local PENDING EffectPermitId bound to the new attempt and its immutable tuple", "bind a new unconsumed SaaAttemptPermitId for the then-current effect_enabled SAA grant and new attempt", "persist the new attempt's pre-effect journal intent", "retain every prior attempt, tuple, local permit, SAA permit, consume receipt, and reconciliation-evidence record unchanged", "reserve new in-flight quota", "do not allocate a new OperationId"],
+          "timeout": {"timer": "OPERATION_RESULT_DEADLINE", "on_expiry": "return to RECONCILING"},
+          "recovery": {"strategy": "reconcile the same OperationId and latest attempt", "target": "RECONCILING"},
+          "rejection": {"code": "RETRY_FORBIDDEN_WITHOUT_NO_EFFECT", "disposition": "remain RECONCILING; no dispatch"}
+        },
+        {
+          "id": "OPR-012",
+          "from": ["RECONCILING"],
+          "to": "SETTLED",
+          "trigger": "authorized_unresolved_disposition",
+          "actor": ["SYSTEM_ADMIN", "CONTROLLER", "RECOVERY_COORDINATOR"],
+          "preconditions": ["certainty remains EFFECT_POSSIBLE or EFFECT_UNKNOWN", "dedicated mission privilege and separation-of-duty policy are satisfied", "reason, evidence, impact, and follow-up are recorded", "owning execution will not automatically cross the effect boundary"],
+          "effects": ["retain existing certainty unchanged", "set settlement_outcome AUTHORIZED_UNRESOLVED", "close engine action for this OperationId", "route owning execution to STOPPING or terminal ERROR according to policy"],
+          "timeout": {"timer": "OPERATION_RECONCILIATION_DEADLINE", "on_expiry": "remain RECONCILING; unresolved settlement is never automatic"},
+          "recovery": {"strategy": "return immutable unresolved disposition and retained certainty", "target": "SETTLED"},
+          "rejection": {"code": "UNRESOLVED_DISPOSITION_NOT_AUTHORIZED", "disposition": "remain RECONCILING"}
+        }
+      ],
+      "invariants": [
+        "This machine accepts only EffectClass values other than NONE; read-only NONE requests never carry EffectCertainty.",
+        "Stage and effect_certainty are orthogonal fields and must never be inferred from each other.",
+        "The certainty enum is exactly NO_EFFECT, EFFECT_CONFIRMED, EFFECT_POSSIBLE, EFFECT_UNKNOWN.",
+        "A transport timeout or cancellation is not proof of NO_EFFECT.",
+        "No resend occurs from EFFECT_POSSIBLE or EFFECT_UNKNOWN.",
+        "A retry after authoritative NO_EFFECT retains OperationId and RequestDigest, preserves prior-attempt history unchanged, increments AttemptNumber, allocates a new opaque AttemptId, EffectPermitId, and SaaAttemptPermitId, and binds the new attempt to the then-current authority and fence tuple, which may differ from the prior attempt's tuple.",
+        "Every accepted AttemptId has exactly one immutable authority, generation, leader, controller, driver, and execution fence tuple; no retry rewrites a prior tuple or treats it as current without fresh validation.",
+        "SAA permit consumption and the local PostgreSQL commit are ordered independent authority decisions, not a distributed ACID transaction.",
+        "A failed SAA consume rolls back locally; a successful SAA consume followed by local commit failure sends nothing and permanently abandons that SaaAttemptPermitId.",
+        "A successful local permit and SAA receipt commit establishes EFFECT_POSSIBLE before send, and later authority or lease loss cannot erase the in-flight attempt.",
+        "A successor OperationId represents new intent and is never described as retry of a prior OperationId.",
+        "SETTLED never reactivates; later corrective operator intent is a new operation with an explicit relationship.",
+        "An authorized unresolved disposition does not upgrade or erase effect certainty."
+      ]
+    }
+  },
+  "generated_artifacts": [
+    "language enums with terminal flags",
+    "transition dispatch tables",
+    "guard and stable-rejection interfaces",
+    "OpenAPI and event-schema enum fragments",
+    "database check constraints",
+    "positive transition tests",
+    "negative all-other-edge tests",
+    "terminal immutability property tests",
+    "idempotency, revision, fencing, timeout, and recovery race tests",
+    "documentation diagrams and state tables"
+  ]
+}

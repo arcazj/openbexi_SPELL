@@ -6,6 +6,284 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-07-18 - v0.4 Gate 0 Pass And Implementation Start
+
+### Gate Result
+
+The final local `G0` / `V04-GATE-0` record passed under the digest-pinned
+Python 3.13 image after exact owner-manifest binding. The exhaustive
+compatibility catalog reconciles 1,682 approved disposition rows across all
+seven sources and 304 pages, with 125 rows in the Candidate A slice and 1,557
+Deferred/`EXCLUDE` rows. The compatibility and Gate 0 suites report 21 and 17
+passing tests respectively, with zero structural errors or technical blockers.
+
+### Implementation Status
+
+Bounded Candidate A product engineering is authorized and has started. Work is
+limited to the exact nine-RPC typed simulator lifecycle boundary, separate
+driver host and private journal, mutual service identity, canonical persistence,
+and authenticated read-only projection. Existing v0.3 procedure semantics are
+not routed through the driver. Candidate B and all telemetry data-plane,
+telecommand, operational, connected, mission, broader language, and broader GUI
+behavior remain excluded.
+
+This is an implementation-start record, not v0.4 acceptance. Gates 1-5 remain
+mandatory, and no release, operational authorization, deployment approval, or
+compliance determination is recorded.
+
+## 2026-07-18 - Local v0.4 Candidate A Gate Approval
+
+### Owner Request
+
+JC Arcaz stated: "Revise v0.4 to a local-only, synthetic non-CUI simulator
+engineering gate. I, JC Arcaz, am the project owner and approve Candidate A,
+its exclusions, budgets, and test plan. Remove organization-only approval
+requirements without making operational or compliance claims."
+
+### Gate Revision
+
+The v0.4 gate now requires the project-owner record plus bounded engineering
+evidence for Candidate A. Candidate B remains deferred. Organization, mission,
+protected-data, assessment, deployment, authorizing-official, proposed-ADR, and
+other role-based approvals remain in the broader next-generation records but
+are not local v0.4 entry requirements.
+
+The approved worker boundary is bounded non-executing IR plus strict mTLS
+credential separation and fail-closed driver authentication. A route may exist
+on the shared local development network, but the procedure worker may have no
+product call path or usable driver credential. This is a bounded local
+engineering decision, not a deployment or isolation claim for another scope.
+
+Gate 0 requires exhaustive source identity/span, classification, Candidate A or
+Deferred/`EXCLUDE` disposition, target phase, a unique planned test identity,
+errata handling, and reconciled counts. Deferred rows require static source and
+negative-scope evidence; they do not require executable fixtures, semantic
+oracles, or results and do not claim implementation. In-scope v0.4 fixtures
+execute at the applicable later release gates.
+
+### Current Disposition
+
+The owner scope decision is recorded. Product edits remain blocked until the
+candidate exhaustive seven-source catalog passes deterministic validation and
+fresh independent source review and the exact local gate files are bound by the
+owner-record SHA-256 manifest. The manifest is change-detection evidence, not a
+signature. No release acceptance, operational authorization, deployment
+approval, or compliance determination is recorded by this entry.
+
+## 2026-07-18 - Complete v0.4 Before Beginning v0.5
+
+**Superseded gate note:** The later owner instruction recorded above preserves
+the required v0.4-before-v0.5 sequence but replaces this entry's organization-
+approval blockers with the local Candidate A owner record and technical Gate 0.
+The partial-catalog facts below remain historical checkpoints.
+
+### Owner Request
+
+The owner requested: "so complete V 0.4 and start implementing v 0.5 once V
+0.4 done".
+
+This request establishes the required order: Candidate v0.4 must pass its entry
+gate, implementation, complete qualification, release decision, commit, and tag
+before a separately gated v0.5 implementation may begin. It does not identify
+the owner or the other named approval-role holders, sign the exact Draft
+baseline, close the ten G0 phase-entry decisions, approve the 366 normative
+allocations, or supply the remaining compatibility dispositions. Those actions
+cannot be inferred or performed by the project-declared AI assistance tool.
+
+### Current Disposition
+
+Gate G0 and `V04-GATE-0` remain blocked. The next permitted work is the
+source-grounded completion of the seven-manual compatibility inventory and
+preparation of the exact approval inputs. No v0.4 product runtime, API, schema,
+dependency, deployment, or operational change is authorized until the required
+named human decisions and signatures are verified. After v0.4 is accepted,
+v0.5 requires its own pre-implementation scope, compatibility/errata approval,
+requirements, acceptance tests, and entry decision before product edits.
+
+### Bounded Progress
+
+The permitted documentation-conformance increment now represents all seven
+authoritative source records and reconciles 257 rows: 195 exact Language
+Reference example number/title/page indexes, 40 prior Driver Manual assertions,
+and 22 prior Server Manual assertions. The example bodies and oracles are not
+decomposed, no fixture or result evidence exists, and their target increment is
+unassigned pending `OD-008`. The four GUI, Development Environment, Build, and
+GUI 4.0.2 source catalogs still have zero detailed rows; the non-example
+Language Reference catalog and the complete Driver and Server catalogs also
+remain open. The record contains 195 `Indexed` and 62 `Decomposed` rows, all
+`PENDING_HUMAN_APPROVAL`. Focused compatibility and G0 validator tests pass
+structurally, while the default G0 decision remains `BLOCKED` as required.
+
+## 2026-07-18 - Roadmap-Directed NG-WP-00 Continuation
+
+**Superseded gate note:** The later local v0.4 revision recorded above removes
+the organization-only approvals and signed-baseline conditions described here
+from Candidate A Gate 0. This entry remains the factual record of the earlier
+bounded increment.
+
+### Owner Request
+
+The owner requested: "move forward according `PROJECT_ROADMAP.md`".
+
+The roadmap keeps Gate G0 blocked and prohibits starting `NG-WP-01` or wiring
+the experimental startup modules into the product before named human decisions,
+approvals, and a signed baseline. This request therefore authorizes the next
+machine-actionable `NG-WP-00` documentation-conformance increment; it is not a
+substitute for `OD-023`, per-decision approval, per-requirement signatures, or
+the explicit v0.4 product gate.
+
+### Bounded Outcome
+
+A partial Candidate v0.4 compatibility seed was prepared from selected Driver
+Development Manual and Server Manual source assertions:
+
+- 62 unique source-bound rows with all 25 required compatibility fields;
+- 40 Driver Manual and 22 Server Manual assertions;
+- an explicit partial v0.4 scope and digest-pinned reconciliation record;
+- a validator and adversarial tests for identity, hashes, pages, schema,
+  counts, membership, approval spoofing, and reconciliation freshness; and
+- no product runtime, API, schema, dependency, deployment, or operational
+  change.
+
+Every row remains `Decomposed` and `PENDING_HUMAN_APPROVAL`. The other five
+sources, full Driver and Server catalogs, and all normative examples remain
+open. The result does not complete `COMP-001`, `NG-WP-00`, `V04-GATE-0`, or G0
+and does not authorize `NG-WP-01`.
+
+## 2026-07-17 - SPELL v0.4 Gate Draft
+
+### Release Identity
+
+| Field | Value |
+| --- | --- |
+| Version target | 0.4.0 |
+| Release name | Typed Simulator Driver and Context Foundation |
+| Request type | Next-step planning and pre-implementation gate |
+| Status | Gate revised after complete supplied-manual review; owner approval pending |
+| Accepted product baseline | Commit `7bccbb4eb096b22d0d1f2f765d5172f6dde244f1`, tag `v0.3.0` |
+| Product implementation | Not authorized |
+| Operational authorization | None |
+
+### Owner Request
+
+After creating the v0.3.1 roadmap and version timeline, the owner requested:
+"implement next step". The roadmap identifies two possible v0.4 foundations
+and requires one to be selected through a new pre-implementation gate.
+
+This request is recorded as authorization to draft the next required planning
+gate, not as unambiguous approval to change product behavior. Candidate A was
+selected for the draft because v0.3 explicitly carries driver-host contracts
+forward to v0.4 and it is the prerequisite for documented simulator service
+conformance and eventual read-only legacy observation. Candidate B remains
+deferred from v0.4.
+
+The owner then requested a complete review of the SPELL documentation under
+`SPELL-DOCUMENTATION/`, a roadmap revision, and a check that future development
+follows the documentation closely. Seven PDFs totaling 304 pages were reviewed
+page by page on 2026-07-17. That request authorizes documentation-conformance
+and planning corrections only; it does not approve v0.4 product implementation.
+
+### Consolidated Version 0.4 Gate Prompt
+
+Before any v0.4 product edit, propose one bounded, simulator-only Typed
+Simulator Driver and Context Foundation release based on the accepted v0.3.0
+tag and the complete supplied-manual review.
+
+The proposal must:
+
+- Define a versioned protobuf/gRPC contract with bounded typed messages,
+  deterministic generated code, explicit compatibility rules, and a
+  capability/version/identity/configuration/generation handshake.
+- Separate host, context-binding, execution-attachment, capability lifecycle,
+  and operation state; carry stable server-profile, context, execution,
+  driver-binding, and operation identity.
+- Define typed host-profile, context-binding, and execution-attachment
+  configuration with separate generations/digests, explicit precedence,
+  out-of-band secret references, granular capabilities, setup/cleanup order,
+  and named host/per-context capacity.
+- Add exactly one bundled deterministic simulator driver in a separate
+  non-root, read-only host with no published port, database route, public route,
+  mission route, or arbitrary endpoint configuration.
+- Limit the driver surface to the nine infrastructure methods `Handshake`,
+  `Health`, `OpenContext`, `CloseContext`, `AttachExecution`,
+  `DetachExecution`, `CancelLifecycleOperation`, `DrainHost`, and
+  `GetOperation`.
+- Keep the control-plane supervisor as the sole gateway and owner of canonical
+  project-database, audit, and event persistence. Give the driver only a
+  private bounded idempotency journal for restart reconciliation; neither the
+  browser nor the procedure worker may hold a usable driver credential or
+  invoke the host directly under the approved threat model.
+- Use mutual service authentication independent of browser JWTs, with no
+  insecure fallback and no credential leakage into workers, clients, logs,
+  events, reports, images, SBOMs, or packages.
+- Persist a stable operation ID before dispatch, deduplicate retries by that
+  identity, separate lifecycle stage from effect certainty, fence stale
+  generations, and latch uncertain outcomes for reconciliation without
+  automatic resend.
+- Add only authenticated read-only driver snapshots and console projection; no
+  browser driver-control mutation is allowed.
+- Define fresh/populated SQLite and PostgreSQL migrations, rollback, failure
+  injection, compatibility regression, local performance budgets, dependency
+  locks, audits, driver SBOM, and reproducible v0.4 evidence.
+- Parameterize release evidence so v0.4 cannot overwrite or satisfy itself with
+  retained v0.3 artifacts.
+- Record a populated compatibility disposition and errata process for every
+  documented language artifact, server/configuration item, driver contract,
+  operator/development workflow or view, build/deployment concept, and example
+  without implementing later language, UI, development, telemetry, or command
+  phases in v0.4.
+
+Do not add telemetry or telecommand driver services, route existing procedures
+through the host, add new procedure syntax, implement prompt-result binding,
+connect to a live or legacy GCS or spacecraft, permit arbitrary endpoints, add
+externally effective behavior, or claim operational authorization.
+
+### Unresolved Entry Decisions
+
+The owner must explicitly resolve or approve:
+
+1. Candidate A as the sole v0.4 product scope and Candidate B as deferred.
+2. Worker-to-driver network and credential isolation. Workers currently share
+   the backend container network namespace, so route isolation is not yet a
+   supported claim.
+3. Contract namespace, compatibility rules, bounded messages, lifecycle
+   methods, context/execution identity, configuration precedence, capabilities,
+   capacity, errors, stages, certainty values, and deterministic simulator
+   fixture.
+4. Local mutual-authentication identity issuance, rotation, expiry, revocation,
+   storage, and redaction.
+5. Migration, canonical operation-ledger, private driver-journal
+   retention/corruption/fail-closed behavior, read-only API/event, rollback,
+   performance, and release-evidence designs.
+6. The intended clean repository change set, excluding unrelated staged,
+   modified, untracked, and potentially credential-bearing artifacts.
+7. A populated exhaustive cross-manual compatibility ledger, reconciled
+   per-manual artifact counts, errata decisions, and any
+   licensing/publication boundary for the external PDFs.
+
+### Entry Decision
+
+**Pending.** [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md)
+and the v0.4 section of [`Test_and_Integration.md`](Test_and_Integration.md) are
+draft proposals. Their creation does not approve the release or authorize
+implementation. Product code, schemas, dependencies, services, and deployment
+configuration must remain unchanged until the owner explicitly approves or
+revises the complete gate.
+
+### Gate Draft Outcome
+
+The v0.4 scope, exclusions, trust boundary, operation-certainty model,
+requirements, planned tests, local budgets, rollback, risks, and entry/exit
+criteria were documented on 2026-07-17. The later page-complete manual review
+revised the gate to include context/execution binding, typed configuration,
+granular capability/capacity, lifecycle ordering, documentation traceability,
+and package lifecycle tests. It also reordered future work so documented
+simulator language, operator, telemetry, data, development, auxiliary service,
+and telecommand conformance precedes legacy observation. No v0.4 product
+implementation, qualification result, release commit, tag, or operational
+authorization is claimed. The required populated compatibility ledger and
+owner gate decision remain incomplete.
+
 ## 2026-07-16 - SPELL v0.3
 
 ### Release Identity
@@ -238,7 +516,8 @@ the complete v0.1 package is reviewed and explicitly approved.
 
 - Manual content is 2.4.4 while the source and GUI packages identify as 2.6.10
   and 4.0.12 respectively.
-- The required Development Environment manual is absent.
+- The required Development Environment manual was absent from the evidence
+  supplied for v0.1. It was supplied and reviewed later on 2026-07-17.
 - Core release notes stop before the archive version and GUI release notes stop
   before the product version.
 - The core has dual Python 2/3 executors, while the target will be Python 3 only.
@@ -282,11 +561,11 @@ This records approval of the v0.1 baseline for this bounded implementation
 slice. It does not approve live Ground Control System (GCS), spacecraft,
 production, or operational use.
 
-The missing SPELL Development Environment manual is waived for v0.2 only
-because this release does not implement the full authoring environment. The gap
-remains open for any later authoring-tool scope. Operational workload profiles
-and service-level objectives are also deferred; v0.2 uses provisional local
-engineering targets only.
+At the time of the v0.2 gate, the missing SPELL Development Environment manual
+was waived for v0.2 only because this release did not implement the full
+authoring environment. The manual was later supplied and reviewed on
+2026-07-17. Operational workload profiles and service-level objectives were
+also deferred; v0.2 used provisional local engineering targets only.
 
 ### Consolidated Version 0.2 Prompt
 
@@ -400,8 +679,8 @@ prompt.
 - The performance and soak plan, a separate manual keyboard-only review, and a
   single outbound-disabled full browser workflow remain accepted exceptions.
 - Five Starlette advisories, Python artifact hash locking, project licensing,
-  production authentication, and the missing Development Environment manual
-  remain open.
+  production authentication, and the then-missing Development Environment
+  manual remained open at v0.2 acceptance.
 - Full language compatibility, authoring, driver/GCS, spacecraft, high
   availability, and operational workload qualification remain deferred.
 

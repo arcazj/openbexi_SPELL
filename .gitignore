@@ -10,8 +10,12 @@ __pycache__/
 .venv/
 var/
 
+# The controlled GUI manual uses its versioned Draft filename.
+NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL.pdf
+
 .idea/
 *.iml
+SPELL-DOCUMENTATION/
 
 frontend/node_modules/
 frontend/dist/
@@ -21,6 +25,12 @@ frontend/test-results/
 
 artifacts/*.tar.gz
 artifacts/*.tar.gz.sha256
+artifacts/v04-plan.json
+artifacts/v0.4/.qualification/
+artifacts/v0.4/*.tar.gz
+artifacts/v0.4/*.tar.gz.sha256
+artifacts/v0.4/browser/
+artifacts/v0.4/performance-*.json
 
 *.log
 

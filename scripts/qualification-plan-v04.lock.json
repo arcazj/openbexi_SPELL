@@ -1,0 +1,14 @@
+{
+  "schema_version": "spell.v04.qualification-plan-lock/1",
+  "product_version": "0.4.0",
+  "plan_schema_version": "spell.v04.qualification-plan/1",
+  "canonical_plan_sha256": "72edbd49451c7512e19166b7791f9f583821ebee89d3b5fa1af9313e210437d3",
+  "test_count": 74,
+  "planned_builtin_count": 41,
+  "planned_collector_count": 33,
+  "actual_builtin_count": 40,
+  "actual_collector_count": 34,
+  "builtin_collector_overrides": [
+    "V04-ISO-001"
+  ]
+}

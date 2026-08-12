@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import multiprocessing
 import hashlib
 import json
@@ -19,7 +20,7 @@ from .events import EventHub
 from .models import Command, Event, Execution, Prompt
 from .procedure_parser import IR_VERSION, Procedure, ProcedureCatalog
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
-from .worker import worker_main
+from .worker import sanitized_worker_environment, worker_main
 
 
 TERMINAL_STATES = {"completed", "aborted", "failed"}
@@ -34,6 +35,7 @@ ACTIVE_STATES = {
     "recovering",
 }
 PROCEDURE_SUBSET_VERSION = f"spell-restricted-ast/{IR_VERSION}"
+_WORKER_SPAWN_ENVIRONMENT_LOCK = threading.Lock()
 
 
 def canonical_hash(value: dict[str, Any]) -> str:
@@ -711,7 +713,19 @@ class Supervisor:
                 generation=generation,
             )
             self._workers[execution_id] = handle
-            process.start()
+            # ``spawn`` otherwise copies every backend service secret into the
+            # child process environment. Serialize the short environment swap so
+            # the child starts with only inert runtime keys, then restore the API.
+            with _WORKER_SPAWN_ENVIRONMENT_LOCK:
+                service_environment = dict(os.environ)
+                try:
+                    worker_environment = sanitized_worker_environment()
+                    os.environ.clear()
+                    os.environ.update(worker_environment)
+                    process.start()
+                finally:
+                    os.environ.clear()
+                    os.environ.update(service_environment)
         threading.Thread(
             target=self._consume_worker, args=(execution_id, handle), daemon=True
         ).start()

@@ -5,11 +5,217 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current release | SPELL v0.3 |
-| Status | v0.3 local simulator engineering release accepted |
-| Date | 2026-07-16 |
+| Current accepted product release | SPELL v0.3.0, tag `v0.3.0` |
+| Planning target | SPELL v0.4.0 - Typed Simulator Driver and Context Foundation |
+| Status | v0.3 accepted; v0.4 local Candidate A scope/test plan owner-approved; `V04-GATE-0 PASS`; Gates 1-5 pending |
+| Date | 2026-07-17; local gate disposition recorded 2026-07-18 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
+
+## Version 0.4 Pre-Implementation Test Plan
+
+### Gate Status And Scope
+
+This section is the owner-approved acceptance contract for the local-only,
+synthetic non-CUI Candidate A scope in
+[`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md). Every
+result is `Planned`. No v0.4 implementation or executed evidence exists, and
+the section does not supersede the accepted v0.3 results below.
+
+The planned product slice is one typed, mutually authenticated, out-of-process
+deterministic simulator driver supporting host/context/execution lifecycle,
+configuration, capability, capacity, and operation reconciliation only.
+Existing procedure and simulated `Telemetry` behavior remains on the v0.3
+path. No live/legacy GCS, spacecraft, mission network, arbitrary endpoint,
+telemetry data plane, telecommand service, or externally effective capability
+is allowed.
+
+### Requirements And Traceability
+
+| Requirement ID | Requirement | Severity | Primary tests |
+| --- | --- | --- | --- |
+| `V04-REQ-GOV-001` | The approved scope, threat model, network matrix, certainty model, budgets, exclusions, rollback, and test mapping precede product edits | Critical | `V04-DOC-001` |
+| `V04-REQ-DOC-001` | All seven supplied PDFs and 304 pages are inventoried and reviewed; before gate approval, a populated exhaustive cross-manual artifact ledger, reconciled source counts, and approved errata replace unsupported inference | High | `V04-DOC-002`, `V04-DOC-003` |
+| `V04-REQ-BOUND-001` | Normal and test configuration can resolve only the bundled deterministic simulator; arbitrary, legacy, GCS, spacecraft, mission, and externally effective modes are rejected | Critical | `V04-BOUND-001`, `V04-BOUND-002` |
+| `V04-REQ-SCOPE-001` | The v0.4 descriptor and handshake expose exactly nine infrastructure lifecycle RPCs and no future service; procedure source/IR cannot enter the driver and accepted v0.3 `Telemetry` produces zero execution-correlated driver call/binding/journal delta | Critical | `V04-SCOPE-001`, `V04-SCOPE-002` |
+| `V04-REQ-CON-001` | Protobuf/gRPC messages are typed, versioned, bounded, deterministically generated, and use structured errors without untyped escape hatches | Critical | `V04-CON-001`, `V04-CON-002`, `V04-CON-003` |
+| `V04-REQ-CON-002` | Handshake identifies contract, implementation, logical host, simulator marker, driver-host generation/profile digest, explicit capabilities, and named capacity; mismatch fails closed | Critical | `V04-CON-004`, `V04-CON-005` |
+| `V04-REQ-CTX-001` | Stable server-profile, driver-host-generation, context-generation, execution, execution-attachment-generation, driver-binding, and operation identities separate host, context, attachment, and operation lifecycles | Critical | `V04-CTX-001`, `V04-CTX-002` |
+| `V04-REQ-CFG-001` | Typed versioned host-profile, context-binding, and allowlisted execution-attachment configuration has approved precedence, separate immutable non-secret digests/generations, credential epochs, and out-of-band secret references; operation/journal evidence binds the full applicable tuple | Critical | `V04-CFG-001`, `V04-CFG-002`, `V04-CFG-003`, `V04-CFG-004` |
+| `V04-REQ-CAP-001` | Capability negotiation is granular by service, method, modifier/format, mutability, stream support, and capacity; absent behavior is explicitly unsupported | Critical | `V04-CAP-001`, `V04-CAP-002` |
+| `V04-REQ-ARCH-001` | The driver runs as a separate non-root, read-only host whose failure cannot terminate the API, worker, or database | Critical | `V04-ISO-001`, `V04-ISO-003` |
+| `V04-REQ-ARCH-002` | The browser has no driver route; procedure workers have no driver product call path or usable service credential and cannot authenticate even when a shared local development-network route exists | Critical | `V04-ISO-002`, `V04-ISO-004` |
+| `V04-REQ-SEC-001` | Gateway and driver use mutually authenticated encrypted service identities with no insecure fallback | Critical | `V04-SEC-001`, `V04-SEC-002` |
+| `V04-REQ-SEC-002` | Driver private keys and service credentials never reach workers, clients, API payloads, logs, events, reports, images, SBOMs, or packages | Critical | `V04-SEC-003`, `V04-SEC-004` |
+| `V04-REQ-LIFE-001` | Handshake, health, context open/active/degraded/close, execution attach/detach, host drain/close, failed, and unsupported behavior is explicit and deterministic | High | `V04-LIFE-001`, `V04-LIFE-002`, `V04-LIFE-003` |
+| `V04-REQ-LIFE-002` | Lifecycle mutations require explicit deadlines, cooperative cancellation, and bounded forced termination | Critical | `V04-DEAD-001`, `V04-DEAD-002`, `V04-DEAD-003`, `V04-DEAD-004` |
+| `V04-REQ-LIFE-003` | A per-RPC hook matrix makes configuration setup first and cleanup last; execution attach/detach covers load/reload and finish/abort with compensation, cleanup is best effort with typed audited outcomes, and infrastructure state remains distinct from procedure state | Critical | `V04-LIFE-004`, `V04-CTX-002` |
+| `V04-REQ-OP-001` | One stable operation ID and request digest persist before dispatch; every retry retains that identity | Critical | `V04-OP-001`, `V04-OP-002` |
+| `V04-REQ-OP-002` | A private bounded driver journal lets the host deduplicate an `OperationId`/`AttemptId` pair across transport retry/restart and reject a conflicting request digest without accessing the project database | Critical | `V04-OP-003` |
+| `V04-REQ-JRN-001` | The driver journal persists identity before effect and result before reply, never reuses/unsafely evicts an ID, and fails closed without resend on full, missing, truncated, corrupt, or failed storage | Critical | `V04-JRN-001`, `V04-JRN-002`, `V04-JRN-003` |
+| `V04-REQ-OP-003` | Operation-attempt history is append-only; progress is ordered by `(AttemptNumber, per-attempt stage)`; certainty refinements retain prior evidence; and one durable terminal disposition settles the operation | Critical | `V04-OP-004`, `V04-OP-005` |
+| `V04-REQ-SAFE-001` | `EFFECT_POSSIBLE` and `EFFECT_UNKNOWN` operations remain reconciliation-required and can never trigger automatic resend or an invented success/failure | Critical | `V04-OP-006`, `V04-REC-004` |
+| `V04-REQ-DATA-001` | Within the canonical project database, driver identity, operation, stage, certainty, audit, and outbox changes commit atomically before projection | Critical | `V04-REC-001`, `V04-REC-002` |
+| `V04-REQ-REC-001` | API/driver crash, timeout, partition, cancellation, stale response, database failure, and restart reconcile by operation ID without duplicate simulator effect | Critical | `V04-REC-003`, `V04-REC-004`, `V04-REC-005`, `V04-REC-006`, `V04-REC-007` |
+| `V04-REQ-MIG-001` | Static ordered migrations support fresh and populated-v0.3 SQLite/PostgreSQL stores, repeat safely, and roll back cleanly | Critical | `V04-MIG-001`, `V04-MIG-002`, `V04-MIG-003`, `V04-MIG-004` |
+| `V04-REQ-API-001` | REST is authoritative, WebSocket downstream-only, driver/context/binding/operation additions are authenticated/read-only/versioned, and endpoint or secret data is not exposed | High | `V04-API-001`, `V04-API-002`, `V04-API-003` |
+| `V04-REQ-UI-001` | The 2D UI clearly exposes simulator identity, context/binding, capacity, infrastructure health, capability, stage, certainty, staleness, and disconnected/degraded state without a driver mutation control | High | `V04-UI-001`, `V04-UI-002`, `V04-UI-003`, `V04-UI-004` |
+| `V04-REQ-PERF-001` | The approved local lifecycle latency, cancellation, restart, concurrency, memory, and soak budgets pass without duplicate or stuck operations | High | `V04-PERF-001`, `V04-PERF-002`, `V04-PERF-003`, `V04-PERF-004` |
+| `V04-REQ-SC-001` | New schemas, dependencies, generated code, images, evidence, and packages are locked, audited, inventoried, secret-free, version-isolated, and reproducible | High | `V04-SC-001`, `V04-SC-002`, `V04-SC-003`, `V04-SC-004`, `V04-SC-005` |
+| `V04-REQ-SC-002` | The separate driver package has declared platform support and verified install, disabled-default, upgrade, rollback, and uninstall behavior | High | `V04-SC-006` |
+| `V04-REQ-REG-001` | Complete accepted-v0.3 backend, PostgreSQL, browser, security, recovery, qualification, and package behavior remains compatible | Critical | `V04-REG-001` |
+
+### Planned Environments
+
+| Code | Environment |
+| --- | --- |
+| `DOC` | Static documentation, schema, source, and traceability review |
+| `DEV` | Network-disabled backend tests with SQLite and deterministic simulator fixtures |
+| `PG` | Target PostgreSQL version with fresh and populated-v0.3 databases |
+| `CMP` | Production-shape Compose topology with proxy, backend, worker boundary, database, and driver host |
+| `BR` | Desktop and mobile Chromium against the real loopback backend |
+| `FLT` | Deterministic process, RPC, network, database, clock, cancellation, and late-message fault injection |
+| `PKG` | Offline dependency, code-generation, SBOM, qualification, package, and reproducibility environment |
+
+No v0.4 environment may contain a GCS, spacecraft, mission endpoint,
+operational credential, arbitrary driver address, or externally effective
+command target.
+
+### Planned Acceptance Tests
+
+| Test ID | Acceptance test | Environment | Result |
+| --- | --- | --- | --- |
+| `V04-DOC-001` | Gate review proves scope, exclusions, threat model, network matrix, certainty table, budgets, rollback, ownership, and requirement/test traceability are explicitly owner-approved before product edits | `DOC` | Planned |
+| `V04-DOC-002` | Inventory verifies seven PDFs, 304/304 reviewed pages, exact file hashes, mixed 2.4.4/4.0.2 evidence versions, version limitations, and external-evidence packaging restrictions recorded in `SPELL_DOCUMENTATION_REVIEW.md` | `DOC` | Planned |
+| `V04-DOC-003` | A populated ledger has one uniquely counted row for every language construct/syntax/operator, function, modifier, constant, type, outcome/action, state/control, server/configuration field, driver service/method/result/status, operator/development workflow/view, build/install/deployment concept, and all 195 examples; manual/version/hash/page provenance, effect class, safe behavior, disposition, phase, test, and errata status are present and per-manual inventories reconcile with no omission | `DOC` | Planned |
+| `V04-BOUND-001` | Static and runtime configuration accepts only the bundled simulator identity and rejects arbitrary URLs, IPs, DNS names, legacy/GCS/spacecraft modes, and operational identifiers | `DEV`, `CMP` | Planned |
+| `V04-BOUND-002` | Packet capture and connection logs show zero traffic to public, host, GCS, spacecraft, mission, or unapproved networks through nominal and fault runs | `CMP`, `FLT` | Planned |
+| `V04-SCOPE-001` | Descriptor and handshake golden evidence exposes exactly `Handshake`, `Health`, `OpenContext`, `CloseContext`, `AttachExecution`, `DetachExecution`, `CancelLifecycleOperation`, `DrainHost`, and `GetOperation`; TM, TC, event, resource, task, time, ranging, memory, PCS, database, subscription, and procedure-service RPCs/capabilities are absent, and unknown RPCs fail bounded/audited before dispatch | `DEV`, `CMP`, `PKG` | Planned |
+| `V04-SCOPE-002` | With the v0.4 host active and background health/lifecycle traffic baselined, proto/schema/static analysis proves no procedure source, AST, IR, variable, prompt, TM, or TC payload can enter the driver; an accepted-v0.3 simulated `Telemetry` execution creates zero execution-correlated driver RPC, context, binding, operation, or journal delta and does not alter the unrelated baseline | `DEV`, `PG`, `CMP` | Planned |
+| `V04-CON-001` | Golden descriptor, field numbers, enum values, generated-source hashes, and two offline generations are byte-for-byte deterministic | `DEV`, `PKG` | Planned |
+| `V04-CON-002` | Major/minor compatibility matrix proves approved additive behavior and rejection of incompatible versions, reused fields, changed semantics, unknown enums, and untyped payloads | `DEV` | Planned |
+| `V04-CON-003` | Malformed, truncated, oversized, deeply nested, duplicate-conflicting, and unsafe-error payloads fail closed within bounded memory and do not echo input or secrets | `DEV`, `FLT` | Planned |
+| `V04-CON-004` | Handshake binds schema, implementation, logical identity, simulator marker, driver-host generation/profile digest, exact infrastructure-only capabilities, and named capacity | `DEV`, `CMP` | Planned |
+| `V04-CON-005` | Contract, host identity/generation/profile, context/attachment digest, or lifecycle-capability mismatch rejects at its applicable boundary; a known unsupported lifecycle option returns typed `UNSUPPORTED` and no absent future service can dispatch | `DEV`, `FLT` | Planned |
+| `V04-CTX-001` | Contract and persistence require stable server-profile, driver-host-generation, context-generation, execution, execution-attachment-generation, driver-binding, request-operation, and target-operation IDs; missing, stale, cross-context, or conflicting identity fails closed and is audited | `DEV`, `PG`, `FLT` | Planned |
+| `V04-CTX-002` | Host, context, execution-attachment, operation, and documented procedure state machines are distinct; initial load attaches once, reload durably detaches/cleans the prior generation then sets up a new generation, finish/abort detaches once, and stale generations cannot cross-bind | `DEV`, `PG`, `FLT` | Planned |
+| `V04-CFG-001` | Contract/server/driver precedence resolves a deterministic host-profile digest; host plus context resolves a separate context-binding digest; context plus allowlisted execution inputs resolves a separate attachment digest; each is schema-versioned and stable across restart/offline rebuild | `DEV`, `CMP`, `PKG` | Planned |
+| `V04-CFG-002` | Unknown host fields and hidden overrides reject before host readiness; invalid context data rejects `OpenContext`; invalid execution data rejects `AttachExecution`; changed/stale parent digest, inline secret, or unsafe path/endpoint fails at its own boundary without echoing sensitive data | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-CFG-003` | Transition matrix proves unchanged host restart gives new host generation/same digest; changed host profile gives new generation/digest after drain/fence; context reopen and execution reload always give new child generations/bindings while same inputs retain and changed inputs replace their layer digest | `DEV`, `PG`, `CMP`, `FLT` | Planned |
+| `V04-CFG-004` | Secret-value rotation under one reference retains configuration digests, increments audited credential epoch, and rejects the old value; secret-reference change transitions the owning layer; canonical request digest, operation row, and journal bind identical explicit host/context/attachment generation, binding, and configuration-digest tuples | `DEV`, `PG`, `CMP`, `FLT` | Planned |
+| `V04-CAP-001` | Handshake descriptors independently negotiate infrastructure service, method, modifier/format, mutability, stream support, and host/per-context capacity; coarse interface names cannot imply an absent capability | `DEV`, `CMP` | Planned |
+| `V04-CAP-002` | Exhausting `MaxContextsPerHost`, `MaxAttachmentsPerContext`, `MaxLifecycleOperationsPerHost`, or `MaxLifecycleOperationsPerContext` rejects before the relevant hook/dispatch with typed no-effect; reservation/release traces remain bounded under races and unsupported behavior never silently queues or executes | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-ISO-001` | Container inspection proves a separate PID namespace, non-root identity, read-only root filesystem, dropped capabilities, bounded resources, one private journal mount, and no published host port | `CMP` | Planned |
+| `V04-ISO-002` | Browser probes prove no driver route; worker probes may observe the accepted shared local route but prove no product dispatch path, no usable driver credential, and fail-closed authentication for missing, wrong-role, wrong-CA, expired, revoked, and stale identities | `CMP`, `FLT` | Planned |
+| `V04-ISO-003` | Killing or wedging the driver cannot terminate the proxy, API, worker, or database; the persisted state becomes visibly degraded/stale | `CMP`, `FLT` | Planned |
+| `V04-ISO-004` | Driver probes cannot reach the database, proxy, host services, or any external/internet target; DNS resolution cannot create an unapproved route and only the gateway path appears in the network matrix | `CMP`, `FLT` | Planned |
+| `V04-SEC-001` | Valid current gateway/driver mutual identity succeeds; missing, wrong-role, wrong-CA, expired, revoked, or stale identity fails before method dispatch | `DEV`, `CMP` | Planned |
+| `V04-SEC-002` | Identity/secret-value rotation increments the audited credential epoch and rejects old credentials without insecure fallback, mixed generation, configuration-digest drift, silent trust expansion, or indefinitely accepted expired credentials | `CMP`, `FLT` | Planned |
+| `V04-SEC-003` | Canary service secrets are absent from worker environment/files, browser storage, frontend bundles, REST/WebSocket data, logs, errors, events, reports, screenshots, SBOMs, and package | `DEV`, `BR`, `PKG` | Planned |
+| `V04-SEC-004` | gRPC reflection, proxy routing, browser JWT use as service identity, unauthorized metadata, and direct driver administration are rejected and audited safely | `DEV`, `CMP` | Planned |
+| `V04-LIFE-001` | Handshake, health, context open/active/degraded/close, execution attach/detach, host drain/close, and failed transitions follow the approved distinct state tables | `DEV`, `CMP` | Planned |
+| `V04-LIFE-002` | Open/close, attach/detach, lifecycle-operation cancellation, and drain are idempotent by request operation ID; cancellation requires a target operation ID, is allowed only for accepted/dispatched targets, distinguishes transport cancellation, and settles completion races without changing target certainty | `DEV`, `FLT` | Planned |
+| `V04-LIFE-003` | Partial open/attach, repeated detach/close/drain, unhealthy readiness, stale generation, and 25 repeated restarts leave bounded visible host, context, and attachment states | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-LIFE-004` | Per-RPC ordered traces prove context and per-execution configuration hooks run first on open/attach and last on reverse detach/close cleanup, plus reload sequence, quota reservation/release, and compensating cleanup after failure at every hook; one cleanup failure is typed/audited and does not suppress later hooks | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-DEAD-001` | A request whose deadline is already expired is rejected before dispatch with authoritative `NO_EFFECT` when effect-bearing; a request with `effect_class=NONE` omits effect certainty | `DEV`, `FLT` | Planned |
+| `V04-DEAD-002` | Deadline expiry during dispatch settles according to the approved stage/certainty truth table and initiates reconciliation without resend | `DEV`, `FLT` | Planned |
+| `V04-DEAD-003` | Transport cancellation and `CancelLifecycleOperation` before effect versus after possible effect remain distinct; caller disconnect does not create a cancel mutation, and cancel acknowledgement cannot invent or overwrite target certainty | `DEV`, `FLT` | Planned |
+| `V04-DEAD-004` | An unresponsive host is force-terminated after the approved grace period; all accepted operations settle or remain explicitly reconciliation-required | `CMP`, `FLT` | Planned |
+| `V04-OP-001` | Supervisor acceptance durably stores one stable operation ID and request digest before any dispatch; database failure dispatches nothing | `DEV`, `PG`, `FLT` | Planned |
+| `V04-OP-002` | Sequential/concurrent transport retries retain the same `OperationId`, `AttemptId`, and request digest and produce one accepted attempt, at most one simulator effect, and one durable attempt disposition | `DEV`, `FLT` | Planned |
+| `V04-OP-003` | Private-journal replay after driver restart retains deduplication; the same `OperationId`/`AttemptId` and digest returns the recorded attempt result, while a conflicting digest is rejected and audited; a new `AttemptId` under the same `OperationId` is admitted only after authorized retry from authoritative `NO_EFFECT` and only when the complete generation, binding, and covered-configuration tuple still equals the tuple bound by the retained digest | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-JRN-001` | Crash injection before/after journal intent, simulator effect, journal result, driver reply, and project commit proves the persist-before-effect/result-before-reply protocol without distributed-atomicity claims | `DEV`, `PG`, `CMP`, `FLT` | Planned |
+| `V04-JRN-002` | Full quota, reservation failure, I/O error, missing file, truncation, checksum mismatch, corruption, and failed fsync reject with `NO_EFFECT` when absence is authoritative or latch `EFFECT_UNKNOWN` when evidence is missing, contradictory, or integrity-invalid; the generation degrades/fails and never redispatches | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-JRN-003` | Retention, compaction, backup/restore, generation fencing/retirement, and secure removal preserve no-ID-reuse/no-reexecution evidence; capacity exhaustion stops new driver-effect acceptance before unsafe eviction | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-OP-004` | Complete stage/certainty truth table covers success, rejection, failure, timeout, cancellation, crash, lost response, reconciliation, and stale generation | `DEV`, `FLT` | Planned |
+| `V04-OP-005` | Out-of-order, duplicate, conflicting, regressive, late, and competing reconciliation transitions cannot overwrite the one authoritative outcome | `DEV`, `PG`, `FLT` | Planned |
+| `V04-OP-006` | An `EFFECT_POSSIBLE` or `EFFECT_UNKNOWN` operation remains latched across restart and cannot automatically reexecute the same logical open/close/attach/detach/cancel/drain effect under any ID; a separately authorized containment drain/fence may use a new ID only when it cannot repeat or resolve the original effect and preserves its certainty, journal, and tombstone | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-REC-001` | Operation, transition, certainty, audit, and outbox write atomically within the canonical project-database transaction; injected failure publishes nothing and leaves no partial canonical state | `DEV`, `PG`, `FLT` | Planned |
+| `V04-REC-002` | Every downstream event is published only after commit and preserves exact sequence, cursor replay, snapshot consistency, and gap resynchronization | `DEV`, `PG`, `BR` | Planned |
+| `V04-REC-003` | API crash before dispatch and after dispatch, plus driver crash before effect and after effect, yields no lost acceptance or duplicate effect | `DEV`, `CMP`, `FLT` | Planned |
+| `V04-REC-004` | Lost acknowledgement and network partition reconcile only by original operation ID; uncertainty never becomes implicit success/failure and never causes resend | `CMP`, `FLT` | Planned |
+| `V04-REC-005` | Database outage before, during, and after driver response preserves commit-before-publish and one reconstructable operation disposition | `DEV`, `PG`, `FLT` | Planned |
+| `V04-REC-006` | Supervisor/driver/database restart reconciles every accepted operation within the approved bound and leaves none indefinitely pending | `DEV`, `PG`, `CMP`, `FLT` | Planned |
+| `V04-REC-007` | Late responses stale at any host, context, or attachment generation are retained as audit evidence but cannot mutate current lifecycle, binding, operation, or certainty state | `DEV`, `FLT` | Planned |
+| `V04-MIG-001` | Fresh SQLite and PostgreSQL migrations produce equivalent expected driver schemas, constraints, indexes, defaults, and disabled profile state | `DEV`, `PG` | Planned |
+| `V04-MIG-002` | Populated v0.3 SQLite/PostgreSQL upgrade preserves all procedures, executions, events, prompts, variables, checkpoints, audits, reports, and recovery | `DEV`, `PG` | Planned |
+| `V04-MIG-003` | Repeated upgrade is a no-op; injected migration failure rolls back schema/data/revision without partial driver records | `DEV`, `PG`, `FLT` | Planned |
+| `V04-MIG-004` | Project backup/restore and rollback with terminal, `ACCEPTED`, `DISPATCHED`, `RECONCILING`, `EFFECT_POSSIBLE`, and `EFFECT_UNKNOWN` operations retain identities, attempt history, audit, fences, and no-reexecution tombstones; unsafe rollback refuses or drains/fences without erasing certainty evidence, then restores v0.3 simulator behavior with the driver profile disabled | `DEV`, `PG`, `CMP`, `FLT` | Planned |
+| `V04-API-001` | Read-only driver, context-generation, driver-binding, and operation REST schemas enforce signed identity/roles, stable versioning, bounded pagination, safe errors, and no mutation side effect; binding ID or context ID/generation keys distinguish current/history and execution ID alone cannot select an ambiguous reload attachment | `DEV`, `PG` | Planned |
+| `V04-API-002` | Driver REST/WebSocket payloads expose no endpoint or secret and never synchronously proxy a browser request; WebSocket remains downstream-only | `DEV`, `BR`, `CMP` | Planned |
+| `V04-API-003` | Existing v0.3 replay, reconnect, role-spoofing, token-expiry, stale-revision, and duplicate-request behavior remains unchanged; read-only driver views show one authoritative result during competing internal reconciliation | `DEV`, `BR`, `FLT` | Planned |
+| `V04-UI-001` | Real-backend desktop/mobile UI visibly labels the driver as simulator-only and shows driver/context/binding identity, capacity, infrastructure health, generation, capabilities, staleness, stage, and certainty accurately | `BR` | Planned |
+| `V04-UI-002` | Degraded, disconnected, unsupported, stale, failed, and uncertain states remain distinguishable without color alone and expose no driver mutation control | `BR`, `FLT` | Planned |
+| `V04-UI-003` | Keyboard traversal, focus, accessible names, live-state announcements, responsive containment, and desktop/mobile Axe scans have no serious/critical finding | `BR` | Planned |
+| `V04-UI-004` | Browser network trace contains only approved loopback HTTP/WebSocket requests and never attempts a direct driver connection | `BR`, `CMP` | Planned |
+| `V04-PERF-001` | 1,000 health/status RPCs at 100/s have p95 at most 50 ms, maximum at most 250 ms, and zero errors | `CMP` | Planned |
+| `V04-PERF-002` | 1,000 zero-delay simulator lifecycle operations at 20/s have durable acceptance p95 at most 250 ms, terminal p95 at most 500 ms, and zero duplicate effects | `CMP` | Planned |
+| `V04-PERF-003` | 100 pre-effect `CancelLifecycleOperation` requests settle at p95 at most 500 ms/max 1 s without changing target certainty; 25 host restarts become ready and reconcile accepted work within 5 s each | `CMP`, `FLT` | Planned |
+| `V04-PERF-004` | Ten minutes at 20 mixed lifecycle/status operations/s has no loss, duplicate, stuck operation, or crash, at most 32 MiB post-warmup growth, and at most 2 MiB/min slope | `CMP` | Planned |
+| `V04-SC-001` | Python, Node, protobuf, gRPC, TLS, generator, and image inputs are version/hash locked; audits have no unresolved Critical/High finding | `PKG` | Planned |
+| `V04-SC-002` | Backend, proxy, frontend, and driver images have distinct CycloneDX inventories, image/source digests, licenses, and a checksum manifest | `PKG` | Planned |
+| `V04-SC-003` | Image/source/package inspection proves non-root/read-only/capability-drop/network policy, no runtime generator or embedded journal, no legacy archive, no supplied PDF bytes or extracted manual text; only the allowlisted review metadata (filenames, page counts, hashes) may remain unless separate clearance exists, and no secret is present | `PKG`, `CMP` | Planned |
+| `V04-SC-004` | Two offline generations and two immutable-input package builds are byte-identical and bound to the same source/descriptor/evidence fingerprint | `PKG` | Planned |
+| `V04-SC-005` | v0.4 qualification/package paths cannot overwrite, import, or pass using v0.3 evidence; package manifest excludes only generated evidence and retains product assets | `PKG` | Planned |
+| `V04-SC-006` | On every declared platform profile, install starts disabled and enable starts only the bundled simulator; upgrade/rollback/uninstall under terminal, `ACCEPTED`, `DISPATCHED`, `RECONCILING`, `EFFECT_POSSIBLE`, and `EFFECT_UNKNOWN` work must refuse, drain, or fence exactly as approved, preserve required journal/tombstones and certainty evidence, restore the prior disabled profile, retain canonical audit, and remove secrets only when safe | `PKG`, `CMP`, `FLT` | Planned |
+| `V04-REG-001` | Full accepted-v0.3 SQLite/PostgreSQL, parser, worker, REST/WebSocket, auth, isolation, recovery, browser, accessibility, performance, audit, SBOM, and reproducibility suites pass unchanged | `DEV`, `PG`, `CMP`, `BR`, `PKG` | Planned |
+
+### Certainty Contract
+
+For `effect_class` other than `NONE`, the canonical certainty values are
+`NO_EFFECT`, `EFFECT_CONFIRMED`, `EFFECT_POSSIBLE`, and `EFFECT_UNKNOWN`.
+Requests with `effect_class=NONE` omit certainty; they do not invent a fifth
+value. `REQUESTED`, `ACCEPTED`, `DISPATCHED`, `RECONCILING`, and `SETTLED` are
+operation stages. `FAILED`, `TIMED_OUT`, and `CANCELLED` are result or
+disposition codes, not stages or certainty values.
+
+Simulator dispatch authorization commits before send and sets
+`EFFECT_POSSIBLE`, because the boundary may then be crossed and an effect may
+occur before further evidence is durable. A transport acknowledgement never
+proves the simulator effect. Reconciliation queries the same `OperationId` and
+`AttemptId`, retains every prior classification and evidence record, and may
+refine certainty to `NO_EFFECT`, `EFFECT_CONFIRMED`, or `EFFECT_UNKNOWN`. It may
+not resubmit `EFFECT_POSSIBLE` or `EFFECT_UNKNOWN` work, allocate a successor
+operation to evade uncertainty, or convert missing evidence into a terminal
+claim. Only an explicitly authorized retry after authoritative `NO_EFFECT`
+retains `OperationId` and request digest, increments `AttemptNumber`, and
+allocates a new opaque `AttemptId`. The then-current generation, binding, and
+covered-configuration tuple must exactly match the immutable tuple covered by
+that digest; tuple drift refuses the retry instead of reusing the digest for a
+different intent.
+
+### Approved v0.4 Release Gates
+
+| Gate | Required disposition |
+| --- | --- |
+| `V04-GATE-0` | The project-owner record approves and manifest-binds the bounded scope, exclusions, context/configuration/capability/lifecycle and certainty models, accepted shared-route worker residual risk, simulator fixture, migrations, rollback, budgets, and this test plan. The exhaustive documentation-conformance ledger must contain exact source identity/span, effect class or explicit excluded ambiguity, safe behavior and disposition, target phase, a unique planned test identity, errata disposition, and reconciled counts for every row. Deferred/`EXCLUDE` rows require static source and negative-scope evidence, not executable fixtures, semantic oracles, or results. In-scope v0.4 fixtures are planned at Gate 0 and executed at the applicable Gates 1-5. No organization-only approval is required for this local gate. |
+| `V04-GATE-1` | Documentation, contract, context/configuration/capability/lifecycle, migration, and static security tests pass |
+| `V04-GATE-2` | Isolation, mutual identity, secret, journal safety, crash-boundary, certainty, persistence, and recovery matrices pass; no waiver is permitted |
+| `V04-GATE-3` | SQLite/PostgreSQL, API, real-browser UI, accessibility, and complete v0.3 regression pass |
+| `V04-GATE-4` | Driver latency, cancellation, restart, and soak qualification passes with fingerprint-bound evidence |
+| `V04-GATE-5` | Audits, distinct SBOMs, deterministic generation, install/disable/upgrade/rollback/uninstall, reproducible package, manifest inspection, and independent traceability review pass |
+
+JC Arcaz approved the Candidate A scope, exclusions, budgets, and this test
+plan on 2026-07-18. Exhaustive compatibility validation, independent source
+review, exact manifest binding, and pinned Python 3.13 qualification pass, so
+`V04-GATE-0` authorizes the bounded product implementation. Gates 1-5 remain
+mandatory before v0.4 acceptance.
+Any unresolved Critical or High issue in
+scope enforcement, documentation traceability, isolation, identity,
+configuration, capability/capacity, lifecycle ordering, secret handling,
+operation identity, certainty, persistence, recovery, migration, source
+non-execution, or no-resend behavior blocks release. These boundaries cannot be
+waived by a local software test result.
+
+The Gate 0 compatibility evidence model is deliberately static for excluded
+behavior. Every authoritative page and public artifact must be represented,
+classified, assigned either to the exact Candidate A slice or to its approved
+exclusions, and bound to a unique future test identity. A Deferred/`EXCLUDE`
+row is not an implementation, semantic-conformance, fixture-execution, or
+verification claim. Executable fixtures and results are mandatory for the
+implemented v0.4 rows at the applicable later gate. Deterministic source-count,
+page-coverage, identity, disposition, errata, and manifest checks remain
+mandatory for `V04-GATE-0`.
 
 ## Version 0.3 Pre-Implementation Test Plan
 
@@ -207,8 +413,13 @@ The following inputs were inventoried without modifying the archives:
 
 The GUI archive embeds Server, GUI, Language, Driver Development, and Build
 manuals labeled SPELL 2.4.4, plus a draft Server Communication ICD for SPELL
-2.4. The required SPELL Development Environment manual was not found. This gap
-must remain visible in requirements and acceptance reviews.
+2.4. The required SPELL Development Environment manual was not present in that
+original v0.1 evidence. A separate copy and six related PDFs were supplied
+under `SPELL-DOCUMENTATION/` and all 304 pages were reviewed on 2026-07-17; the
+inventory and hashes are in
+[`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md). This later
+evidence closes document availability, not every behavioral ambiguity or
+authoring implementation decision.
 
 ## Source Precedence
 
@@ -295,7 +506,7 @@ Each executed test record must contain:
 | `V01-DOC-001` | Required v0.1 documents exist | Four coordinated Markdown documents exist | Pass |
 | `V01-DOC-002` | Release identity | All documents identify v0.1 as pre-implementation | Pass |
 | `V01-DOC-003` | Archive integrity | Three SHA-256 hashes are recorded | Pass |
-| `V01-DOC-004` | Manual inventory | Available manuals, versions, paths, and missing DEV manual are recorded | Pass |
+| `V01-DOC-004` | Manual inventory | Manuals available to v0.1, versions, paths, and the then-missing DEV manual are recorded | Pass |
 | `V01-DOC-005` | Version separation | Project v0.1, Core/COTS 2.6.10, GUI 4.0.12, manuals 2.4.4 remain distinct | Pass |
 | `V01-DOC-006` | Legacy capability coverage | Server, executor, procedure, driver, GUI, data, and build behavior are inventoried | Pass |
 | `V01-DOC-007` | Architecture definition | Proposed Python, worker, driver, API, persistence, and web boundaries are defined | Pass |
@@ -618,7 +829,8 @@ On 2026-07-12 the following planning verification was completed:
 - Located and reviewed the embedded 2.4.4 Server, GUI, Language, Driver
   Development, and Build manuals.
 - Reviewed the embedded draft Server Communication ICD as historical evidence.
-- Confirmed that the required Development Environment manual is absent.
+- Confirmed that the required Development Environment manual was absent from
+  the v0.1 evidence. It was supplied and reviewed later on 2026-07-17.
 - Compared manual behavior with the 2.6.10 source, current GUI plug-ins, release
   notes, configuration, protobuf interfaces, build metadata, and tests.
 - Confirmed that the supplied legacy test coverage is insufficient for a safe
@@ -630,9 +842,9 @@ test, or operational integration test was performed for v0.1.
 ## Version 0.1 Exit Decision
 
 This test plan was completed as the planning baseline. On 2026-07-12 the project
-owner approved proceeding to the bounded v0.2 simulator vertical slice. The
-missing Development Environment manual is waived only for this slice; all other
-recorded v0.1 gaps remain open unless explicitly resolved.
+owner approved proceeding to the bounded v0.2 simulator vertical slice. At that
+time, the missing Development Environment manual was waived only for this
+slice; all other recorded v0.1 gaps remain open unless explicitly resolved.
 
 ## Version 0.2 Executed Results
 

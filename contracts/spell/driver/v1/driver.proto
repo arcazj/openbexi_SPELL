@@ -1,0 +1,424 @@
+syntax = "proto3";
+
+package spell.driver.v1;
+
+// Candidate A exposes one infrastructure lifecycle service and exactly nine
+// unary RPCs. Data-plane and procedure-facing services are intentionally absent.
+service DriverInfrastructureService {
+  rpc Handshake(HandshakeRequest) returns (HandshakeResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc OpenContext(OpenContextRequest) returns (LifecycleOperationResponse);
+  rpc CloseContext(CloseContextRequest) returns (LifecycleOperationResponse);
+  rpc AttachExecution(AttachExecutionRequest) returns (LifecycleOperationResponse);
+  rpc DetachExecution(DetachExecutionRequest) returns (LifecycleOperationResponse);
+  rpc CancelLifecycleOperation(CancelLifecycleOperationRequest) returns (LifecycleOperationResponse);
+  rpc DrainHost(DrainHostRequest) returns (LifecycleOperationResponse);
+  rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
+}
+
+enum RpcMethod {
+  RPC_METHOD_UNSPECIFIED = 0;
+  RPC_METHOD_HANDSHAKE = 1;
+  RPC_METHOD_HEALTH = 2;
+  RPC_METHOD_OPEN_CONTEXT = 3;
+  RPC_METHOD_CLOSE_CONTEXT = 4;
+  RPC_METHOD_ATTACH_EXECUTION = 5;
+  RPC_METHOD_DETACH_EXECUTION = 6;
+  RPC_METHOD_CANCEL_LIFECYCLE_OPERATION = 7;
+  RPC_METHOD_DRAIN_HOST = 8;
+  RPC_METHOD_GET_OPERATION = 9;
+}
+
+enum InfrastructureService {
+  INFRASTRUCTURE_SERVICE_UNSPECIFIED = 0;
+  INFRASTRUCTURE_SERVICE_HOST = 1;
+  INFRASTRUCTURE_SERVICE_CONTEXT_LIFECYCLE = 2;
+  INFRASTRUCTURE_SERVICE_EXECUTION_LIFECYCLE = 3;
+  INFRASTRUCTURE_SERVICE_OPERATION_RECONCILIATION = 4;
+}
+
+enum CapabilityModifier {
+  CAPABILITY_MODIFIER_UNSPECIFIED = 0;
+  CAPABILITY_MODIFIER_NONE = 1;
+  CAPABILITY_MODIFIER_COOPERATIVE_CANCELLATION = 2;
+  CAPABILITY_MODIFIER_DETERMINISTIC_FAULT_POINT = 3;
+}
+
+enum CapabilityFormat {
+  CAPABILITY_FORMAT_UNSPECIFIED = 0;
+  CAPABILITY_FORMAT_PROTOBUF_BINARY = 1;
+}
+
+enum Mutability {
+  MUTABILITY_UNSPECIFIED = 0;
+  MUTABILITY_READ_ONLY = 1;
+  MUTABILITY_LIFECYCLE = 2;
+}
+
+enum StreamSupport {
+  STREAM_SUPPORT_UNSPECIFIED = 0;
+  STREAM_SUPPORT_NONE = 1;
+}
+
+enum HostState {
+  HOST_STATE_UNSPECIFIED = 0;
+  HOST_STATE_STARTING = 1;
+  HOST_STATE_READY = 2;
+  HOST_STATE_DEGRADED = 3;
+  HOST_STATE_DRAINING = 4;
+  HOST_STATE_CLOSED = 5;
+  HOST_STATE_FAILED = 6;
+}
+
+enum ContextState {
+  CONTEXT_STATE_UNSPECIFIED = 0;
+  CONTEXT_STATE_OPENING = 1;
+  CONTEXT_STATE_ACTIVE = 2;
+  CONTEXT_STATE_DEGRADED = 3;
+  CONTEXT_STATE_CLOSING = 4;
+  CONTEXT_STATE_CLOSED = 5;
+  CONTEXT_STATE_FAILED = 6;
+}
+
+enum AttachmentState {
+  ATTACHMENT_STATE_UNSPECIFIED = 0;
+  ATTACHMENT_STATE_ATTACHING = 1;
+  ATTACHMENT_STATE_ATTACHED = 2;
+  ATTACHMENT_STATE_DETACHING = 3;
+  ATTACHMENT_STATE_DETACHED = 4;
+  ATTACHMENT_STATE_FAILED = 5;
+}
+
+enum OperationStage {
+  OPERATION_STAGE_UNSPECIFIED = 0;
+  OPERATION_STAGE_REQUESTED = 1;
+  OPERATION_STAGE_ACCEPTED = 2;
+  OPERATION_STAGE_DISPATCHED = 3;
+  OPERATION_STAGE_RECONCILING = 4;
+  OPERATION_STAGE_SETTLED = 5;
+}
+
+enum EffectClass {
+  EFFECT_CLASS_UNSPECIFIED = 0;
+  EFFECT_CLASS_NONE = 1;
+  EFFECT_CLASS_CONTEXT_OPEN = 2;
+  EFFECT_CLASS_CONTEXT_CLOSE = 3;
+  EFFECT_CLASS_EXECUTION_ATTACH = 4;
+  EFFECT_CLASS_EXECUTION_DETACH = 5;
+  EFFECT_CLASS_LIFECYCLE_CANCEL = 6;
+  EFFECT_CLASS_HOST_DRAIN = 7;
+}
+
+enum EffectCertainty {
+  EFFECT_CERTAINTY_UNSPECIFIED = 0;
+  EFFECT_CERTAINTY_NO_EFFECT = 1;
+  EFFECT_CERTAINTY_CONFIRMED = 2;
+  EFFECT_CERTAINTY_POSSIBLE = 3;
+  EFFECT_CERTAINTY_UNKNOWN = 4;
+}
+
+enum ResultCode {
+  RESULT_CODE_UNSPECIFIED = 0;
+  RESULT_CODE_OK = 1;
+  RESULT_CODE_INVALID_ARGUMENT = 2;
+  RESULT_CODE_UNAUTHENTICATED = 3;
+  RESULT_CODE_PERMISSION_DENIED = 4;
+  RESULT_CODE_UNSUPPORTED = 5;
+  RESULT_CODE_CONFLICT = 6;
+  RESULT_CODE_CAPACITY_EXHAUSTED = 7;
+  RESULT_CODE_DEADLINE_EXCEEDED = 8;
+  RESULT_CODE_CANCELLED = 9;
+  RESULT_CODE_ALREADY_SETTLED = 10;
+  RESULT_CODE_STALE_GENERATION = 11;
+  RESULT_CODE_JOURNAL_UNAVAILABLE = 12;
+  RESULT_CODE_RECONCILIATION_REQUIRED = 13;
+  RESULT_CODE_INTERNAL = 14;
+}
+
+enum SafeErrorCode {
+  SAFE_ERROR_CODE_UNSPECIFIED = 0;
+  SAFE_ERROR_CODE_NONE = 1;
+  SAFE_ERROR_CODE_VALIDATION = 2;
+  SAFE_ERROR_CODE_VERSION_MISMATCH = 3;
+  SAFE_ERROR_CODE_IDENTITY_MISMATCH = 4;
+  SAFE_ERROR_CODE_GENERATION_MISMATCH = 5;
+  SAFE_ERROR_CODE_DIGEST_MISMATCH = 6;
+  SAFE_ERROR_CODE_UNSUPPORTED = 7;
+  SAFE_ERROR_CODE_CAPACITY = 8;
+  SAFE_ERROR_CODE_DEADLINE = 9;
+  SAFE_ERROR_CODE_CANCELLED = 10;
+  SAFE_ERROR_CODE_CONFLICT = 11;
+  SAFE_ERROR_CODE_JOURNAL = 12;
+  SAFE_ERROR_CODE_HOOK = 13;
+  SAFE_ERROR_CODE_INTERNAL = 14;
+}
+
+enum HookLayer {
+  HOOK_LAYER_UNSPECIFIED = 0;
+  HOOK_LAYER_CONTEXT_CONFIGURATION = 1;
+  HOOK_LAYER_CONTEXT_FIXTURE = 2;
+  HOOK_LAYER_ATTACHMENT_CONFIGURATION = 3;
+  HOOK_LAYER_ATTACHMENT_FIXTURE = 4;
+  HOOK_LAYER_HOST = 5;
+}
+
+enum HookAction {
+  HOOK_ACTION_UNSPECIFIED = 0;
+  HOOK_ACTION_SETUP = 1;
+  HOOK_ACTION_CLEANUP = 2;
+  HOOK_ACTION_COMPENSATE = 3;
+}
+
+enum HookResult {
+  HOOK_RESULT_UNSPECIFIED = 0;
+  HOOK_RESULT_COMPLETED = 1;
+  HOOK_RESULT_FAILED = 2;
+  HOOK_RESULT_CANCELLED = 3;
+  HOOK_RESULT_SKIPPED = 4;
+}
+
+enum AttachmentReason {
+  ATTACHMENT_REASON_UNSPECIFIED = 0;
+  ATTACHMENT_REASON_INITIAL_LOAD = 1;
+  ATTACHMENT_REASON_RELOAD = 2;
+}
+
+enum DetachmentReason {
+  DETACHMENT_REASON_UNSPECIFIED = 0;
+  DETACHMENT_REASON_FINISHED = 1;
+  DETACHMENT_REASON_ABORTED = 2;
+  DETACHMENT_REASON_RELOAD = 3;
+  DETACHMENT_REASON_EXPLICIT_UNLOAD = 4;
+  DETACHMENT_REASON_CONTEXT_CLOSE = 5;
+  DETACHMENT_REASON_HOST_DRAIN = 6;
+}
+
+message ContractVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+message RequestIdentity {
+  ContractVersion contract_version = 1;
+  string server_profile_id = 2;
+  string driver_host_generation = 3;
+  string host_profile_digest = 4;
+  string context_id = 5;
+  string context_generation = 6;
+  string context_binding_digest = 7;
+  string execution_id = 8;
+  string execution_attachment_generation = 9;
+  string execution_attachment_digest = 10;
+  string driver_binding_id = 11;
+  string operation_id = 12;
+  string attempt_id = 13;
+  uint32 attempt_number = 14;
+  string correlation_id = 15;
+  int64 deadline_unix_ms = 16;
+  uint64 credential_epoch = 17;
+}
+
+message SafeError {
+  SafeErrorCode code = 1;
+  string safe_message = 2;
+  bool retryable = 3;
+}
+
+message CapabilityDescriptor {
+  InfrastructureService service = 1;
+  RpcMethod method = 2;
+  repeated CapabilityModifier modifiers = 3;
+  repeated CapabilityFormat formats = 4;
+  Mutability mutability = 5;
+  StreamSupport stream_support = 6;
+}
+
+message CapacityLimits {
+  uint32 max_contexts_per_host = 1;
+  uint32 max_attachments_per_context = 2;
+  uint32 max_lifecycle_operations_per_host = 3;
+  uint32 max_lifecycle_operations_per_context = 4;
+}
+
+message CapacityUse {
+  uint32 contexts = 1;
+  uint32 attachments = 2;
+  uint32 lifecycle_operations_host = 3;
+  uint32 lifecycle_operations_context = 4;
+}
+
+message DriverIdentity {
+  string logical_driver_id = 1;
+  string implementation_version = 2;
+  bool simulator = 3;
+  string server_profile_id = 4;
+  string driver_profile_id = 5;
+  string driver_host_generation = 6;
+  string host_configuration_schema = 7;
+  string host_profile_digest = 8;
+  uint64 credential_epoch = 9;
+}
+
+message ContextBindingConfiguration {
+  string schema_version = 1;
+  string context_profile_id = 2;
+  string synthetic_context_label = 3;
+  string expected_context_binding_digest = 4;
+}
+
+message ExecutionAttachmentConfiguration {
+  string schema_version = 1;
+  string attachment_profile_id = 2;
+  string synthetic_execution_label = 3;
+  string expected_execution_attachment_digest = 4;
+  AttachmentReason reason = 5;
+  string replaced_driver_binding_id = 6;
+}
+
+message HookTrace {
+  uint32 sequence = 1;
+  string hook_id = 2;
+  HookLayer owner_layer = 3;
+  HookAction action = 4;
+  HookResult result = 5;
+  string operation_id = 6;
+  string attempt_id = 7;
+  int64 started_unix_ms = 8;
+  int64 completed_unix_ms = 9;
+  SafeError error = 10;
+  RequestIdentity identity = 11;
+  OperationStage stage = 12;
+  bool certainty_present = 13;
+  EffectCertainty certainty = 14;
+}
+
+message OperationAttempt {
+  string attempt_id = 1;
+  uint32 attempt_number = 2;
+  string request_digest = 3;
+  OperationStage stage = 4;
+  EffectClass effect_class = 5;
+  bool certainty_present = 6;
+  EffectCertainty certainty = 7;
+  ResultCode result_code = 8;
+  SafeError error = 9;
+  int64 requested_unix_ms = 10;
+  int64 accepted_unix_ms = 11;
+  int64 dispatched_unix_ms = 12;
+  int64 settled_unix_ms = 13;
+  repeated HookTrace hook_traces = 14;
+  RequestIdentity identity = 15;
+  AttachmentReason attachment_reason = 16;
+  string replaced_driver_binding_id = 17;
+}
+
+message OperationRecord {
+  string operation_id = 1;
+  RpcMethod method = 2;
+  RequestIdentity identity = 3;
+  string current_attempt_id = 4;
+  repeated OperationAttempt attempts = 5;
+}
+
+message ContextHealth {
+  string context_id = 1;
+  string context_generation = 2;
+  string context_binding_digest = 3;
+  ContextState state = 4;
+  bool ready = 5;
+  int64 last_observed_unix_ms = 6;
+  CapacityUse capacity_use = 7;
+}
+
+message AttachmentHealth {
+  string execution_id = 1;
+  string execution_attachment_generation = 2;
+  string execution_attachment_digest = 3;
+  string driver_binding_id = 4;
+  AttachmentState state = 5;
+  int64 last_observed_unix_ms = 6;
+}
+
+message HandshakeRequest {
+  RequestIdentity identity = 1;
+  ContractVersion requested_version = 2;
+  string expected_logical_driver_id = 3;
+  string expected_host_profile_digest = 4;
+  repeated CapabilityDescriptor required_capabilities = 5;
+}
+
+message HandshakeResponse {
+  ContractVersion contract_version = 1;
+  DriverIdentity driver = 2;
+  HostState host_state = 3;
+  repeated CapabilityDescriptor capabilities = 4;
+  CapacityLimits capacity_limits = 5;
+  CapacityUse capacity_use = 6;
+  int64 last_observed_unix_ms = 7;
+  SafeError error = 8;
+}
+
+message HealthRequest {
+  RequestIdentity identity = 1;
+}
+
+message HealthResponse {
+  ContractVersion contract_version = 1;
+  DriverIdentity driver = 2;
+  HostState host_state = 3;
+  bool ready = 4;
+  CapacityLimits capacity_limits = 5;
+  CapacityUse capacity_use = 6;
+  repeated ContextHealth contexts = 7;
+  repeated AttachmentHealth attachments = 8;
+  int64 last_observed_unix_ms = 9;
+  SafeError error = 10;
+}
+
+message OpenContextRequest {
+  RequestIdentity identity = 1;
+  ContextBindingConfiguration configuration = 2;
+}
+
+message CloseContextRequest {
+  RequestIdentity identity = 1;
+  bool detach_settled_attachments = 2;
+}
+
+message AttachExecutionRequest {
+  RequestIdentity identity = 1;
+  ExecutionAttachmentConfiguration configuration = 2;
+}
+
+message DetachExecutionRequest {
+  RequestIdentity identity = 1;
+  DetachmentReason reason = 2;
+}
+
+message CancelLifecycleOperationRequest {
+  RequestIdentity identity = 1;
+  string target_operation_id = 2;
+  string target_attempt_id = 3;
+}
+
+message DrainHostRequest {
+  RequestIdentity identity = 1;
+  uint32 grace_period_ms = 2;
+}
+
+message LifecycleOperationResponse {
+  ContractVersion contract_version = 1;
+  OperationRecord operation = 2;
+}
+
+message GetOperationRequest {
+  RequestIdentity identity = 1;
+  string target_operation_id = 2;
+  string target_attempt_id = 3;
+}
+
+message GetOperationResponse {
+  ContractVersion contract_version = 1;
+  OperationRecord operation = 2;
+  SafeError error = 3;
+}

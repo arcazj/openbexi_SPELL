@@ -1,0 +1,47 @@
+{
+  "schema_version": "spell.driver-package-profile/1",
+  "product_version": "0.4.0",
+  "scope_profile": "candidate-a-local-synthetic-simulator",
+  "compose_file": "compose.yaml",
+  "compose_services": [
+    "pki-init",
+    "spell-driver"
+  ],
+  "compose_volumes": [
+    "spell-driver-client-credentials",
+    "spell-driver-server-credentials",
+    "spell-driver-journal"
+  ],
+  "default_enabled": false,
+  "bundled_simulator_service": "spell-driver",
+  "compose_profile": "driver",
+  "declared_platforms": [
+    {
+      "architecture": "amd64",
+      "id": "oci-compose-linux-amd64",
+      "operating_system": "linux",
+      "packaging": "docker-compose-v2"
+    }
+  ],
+  "retained_paths": [
+    "driver-journal.bin",
+    "operation-evidence.json",
+    "canonical-audit.jsonl"
+  ],
+  "nonterminal_operation_stages": [
+    "REQUESTED",
+    "ACCEPTED",
+    "DISPATCHED",
+    "RECONCILING"
+  ],
+  "terminal_operation_stage": "SETTLED",
+  "terminal_certainties": [
+    "NO_EFFECT",
+    "EFFECT_CONFIRMED"
+  ],
+  "uncertain_certainties": [
+    "EFFECT_POSSIBLE",
+    "EFFECT_UNKNOWN"
+  ],
+  "unsafe_transition_policy": "refuse-and-audit"
+}

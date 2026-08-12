@@ -1,5 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { resolve } from "node:path";
+
+function artifactPath(name: string): string {
+  return resolve(
+    process.cwd(),
+    process.env.SPELL_E2E_ARTIFACT_DIRECTORY ?? "../artifacts/v0.3",
+    name,
+  );
+}
 
 test("requires a session JWT without embedding a default credential", async ({ page }, testInfo) => {
   await page.goto("/");
@@ -25,6 +34,6 @@ test("requires a session JWT without embedding a default credential", async ({ p
   }));
   expect(Math.max(containment.document, containment.body)).toBeLessThanOrEqual(containment.viewport);
   if (testInfo.project.name === "chromium") {
-    await page.screenshot({ path: "../artifacts/v0.3/session-access.png" });
+    await page.screenshot({ path: artifactPath("session-access.png") });
   }
 });
