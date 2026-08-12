@@ -1473,6 +1473,8 @@ class V04ReleaseFrameworkTests(unittest.TestCase):
         self.assertFalse(
             any(name.startswith("artifacts/v0.4/provenance/") for name in names)
         )
+        self.assertNotIn("artifacts/v0.4/driver-projection-desktop.png", names)
+        self.assertNotIn("artifacts/v0.4/driver-projection-mobile.png", names)
         self.assertFalse(any(name.casefold().endswith(".pdf") for name in names))
         self.assertFalse(any(name.casefold().endswith(".zip") for name in names))
 

@@ -25,7 +25,8 @@ def test_v04_qualification_image_receives_the_complete_gate_zero_input_tree() ->
 
 
 def test_product_build_context_excludes_only_intermediate_v04_evidence() -> None:
-    entries = set((ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines())
+    product_ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    entries = set(product_ignore.splitlines())
 
     assert {
         "*.iml",
@@ -39,6 +40,26 @@ def test_product_build_context_excludes_only_intermediate_v04_evidence() -> None
     assert "artifacts/v0.4/tests" not in entries
     assert "artifacts/v0.4/sbom" not in entries
     assert "artifacts/v0.4/provenance" not in entries
+
+
+def test_v04_package_context_reincludes_only_canonical_browser_screenshots() -> None:
+    product_ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    package_ignore = (
+        ROOT / "scripts/package-v04.Dockerfile.dockerignore"
+    ).read_text(encoding="utf-8")
+    screenshot_includes = (
+        "!artifacts/v0.4/driver-projection-desktop.png\n"
+        "!artifacts/v0.4/driver-projection-mobile.png\n"
+    )
+
+    assert product_ignore.endswith("frontend/test-results\n")
+    assert package_ignore == product_ignore + screenshot_includes
+    assert "artifacts/v0.4/driver-projection-*.png\n" in product_ignore
+    assert screenshot_includes not in product_ignore
+    assert package_ignore.rfind("artifacts/v0.4/driver-projection-*.png") < (
+        package_ignore.index("!artifacts/v0.4/driver-projection-desktop.png")
+    )
+    assert package_ignore.count("!artifacts/v0.4/driver-projection-") == 2
 
 
 def test_every_gate_zero_recipe_target_exists_in_the_source_tree() -> None:
