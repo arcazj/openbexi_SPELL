@@ -2,9 +2,11 @@
 
 ## Record Status
 
-This is the pre-freeze release-record skeleton for SPELL v0.4.0 Candidate A.
-It reserves the fields required for an as-run decision but does not record Gate
-1-5 completion, release acceptance, a package digest, or an annotated tag.
+This frozen release record captures the complete source-bound Preliminary
+qualification of SPELL v0.4.0 Candidate A and the project owner's conditional
+acceptance decision. The decision becomes effective only if the unchanged
+record passes the complete Final 74/74 qualification and the project owner
+creates the annotated `v0.4.0` tag over the fixed release commit.
 
 | Field | Value |
 | --- | --- |
@@ -12,12 +14,12 @@ It reserves the fields required for an as-run decision but does not record Gate
 | Release name | Typed Simulator Driver and Context Foundation |
 | Accepted baseline | `v0.3.0` (`7bccbb4eb096b22d0d1f2f765d5172f6dde244f1`) |
 | Scope profile | Local-only, synthetic non-CUI simulator engineering |
-| Candidate source commit | Pending source freeze |
-| Qualification source fingerprint | Pending canonical as-run evidence |
+| Candidate source commit | `f9a2cdbb29f18eefffbf9390480fa0a6be21487f` |
+| Qualification source fingerprint | `abf96e9f9f756e86fe2040d3ce6046b941008395217e3ebb2e2cf2677199718c` |
 | Evidence identity | Canonical machine evidence and annotated tag; no self-derived digest is embedded in this packaged record |
 | Final archive SHA-256 | External `.sha256` sidecar and annotated tag only; never embedded in this packaged record |
-| Decision date | Pending project-owner decision |
-| Release status | Candidate; decision not yet recorded |
+| Decision date | 2026-08-12 |
+| Release status | Conditionally accepted; effective only after the frozen-record Final 74/74 validation and annotated `v0.4.0` tag |
 | Annotated tag | Selected externally after committed evidence validates; never self-embedded |
 | Compliance determination | None claimed |
 | Operational authorization | None |
@@ -44,19 +46,20 @@ candidate scope, not delivered or accepted release behavior.
 
 ## As-Run Gate Results
 
-Populate this table from one complete preliminary source-bound pass, then
-freeze this record and rerun every content-sensitive qualification step. The
-values become final only when `scripts/qualify_v04.py publish` validates and
-publishes the complete rerun against the frozen record. Do not edit the record
-after that final pass.
+One canonical source-bound Preliminary pass ran from
+`2026-08-12T07:48:57.599599Z` through `2026-08-12T08:34:33.222899Z`.
+All 74 tests and all 209 assertions passed, with zero failures, skips, errors,
+waivers, or open Critical or High findings. These Preliminary results freeze
+the record; they are not final acceptance. The unchanged record must pass the
+complete Final rerun before the conditional decision can become effective.
 
 | Gate | Evidence path | As-run result | Exceptions or limitations |
 | --- | --- | --- | --- |
-| Gate 1: contract, configuration, lifecycle, persistence, migration | `artifacts/v0.4/gate-1.json` | Pending | Pending |
-| Gate 2: isolation, identity, faults, recovery, certainty | `artifacts/v0.4/gate-2.json` | Pending | Pending |
-| Gate 3: API, console, accessibility, v0.3 regression | `artifacts/v0.4/gate-3.json` | Pending | Pending |
-| Gate 4: local performance and soak budgets | `artifacts/v0.4/gate-4.json` | Pending | Pending |
-| Gate 5: dependency, SBOM, package, lifecycle, platform | `artifacts/v0.4/gate-5.json` | Pending | Pending |
+| Gate 1: contract, configuration, lifecycle, persistence, migration | `artifacts/v0.4/gate-1.json` | PASS; 28/28 tests and 50/50 assertions passed; 0 failed, skipped, or errored | No waiver or gate-specific exception; retained release-wide claim boundaries apply. |
+| Gate 2: isolation, identity, faults, recovery, certainty | `artifacts/v0.4/gate-2.json` | PASS; 28/28 tests and 55/55 assertions passed; 0 failed, skipped, or errored | No waiver or gate-specific exception; retained release-wide claim boundaries apply. |
+| Gate 3: API, console, accessibility, v0.3 regression | `artifacts/v0.4/gate-3.json` | PASS; 8/8 tests and 39/39 assertions passed; 0 failed, skipped, or errored | No waiver or gate-specific exception; retained release-wide claim boundaries apply. |
+| Gate 4: local performance and soak budgets | `artifacts/v0.4/gate-4.json` | PASS; 4/4 tests and 25/25 assertions passed; 0 failed, skipped, or errored | No waiver or gate-specific exception; retained release-wide claim boundaries apply. |
+| Gate 5: dependency, SBOM, package, lifecycle, platform | `artifacts/v0.4/gate-5.json` | PASS; 6/6 tests and 40/40 assertions passed; 0 failed, skipped, or errored | No waiver or gate-specific exception; retained release-wide claim boundaries apply. |
 
 ## Gate 5 Environment Prerequisite
 
@@ -79,24 +82,99 @@ runtime remains outside the repository and is not a release-package input.
 
 | Evidence | Reserved location | Recorded identity or result |
 | --- | --- | --- |
-| Per-test evidence | `artifacts/v0.4/tests/` | Pending |
-| Backend SBOM | `artifacts/v0.4/sbom/backend.cdx.json` | Pending |
-| Driver SBOM | `artifacts/v0.4/sbom/driver.cdx.json` | Pending |
-| Frontend-build SBOM | `artifacts/v0.4/sbom/frontend.cdx.json` | Pending |
-| Proxy SBOM | `artifacts/v0.4/sbom/proxy.cdx.json` | Pending |
-| SBOM checksum manifest | `artifacts/v0.4/sbom/SHA256SUMS` | Pending |
-| Source release package | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz` | Pending |
-| External package sidecar | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz.sha256` | Pending |
-| Desktop browser image | `artifacts/v0.4/driver-projection-desktop.png` | Pending |
-| Mobile browser image | `artifacts/v0.4/driver-projection-mobile.png` | Pending |
+| Per-test evidence | `artifacts/v0.4/tests/` | PASS; 74 canonical source-bound evidence files; 209/209 assertions passed |
+| Backend SBOM | `artifacts/v0.4/sbom/backend.cdx.json` | PASS; 121-component CycloneDX inventory bound to image `sha256:85e78385989195f50c9c6f5a17371fc749175044de956e92b5e5d0853de2a1bd` |
+| Driver SBOM | `artifacts/v0.4/sbom/driver.cdx.json` | PASS; 91-component CycloneDX inventory bound to image `sha256:85d8f6ffd513faa520b3c1b2ce8778e5f625f2e58777fc8ed542fb0b237fc2a7` |
+| Frontend-build SBOM | `artifacts/v0.4/sbom/frontend.cdx.json` | PASS; 44-component CycloneDX inventory bound to image `sha256:649a51b7d8e05eea917b162d6b8e4ef03d0896fdb920dee1c36f80c02037218a` |
+| Proxy SBOM | `artifacts/v0.4/sbom/proxy.cdx.json` | PASS; 65-component CycloneDX inventory bound to image `sha256:918b351353f4100048c91769f2a71afba4a97cf25486a243a9b9316b987d0ce4` |
+| SBOM checksum manifest | `artifacts/v0.4/sbom/SHA256SUMS` | PASS; 4/4 distinct image-bound inventories, 321 components, 4/4 strict schema validations, and negative-tamper rejection; file identities recorded in the manifest |
+| Source release package | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz` | Preliminary reproducibility PASS: two independent generation builds and two independent package builds were byte-identical; final archive deferred until frozen-record Final qualification |
+| External package sidecar | `artifacts/v0.4/openbexi-spell-v0.4.tar.gz.sha256` | Deferred; emitted externally only after the final archive |
+| Browser storage inventory | `artifacts/v0.4/browser-storage.json` | PASS; 630 bytes; SHA-256 `fe7165506c7bffe617f1f6330c6030fbdcc51d9ee82aadcdca154071d0afda82`; local/session storage empty after ephemeral-token removal and service-secret canary matches 0 |
+| Desktop browser image | `artifacts/v0.4/driver-projection-desktop.png` | PASS; 1280x720; 82,611 bytes; SHA-256 `ece543be44be0cb9ac829627593051b7b8b0082345ef7732dbae82a416dbfdcd` |
+| Mobile browser image | `artifacts/v0.4/driver-projection-mobile.png` | PASS; 412x839; 552,431 bytes; SHA-256 `e3cd7302472edaccff843fac3a7963b2c40940bc3901674831f755a2e61956e4` |
 
-The final record must state the exact test environment, counts, budgets,
-measurements, image identities, dependency-audit dispositions, qualification
-source fingerprint, reproducibility comparison, candidate source commit, and
-any retained limitation. Planned values must not be rewritten as executed
-results. The exact evidence fingerprint and SC004 product/package-input binding
-remain in canonical machine evidence and are copied into the annotated tag,
-not into this packaged record.
+### Qualification Environment
+
+The canonical Preliminary ran on Microsoft Windows 11 Pro 10.0.26200
+(build 26200), 64-bit, on an Intel Core i7-9700 at 3.00 GHz with
+34,155,577,344 bytes of visible memory. Host tooling was locked CPython
+3.13.14, Windows PowerShell 5.1.26100.8894, Docker Desktop 4.86.0 with
+Engine/CLI 29.7.2, and Docker Compose v5.3.1. The exercised container profile
+was Linux/amd64 with PostgreSQL 18.4. Browser qualification used Node
+v24.13.0, npm 11.6.2, Playwright 1.61.1, and Chromium 149.0.7827.55.
+Canonical test records identify `scripts/qualify_v04.py` under both Windows
+and Linux with Python 3.13.14.
+
+The source-bound qualification image was
+`sha256:8ada56a9401309978ea36c9adfe68f7522cf593de70546ee860a79f733eaac46`.
+The four audited product images are the image identities recorded with the
+SBOM rows above. The separately audited Compose dependencies were `pki-init`
+`sha256:c07ec31348ed08dfaf46e448b86bf9e7d7f1e8412e5e88835e63105d203c61ab`
+and PostgreSQL
+`sha256:71b1e70b15989da9f27af7741380b6aad4ea45efbbc542ebe899c9e86368d605`.
+
+### Counts, Compatibility, And Safety Measurements
+
+The Preliminary aggregate was 74/74 tests and 209/209 assertions. Regression
+qualification passed all 22 accepted-v0.3 semantic suites with zero failures
+and zero changed defaults. Accepted-tag coverage comprised 98 Python tests,
+13 frontend unit tests, and 8 browser tests. Current-candidate accounting
+comprised 72 SQLite, 72 PostgreSQL, 26 tooling, 4 mocked-browser, and 4
+real-browser tests.
+
+The scoped telemetry probe accepted one execution and observed one correlated
+telemetry event with zero execution, context, binding, operation, or journal
+delta. Driver isolation injected pause and kill faults, observed two degraded
+projections, and completed two recoveries with zero non-driver liveness,
+worker-progress, or recovery failures. Migration qualification exercised two
+dialects, one PostgreSQL backup/restore, six truth states, two unsafe rollback
+refusals, and one safe rollback; all PostgreSQL, SQLite, and v0.3 snapshot
+comparisons matched and duplicate effects remained zero. Recovery exercised
+three outage phases and three operation cases; each settled in one journal
+attempt with zero duplicate effects, resends, unreconstructable outcomes,
+audit/outbox mismatches, or commit/publish violations.
+
+Browser qualification exercised one desktop and one mobile viewport. Axe
+Critical and Serious findings were 0/0, as were keyboard and overflow
+failures. The retained browser evidence showed only loopback traffic, no
+direct driver connection, and no mutation control.
+
+### Performance Measurements And Budgets
+
+| Test | Approved local budget | Preliminary measurement |
+| --- | --- | --- |
+| `V04-PERF-001` | At least 1,000 samples at 100/s; p95 at most 50 ms; max at most 250 ms | 1,000 samples in 9.516304 s at 105.083/s; p95 3.457 ms; max 5.924 ms; 0 errors |
+| `V04-PERF-002` | At least 1,000 operations at 20/s; acceptance p95 at most 250 ms; terminal p95 at most 500 ms | 1,000 operations in 48.736848 s at 20.518/s; acceptance p95 4.000 ms; terminal p95/max 8.748/17.325 ms; 0 duplicates, stuck operations, or errors |
+| `V04-PERF-003` | At least 100 cancellations with p95/max at most 500/1,000 ms; at least 25 restarts with readiness and reconciliation max at most 5,000 ms | 100 cancellations and 25 restarts; cancel p95/max 17.588/18.007 ms; readiness max 10.731 ms; reconciliation max 12.274 ms; 0 duplicates, stuck operations, or errors |
+| `V04-PERF-004` | At least 600 s and 12,000 operations at 20/s; growth at most 32 MiB; slope at most 2 MiB/min; zero loss, duplicate, stuck, or crash | 12,120 operations in 600.000746 s at 20.2/s; post-warmup growth 1.012 MiB and slope 0.124 MiB/min; 0 loss, duplicate, stuck, crash, error, or residual child process |
+
+These are bounded local engineering measurements, not operational SLOs.
+
+### Supply Chain And Reproducibility
+
+Dependency audit covered 22 locked inputs with zero unlocked inputs, four
+audit tools, 91 Python packages, and 232 Node packages. npm audit under Node
+v22.23.1 and npm 10.9.8 found zero total vulnerabilities across the 232 Node
+packages. All five pip-audit inventories under Python 3.13.14 and pip-audit
+2.10.0 had empty vulnerability sets. Docker Scout 1.24.0 returned zero results
+for all four product images and both Compose dependency images, and the
+Starlette exposure policy reported zero violations. Open Critical and High
+findings were 0/0.
+
+The four SBOMs were distinct, licensed, image-bound inventories and all passed
+the bundled CycloneDX strict validator, including a negative tamper control.
+Inspection covered six images, 56 layers, and 28,369 files across image,
+source, and candidate-package inputs. It found zero hardening or layer-scan
+failures and zero secret files, PDFs, manual text files, legacy archives,
+runtime generators, or runtime journals across the applicable inspected
+inputs.
+
+Two independent generation builds and two independent package builds produced
+byte-identical outputs in distinct build processes. The Linux/amd64 lifecycle
+matrix executed 60 transitions across 15 unique projects: 15 installs, 12
+enables, 12 disables, 12 upgrades, 12 rollbacks, and 12 uninstalls, including
+10 terminal cases and 50 unsafe refusals, with zero failed cases.
 
 This record is itself a product-package input. Embedding any digest derived
 from SC004 or the canonical evidence would change the record, which would
@@ -130,12 +208,10 @@ their exact local image identities and scans/audits them separately. The
 with the explicit Compose capability allowlist; it is not a runtime-driver
 non-root exception.
 
-Each of the four SBOMs must also pass the matching bundled CycloneDX JSON
-schema through the hash-locked `cyclonedx-python-lib` 11.11.0
-`JsonStrictValidator` in a network-none container. Missing optional validation
-dependencies fail the collector. The validator must accept its valid control
-document and reject a schema-invalid tampered control document before SC002
-can report success.
+Each of the four SBOMs passed the matching bundled CycloneDX JSON schema
+through the hash-locked `cyclonedx-python-lib` 11.11.0
+`JsonStrictValidator` in a network-none container. The validator accepted its
+valid control document and rejected a schema-invalid tampered control document.
 
 ## Explicit Exclusions
 
@@ -163,24 +239,32 @@ or package result is a bounded local engineering measurement in its exact
 as-run environment. It is not an operational SLO, production qualification,
 compliance assessment, deployment approval, or mission authorization.
 
+The accepted boundary remains local synthetic non-CUI use with the
+deterministic simulator, a Windows-amd64 host lifecycle controller, and one
+Linux/amd64 runtime profile. There is no GCS, spacecraft, mission-network, or
+external-command target. The Gate 0 shared-route worker residual risk remains
+accepted within this bounded engineering profile. This record makes no
+compliance determination and grants no operational authorization.
+
 ## Project-Owner Decision
 
-Populate the non-self-referential decision fields after a complete preliminary
-validation and before the final SC004/package-binding run. The decision becomes
-effective only when every mandatory canonical gate validates and the project
-owner's annotated `v0.4.0` tag is created over the fixed release commit. The tag
-therefore records the exact identities that cannot be embedded here.
+The project owner recorded this conditional decision after the complete
+Preliminary validation and before the final SC004/package-binding run. It
+becomes effective only when every mandatory canonical gate validates in the
+unchanged Final rerun and the project owner's annotated `v0.4.0` tag is created
+over the fixed release commit. The tag records the exact identities that cannot
+be embedded here.
 
 | Decision field | As-run value |
 | --- | --- |
-| Decision | Pending |
-| Decision basis | Pending canonical Gates 1-5 and annotated-tag identity |
-| Accepted exceptions | Pending; none inferred |
-| Blocking defects | Pending final defect review |
-| Deciding project owner | Pending recorded decision |
-| Decision timestamp | Pending |
+| Decision | Conditionally accept SPELL v0.4.0 Candidate A for the local synthetic non-CUI simulator engineering scope. |
+| Decision basis | Canonical Preliminary qualification passed 74/74 tests and 209/209 assertions with zero failures, skips, errors, waivers, open Critical/High findings, or blocking defects; all four image-bound SBOMs passed validation. Acceptance becomes effective only after the frozen-record complete Final rerun passes and the annotated `v0.4.0` tag is created. |
+| Accepted exceptions | None. |
+| Blocking defects | None. |
+| Deciding project owner | JC Arcaz |
+| Decision timestamp | `2026-08-12T08:40:47.270Z` |
 | Release commit | Selected by the annotated tag; never self-embedded |
 | Annotated tag | Selected externally after committed evidence validates; never self-embedded |
 
-No other section of this skeleton constitutes the project-owner release
-decision.
+No acceptance is effective unless the Final validation and annotated-tag
+conditions above are satisfied.
