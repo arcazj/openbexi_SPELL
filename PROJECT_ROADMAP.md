@@ -4,21 +4,22 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Local v0.4 Gate G0 Candidate A exhaustive-disposition readiness record |
-| Update type | Specification traceability and approval-readiness update; no product release or runtime integration |
-| Updated | 2026-07-18 |
-| Current accepted product baseline | SPELL v0.3.0, tag `v0.3.0` |
+| Document revision | Accepted v0.4.0 baseline and v0.5 Gate 0A authorization record |
+| Update type | Release-status correction and bounded pre-implementation gate update |
+| Updated | 2026-08-12 |
+| Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
-| v0.4 planning status | Candidate A local-only synthetic non-CUI scope, exclusions, budgets, and test plan approved by project owner; Gate 0 passed; bounded implementation authorized |
+| v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
+| v0.5 planning status | `V05-GATE-0A PASS`; only `V05-IR-001` existing IR 0.3 fail-closed validation hardening is implementation-authorized |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, or dependency change | None; documentation traceability tooling plus isolated experimental evaluator/adapter tests only |
+| Runtime, API, schema, frontend, dependency, or driver change | None from Gate 0A; `V05-IR-001` is authorized but not yet claimed implemented |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
 ## Purpose And Authority
 
 This document is the living, forward-looking roadmap for OpenBEXI SPELL. It
-connects the delivered v0.1 through v0.3 foundations to candidate v0.x work,
+connects the delivered v0.1 through accepted v0.4 foundations to candidate v0.x work,
 records dependencies and decision points, and makes deferred scope explicit.
 
 The roadmap is an index and planning aid. It does not authorize implementation,
@@ -26,6 +27,13 @@ integration, deployment, or operational use. A candidate release becomes
 approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
+
+SPELL v0.4.0 is now the accepted product baseline. Its annotated tag
+`v0.4.0` peels to release commit
+`4546d313a2d8f50504b2bc602d56b3b459ca7597`. The first v0.5 entry decision is
+[`V05-GATE-0A`](SPELL_v0.5_Pre-Implementation.md), which authorizes only
+`V05-IR-001` hardening of the existing IR 0.3 validation boundary. It does not
+authorize the broader v0.5 language roadmap or claim any v0.5 implementation.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -37,9 +45,10 @@ The project owner subsequently revised v0.4 to a local-only, synthetic non-CUI
 simulator engineering gate and approved Candidate A, its exclusions, budgets,
 and test plan. The exact instruction and bounded non-claims are recorded in
 [`G0_HUMAN_APPROVAL_LEDGER.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/G0_HUMAN_APPROVAL_LEDGER.json).
-Exact manifest binding and the pinned Python 3.13 Gate 0 qualification pass.
-Bounded Candidate A product edits are authorized; no runtime, release,
-operational, deployment, or compliance result is claimed by the gate.
+Exact manifest binding and the pinned Python 3.13 Gate 0 qualification passed.
+That historical gate authorized bounded Candidate A product edits but did not
+itself make a release, operational, deployment, or compliance claim. The later
+v0.4.0 release tag is the accepted product result.
 
 On 2026-07-17, all 304 pages in the seven PDFs under
 `SPELL-DOCUMENTATION/` were reviewed. The evidence inventory, conformance
@@ -99,9 +108,10 @@ Reference examples. Every catalog row is assigned either to the exact Candidate
 A slice or to the approved Deferred/`EXCLUDE` boundary and has a unique planned
 test identity. Deferred rows are static source and negative-scope evidence, not
 implementation, semantic-oracle, execution-result, operational, or compliance
-claims. Deterministic validation and fresh independent source review pass;
-`V04-GATE-0` remains blocked until exact manifest binding and pinned Python
-3.13 qualification pass.
+claims. At that intermediate checkpoint deterministic validation and fresh
+independent source review passed while `V04-GATE-0` still awaited exact
+manifest binding and pinned Python 3.13 qualification. Those criteria later
+passed; the partial checkpoints are not the current gate disposition.
 
 The following records remain authoritative when this roadmap conflicts with a
 detailed requirement, test, or release result:
@@ -198,7 +208,7 @@ strengthens them:
 
 ## Release Outlook
 
-Only v0.2 and v0.3 are accepted product releases. v0.1 is a delivered planning
+v0.2, v0.3, and v0.4 are accepted product releases. v0.1 is a delivered planning
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
 is a planning label and may be renumbered when its pre-implementation gate is
@@ -211,8 +221,8 @@ approved.
 | v0.3 | Simulator Hardening and Language Foundation | Product | Accepted | Close v0.2 identity, isolation, migration, dependency, qualification, and language-foundation gaps. | Completed v0.3 plan, full evidence, commit `7bccbb4`, and tag `v0.3.0`. |
 | v0.3.1 | Roadmap and Timeline Records | Documentation-only | Prepared | Establish `PROJECT_ROADMAP.md` and `VERSION_TIMELINE.md` as maintained project records without changing product behavior. | Owner request limited to these two documents; formal release workflow remains separate. |
 | NG spec 0.1 | Next-Generation Design Specification | Documentation-only | Draft prepared | Convert the complete manual review and modernization objectives into a controlled, implementation-ready web/server/data/security/operations blueprint while preserving the two core 2.4.4 authorities. This specification version is independent of product versions. | Multidisciplinary approval, closed phase-entry decisions, feature-level compatibility rows, verified traceability, and a signed documentation baseline. |
-| v0.4 | Typed Simulator Driver and Context Foundation | Product | Candidate; gate revised | Prove a typed, authenticated, out-of-process simulator boundary with host, context, execution, configuration, capacity, lifecycle, and reconciliation contracts; no TM/TC service. | Approved v0.4-applicable next-generation specification baseline and G0 decision, explicit owner approval of the revised gate, worker-isolation decision, detailed compatibility rows, complete planned tests, and clean intended baseline. |
-| v0.5 | Core Language and Deterministic Runtime | Product | Candidate | Add a documented Python-shaped safe profile, time, common modifiers/outcomes, core flow control, output, typed containers, and execution-state mapping. | Accepted v0.4 foundation, approved compatibility ledger/errata, and per-construct parser/IR/golden tests. |
+| v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
+| v0.5 | Core Language and Deterministic Runtime | Product | Gate 0A passed for `V05-IR-001` only | First harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope beyond Gate 0A. | Accepted v0.4.0 baseline and Gate 0A authorize only `V05-IR-001`; every additional construct or artifact requires a later gate. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Accepted v0.5 runtime plus approved operator state/command/prompt/inspection matrices and recovery tests. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Candidate | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Accepted typed driver/runtime foundation and approved telemetry identity, quality, time, condition, resource, lookup, and stream contracts. |
 | v0.8 | Data and Local Service Compatibility | Product | Candidate | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
@@ -315,10 +325,11 @@ this document unless they are created separately.
 JC Arcaz, the project owner, approved Candidate A as the bounded local-only,
 synthetic non-CUI v0.4 product scope together with its exclusions, engineering
 budgets, and test plan. That owner decision satisfies the only human-approval
-role in this local gate. Product implementation remains blocked until the
+role in this local gate. At the gate revision, implementation remained blocked until the
 source-grounded compatibility review, deterministic Gate 0 validation, exact
 manifest binding, dependency and generator locks, and intended-change-set
-checks all pass. Broader next-generation organization, mission, protected-data,
+checks passed. Those criteria and Gates 1-5 later passed, and v0.4.0 is now
+accepted. Broader next-generation organization, mission, protected-data,
 deployment, and compliance decisions remain outside this gate and are not
 claims made by the owner decision.
 
@@ -334,9 +345,8 @@ pre-implementation gate.
 
 ### Candidate A - Typed Simulator Driver and Context Foundation
 
-**Status:** Project-owner approved for the bounded local synthetic non-CUI v0.4
-scope; `V04-GATE-0 PASS`; product implementation authorized and Gates 1-5
-pending.
+**Status:** Accepted at annotated tag `v0.4.0`; Final 74/74 tests and 209/209
+assertions passed with no accepted exceptions.
 
 This direction is explicitly carried forward by the accepted v0.3 planning
 record and is the architectural prerequisite for later documented simulator
@@ -424,8 +434,9 @@ Entry-gate state:
 - Satisfied: exhaustive source-grounded compatibility and errata validation,
   including independent review and exact count/digest reconciliation.
 - Satisfied: exact manifest binding and pinned Python 3.13 Gate 0 qualification.
-- Pending release evidence: dependency/generator locks, a clean intended product
-  change set, and every approved Gate 1-5 result.
+- Satisfied at release: dependency/generator locks, the intended product change
+  set, every approved Gate 1-5 result, release commit
+  `4546d313a2d8f50504b2bc602d56b3b459ca7597`, and annotated tag `v0.4.0`.
 
 ### Candidate B - Durable Operator Decisions
 
@@ -561,7 +572,23 @@ candidate labels until each pre-implementation gate is approved.
 Goal: establish the documented source and execution vocabulary on the bounded
 v0.3 IR without unrestricted Python.
 
-Required properties:
+#### Current Gate 0A Authorization
+
+`V05-GATE-0A PASS` authorizes only `V05-IR-001`, a strict independent
+validator/canonicalizer for the existing IR 0.3 contract plus parser
+postvalidation, supervisor persisted-IR preflight before generation or process
+creation, worker preflight before `worker.started` or effect, persisted-byte
+compatibility without migration, and six focused test identities. The gate is
+bound to annotated tag `v0.4.0` and release commit
+`4546d313a2d8f50504b2bc602d56b3b459ca7597`.
+
+This authorization adds no language construct, IR version, API, schema,
+frontend, dependency, driver, source-to-IR reparse/integrity feature, or
+operational scope. The implementation is authorized but not claimed. The
+remaining bullets in this section are candidate release properties beyond Gate
+0A and require a later entry decision.
+
+Candidate release properties beyond Gate 0A:
 
 - Declare a safe Python 3 compatibility profile for expressions, collections,
   conditions, bounded loops/functions, and stable source-line diagnostics.
