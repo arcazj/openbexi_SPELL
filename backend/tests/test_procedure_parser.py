@@ -19,7 +19,7 @@ def test_parser_creates_ir_without_executing_source(tmp_path: Path) -> None:
     assert [step["type"] for step in parsed.steps] == ["log", "telemetry", "wait", "prompt"]
     assert parsed.steps[-1]["choices"] == ["continue"]
     assert parsed.ir_version == IR_VERSION
-    assert parsed.source == procedure.read_text(encoding="utf-8")
+    assert parsed.source == procedure.read_bytes().decode("utf-8")
     assert parsed.sha256 == hashlib.sha256(parsed.source.encode("utf-8")).hexdigest()
     assert not marker.exists()
 
@@ -93,6 +93,7 @@ def test_validation_error_exposes_structured_diagnostic(tmp_path: Path) -> None:
         ("value: float = 1e999\nLog('x')\n", "SPELL714"),
         ("__spell_branch_0: bool = True\nLog('x')\n", "SPELL309"),
         (f"Prompt('Continue?', choices=['{'x' * 201}'])\n", "SPELL715"),
+        ("Prompt('Continue?', choices=['yes', 'yes'])\n", "SPELL708"),
         (f"Prompt('Continue?', choices=['yes'], default='{'x' * 201}')\n", "SPELL715"),
     ],
 )

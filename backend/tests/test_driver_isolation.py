@@ -191,6 +191,7 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
     assert [argument.arg for argument in worker_main.args.args] == [
         "execution_id",
         "generation",
+        "ir_version",
         "steps",
         "start_step",
         "start_command_id",
@@ -218,6 +219,7 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
     assert [item.id for item in keywords["args"].elts if isinstance(item, ast.Name)] == [
         "execution_id",
         "generation",
+        "ir_version",
         "steps",
         "start_step",
         "command_id",

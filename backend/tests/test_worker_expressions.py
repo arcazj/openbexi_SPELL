@@ -83,6 +83,7 @@ def test_worker_commits_variable_snapshot_with_each_flat_step() -> None:
         {
             "index": 0,
             "line": 1,
+            "column": 1,
             "type": "variable_set",
             "name": "count",
             "declared_type": "int",
@@ -92,6 +93,7 @@ def test_worker_commits_variable_snapshot_with_each_flat_step() -> None:
         {
             "index": 1,
             "line": 2,
+            "column": 1,
             "type": "variable_set",
             "name": "count",
             "declared_type": "int",
@@ -106,13 +108,14 @@ def test_worker_commits_variable_snapshot_with_each_flat_step() -> None:
         {
             "index": 2,
             "line": 3,
+            "column": 1,
             "type": "log",
-            "message": {"expr": "literal", "value": "complete"},
+            "message": "complete",
             "level": "info",
         },
     ]
 
-    worker_main("execution", 1, steps, 0, "start", None, {}, control, output)
+    worker_main("execution", 1, "0.3", steps, 0, "start", None, {}, control, output)
 
     messages = []
     while not output.empty():
@@ -134,7 +137,18 @@ def test_worker_restores_checkpointed_variables_at_recovery_step(tmp_path: Path)
     control: queue.Queue = queue.Queue()
     first_output: queue.Queue = queue.Queue()
     first_steps = list(procedure.steps[:3])
-    worker_main("execution", 1, first_steps, 0, "start", None, {}, control, first_output)
+    worker_main(
+        "execution",
+        1,
+        "0.3",
+        first_steps,
+        0,
+        "start",
+        None,
+        {},
+        control,
+        first_output,
+    )
     first_messages = []
     while not first_output.empty():
         first_messages.append(first_output.get_nowait())
@@ -147,6 +161,7 @@ def test_worker_restores_checkpointed_variables_at_recovery_step(tmp_path: Path)
     worker_main(
         "execution",
         2,
+        "0.3",
         list(procedure.steps),
         3,
         "recover",
@@ -190,7 +205,16 @@ def test_worker_executes_flat_branch_loop_and_expanded_call_ir(tmp_path: Path) -
     control: queue.Queue = queue.Queue()
     output: queue.Queue = queue.Queue()
     worker_main(
-        "execution", 1, list(procedure.steps), 0, "start", None, {}, control, output
+        "execution",
+        1,
+        "0.3",
+        list(procedure.steps),
+        0,
+        "start",
+        None,
+        {},
+        control,
+        output,
     )
     messages = []
     while not output.empty():

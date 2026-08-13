@@ -9,6 +9,8 @@ import uuid
 from multiprocessing.queues import Queue
 from typing import Any
 
+from .ir_v03 import IRValidationError, validate_ir_v03
+
 
 MAX_INTEGER_BITS = 4_096
 MAX_STRING_LENGTH = 100_000
@@ -190,6 +192,7 @@ def _non_empty_string(value: Any, label: str) -> str:
 def worker_main(
     execution_id: str,
     generation: int,
+    ir_version: str,
     steps: list[dict[str, Any]],
     start_step: int,
     start_command_id: str,
@@ -198,14 +201,35 @@ def worker_main(
     control: Queue,
     output: Queue,
 ) -> None:
-    """Execute validated IR in a spawned process. Source code never enters this process."""
+    """Validate and execute data-only IR in a spawned process."""
 
     _replace_worker_environment()
 
     def send(kind: str, **fields: Any) -> None:
         output.put({"kind": kind, "generation": generation, **fields})
 
-    variables = dict(checkpoint_variables)
+    try:
+        validated_ir = validate_ir_v03(
+            ir_version,
+            steps,
+            start_step=start_step,
+            resume_prompt_id=resume_prompt_id,
+            checkpoint_variables=checkpoint_variables,
+        )
+    except IRValidationError as exc:
+        send(
+            "event",
+            event_type="worker.ir_rejected",
+            source="worker",
+            severity="error",
+            payload={"phase": "worker_preflight", **exc.audit_payload()},
+        )
+        send("state", state="failed")
+        send("terminal", state="failed")
+        return
+
+    steps = validated_ir.steps
+    variables = dict(validated_ir.checkpoint_variables)
     send(
         "event",
         event_type="worker.started",
