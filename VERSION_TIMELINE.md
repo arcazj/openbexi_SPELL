@@ -4,14 +4,14 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.4.0 baseline and v0.5 Gate 0A record |
-| Update type | Accepted-release status and bounded pre-implementation gate update |
-| Updated | 2026-08-12 |
+| Document revision | Accepted v0.4.0 baseline, v0.5 Gate 0A, and bounded candidate-implementation record |
+| Update type | Accepted-release status, gate decision, and local implementation evidence update |
+| Updated | 2026-08-13 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
 | Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
-| v0.5 status | `V05-GATE-0A PASS`; only `V05-IR-001` implementation authorized and not yet claimed |
+| v0.5 status | `V05-GATE-0A PASS`; candidate commit `aefa658` locally verified; `V05-IR-001` completion claim blocked on PostgreSQL evidence |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -60,7 +60,7 @@ Conventions:
 | v0.4 gate draft | Typed simulator driver and context foundation planning | Uncommitted owner request date of 2026-07-17; intra-day request time not retained | Draft planning records revised after complete supplied-manual review on 2026-07-17; approval pending | Product build duration not applicable; planning elapsed time unknown | Author-recorded date only; no implementation or release claim |
 | v0.4 local gate revision | Candidate A local-only synthetic non-CUI simulator engineering gate | Direct project-owner instruction recorded 2026-07-18; exact time not retained | Scope, exclusions, budgets, and test plan owner-approved and Gate 0 passed on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Direct owner instruction plus digest-bound Python 3.13 working-tree evidence; authorizes product engineering but makes no release, operational, or compliance claim |
 | v0.4 | Typed Simulator Driver and Context Foundation | Gate date 2026-07-18; exact gate time not retained | Annotated tag `v0.4.0` at 2026-08-12 21:33:43 EDT | Total gate-to-tag duration unknown because the start has no exact time; candidate-source commit to tag was 16h 57m 56s | Exact Git interval only for candidate-source commit `f9a2cdb` at 04:35:47 EDT through tag; not total implementation effort |
-| v0.5 Gate 0A | Existing IR 0.3 fail-closed validation hardening plan | Gate-ready work resumed 2026-08-12; exact start time not retained | `V05-GATE-0A PASS` recorded 2026-08-12; implementation not yet claimed | Same calendar day; exact elapsed time and active effort unknown | Working-tree gate evidence bound to annotated `v0.4.0`; no v0.5 commit, tag, implementation, or release claim |
+| v0.5 Gate 0A / `V05-IR-001` | Existing IR 0.3 fail-closed validation hardening | Gate-ready work resumed 2026-08-12; exact start time not retained | Candidate implementation commit `aefa658` at 2026-08-13 02:23:00 EDT; local verification passed; PostgreSQL evidence pending | Total duration unknown because the gate start has no exact time | Gate evidence bound to annotated `v0.4.0` plus immutable candidate commit; no completed-work-package, v0.5 release, or tag claim |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
@@ -73,9 +73,10 @@ Conventions:
 | Field | Value |
 | --- | --- |
 | Release type | Bounded product pre-implementation gate |
-| Status | `V05-GATE-0A PASS`; implementation authorized but not claimed |
+| Status | `V05-GATE-0A PASS`; candidate implementation committed and locally verified; completion not claimed |
 | Accepted baseline | Annotated tag `v0.4.0`; tag object `86390c90e8d5f96f872be43274cbc9d789a34c2d`; peeled release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | Authorized work | `V05-IR-001` existing IR 0.3 fail-closed validation hardening only |
+| Candidate result | Commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`; configured backend/driver-host pytest passed 328 tests with 18 environment-only skips; PostgreSQL evidence pending |
 | New language/API/schema/frontend/dependency/driver/operational scope | None |
 | v0.5 release commit or tag | None |
 | Operational authorization or compliance determination | None |
@@ -91,8 +92,12 @@ migration, and adversarial/golden tests.
 
 The gate does not authorize the broader candidate v0.5 language properties,
 source-to-IR reparse/integrity expansion, or any public contract or operational
-change. The retained record proves the date but not an exact start or finish
-time; elapsed time and active effort are unknown.
+change. The authorized work later produced a candidate commit that passed local
+verification plus the unchanged Gate 0A validator. PostgreSQL, Linux metadata,
+and opt-in Compose checks remain unexecuted or skipped. Because all six planned
+identities have not passed, the record does not claim `V05-IR-001` implemented,
+accepted, or released. The gate start has no exact timestamp, so total elapsed
+time and active effort remain unknown.
 
 Records:
 
