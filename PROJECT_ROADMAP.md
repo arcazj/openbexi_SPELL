@@ -4,15 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.4.0 baseline and v0.5 Gate 0A authorization record |
-| Update type | Release-status correction and bounded pre-implementation gate update |
-| Updated | 2026-08-12 |
+| Document revision | Accepted v0.4.0 baseline, v0.5 Gate 0A, and bounded candidate-implementation record |
+| Update type | Release status, bounded gate decision, and local implementation evidence update |
+| Updated | 2026-08-13 |
 | Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
-| v0.5 planning status | `V05-GATE-0A PASS`; only `V05-IR-001` existing IR 0.3 fail-closed validation hardening is implementation-authorized |
+| v0.5 planning status | `V05-GATE-0A PASS`; candidate commit `aefa658` locally verified; completion claim blocked on PostgreSQL evidence |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | None from Gate 0A; `V05-IR-001` is authorized but not yet claimed implemented |
+| Runtime, API, schema, frontend, dependency, or driver change | Candidate IR 0.3 validation hardening in `aefa658`; no new API, schema, frontend, dependency, driver, or language surface |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -33,7 +33,10 @@ SPELL v0.4.0 is now the accepted product baseline. Its annotated tag
 `4546d313a2d8f50504b2bc602d56b3b459ca7597`. The first v0.5 entry decision is
 [`V05-GATE-0A`](SPELL_v0.5_Pre-Implementation.md), which authorizes only
 `V05-IR-001` hardening of the existing IR 0.3 validation boundary. It does not
-authorize the broader v0.5 language roadmap or claim any v0.5 implementation.
+authorize the broader v0.5 language roadmap. The authorized work later produced
+candidate commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`; Gate 0A does not
+permit an implementation-complete claim until the pending PostgreSQL evidence
+passes.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -222,7 +225,7 @@ approved.
 | v0.3.1 | Roadmap and Timeline Records | Documentation-only | Prepared | Establish `PROJECT_ROADMAP.md` and `VERSION_TIMELINE.md` as maintained project records without changing product behavior. | Owner request limited to these two documents; formal release workflow remains separate. |
 | NG spec 0.1 | Next-Generation Design Specification | Documentation-only | Draft prepared | Convert the complete manual review and modernization objectives into a controlled, implementation-ready web/server/data/security/operations blueprint while preserving the two core 2.4.4 authorities. This specification version is independent of product versions. | Multidisciplinary approval, closed phase-entry decisions, feature-level compatibility rows, verified traceability, and a signed documentation baseline. |
 | v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
-| v0.5 | Core Language and Deterministic Runtime | Product | Gate 0A passed for `V05-IR-001` only | First harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope beyond Gate 0A. | Accepted v0.4.0 baseline and Gate 0A authorize only `V05-IR-001`; every additional construct or artifact requires a later gate. |
+| v0.5 | Core Language and Deterministic Runtime | Product | `V05-IR-001` candidate committed and locally verified; completion not claimed | First harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope beyond Gate 0A. | PostgreSQL evidence must pass before an implemented or accepted claim; every additional construct or artifact requires a later gate. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Accepted v0.5 runtime plus approved operator state/command/prompt/inspection matrices and recovery tests. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Candidate | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Accepted typed driver/runtime foundation and approved telemetry identity, quality, time, condition, resource, lookup, and stream contracts. |
 | v0.8 | Data and Local Service Compatibility | Product | Candidate | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
@@ -584,9 +587,14 @@ bound to annotated tag `v0.4.0` and release commit
 
 This authorization adds no language construct, IR version, API, schema,
 frontend, dependency, driver, source-to-IR reparse/integrity feature, or
-operational scope. The implementation is authorized but not claimed. The
-remaining bullets in this section are candidate release properties beyond Gate
-0A and require a later entry decision.
+operational scope. Gate 0A itself did not claim implementation. The authorized
+work subsequently produced candidate commit
+`aefa658ce01d49a7879d0471b50425ac3bcf9e2d`, which passed the configured local
+Python 3.13 backend/driver-host suite, Gate 0A validator, and tooling tests.
+PostgreSQL evidence and the environment-specific skipped checks remain
+outstanding, so `V05-IR-001` is not yet claimed implemented. The remaining
+bullets in this section are candidate release properties beyond Gate 0A and
+require a later entry decision.
 
 Candidate release properties beyond Gate 0A:
 

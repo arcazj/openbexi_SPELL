@@ -7,8 +7,8 @@
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | Planning target | SPELL v0.5.0 Gate 0A - existing IR 0.3 fail-closed validation hardening |
-| Status | v0.4 accepted; `V05-GATE-0A PASS`; only `V05-IR-001` implementation authorized and not yet claimed |
-| Date | Updated 2026-08-12 |
+| Status | v0.4 accepted; `V05-GATE-0A PASS`; `V05-IR-001` candidate implementation committed and locally verified; completion claim blocked on PostgreSQL evidence |
+| Date | Updated 2026-08-13 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
@@ -18,9 +18,10 @@
 
 This section is the acceptance contract for the single work package authorized
 by [`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md).
-`V05-GATE-0A PASS` authorizes implementation of `V05-IR-001` only. Every
-product-test result below is `Planned`; the gate does not claim the code or its
-evidence exists.
+`V05-GATE-0A PASS` authorizes implementation of `V05-IR-001` only. The table
+below preserves the gate-time `Planned` contract; the gate itself did not claim
+the code or its evidence existed. The later implementation evidence is recorded
+separately after that contract.
 
 The increment adds strict independent validation and canonicalization of the
 existing `spell-restricted-ast/0.3` payload at parser, persisted supervisor,
@@ -62,6 +63,35 @@ operational behavior is in scope.
 | `V05-IR-001-WORKER` | Directly supplied invalid version, IR, start position, or checkpoint state is rejected by worker preflight before `worker.started`, running-state acknowledgement, prompt, checkpoint, or effect | `DEV`, `FLT` | Planned |
 | `V05-IR-001-COMPAT` | Accepted v0.3/v0.4 parser, execution, recovery, audit, SQLite, and PostgreSQL golden cases remain behaviorally identical; stored valid IR bytes are not rewritten and no schema/API/dependency/driver/frontend delta exists | `DEV`, `SQLITE`, `PG` | Planned |
 | `V05-IR-001-ADVERSARIAL` | Cross-boundary mutation covers unsupported versions, field/type/size/depth/index/operator/name/flow/prompt/checkpoint faults, persisted-row substitution between create/start/recovery, and malformed audit inputs; every case fails closed without process/effect leakage or unsafe echo | `DEV`, `SQLITE`, `PG`, `FLT` | Planned |
+
+### Candidate Implementation Evidence - 2026-08-13
+
+| Evidence | Result |
+| --- | --- |
+| Candidate implementation commit | `aefa658ce01d49a7879d0471b50425ac3bcf9e2d` |
+| Locked environment | CPython 3.13.14 with repository hash-locked dependencies |
+| Product pytest scope | Project-configured `backend/tests` and `driver_host/tests` |
+| Product pytest result | PASS: 328 tests; 18 environment-only skips |
+| Gate 0A validator | PASS: `gate=PASS work_packages=1 claimed_constructs=0 claimed_artifacts=0` |
+| Gate 0A tooling suite | PASS: 24 tests |
+| Syntax and patch checks | PASS: locked `compileall` and `git diff --check` |
+
+| Test ID | Current disposition | Outstanding evidence |
+| --- | --- | --- |
+| `V05-IR-001-UNIT` | Local PASS in `DEV` | None for the planned environment |
+| `V05-IR-001-PARSER` | Local PASS in `DEV` | None for the planned environment |
+| `V05-IR-001-SUPERVISOR` | Local PASS in `DEV`, `SQLITE`, and `FLT` | `PG` execution |
+| `V05-IR-001-WORKER` | Local PASS in `DEV` and `FLT` | None for the planned environments |
+| `V05-IR-001-COMPAT` | Local PASS in `DEV` and `SQLITE` | `PG` execution |
+| `V05-IR-001-ADVERSARIAL` | Local PASS in `DEV`, `SQLITE`, and `FLT` | `PG` execution |
+
+The 18 skips are confined to an unconfigured PostgreSQL migration database,
+Linux image or `/proc` metadata checks, an unavailable symlink capability, and
+opt-in Compose/Linux process inspection. They are not converted to passes or
+waivers. The candidate implementation is locally verified, but Gate 0A requires
+all six planned identities to pass before `V05-IR-001` may be claimed
+implemented. PostgreSQL evidence remains pending, so no completion, acceptance,
+v0.5 release, or broader-scope claim is made.
 
 ### Non-Waivable Ordering And Compatibility
 

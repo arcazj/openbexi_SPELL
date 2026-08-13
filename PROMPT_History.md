@@ -44,6 +44,25 @@ or operational behavior. The broader Core Language and Deterministic Runtime
 roadmap remains Candidate scope and requires later approval. No v0.5 release,
 deployment, compliance, signature, or operational claim is made.
 
+### Implementation Start Result
+
+Implementation of the authorized work package subsequently started, producing
+candidate commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`. The candidate adds
+the independent IR 0.3 validator/canonicalizer, parser postvalidation,
+persisted supervisor preflight, worker preflight, bounded rejection evidence,
+byte-preservation checks, and the six planned local test families without
+adding language, API, schema, dependency, frontend, driver, or operational
+scope.
+
+The locked Python 3.13 project-configured backend/driver-host pytest run passed
+328 tests with 18 environment-only skips. Gate 0A still passed its exact
+validator marker and all 24 gate-tooling tests. The skipped coverage includes
+the unconfigured PostgreSQL migration database and Linux/opt-in Compose checks.
+Because the Gate 0A completion rule requires all six planned identities to
+pass, `V05-IR-001` is not yet claimed implemented or accepted. No v0.5 release,
+tag, deployment approval, compliance determination, or operational
+authorization is recorded.
+
 ## 2026-07-18 - v0.4 Gate 0 Pass And Implementation Start
 
 ### Gate Result
