@@ -17,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from .events import EventHub
+from .ir_v03 import IRValidationError, validate_ir_v03
 from .models import Command, Event, Execution, Prompt
 from .procedure_parser import IR_VERSION, Procedure, ProcedureCatalog
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
@@ -674,19 +675,61 @@ class Supervisor:
             previous = self._workers.get(execution_id)
             if previous is not None and previous.process.is_alive():
                 raise ConflictError("execution already has a live worker")
-            execution.worker_generation += 1
-            generation = execution.worker_generation
             start_step = execution.current_step
-            steps = execution.steps
-            checkpoint_variables = dict(execution.variables)
-            resume_prompt = session.scalar(
+            resume_prompts = session.scalars(
                 select(Prompt).where(
                     Prompt.execution_id == execution_id,
-                    Prompt.step_index == start_step,
                     Prompt.status == "open",
-                )
-            )
+                ).limit(2)
+            ).all()
+            resume_prompt = resume_prompts[0] if len(resume_prompts) == 1 else None
             resume_prompt_id = resume_prompt.id if resume_prompt is not None else None
+            ir_version = execution.ir_version
+            try:
+                if command.command_type == "start" and resume_prompts:
+                    raise IRValidationError(
+                        "$.resume_prompt_id",
+                        "initial start cannot have an open prompt record",
+                    )
+                if len(resume_prompts) > 1:
+                    raise IRValidationError(
+                        "$.resume_prompt_id",
+                        "execution has multiple open prompt records",
+                    )
+                validation_metadata: dict[str, Any] = {}
+                if command.command_type == "recover":
+                    validation_metadata["resume_prompt_step"] = (
+                        resume_prompt.step_index if resume_prompt is not None else None
+                    )
+                validated_ir = validate_ir_v03(
+                    ir_version,
+                    execution.steps,
+                    start_step=start_step,
+                    resume_prompt_id=resume_prompt_id,
+                    checkpoint_variables=execution.variables,
+                    expected_total_steps=execution.total_steps,
+                    **validation_metadata,
+                )
+            except IRValidationError as exc:
+                rejection = self._add_event(
+                    session,
+                    execution,
+                    "execution.ir_rejected",
+                    {"phase": "supervisor_preflight", **exc.audit_payload()},
+                    source="supervisor",
+                    severity="error",
+                    correlation_id=command.correlation_id,
+                    causation_id=command.id,
+                )
+                session.commit()
+                self._publish(execution_id, [event_dict(rejection)])
+                raise ConflictError(
+                    f"persisted execution IR failed validation [{exc.code}]"
+                ) from exc
+            execution.worker_generation += 1
+            generation = execution.worker_generation
+            steps = validated_ir.steps
+            checkpoint_variables = dict(validated_ir.checkpoint_variables)
             session.commit()
             control = self._ctx.Queue()
             output = self._ctx.Queue()
@@ -696,6 +739,7 @@ class Supervisor:
                 args=(
                     execution_id,
                     generation,
+                    ir_version,
                     steps,
                     start_step,
                     command_id,

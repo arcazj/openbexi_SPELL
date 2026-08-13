@@ -8,8 +8,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from .ir_v03 import IR_VERSION, IRValidationError, validate_ir_v03
 
-IR_VERSION = "0.3"
+
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
 MAX_CALL_DEPTH = 16
 MAX_AST_DEPTH = 64
@@ -190,6 +191,16 @@ class ProcedureCatalog:
                 column=None,
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
+        try:
+            validated_ir = validate_ir_v03(IR_VERSION, steps)
+        except IRValidationError as exc:
+            diagnostic = ProcedureDiagnostic(
+                code="SPELL105",
+                message=f"compiled IR failed independent validation at {exc.path}",
+                line=None,
+                column=None,
+            )
+            raise ProcedureValidationError(source_name, [diagnostic]) from exc
         digest = hashlib.sha256(source_bytes).hexdigest()
         procedure_id = source_name.removesuffix(".spell.py")
         return Procedure(
@@ -199,7 +210,7 @@ class ProcedureCatalog:
             path=path or Path(source_name),
             source=source,
             sha256=digest,
-            steps=tuple(steps),
+            steps=tuple(validated_ir.steps),
         )
 
     @staticmethod
@@ -546,6 +557,12 @@ class _Compiler:
                     values.get("choices", node),
                     "SPELL715",
                     f"Prompt choices must be at most {MAX_PROMPT_CHOICE_LENGTH} characters",
+                )
+            if len(set(choices)) != len(choices):
+                self._reject(
+                    values.get("choices", node),
+                    "SPELL708",
+                    "Prompt choices must be unique",
                 )
             if default is not None and len(default) > MAX_PROMPT_CHOICE_LENGTH:
                 self._reject(
