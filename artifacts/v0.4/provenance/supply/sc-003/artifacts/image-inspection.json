@@ -1,0 +1,35 @@
+{
+    "schema_version":  "spell.v04.image-inspection/1",
+    "image_names":  [
+                        "backend",
+                        "driver",
+                        "frontend",
+                        "proxy"
+                    ],
+    "image_ids":  {
+                      "backend":  "sha256:85e78385989195f50c9c6f5a17371fc749175044de956e92b5e5d0853de2a1bd",
+                      "driver":  "sha256:85d8f6ffd513faa520b3c1b2ce8778e5f625f2e58777fc8ed542fb0b237fc2a7",
+                      "frontend":  "sha256:649a51b7d8e05eea917b162d6b8e4ef03d0896fdb920dee1c36f80c02037218a",
+                      "proxy":  "sha256:918b351353f4100048c91769f2a71afba4a97cf25486a243a9b9316b987d0ce4"
+                  },
+    "compose_dependency_image_ids":  {
+                                         "pki_init":  "sha256:c07ec31348ed08dfaf46e448b86bf9e7d7f1e8412e5e88835e63105d203c61ab",
+                                         "postgres":  "sha256:71b1e70b15989da9f27af7741380b6aad4ea45efbbc542ebe899c9e86368d605"
+                                     },
+    "compose_dependency_configured_references":  {
+                                                     "pki_init":  "sha256:c07ec31348ed08dfaf46e448b86bf9e7d7f1e8412e5e88835e63105d203c61ab",
+                                                     "postgres":  "sha256:71b1e70b15989da9f27af7741380b6aad4ea45efbbc542ebe899c9e86368d605"
+                                                 },
+    "compose_dependency_image_count":  2,
+    "scanned_image_count":  6,
+    "scanned_layer_count":  56,
+    "layer_scan_failure_count":  0,
+    "scanned_file_count":  27887,
+    "secret_file_count":  0,
+    "pdf_file_count":  0,
+    "manual_text_file_count":  0,
+    "legacy_archive_count":  0,
+    "runtime_journal_count":  0,
+    "runtime_generator_count":  0,
+    "hardening_failure_count":  0
+}
