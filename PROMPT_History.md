@@ -6,6 +6,44 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-12 - v0.4.0 Accepted And v0.5 Gate 0A Opened
+
+### Accepted Baseline
+
+SPELL v0.4.0 is the current accepted local simulator engineering release. Its
+annotated tag `v0.4.0` has tag-object identity
+`86390c90e8d5f96f872be43274cbc9d789a34c2d` and peels to release commit
+`4546d313a2d8f50504b2bc602d56b3b459ca7597`. The tag records owner acceptance,
+Final qualification of 74/74 tests and 209/209 assertions, no accepted
+exceptions, no compliance determination, and no operational authorization.
+
+### Gate 0A Decision
+
+The next bounded step is recorded in
+[`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md).
+`V05-GATE-0A PASS` authorizes only `V05-IR-001`: strict independent validation
+and canonicalization of the existing IR 0.3 payload, parser-output
+postvalidation, persisted-IR supervisor preflight before worker generation or
+process creation, a second worker preflight before `worker.started` or any
+effect, byte-preserving compatibility without migration, and focused
+fail-closed tests.
+
+The gate tooling binds the annotated tag object, raw tag-object hash, peeled
+release commit, tagged baseline file hashes, required acceptance markers, one
+work package, zero claimed new constructs, and zero claimed new artifacts.
+The planned acceptance identities are `V05-IR-001-UNIT`,
+`V05-IR-001-PARSER`, `V05-IR-001-SUPERVISOR`, `V05-IR-001-WORKER`,
+`V05-IR-001-COMPAT`, and `V05-IR-001-ADVERSARIAL`.
+
+### Scope Boundary
+
+Gate 0A does not claim that the authorized implementation exists. It does not
+authorize a new language construct, IR version, API, schema, migration,
+frontend, dependency, driver, package, source-to-IR reparse/integrity feature,
+or operational behavior. The broader Core Language and Deterministic Runtime
+roadmap remains Candidate scope and requires later approval. No v0.5 release,
+deployment, compliance, signature, or operational claim is made.
+
 ## 2026-07-18 - v0.4 Gate 0 Pass And Implementation Start
 
 ### Gate Result

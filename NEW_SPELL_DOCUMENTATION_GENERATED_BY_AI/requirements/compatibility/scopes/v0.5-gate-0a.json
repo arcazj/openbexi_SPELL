@@ -1,0 +1,82 @@
+{
+  "schema_version": "ng-spell-v05-gate-0a-scope/1",
+  "gate_id": "V05-GATE-0A",
+  "status": "PASS",
+  "target_increment": "v0.5",
+  "target_release": "v0.5.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "decision_date": "2026-08-12",
+    "authorization": "V05-IR-001_ONLY",
+    "owner_request": "finish up v0.4 and star v0.5",
+    "precondition": "ANNOTATED_V0_4_0_ACCEPTED_RELEASE_TAG_VERIFIED"
+  },
+  "accepted_baseline": {
+    "tag_ref": "refs/tags/v0.4.0",
+    "tag_object_type": "tag",
+    "tag_object_id": "86390c90e8d5f96f872be43274cbc9d789a34c2d",
+    "raw_tag_object_sha256": "ae7030aa54ad9c69761ae764c4edd2535b47ae842a2f4f5b4c20aad859fca663",
+    "peeled_commit": "4546d313a2d8f50504b2bc602d56b3b459ca7597",
+    "tagged_files_sha256": {
+      "SPELL_v0.4_Release.md": "6c3288a3a83d679e82713f09613a640117817fc9cbd05fdf4853a5db64202aa8",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/COMPATIBILITY_LEDGER.json": "f1d4e20383c81a1109e93b39e2aac04f04b2366e91eae613170488a6acf8458f",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.4.json": "2de37c751c084fad96d1bf1c3842deab57bb697920d0cc0bc15b206a46aee1f5"
+    }
+  },
+  "compatibility_delta": {
+    "accepted_ir_versions": [
+      "0.3"
+    ],
+    "new_ir_versions": [],
+    "claimed_construct_ids": [],
+    "claimed_artifact_ids": [],
+    "compatibility_ledger_rows_added": 0,
+    "v0_4_scope_rows_changed": 0
+  },
+  "authorized_work_package": {
+    "work_package_id": "V05-IR-001",
+    "title": "Existing v0.3 IR fail-closed validation hardening",
+    "status": "IMPLEMENTATION_AUTHORIZED",
+    "accepted_ir_version": "0.3",
+    "authorized_changes": [
+      "STRICT_IR_0_3_VALIDATOR_AND_CANONICALIZER",
+      "PARSER_OUTPUT_POSTVALIDATION",
+      "SUPERVISOR_PERSISTED_IR_PREFLIGHT_BEFORE_GENERATION_OR_PROCESS",
+      "WORKER_IR_VERSION_AND_PAYLOAD_PREFLIGHT_BEFORE_WORKER_STARTED",
+      "PERSISTED_IR_BYTE_PRESERVATION_WITHOUT_MIGRATION",
+      "ADVERSARIAL_AND_GOLDEN_FAIL_CLOSED_TESTS"
+    ],
+    "failure_boundary": "INVALID_IR_REJECTED_AND_AUDITED_BEFORE_WORKER_PROCESS_CREATION_WORKER_STARTED_OR_EFFECT",
+    "persistence_policy": "VALIDATE_WITHOUT_REWRITING_STORED_IR_BYTES",
+    "planned_test_ids": [
+      "V05-IR-001-UNIT",
+      "V05-IR-001-PARSER",
+      "V05-IR-001-SUPERVISOR",
+      "V05-IR-001-WORKER",
+      "V05-IR-001-COMPAT",
+      "V05-IR-001-ADVERSARIAL"
+    ]
+  },
+  "claims": {
+    "v0_4_release_accepted": true,
+    "v0_5_implementation_authorized": true,
+    "v0_5_implementation_claimed_by_gate": false,
+    "v0_5_release_accepted": false,
+    "new_language_surface_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "V0_5_SCOPE_BEYOND_V05_IR_001",
+    "NEW_LANGUAGE_CONSTRUCTS_OR_COMPATIBILITY_ARTIFACTS",
+    "IR_VERSION_CHANGE_OR_MIGRATION",
+    "PERSISTED_IR_REWRITE",
+    "UNRESTRICTED_PYTHON_OR_SOURCE_EXECUTION",
+    "PUBLIC_API_DATABASE_SCHEMA_FRONTEND_OR_DEPENDENCY_CHANGE",
+    "DRIVER_GCS_SPACECRAFT_OR_EXTERNAL_EFFECT_ROUTING",
+    "DEPLOYMENT_OPERATIONAL_OR_COMPLIANCE_CLAIM"
+  ]
+}

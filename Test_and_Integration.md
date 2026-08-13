@@ -5,22 +5,107 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current accepted product release | SPELL v0.3.0, tag `v0.3.0` |
-| Planning target | SPELL v0.4.0 - Typed Simulator Driver and Context Foundation |
-| Status | v0.3 accepted; v0.4 local Candidate A scope/test plan owner-approved; `V04-GATE-0 PASS`; Gates 1-5 pending |
-| Date | 2026-07-17; local gate disposition recorded 2026-07-18 |
+| Current accepted product release | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
+| Planning target | SPELL v0.5.0 Gate 0A - existing IR 0.3 fail-closed validation hardening |
+| Status | v0.4 accepted; `V05-GATE-0A PASS`; only `V05-IR-001` implementation authorized and not yet claimed |
+| Date | Updated 2026-08-12 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
+
+## Version 0.5 Gate 0A Test Plan
+
+### Gate Status And Scope
+
+This section is the acceptance contract for the single work package authorized
+by [`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md).
+`V05-GATE-0A PASS` authorizes implementation of `V05-IR-001` only. Every
+product-test result below is `Planned`; the gate does not claim the code or its
+evidence exists.
+
+The increment adds strict independent validation and canonicalization of the
+existing `spell-restricted-ast/0.3` payload at parser, persisted supervisor,
+and worker boundaries. Invalid IR must be rejected and audited before process
+creation when detected by the supervisor, and always before `worker.started`
+or any procedure effect. Valid accepted IR 0.3 behavior and persisted bytes
+remain unchanged.
+
+No new syntax, construct, IR version, API, schema, migration, frontend,
+dependency, package, driver, source-to-IR reparse/integrity feature, or
+operational behavior is in scope.
+
+### Requirements And Traceability
+
+| Requirement ID | Requirement | Severity | Primary tests |
+| --- | --- | --- | --- |
+| `V05-REQ-IR-001` | One independent validator/canonicalizer accepts only the exact existing IR 0.3 structural and semantic contract with deterministic bounded diagnostics | Critical | `V05-IR-001-UNIT`, `V05-IR-001-ADVERSARIAL` |
+| `V05-REQ-IR-002` | Newly compiled parser output is postvalidated before an accepted `Procedure` is returned | Critical | `V05-IR-001-PARSER` |
+| `V05-REQ-IR-003` | Stored version, steps, start position, prompt resume, and checkpoint variables are validated before worker generation changes or process creation | Critical | `V05-IR-001-SUPERVISOR`, `V05-IR-001-ADVERSARIAL` |
+| `V05-REQ-IR-004` | The worker independently validates explicit IR version and the complete payload before `worker.started`, state acknowledgement, prompt, checkpoint, or effect | Critical | `V05-IR-001-WORKER`, `V05-IR-001-ADVERSARIAL` |
+| `V05-REQ-IR-005` | Valid accepted v0.3/v0.4 IR behavior and stored IR bytes remain unchanged without migration or public-contract expansion | Critical | `V05-IR-001-COMPAT` |
+
+### Planned Environments
+
+| Code | Environment | Purpose |
+| --- | --- | --- |
+| `DEV` | Pinned Python 3.13 local test environment | Validator, parser, worker, and mutation corpus |
+| `SQLITE` | Fresh and populated accepted-baseline SQLite stores | Stored-row and recovery preflight without migration |
+| `PG` | Fresh and populated accepted-baseline PostgreSQL stores | Dialect-independent stored-row and recovery preflight |
+| `FLT` | Deterministic tamper/fault fixtures | Boundary ordering, invalid payloads, and negative audit paths |
+
+### Planned Acceptance Tests
+
+| Test ID | Expected result | Environment | Final result |
+| --- | --- | --- | --- |
+| `V05-IR-001-UNIT` | The validator accepts the complete canonical IR 0.3 golden corpus and rejects unknown/missing/extra fields, exact-type violations including Boolean-as-integer, non-finite or oversized values, invalid indexes, malformed expressions, bad variable flow/types, invalid prompts, start positions, and checkpoint state with bounded deterministic diagnostics | `DEV` | Planned |
+| `V05-IR-001-PARSER` | Every compiler result is postvalidated; accepted golden IR, source identity, step ordering, and IR version are unchanged, while injected invalid compiler output cannot produce an accepted `Procedure` | `DEV` | Planned |
+| `V05-IR-001-SUPERVISOR` | Initial start and recovery reject tampered stored IR/version/start/prompt/checkpoint state with bounded durable failure/audit evidence before worker-generation increment or process creation | `DEV`, `SQLITE`, `PG`, `FLT` | Planned |
+| `V05-IR-001-WORKER` | Directly supplied invalid version, IR, start position, or checkpoint state is rejected by worker preflight before `worker.started`, running-state acknowledgement, prompt, checkpoint, or effect | `DEV`, `FLT` | Planned |
+| `V05-IR-001-COMPAT` | Accepted v0.3/v0.4 parser, execution, recovery, audit, SQLite, and PostgreSQL golden cases remain behaviorally identical; stored valid IR bytes are not rewritten and no schema/API/dependency/driver/frontend delta exists | `DEV`, `SQLITE`, `PG` | Planned |
+| `V05-IR-001-ADVERSARIAL` | Cross-boundary mutation covers unsupported versions, field/type/size/depth/index/operator/name/flow/prompt/checkpoint faults, persisted-row substitution between create/start/recovery, and malformed audit inputs; every case fails closed without process/effect leakage or unsafe echo | `DEV`, `SQLITE`, `PG`, `FLT` | Planned |
+
+### Non-Waivable Ordering And Compatibility
+
+- Supervisor validation precedes any worker-generation mutation and process
+  creation.
+- Worker validation precedes `worker.started`, state acknowledgement, prompt,
+  checkpoint, and effect output.
+- A failed validation cannot be silently normalized, retried with different
+  bytes, or converted to an accepted execution.
+- Existing valid persisted IR 0.3 rows are not rewritten or migrated.
+- The implementation may not claim a new language construct or artifact to
+  satisfy this gate.
+
+### Gate 0A Disposition
+
+The machine scope and validator are:
+
+- [`v0.5-gate-0a.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0a.json)
+- [`validate_v05_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0a.py)
+- [`test_validate_v05_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v05_gate_0a.py)
+
+The gate binds the annotated `v0.4.0` tag object and raw hash, peeled release
+commit, tagged baseline file hashes, required acceptance/non-claim markers,
+the one authorized work package, and all six planned test IDs. Its required
+success marker is
+`gate=PASS work_packages=1 claimed_constructs=0 claimed_artifacts=0`.
+
+`V05-GATE-0A PASS` is implementation authorization for `V05-IR-001`, not an
+executed product-test result or v0.5 acceptance. Any broader v0.5 work requires
+a later gate. No Critical failure in validation ordering, persisted-byte
+compatibility, deterministic rejection, audit safety, or no-effect behavior is
+waivable.
 
 ## Version 0.4 Pre-Implementation Test Plan
 
 ### Gate Status And Scope
 
-This section is the owner-approved acceptance contract for the local-only,
-synthetic non-CUI Candidate A scope in
+This section preserves the owner-approved acceptance contract for the
+local-only, synthetic non-CUI Candidate A scope in
 [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md). Every
-result is `Planned`. No v0.4 implementation or executed evidence exists, and
-the section does not supersede the accepted v0.3 results below.
+`Planned` result below records the pre-implementation state. v0.4 subsequently
+passed its complete Final qualification and was accepted at tag `v0.4.0`; the
+executed release disposition is recorded in
+[`SPELL_v0.4_Release.md`](SPELL_v0.4_Release.md).
 
 The planned product slice is one typed, mutually authenticated, out-of-process
 deterministic simulator driver supporting host/context/execution lifecycle,
