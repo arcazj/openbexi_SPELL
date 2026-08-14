@@ -76,8 +76,12 @@ function Get-OrdinalStrings {
 
 function Assert-ExactSet {
   param(
-    [Parameter(Mandatory = $true)][object[]]$Expected,
-    [Parameter(Mandatory = $true)][object[]]$Actual,
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [object[]]$Expected,
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [object[]]$Actual,
     [Parameter(Mandatory = $true)][string]$Label
   )
   [string[]]$expectedSorted = @(Get-OrdinalStrings $Expected)
@@ -500,7 +504,9 @@ function Assert-JUnitContract {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
     [Parameter(Mandatory = $true)][string[]]$CollectedNodes,
-    [Parameter(Mandatory = $true)][string[]]$AllowedSkips,
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [string[]]$AllowedSkips,
     [Parameter(Mandatory = $true)][string]$Label,
     [int]$ExpectedSubtests = 0
   )
@@ -522,7 +528,9 @@ function New-JUnitSuiteDeclaration {
     [Parameter(Mandatory = $true)][string]$Id,
     [Parameter(Mandatory = $true)][string]$Path,
     [Parameter(Mandatory = $true)][object]$Result,
-    [Parameter(Mandatory = $true)][string[]]$AllowedSkips
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [string[]]$AllowedSkips
   )
   return [ordered]@{
     kind = "junit"
