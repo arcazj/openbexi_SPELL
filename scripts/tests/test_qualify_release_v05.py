@@ -95,11 +95,16 @@ def test_v05_final_runner_accepts_leaf_playwright_suites() -> None:
 
 def test_v05_final_runner_accepts_intentional_empty_skip_inventories() -> None:
     runner = RUNNER.read_text(encoding="utf-8")
-    ordinal = runner[runner.index("function Get-OrdinalStrings") :]
-    ordinal = ordinal[: ordinal.index("function Assert-ExactSet")]
-
-    assert "[AllowEmptyCollection()]" in ordinal
-    assert "[object[]]$Values" in ordinal
+    boundaries = (
+        ("function Get-OrdinalStrings", "function Assert-ExactSet", "[object[]]$Values"),
+        ("function Assert-ExactSet", "function Assert-ExactProperties", "[object[]]$Expected"),
+        ("function Assert-JUnitContract", "function New-JUnitSuiteDeclaration", "[string[]]$AllowedSkips"),
+        ("function New-JUnitSuiteDeclaration", "function Assert-FinalToolchain", "[string[]]$AllowedSkips"),
+    )
+    for start, end, parameter in boundaries:
+        function = runner[runner.index(start) : runner.index(end)]
+        assert "[AllowEmptyCollection()]" in function
+        assert parameter in function
     assert 'Assert-JUnitContract $postgresXml $backendNodes @() "backend PostgreSQL"' in runner
     assert 'Assert-JUnitContract $driverXml $driverNodes @() "driver host"' in runner
     assert 'Assert-JUnitContract $toolingXml $toolingNodes @() "tooling" 36' in runner
