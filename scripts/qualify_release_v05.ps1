@@ -64,7 +64,11 @@ function Get-LowerSha256 {
 }
 
 function Get-OrdinalStrings {
-  param([Parameter(Mandatory = $true)][object[]]$Values)
+  param(
+    [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
+    [object[]]$Values
+  )
   [string[]]$items = @($Values | ForEach-Object { [string]$_ })
   [Array]::Sort($items, [StringComparer]::Ordinal)
   return $items
