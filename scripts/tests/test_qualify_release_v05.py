@@ -84,6 +84,15 @@ def test_v05_final_runner_flattens_every_collected_inventory_explicitly() -> Non
     assert "[string[]]$realNodes = @(" in runner
 
 
+def test_v05_final_runner_accepts_leaf_playwright_suites() -> None:
+    runner = RUNNER.read_text(encoding="utf-8")
+
+    assert '$children = $Suite.PSObject.Properties["suites"]' in runner
+    assert "if ($null -ne $children)" in runner
+    assert "foreach ($child in @($children.Value))" in runner
+    assert "foreach ($child in @($Suite.suites))" not in runner
+
+
 def test_v05_final_runner_accepts_intentional_empty_skip_inventories() -> None:
     runner = RUNNER.read_text(encoding="utf-8")
     ordinal = runner[runner.index("function Get-OrdinalStrings") :]
