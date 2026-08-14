@@ -31,6 +31,9 @@ artifacts/v0.4/*.tar.gz
 artifacts/v0.4/*.tar.gz.sha256
 artifacts/v0.4/browser/
 artifacts/v0.4/performance-*.json
+artifacts/v0.5/.qualification/
+artifacts/v0.5/*.tar.gz
+artifacts/v0.5/*.tar.gz.sha256
 
 *.log
 

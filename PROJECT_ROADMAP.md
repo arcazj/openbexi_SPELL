@@ -4,15 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.4.0 baseline, v0.5 Gate 0A, and bounded candidate-implementation record |
-| Update type | Release status, bounded gate decision, and local implementation evidence update |
+| Document revision | Accepted v0.4.0 baseline, v0.5 Gates 0A/0B, and release-closeout candidate record |
+| Update type | Release status, bounded gate decisions, and candidate closeout update |
 | Updated | 2026-08-13 |
 | Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
-| v0.5 planning status | `V05-GATE-0A PASS`; candidate commit `aefa658` locally verified; completion claim blocked on PostgreSQL evidence |
+| v0.5 planning status | Canonical candidate qualification and live Gate 0B validation PASS for `V05-IR-001`; Final validation, SBOM/supply-chain evidence, package, release commit, and tag pending |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Candidate IR 0.3 validation hardening in `aefa658`; no new API, schema, frontend, dependency, driver, or language surface |
+| Runtime, API, schema, frontend, dependency, or driver change | IR 0.3 validation hardening in `aefa658`; product metadata 0.5.0; no new API, schema, frontend behavior, dependency, driver, or language surface |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -34,9 +34,14 @@ SPELL v0.4.0 is now the accepted product baseline. Its annotated tag
 [`V05-GATE-0A`](SPELL_v0.5_Pre-Implementation.md), which authorizes only
 `V05-IR-001` hardening of the existing IR 0.3 validation boundary. It does not
 authorize the broader v0.5 language roadmap. The authorized work later produced
-candidate commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`; Gate 0A does not
-permit an implementation-complete claim until the pending PostgreSQL evidence
-passes.
+candidate commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`.
+[`V05-GATE-0B`](SPELL_v0.5_Gate_0B.md) now records PASS for the bounded release
+closeout authorization. The canonical candidate work package and live Gate 0B
+validator now pass. It does not presently accept v0.5: Final validation,
+SBOM/supply-chain evidence, the release commit, deterministic package, and
+annotated `v0.5.0` tag remain pending. When those controls pass, the verified
+tag makes the conditional owner acceptance effective without a post-tag
+documentation commit.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -214,8 +219,8 @@ strengthens them:
 v0.2, v0.3, and v0.4 are accepted product releases. v0.1 is a delivered planning
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
-is a planning label and may be renumbered when its pre-implementation gate is
-approved.
+is a planning label until its applicable gate is approved. v0.5 has passed its
+bounded Gates 0A and 0B but is not accepted until Final closeout and tagging.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -225,7 +230,7 @@ approved.
 | v0.3.1 | Roadmap and Timeline Records | Documentation-only | Prepared | Establish `PROJECT_ROADMAP.md` and `VERSION_TIMELINE.md` as maintained project records without changing product behavior. | Owner request limited to these two documents; formal release workflow remains separate. |
 | NG spec 0.1 | Next-Generation Design Specification | Documentation-only | Draft prepared | Convert the complete manual review and modernization objectives into a controlled, implementation-ready web/server/data/security/operations blueprint while preserving the two core 2.4.4 authorities. This specification version is independent of product versions. | Multidisciplinary approval, closed phase-entry decisions, feature-level compatibility rows, verified traceability, and a signed documentation baseline. |
 | v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
-| v0.5 | Core Language and Deterministic Runtime | Product | `V05-IR-001` candidate committed and locally verified; completion not claimed | First harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope beyond Gate 0A. | PostgreSQL evidence must pass before an implemented or accepted claim; every additional construct or artifact requires a later gate. |
+| v0.5 | Core Language and Deterministic Runtime | Product | `V05-IR-001` canonical qualification and Gate 0B PASS; Final acceptance and tag pending | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Pass supply-chain/SBOM/package/Final validation, fix the release commit, and create annotated `v0.5.0`; every additional construct or artifact requires a later gate. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Accepted v0.5 runtime plus approved operator state/command/prompt/inspection matrices and recovery tests. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Candidate | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Accepted typed driver/runtime foundation and approved telemetry identity, quality, time, condition, resource, lookup, and stream contracts. |
 | v0.8 | Data and Local Service Compatibility | Product | Candidate | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
@@ -575,7 +580,7 @@ candidate labels until each pre-implementation gate is approved.
 Goal: establish the documented source and execution vocabulary on the bounded
 v0.3 IR without unrestricted Python.
 
-#### Current Gate 0A Authorization
+#### Current Gates 0A And 0B
 
 `V05-GATE-0A PASS` authorizes only `V05-IR-001`, a strict independent
 validator/canonicalizer for the existing IR 0.3 contract plus parser
@@ -589,14 +594,24 @@ This authorization adds no language construct, IR version, API, schema,
 frontend, dependency, driver, source-to-IR reparse/integrity feature, or
 operational scope. Gate 0A itself did not claim implementation. The authorized
 work subsequently produced candidate commit
-`aefa658ce01d49a7879d0471b50425ac3bcf9e2d`, which passed the configured local
-Python 3.13 backend/driver-host suite, Gate 0A validator, and tooling tests.
-PostgreSQL evidence and the environment-specific skipped checks remain
-outstanding, so `V05-IR-001` is not yet claimed implemented. The remaining
-bullets in this section are candidate release properties beyond Gate 0A and
-require a later entry decision.
+`aefa658ce01d49a7879d0471b50425ac3bcf9e2d`. Gate 0B records the candidate and
+all six required identities as qualified and authorizes release closeout for
+that work package only. The canonical work-package validator passes candidate
+`aefa658` against qualification correction/source `ef26e53`, evidence SHA-256
+`86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`, four
+suites, six identities, and 949 concrete tests. The `ef26e53` delta changes
+only Docker inspection test timeout metadata. Product metadata is now `0.5.0`,
+while procedure IR 0.3, API v1, report schema 0.3, and the unchanged driver
+implementation identity `0.4.0` remain stable.
 
-Candidate release properties beyond Gate 0A:
+Gate 0B is not final release acceptance. The supply-chain result, four SBOMs,
+deterministic package and sidecar, Final validation, release commit, and
+annotated tag are pending. SPELL v0.4.0 remains the accepted baseline until the
+conditional v0.5 controls pass and the verified tag makes acceptance effective.
+The remaining bullets in this section are candidate release properties beyond
+Gates 0A/0B and require a later entry decision.
+
+Candidate release properties beyond Gates 0A/0B:
 
 - Declare a safe Python 3 compatibility profile for expressions, collections,
   conditions, bounded loops/functions, and stable source-line diagnostics.

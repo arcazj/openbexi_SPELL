@@ -1,14 +1,41 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL v0.3 is a clean-room, simulator-only engineering release of a
-modern Satellite Procedure Execution Language and Library environment. It
-combines a Python execution service, isolated workers, durable state and event
-storage, a restricted typed procedure language, and a real-time 2D web console.
+OpenBEXI SPELL v0.5.0 is the current clean-room, simulator-only engineering
+release candidate. It combines a Python execution service, isolated workers,
+durable state and event storage, a restricted typed procedure language, a
+typed simulator-driver lifecycle foundation, and a real-time 2D web console.
+SPELL v0.4.0 remains the accepted release until the v0.5 Final validation,
+release commit, deterministic package, and annotated `v0.5.0` tag are complete.
 
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
 
-## Version 0.3
+## Version 0.5 Candidate
+
+- Independently validates and canonicalizes existing IR 0.3 at parser,
+  persisted supervisor, and isolated worker boundaries.
+- Rejects malformed or semantically inconsistent IR before worker allocation
+  where detected by the supervisor and before `worker.started` or procedure
+  effects in the worker.
+- Validates recovery position, prompt identity, and checkpoint variable state
+  with bounded deterministic audit diagnostics.
+- Preserves accepted IR 0.3 behavior and persisted bytes without a migration,
+  new language feature, API change, frontend behavior change, dependency
+  change, or driver-contract change.
+- Reports product/package/backend/frontend version `0.5.0`; the unchanged
+  bundled driver correctly retains implementation identity `0.4.0`.
+
+`V05-GATE-0A PASS` authorized the single `V05-IR-001` work package.
+`V05-GATE-0B PASS` authorizes its release closeout but is not release
+acceptance. The canonical candidate work package now passes independent live
+validation: candidate `aefa658`, test-only Docker inspection metadata correction
+and qualification source `ef26e53`, 4 suites, 6 identities, and 949 concrete
+tests. Final validation, SBOM/supply-chain evidence, deterministic packaging,
+the release commit, and the `v0.5.0` tag remain pending. The recorded
+conditional owner acceptance becomes effective only when those controls pass
+and that tag is verified; it does not require a post-tag documentation commit.
+
+## Version 0.3 Foundation
 
 - Python 3.13 control plane with one spawned worker per execution.
 - Restricted non-executing AST parser and data-only IR for typed variables,
@@ -128,20 +155,20 @@ declared variables, and diagnostics without saving or executing submitted text.
 
 ## Verification
 
-```powershell
-.\scripts\qualify_release.ps1
-.\scripts\build_v03.ps1
-```
+The v0.5 work-package qualification and release-closeout commands are defined
+by [`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md). They use locked Python
+3.13, isolated SQLite/PostgreSQL suites, source-bound JUnit evidence,
+deterministic packaging, and supply-chain inspection. The canonical candidate
+record at `artifacts/v0.5/work-package/qualification.json` passes with SHA-256
+`86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`;
+the live Gate 0B marker also passes. Remaining executed results must appear in
+[`Test_and_Integration.md`](Test_and_Integration.md) and
+[`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md); missing release-level
+artifacts are not treated as passes.
 
-`qualify_release.ps1` creates fingerprint-bound quick, soak, and two-process
-Chromium stream reports and composes them independently. `build_v03.ps1`
-validates that evidence against the current source, then runs the complete
-SQLite/PostgreSQL, frontend, real-backend browser, isolation, audit, distinct
-SBOM, package inspection, and reproducibility gates. Exact commands and results
-are recorded in [`Test_and_Integration.md`](Test_and_Integration.md).
-
-Release packaging excludes only generated evidence screenshots under the
-versioned artifacts path; product PNG and other visual assets remain included.
+The v0.5 package excludes qualification staging, retained v0.4 evidence,
+legacy archives, supplied/generated PDFs, secrets, and runtime journals.
+Product PNG and other required visual assets remain included.
 
 ## Project Documents
 
@@ -156,16 +183,20 @@ versioned artifacts path; product PNG and other visual assets remain included.
 | [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL-0.1.0-draft.1.pdf`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL-0.1.0-draft.1.pdf) | Validated Draft tagged PDF manual for the intended next-generation web interface, RBAC startup, modes, secure handover, operations, and procedure development |
 | [`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md) | Approved v0.3 scope and exclusions |
 | [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md) | Project-owner-approved local synthetic non-CUI Candidate A scope; Gate 0 passed and bounded product engineering authorized |
+| [`SPELL_v0.4_Release.md`](SPELL_v0.4_Release.md) | Accepted v0.4.0 scope, Final qualification, limitations, and tag decision |
+| [`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md) | Gate 0A authorization for the single existing-IR hardening work package |
+| [`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) | Gate 0B release-closeout authorization; not final release acceptance |
+| [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) | v0.5.0 candidate closeout status, conditional decision, and pending release controls |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-SPELL v0.3.0 remains the accepted product baseline. JC Arcaz approved the
-bounded local v0.4 Candidate A scope, its exclusions, budgets, and test plan.
-Gate 0 passed under the digest-pinned Python 3.13 image after exact manifest
-binding and compatibility qualification. This authorizes only the bounded v0.4
-product-engineering work; the v0.4 documents do not yet describe delivered
-runtime behavior or a release result.
+SPELL v0.4.0 is the accepted product baseline at annotated tag `v0.4.0` and
+release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597`. Its Final
+qualification passed 74/74 tests and 209/209 assertions with no accepted
+exceptions. Gate 0B authorizes closeout of only `V05-IR-001` for v0.5.0; it
+does not authorize the broader v0.5 roadmap or make a release, deployment,
+operational, or compliance claim.
 
 The Development Environment manual was absent from the original v0.1 evidence
 but was supplied separately on 2026-07-17. All seven PDFs now under
@@ -179,7 +210,10 @@ Deferred/`EXCLUDE`; each row has a unique planned test identity. Deferred rows
 are static source and negative-scope evidence, not implementations or executed
 semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
-Release acceptance still requires every approved v0.4 Gate 1-5 criterion.
+The accepted v0.4 Gate 1-5 evidence remains immutable. v0.5 candidate
+qualification is now integrated and validated; acceptance still requires its
+current-source qualification, supply-chain, SBOM, reproducibility, Final
+release, commit, and annotated-tag evidence.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4
