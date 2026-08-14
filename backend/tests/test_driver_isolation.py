@@ -394,7 +394,10 @@ def test_created_compose_driver_has_runtime_isolation_controls() -> None:
         assert host["PidsLimit"] == 64
         assert host["Memory"] == 256 * 1024 * 1024
         assert host["NanoCpus"] == 1_000_000_000
-        assert host["StopTimeout"] == 2
+        stop_timeout = container["Config"].get(
+            "StopTimeout", host.get("StopTimeout")
+        )
+        assert stop_timeout == 2
         assert host.get("PidMode", "") == ""
 
         named_volumes = {
