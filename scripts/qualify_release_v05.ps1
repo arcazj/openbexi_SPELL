@@ -440,7 +440,10 @@ function Get-PlaywrightNodes {
         $nodes.Add("browser_$projectName.$fileName::$([string]$spec.title)")
       }
     }
-    foreach ($child in @($Suite.suites)) { Add-Suite $child }
+    $children = $Suite.PSObject.Properties["suites"]
+    if ($null -ne $children) {
+      foreach ($child in @($children.Value)) { Add-Suite $child }
+    }
   }
   foreach ($suite in @($Document.suites)) { Add-Suite $suite }
   [string[]]$values = @(Get-OrdinalStrings $nodes.ToArray())
