@@ -122,7 +122,20 @@ def test_v05_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     assert "real browser" in runner
     assert runner.count("backend/tests/test_migrations.py::") >= 4
     assert runner.count("backend/tests/test_driver_isolation.py::") >= 4
-    assert "Windows-only tooling node inventory differs" in runner
+    assert "host-only tooling node inventory differs" in runner
+    assert "$hostToolingNodes.Count -ne 10" in runner
+    assert (
+        'scripts/tests/test_release_v05.py::'
+        "test_v05_package_scans_canonical_candidate_canaries_structurally"
+    ) in runner
+    assert (
+        'scripts/tests/test_release_v05.py::'
+        "test_v05_package_rejects_duplicate_or_mislocated_evidence_canaries"
+    ) in runner
+    assert (
+        'scripts/tests/test_validate_release_evidence_v05.py::'
+        "test_require_tag_validates_real_annotated_object_target_markers_and_sidecar"
+    ) in runner
     assert "Merge-JUnit @($postgresBaseXml, $postgresRuntimeXml)" in runner
     assert "Merge-JUnit @($toolingBaseXml, $toolingHostXml)" in runner
     assert 'SPELL_TEST_DATABASE_URL=$applicationUrl' in runner
