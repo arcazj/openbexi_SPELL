@@ -6,8 +6,8 @@
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
-| Planning target | SPELL v0.5.0 Gate 0A - existing IR 0.3 fail-closed validation hardening |
-| Status | v0.4 accepted; `V05-GATE-0A PASS`; `V05-IR-001` candidate implementation committed and locally verified; completion claim blocked on PostgreSQL evidence |
+| Planning target | SPELL v0.5.0 release closeout for existing IR 0.3 fail-closed validation hardening |
+| Status | v0.4 accepted; canonical v0.5 candidate qualification and live Gate 0B validation PASS; Final validation, SBOM/supply-chain evidence, release commit, package, and tag pending |
 | Date | Updated 2026-08-13 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
@@ -85,13 +85,12 @@ operational behavior is in scope.
 | `V05-IR-001-COMPAT` | Local PASS in `DEV` and `SQLITE` | `PG` execution |
 | `V05-IR-001-ADVERSARIAL` | Local PASS in `DEV`, `SQLITE`, and `FLT` | `PG` execution |
 
-The 18 skips are confined to an unconfigured PostgreSQL migration database,
+The 18 skips were confined to an unconfigured PostgreSQL migration database,
 Linux image or `/proc` metadata checks, an unavailable symlink capability, and
 opt-in Compose/Linux process inspection. They are not converted to passes or
-waivers. The candidate implementation is locally verified, but Gate 0A requires
-all six planned identities to pass before `V05-IR-001` may be claimed
-implemented. PostgreSQL evidence remains pending, so no completion, acceptance,
-v0.5 release, or broader-scope claim is made.
+waivers. This was the local implementation checkpoint before the separate
+candidate qualification and Gate 0B decision. It did not itself complete the
+work package or accept v0.5.
 
 ### Non-Waivable Ordering And Compatibility
 
@@ -124,6 +123,69 @@ executed product-test result or v0.5 acceptance. Any broader v0.5 work requires
 a later gate. No Critical failure in validation ordering, persisted-byte
 compatibility, deterministic rejection, audit safety, or no-effect behavior is
 waivable.
+
+## Version 0.5 Gate 0B And Release Closeout
+
+### Current Disposition
+
+[`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) records
+`V05-GATE-0B PASS`: the immutable candidate and six required identities are
+qualified for release closeout, and only `V05-IR-001` may proceed. Gate 0B is
+an authorization boundary, not Final release acceptance. The canonical
+`artifacts/v0.5/work-package/qualification.json` is now integrated and passes
+its independent validator. Complete current-source and Final release validation
+remain pending.
+
+| Canonical qualification field | Validated result |
+| --- | --- |
+| Candidate implementation | `aefa658ce01d49a7879d0471b50425ac3bcf9e2d` |
+| Qualification correction/source | `ef26e53f5ecccabef1fff03ec86d71b0c93edd2b` |
+| Correction scope | Test-only Docker inspection timeout metadata; no product behavior change |
+| Evidence SHA-256 | `86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9` |
+| Validated inventory | PASS: 4 suites, 6 identities, 949 concrete tests |
+| Gate 0B live validator | PASS: `gate=PASS work_packages=1 identities=6 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED` |
+
+| Test ID or closeout control | Gate 0B disposition | Final release record |
+| --- | --- | --- |
+| `V05-IR-001-UNIT` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| `V05-IR-001-PARSER` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| `V05-IR-001-SUPERVISOR` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| `V05-IR-001-WORKER` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| `V05-IR-001-COMPAT` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| `V05-IR-001-ADVERSARIAL` | Qualified for closeout in SQLite and PostgreSQL with zero PostgreSQL skips | PASS in canonical candidate evidence; Final validation pending |
+| Gate 0B validator and focused mutation suite | Gate scope records PASS | PASS against the integrated closeout tree with the exact authorized marker |
+| Current-source dependency audit | Authorized | Pending |
+| Four distinct v0.5 image-bound SBOMs and checksum manifest | Authorized | Pending |
+| Deterministic `openbexi-spell-v0.5.0.tar.gz` and sidecar | Authorized | Pending |
+| Complete Final release validation | Required | Pending |
+| Release commit and annotated `v0.5.0` tag | Authorized after all prior controls pass | Pending |
+
+### Metadata And Compatibility Checks
+
+The release candidate reports product/package/backend/frontend version
+`0.5.0`. The procedure subset remains `spell-restricted-ast/0.3`, the API
+remains `v1`, and the report/event schema remains `0.3`. The bundled driver
+contract remains `spell.driver.v1`, and its unchanged implementation/default
+identity remains `0.4.0`. These distinct identities are intentional: the v0.5
+work package does not modify the driver, and assigning a new driver identity
+would be a false compatibility change.
+
+### Non-Waivable Final Conditions
+
+- The integrated `qualification.json` and every referenced JUnit file must pass
+  the independent candidate-evidence validator with exact hashes and no
+  PostgreSQL skip, failure, or error.
+- The current-source fingerprint, evidence fingerprint, four image identities,
+  SBOMs, and deterministic package must bind the same fixed release tree.
+- Accepted v0.4 evidence must remain byte-unchanged and may be used only as
+  inherited regression support, not direct v0.5 proof.
+- This document and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) must record
+  actual hashes and results before a Final PASS or owner acceptance decision.
+- No annotated `v0.5.0` tag may be claimed until the fixed release commit and
+  all Final evidence exist and validate.
+- The conditional owner acceptance becomes effective only when that verified
+  tag is created over the passing fixed release commit. The tag is the final
+  condition, so no circular post-tag documentation commit is required.
 
 ## Version 0.4 Pre-Implementation Test Plan
 

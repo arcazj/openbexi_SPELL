@@ -1,10 +1,18 @@
-# SPELL v0.4 Candidate Operations Console
+# SPELL v0.5 Operations Console
 
 React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
-v0.4 local-only, synthetic non-CUI simulator candidate. It retains the accepted
-v0.3 execution and restricted-IR schema contracts and adds an authenticated,
-read-only projection of the bundled simulator driver foundation. Browser driver
-mutations and direct browser-to-driver access are outside the v0.4 scope.
+v0.5 local-only, synthetic non-CUI simulator release candidate. The v0.5 increment does
+not change frontend behavior: it retains the accepted v0.4 console, v0.3
+execution and restricted-IR contracts, and authenticated read-only projection
+of the bundled simulator driver foundation. Browser driver mutations and direct
+browser-to-driver access remain outside scope.
+
+The canonical `V05-IR-001` candidate work package and live Gate 0B validator
+pass for candidate `aefa658`, test-only Docker inspection timeout metadata
+correction/source `ef26e53`, four suites, six identities, and 949 concrete
+tests. This does not change frontend behavior or accept v0.5: Final validation,
+SBOM/supply-chain evidence, deterministic packaging, the release commit, and
+the verified `v0.5.0` tag remain pending.
 
 The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide

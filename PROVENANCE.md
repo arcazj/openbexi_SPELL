@@ -1,12 +1,14 @@
-# SPELL v0.4 Candidate Provenance and Dependency Review
+# SPELL v0.5 Release Provenance and Dependency Review
 
 ## Record Status
 
-This record applies to the bounded SPELL v0.4.0 Candidate A engineering scope.
-SPELL v0.3.0 remains the accepted baseline. The v0.4 scope is local-only,
-synthetic, non-CUI simulator engineering; this document does not record a v0.4
-release decision and makes no compliance, deployment, mission, or operational
-authorization claim.
+This record applies to the bounded SPELL v0.5.0 release closeout. SPELL v0.4.0
+is the accepted local-only, synthetic, non-CUI simulator engineering baseline.
+`V05-GATE-0B PASS` authorizes release closeout for `V05-IR-001` only. Canonical
+candidate qualification integration and live Gate 0B validation now pass;
+Final validation, SBOM/supply-chain evidence, the release commit, deterministic
+package, and annotated `v0.5.0` tag remain pending. This document makes no
+compliance, deployment, mission, or operational authorization claim.
 
 ## AI Assistance Record
 
@@ -17,8 +19,8 @@ establish a compliance determination or operational authorization.
 
 ## Clean-Room Boundary
 
-The accepted v0.3 baseline and the v0.4 Candidate A implementation are new
-first-party work. The three legacy archives are read-only behavioral and
+The accepted v0.4 baseline and the bounded v0.5 IR-hardening implementation are
+new first-party work. The three legacy archives are read-only behavioral and
 historical references; no legacy implementation may be compiled, imported,
 linked, copied into generated sources, loaded at runtime, or shipped by the
 backend, driver, frontend, proxy, or release package.
@@ -33,8 +35,8 @@ The archives are explicitly ignored and excluded from the reproducible package:
 
 A v0.2 SHA-256 comparison found no exact match between a new first-party source
 file and an archive entry. That mechanical check supports but does not by itself
-prove clean-room authorship. The v0.4 candidate retains the same source
-boundary.
+prove clean-room authorship. The accepted v0.4 release and v0.5 candidate
+retain the same source boundary.
 
 ### Manual Evidence Boundary
 
@@ -91,8 +93,8 @@ across the control plane, driver host, and offline generator inputs.
 | Apache ECharts, Playwright, TypeScript | Apache-2.0 |
 | Lucide React | ISC |
 
-Transitive packages remain governed by their upstream licenses. A successful
-Gate 5 publication must contain exactly four distinct, source-bound CycloneDX
+Transitive packages remain governed by their upstream licenses. The accepted
+v0.4 Gate 5 publication contains four distinct, source-bound CycloneDX
 inventories and their checksum manifest:
 
 | Image boundary | Reserved v0.4 evidence path | Required subject |
@@ -102,10 +104,9 @@ inventories and their checksum manifest:
 | Frontend build | `artifacts/v0.4/sbom/frontend.cdx.json` | `openbexi_spell-frontend:0.4` |
 | Reverse-proxy runtime | `artifacts/v0.4/sbom/proxy.cdx.json` | `openbexi_spell-proxy:0.4` |
 
-The paths above reserve the required evidence contract; they are not an assertion
-that the inventories have been generated or validated. The v0.4 evidence
-validator also requires `artifacts/v0.4/sbom/SHA256SUMS` to match their exact
-bytes and rejects a duplicate or unbound image identity.
+The paths above are immutable accepted v0.4 evidence. The v0.4 evidence
+validator requires `artifacts/v0.4/sbom/SHA256SUMS` to match their exact bytes
+and rejects a duplicate or unbound image identity.
 
 ## Licensing Status
 
@@ -114,14 +115,14 @@ License 2.0 through `LICENSE` and `NOTICE`. That license does not relicense or
 alter redistribution restrictions of the excluded legacy archives, supplied
 manuals, or third-party packages. This provenance record is not legal advice.
 
-## Candidate Security Review Workflow
+## Accepted v0.4 Security Evidence
 
-The v0.4 Gate 5 workflow must validate every hash lock and pinned container
-input, run Python and Node dependency audits, inspect the four image identities,
-and reject unresolved Critical or High findings. It must also inspect source,
-candidate-package bytes, and product-bearing image paths for credentials,
-private keys, supplied/generated PDFs, manual text, legacy archives, generated
-journals, and runtime contract-generator tooling.
+The v0.4 Gate 5 workflow validated every hash lock and pinned container input,
+ran Python and Node dependency audits, inspected the four image identities, and
+rejected unresolved Critical or High findings. It also inspected source,
+package bytes, and product-bearing image paths for credentials, private keys,
+supplied/generated PDFs, manual text, legacy archives, generated journals, and
+runtime contract-generator tooling.
 
 `scripts/release-toolchain-v04.json` binds the Windows/Docker Desktop release
 CLI and plugins by version and file SHA-256. The current workflow requires Docker
@@ -131,9 +132,40 @@ controls are local engineering evidence only. Their presence or successful
 execution would not establish production PKI suitability, compliance, shared
 deployment approval, or operational security accreditation.
 
+## v0.5 Inherited Controls, Candidate Evidence, And Pending Release Evidence
+
+The v0.5 increment introduces no dependency or driver implementation change.
+It deliberately inherits the accepted digest-pinned
+`scripts/release-toolchain-v04.json`, the existing hash-lock pairs, and the
+accepted `spell.driver.v1` contract. The bundled driver keeps implementation
+identity and default `0.4.0`; changing that handshake without a driver change
+would misrepresent compatibility and invalidate existing persistence and
+regression evidence. The v0.5 product image containing that unchanged driver
+may carry the v0.5 package/SBOM subject while the runtime driver handshake
+continues to report `0.4.0`.
+
+The canonical candidate evidence at
+`artifacts/v0.5/work-package/qualification.json` independently validates
+candidate `aefa658ce01d49a7879d0471b50425ac3bcf9e2d` against qualification
+correction/source `ef26e53f5ecccabef1fff03ec86d71b0c93edd2b`. Its SHA-256 is
+`86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`, with
+four suites, six identities, and 949 concrete tests. The `ef26e53` delta is a
+test-only correction to Docker inspection timeout metadata and introduces no
+product, dependency, driver, or runtime behavior change. Live Gate 0B
+validation passes with exact marker
+`gate=PASS work_packages=1 identities=6 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
+
+The v0.5 closeout must independently generate four source- and image-bound
+inventories under `artifacts/v0.5/sbom`, validate their checksum manifest,
+re-run the current-source dependency audit, reject unresolved Critical/High
+findings, and prove accepted `artifacts/v0.4` bytes were not modified. Those
+release-level artifacts are not yet integrated; the canonical candidate record
+does not imply their result. No v0.5 SBOM, supply-chain, package, or Final pass
+is claimed.
+
 ## Release Evidence Integrity
 
-The v0.4 qualification runner stages built-in and environment-bound results
+The accepted v0.4 qualification runner staged built-in and environment-bound results
 under `artifacts/v0.4/.qualification`. `plan`, `run` or `collect`, and `status`
 do not accept a release. `publish` must atomically validate the exact planned
 Gate 1-5 test catalog, semantic assertions, source fingerprint, four SBOMs, and
@@ -141,9 +173,9 @@ five gate reports before canonical evidence appears under `artifacts/v0.4`.
 Missing, skipped, stale, source-mismatched, or acceptance-claiming collector
 results fail closed.
 
-The v0.4 package workflow must validate the canonical evidence, build from an
-immutable package-input image more than once, compare exact SHA-256 values, and
-recheck the current source context before publishing
+The accepted v0.4 package workflow validated canonical evidence, built from an
+immutable package-input image more than once, compared exact SHA-256 values, and
+rechecked the source context before publishing
 `artifacts/v0.4/openbexi-spell-v0.4.tar.gz` and its external `.sha256` sidecar.
 Generated browser screenshots, private material, runtime journals, manual/PDF
 evidence, legacy archives, and v0.3 evidence are excluded; required product
@@ -151,7 +183,11 @@ visual assets and deterministic generated contract artifacts remain included.
 Retained `artifacts/v0.3` evidence must not be read as v0.4 evidence or modified
 by v0.4 qualification and packaging.
 
-Exact audit results, image identities, evidence fingerprints, package hashes,
-exceptions, and the project-owner decision belong in the as-run Gate 5 evidence
-and `SPELL_v0.4_Release.md`. Until those fields are populated from executed
-evidence, no v0.4 pass or acceptance is claimed here.
+The v0.5 closeout must similarly bind exact audit results, image identities,
+evidence fingerprints, package hashes, exceptions, and the project-owner
+decision in canonical artifacts and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md).
+Until those fields are populated and Final validation passes, SPELL v0.4.0
+remains the accepted release and no v0.5 tag or final acceptance is claimed.
+If all release conditions pass, the verified annotated `v0.5.0` tag activates
+the conditional owner acceptance recorded in the release commit; no post-tag
+documentation commit is required.

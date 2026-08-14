@@ -6,6 +6,53 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-13 - v0.5 Candidate Evidence Integrated And Release Closeout Continued
+
+### Owner Direction And Gate Decision
+
+The project owner directed the qualified `V05-IR-001` increment through
+release closeout and requested the v0.5 tag when all required work is done.
+[`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) resolves the tag request to
+the repository's one authorized semantic-version tag, `v0.5.0`, and records
+`V05-GATE-0B PASS` with authorization
+`V05_IR_001_RELEASE_CLOSEOUT_ONLY`.
+
+Gate 0B is a scope and closeout authorization, not final release acceptance.
+It permits version/provenance/release-record updates, canonical evidence
+integration, deterministic packaging, supply-chain evidence, the release
+commit, and the annotated tag only for the single Gate 0A work package. It does
+not authorize the broader v0.5 language/runtime roadmap or any new API, schema,
+migration, frontend behavior, dependency, driver contract, or operational
+capability.
+
+### Candidate Closeout State
+
+Product package, backend, and frontend metadata are advanced to `0.5.0` for
+the closeout candidate. The accepted procedure IR remains 0.3, API remains
+`v1`, and report/event schema remains `0.3`. The bundled driver retains
+implementation/default identity `0.4.0` because `V05-IR-001` does not modify
+the driver; changing its handshake identity would make an unsupported
+compatibility claim.
+
+The canonical candidate record at
+`artifacts/v0.5/work-package/qualification.json` is integrated and independently
+validated. It binds candidate `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`
+to test-only Docker inspection metadata correction and qualification source
+`ef26e53f5ecccabef1fff03ec86d71b0c93edd2b`. Evidence SHA-256
+`86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`
+covers four suites, six identities, and 949 concrete tests. The live Gate 0B
+validator passes with exact marker
+`gate=PASS work_packages=1 identities=6 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
+
+Supply-chain results, four distinct SBOMs, deterministic package hashes, the
+complete Final validation, release commit, and annotated tag remain pending.
+SPELL v0.4.0 remains the accepted product baseline until every conditional
+release control passes and the verified `v0.5.0` tag is created; that tag makes
+the recorded conditional acceptance effective without a post-tag documentation
+commit. No present v0.5 final acceptance, tag, deployment, operational
+authorization, compliance determination, or cryptographic-signature claim is
+made.
+
 ## 2026-08-12 - v0.4.0 Accepted And v0.5 Gate 0A Opened
 
 ### Accepted Baseline
