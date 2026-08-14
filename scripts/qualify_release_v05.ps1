@@ -372,8 +372,8 @@ function Get-JUnitResult {
     throw "JUnit testcase aggregate is incomplete"
   }
   return [pscustomobject]@{
-    Nodes = [string[]](Get-OrdinalStrings $nodes.ToArray())
-    SkippedNodes = [string[]](Get-OrdinalStrings $skips.ToArray())
+    Nodes = [string[]]@(Get-OrdinalStrings $nodes.ToArray())
+    SkippedNodes = [string[]]@(Get-OrdinalStrings $skips.ToArray())
     TestCount = $nodes.Count; SubtestCount = $reportedTests - $nodes.Count
     PassedCount = $passed; SkippedCount = $skips.Count
     FailureCount = $failures; ErrorCount = $errors

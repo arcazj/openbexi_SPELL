@@ -105,6 +105,7 @@ def test_v05_final_runner_accepts_intentional_empty_skip_inventories() -> None:
         function = runner[runner.index(start) : runner.index(end)]
         assert "[AllowEmptyCollection()]" in function
         assert parameter in function
+    assert "SkippedNodes = [string[]]@(Get-OrdinalStrings $skips.ToArray())" in runner
     assert 'Assert-JUnitContract $postgresXml $backendNodes @() "backend PostgreSQL"' in runner
     assert 'Assert-JUnitContract $driverXml $driverNodes @() "driver host"' in runner
     assert 'Assert-JUnitContract $toolingXml $toolingNodes @() "tooling" 36' in runner
