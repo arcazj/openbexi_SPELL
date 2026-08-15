@@ -24,6 +24,9 @@ except ModuleNotFoundError:  # pragma: no cover - compatibility for the legacy d
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 DEFAULT_EVIDENCE_ROOT = ROOT / "artifacts" / "v0.5"
 MANIFEST_NAME = "release-qualification.json"
 SCHEMA_VERSION = "spell.v05.release-qualification/1"
@@ -48,6 +51,7 @@ V04_ARTIFACT_TREE = "e3ef54e822891f1e83c59da442b2901d3d0e323e"
 RELEASE_TAG = "v0.5.0"
 RELEASE_TAG_REF = "refs/tags/v0.5.0"
 FORBIDDEN_ALIAS_REF = "refs/tags/v0.5"
+RELEASE_TAG_TITLE = "SPELL v0.5.0"
 RELEASE_PACKAGE_PATH = "artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz"
 RELEASE_PACKAGE_SIDECAR_PATH = f"{RELEASE_PACKAGE_PATH}.sha256"
 RELEASE_PACKAGE_PATHS = frozenset(
@@ -233,12 +237,26 @@ IMAGE_ID_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 MAX_JSON_BYTES = 4 * 1024 * 1024
 MAX_XML_BYTES = 32 * 1024 * 1024
 MAX_EVIDENCE_FILE_BYTES = 64 * 1024 * 1024
+CANONICAL_XML_DECLARATION = b'<?xml version="1.0" encoding="utf-8"?>'
 SECRET_MARKERS = (
     b"postgresql+psycopg://",
     b"authorization: bearer ",
     b"-----begin private key-----",
     b"-----begin rsa private key-----",
+    b"-----begin ec private key-----",
     b"-----begin openssh private key-----",
+)
+TAGGER_HEADER_RE = re.compile(
+    br"tagger [^\x00-\x20<>](?:[^\x00-\x1f<>]*[^\x00-\x20<>])? "
+    br"<[^<>\x00-\x20@]+@[^<>\x00-\x20@]+> [0-9]+ "
+    br"[+-](?:0[0-9]|1[0-4])[0-5][0-9]"
+)
+TAG_SIGNATURE_HEADER_RE = re.compile(
+    br"(?i)^(?:gpgsig(?:-sha256)?|sshsig|signature)(?:[ \t]|$)"
+)
+TAG_SIGNATURE_MARKERS = (
+    b"-----begin pgp signature-----",
+    b"-----begin ssh signature-----",
 )
 TOOLING_SECRET_CANARY_NODES = (
     "scripts/tests/test_seed_driver_projection_v04.py::"
@@ -261,6 +279,46 @@ TOOLING_SECRET_CANARY_PAYLOADS = (
         b"QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=\\n"
         b"-----END PRIVATE KEY-----\\n"
     ),
+)
+_TOOLING_MANIFEST_MUTATION_TEST = (
+    "scripts/tests/test_validate_candidate_evidence_v05.py::"
+    "test_secret_material_scan_rejects_manifest_location_count_and_nearby_mutations"
+)
+
+
+def _final_tooling_manifest_mutation_nodes() -> tuple[str, ...]:
+    nodes = TOOLING_SECRET_CANARY_NODES
+    manifests = (
+        {"suites": {"tooling": {"collected_nodes": list(nodes[:-1])}}},
+        {"suites": {"tooling": {"collected_nodes": [*nodes, nodes[0]]}}},
+        {
+            "suites": {"tooling": {"collected_nodes": []}},
+            "wrong_path": list(nodes),
+        },
+        {
+            "suites": {"tooling": {"collected_nodes": list(nodes)}},
+            "extra_node": nodes[0],
+        },
+        {
+            "suites": {
+                "tooling": {
+                    "collected_nodes": [nodes[0] + "-tampered", *nodes[1:]]
+                }
+            }
+        },
+    )
+    return tuple(
+        _TOOLING_MANIFEST_MUTATION_TEST
+        + "["
+        + json.dumps(manifest, separators=(",", ":"))
+        + "]"
+        for manifest in manifests
+    )
+
+
+FINAL_TOOLING_SECRET_TESTCASE_NODES = (
+    *TOOLING_SECRET_CANARY_NODES,
+    *_final_tooling_manifest_mutation_nodes(),
 )
 TOOLING_CAPTURE_PATHS = frozenset(
     {
@@ -472,6 +530,22 @@ def _git_name_list(root: Path, arguments: Sequence[str], label: str) -> list[str
     return names
 
 
+def _junit_node(classname: Any, name: Any, label: str) -> str:
+    _require(bool(classname) and bool(name), f"{label} contains an unnamed testcase")
+    class_parts = str(classname).split(".")
+    module_indexes = [
+        index for index, part in enumerate(class_parts) if part.startswith("test_")
+    ]
+    if module_indexes:
+        module_index = module_indexes[-1]
+        node = "/".join(class_parts[: module_index + 1]) + ".py"
+        if class_parts[module_index + 1 :]:
+            node += "::" + "::".join(class_parts[module_index + 1 :])
+        return node + f"::{name}"
+    # Playwright classnames are normalized by project and are not Python modules.
+    return f"{classname}::{name}"
+
+
 def parse_junit(
     path: Path,
     label: str,
@@ -492,22 +566,7 @@ def parse_junit(
     nodes: dict[str, str] = {}
     passed = skipped = failures = errors = 0
     for case in root.iter("testcase"):
-        classname = case.get("classname")
-        name = case.get("name")
-        _require(bool(classname) and bool(name), f"{label} contains an unnamed testcase")
-        class_parts = str(classname).split(".")
-        module_indexes = [
-            index for index, part in enumerate(class_parts) if part.startswith("test_")
-        ]
-        if module_indexes:
-            module_index = module_indexes[-1]
-            node = "/".join(class_parts[: module_index + 1]) + ".py"
-            if class_parts[module_index + 1 :]:
-                node += "::" + "::".join(class_parts[module_index + 1 :])
-            node += f"::{name}"
-        else:
-            # Playwright classnames are normalized by project and are not Python modules.
-            node = f"{classname}::{name}"
+        node = _junit_node(case.get("classname"), case.get("name"), label)
         children = [child.tag for child in case if child.tag in {"skipped", "failure", "error"}]
         _require(len(children) <= 1, f"{label} testcase has an ambiguous result: {node}")
         status = children[0] if children else "passed"
@@ -909,19 +968,131 @@ def evidence_fingerprint_v05(files: Mapping[str, Path]) -> str:
     return digest.hexdigest()
 
 
+def _scan_secret_bytes(payload: bytes, label: str) -> None:
+    lowered = payload.lower()
+    for marker in SECRET_MARKERS:
+        _require(
+            marker not in lowered,
+            f"canonical evidence contains forbidden secret material: {label}",
+        )
+    # Use the builder's source-of-truth patterns so evidence and package scans
+    # cannot drift on high-confidence token formats.
+    from scripts.build_reproducible_v05 import SECRET_PATTERNS
+
+    for pattern in SECRET_PATTERNS:
+        _require(
+            pattern.search(payload) is None,
+            f"canonical evidence contains forbidden secret material: {label}",
+        )
+
+
+def _structured_tooling_scanner_input(relative: str, raw: bytes) -> bytes:
+    expected_nodes = (
+        FINAL_TOOLING_SECRET_TESTCASE_NODES
+        if relative == "artifacts/v0.5/final/tests/tooling.xml"
+        else TOOLING_SECRET_CANARY_NODES
+    )
+    _require(
+        0 < len(raw) <= MAX_XML_BYTES,
+        f"canonical tooling evidence has an invalid size: {relative}",
+    )
+    _require(
+        raw.startswith(CANONICAL_XML_DECLARATION),
+        f"canonical tooling evidence must use the exact UTF-8 XML declaration: {relative}",
+    )
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ReleaseEvidenceError(
+            f"canonical tooling evidence is not strict UTF-8: {relative}"
+        ) from exc
+    lowered = raw.lower()
+    _require(
+        b"<!doctype" not in lowered,
+        f"canonical tooling evidence contains a DTD: {relative}",
+    )
+    _require(
+        b"<!entity" not in lowered,
+        f"canonical tooling evidence contains an entity declaration: {relative}",
+    )
+    xml_body = raw[len(CANONICAL_XML_DECLARATION) :]
+    _require(
+        b"<!--" not in xml_body,
+        f"canonical tooling evidence contains a comment: {relative}",
+    )
+    _require(
+        b"<?" not in xml_body,
+        f"canonical tooling evidence contains a processing instruction: {relative}",
+    )
+    try:
+        parser = ET.XMLParser(
+            target=ET.TreeBuilder(insert_comments=True, insert_pis=True)
+        )
+        root = ET.fromstring(raw, parser=parser)
+    except ET.ParseError as exc:
+        raise ReleaseEvidenceError(
+            f"canonical tooling evidence is not valid XML: {relative}"
+        ) from exc
+    _require(
+        root.tag in {"testsuite", "testsuites"},
+        f"canonical tooling evidence has an invalid root: {relative}",
+    )
+    parents = {
+        id(child): parent
+        for parent in root.iter()
+        if isinstance(parent.tag, str)
+        for child in list(parent)
+    }
+    counts = {node: 0 for node in expected_nodes}
+    scanner_chunks = [CANONICAL_XML_DECLARATION]
+
+    def scan(payload: bytes) -> None:
+        _scan_secret_bytes(payload, relative)
+        scanner_chunks.append(payload)
+
+    for element in root.iter():
+        if not isinstance(element.tag, str):
+            if element.text:
+                scan(element.text.encode("utf-8"))
+            if element.tail:
+                scan(element.tail.encode("utf-8"))
+            continue
+        permitted_name = False
+        parent = parents.get(id(element))
+        if (
+            element.tag == "testcase"
+            and parent is not None
+            and parent.tag == "testsuite"
+        ):
+            node = _junit_node(
+                element.get("classname"), element.get("name"), relative
+            )
+            if node in counts:
+                counts[node] += 1
+                permitted_name = True
+        scan(element.tag.encode("utf-8"))
+        for attribute, value in element.attrib.items():
+            scan(attribute.encode("utf-8"))
+            if not (permitted_name and attribute == "name"):
+                scan(value.encode("utf-8"))
+        if element.text:
+            scan(element.text.encode("utf-8"))
+        if element.tail:
+            scan(element.tail.encode("utf-8"))
+    _require(
+        all(count == 1 for count in counts.values()),
+        f"canonical tooling secret-testcase inventory differs: {relative}",
+    )
+    return b"\0".join(scanner_chunks)
+
+
 def _secret_scannable_evidence(relative: str, raw: bytes) -> bytes:
     if relative == WORK_PACKAGE_PATH:
         # The candidate validator parses this manifest and its exact tooling inventory.
         return b""
-    scanned = raw
     if relative in TOOLING_CAPTURE_PATHS:
-        for canary in TOOLING_SECRET_CANARY_PAYLOADS:
-            _require(
-                scanned.count(canary) <= 1,
-                f"canonical tooling evidence duplicates a secret canary: {relative}",
-            )
-            scanned = scanned.replace(canary, b"")
-    return scanned
+        return _structured_tooling_scanner_input(relative, raw)
+    return raw
 
 
 def validate_evidence_inventory(
@@ -938,9 +1109,7 @@ def validate_evidence_inventory(
         digest = _sha256(declared.get(relative), f"evidence.files[{relative}]")
         raw = path.read_bytes()
         _require(sha256_bytes(raw) == digest, f"canonical evidence hash differs: {relative}")
-        lowered = _secret_scannable_evidence(relative, raw).lower()
-        for marker in SECRET_MARKERS:
-            _require(marker not in lowered, f"canonical evidence contains forbidden secret material: {relative}")
+        _scan_secret_bytes(_secret_scannable_evidence(relative, raw), relative)
     fingerprint = evidence_fingerprint_v05(files)
     _require(fingerprint == _sha256(evidence.get("evidence_fingerprint_sha256"), "evidence fingerprint"), "evidence fingerprint differs")
     return fingerprint, files
@@ -1367,6 +1536,93 @@ def validate_tag_policy(policy: Mapping[str, Any]) -> None:
     _require(dict(policy) == expected, "release tag policy differs")
 
 
+def create_release_tag_message_v05(
+    policy: Mapping[str, Any],
+    *,
+    release_head: str,
+    qualified_source: str,
+    source_fingerprint: str,
+    evidence_fingerprint: str,
+    product_package_sha256: str,
+    work_package_sha256: str,
+    final_archive_sha256: str,
+) -> str:
+    validate_tag_policy(policy)
+    values = {
+        "Release commit": _sha1(release_head, "tag-message release commit"),
+        "Qualified source commit": _sha1(
+            qualified_source, "tag-message qualified source"
+        ),
+        "Candidate implementation commit": CANDIDATE_COMMIT,
+        "Source fingerprint": _sha256(
+            source_fingerprint, "tag-message source fingerprint"
+        ),
+        "Evidence fingerprint": _sha256(
+            evidence_fingerprint, "tag-message evidence fingerprint"
+        ),
+        "Product package SHA-256": _sha256(
+            product_package_sha256, "tag-message product package hash"
+        ),
+        "Work-package evidence SHA-256": _sha256(
+            work_package_sha256, "tag-message work-package evidence hash"
+        ),
+        "Final archive SHA-256": _sha256(
+            final_archive_sha256, "tag-message final archive hash"
+        ),
+    }
+    markers = [
+        *policy["required_static_markers"],
+        *(
+            f"{field}: {values[field]}"
+            for field in policy["required_dynamic_fields"]
+        ),
+    ]
+    _require(len(markers) == 15, "release tag marker cardinality differs")
+    return RELEASE_TAG_TITLE + "\n\n" + "\n".join(markers) + "\n"
+
+
+def validate_release_tag_message_v05(raw: bytes, expected: str) -> None:
+    try:
+        message = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ReleaseEvidenceError("v0.5.0 tag message is not strict UTF-8") from exc
+    _require(
+        message == expected,
+        "v0.5.0 tag message differs from the exact ordered release record",
+    )
+
+
+def _release_tag_message_from_object(raw: bytes, release_head: str) -> bytes:
+    headers, separator, message = raw.partition(b"\n\n")
+    _require(bool(separator), "v0.5.0 tag lacks a message boundary")
+    lowered = raw.lower()
+    _require(
+        not any(marker in lowered for marker in TAG_SIGNATURE_MARKERS),
+        "v0.5.0 tag carries an unclaimed cryptographic signature",
+    )
+    header_lines = headers.split(b"\n")
+    _require(
+        not any(TAG_SIGNATURE_HEADER_RE.match(line) for line in header_lines),
+        "v0.5.0 tag carries an unclaimed cryptographic signature",
+    )
+    _require(
+        len(header_lines) == 4
+        and header_lines[:3]
+        == [
+            f"object {release_head}".encode("ascii"),
+            b"type commit",
+            b"tag v0.5.0",
+        ]
+        and TAGGER_HEADER_RE.fullmatch(header_lines[3]) is not None,
+        "v0.5.0 tag headers differ",
+    )
+    try:
+        header_lines[3].decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ReleaseEvidenceError("v0.5.0 tagger header is not UTF-8") from exc
+    return message
+
+
 def validate_release_tag(
     root: Path,
     policy: Mapping[str, Any],
@@ -1391,16 +1647,7 @@ def validate_release_tag(
     object_id = _git_line(root, ["show-ref", "--verify", "--hash", RELEASE_TAG_REF], RELEASE_TAG_REF)
     _require(_git_line(root, ["cat-file", "-t", object_id], "v0.5.0 tag type") == "tag", "v0.5.0 is not annotated")
     raw = _run_git(root, ["cat-file", "tag", object_id]).stdout
-    headers, separator, message = raw.partition(b"\n\n")
-    _require(bool(separator), "v0.5.0 tag lacks a message boundary")
-    header_lines = headers.splitlines()
-    _require(header_lines[:3] == [f"object {release_head}".encode("ascii"), b"type commit", b"tag v0.5.0"], "v0.5.0 tag headers differ")
-    _require(b"-----BEGIN PGP SIGNATURE-----" not in message, "v0.5.0 tag carries an unclaimed cryptographic signature")
-    try:
-        lines = message.decode("utf-8").splitlines()
-    except UnicodeDecodeError as exc:
-        raise ReleaseEvidenceError("v0.5.0 tag message is not strict UTF-8") from exc
-    static = list(policy["required_static_markers"])
+    message = _release_tag_message_from_object(raw, release_head)
     package_path = _regular_relative(root, str(policy["package_path"]), "v0.5.0 release package")
     sidecar_path = _regular_relative(root, str(policy["sidecar_path"]), "v0.5.0 package sidecar")
     archive_sha = sha256_bytes(package_path.read_bytes())
@@ -1409,22 +1656,17 @@ def validate_release_tag(
     except UnicodeDecodeError as exc:
         raise ReleaseEvidenceError("v0.5.0 package sidecar is not ASCII") from exc
     _require(sidecar == f"{archive_sha}  {package_path.name}\n", "v0.5.0 package sidecar differs")
-    dynamic_values = {
-        "Release commit": release_head,
-        "Qualified source commit": qualified_source,
-        "Candidate implementation commit": CANDIDATE_COMMIT,
-        "Source fingerprint": source_fingerprint,
-        "Evidence fingerprint": evidence_fingerprint,
-        "Product package SHA-256": product_package_sha256,
-        "Work-package evidence SHA-256": work_package_sha256,
-        "Final archive SHA-256": archive_sha,
-    }
-    dynamic = [
-        f"{field}: {dynamic_values[field]}"
-        for field in policy["required_dynamic_fields"]
-    ]
-    for marker in (*static, *dynamic):
-        _require(lines.count(marker) == 1, f"v0.5.0 tag marker must occur exactly once: {marker}")
+    expected_message = create_release_tag_message_v05(
+        policy,
+        release_head=release_head,
+        qualified_source=qualified_source,
+        source_fingerprint=source_fingerprint,
+        evidence_fingerprint=evidence_fingerprint,
+        product_package_sha256=product_package_sha256,
+        work_package_sha256=work_package_sha256,
+        final_archive_sha256=archive_sha,
+    )
+    validate_release_tag_message_v05(message, expected_message)
     tagged = _git_line(root, ["rev-parse", f"{RELEASE_TAG_REF}^{{commit}}"], "v0.5.0 tagged commit")
     _require(tagged == release_head, "v0.5.0 tag does not target release HEAD")
     return object_id, tagged

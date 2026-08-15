@@ -138,7 +138,7 @@ def test_v05_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     assert runner.count("backend/tests/test_migrations.py::") >= 4
     assert runner.count("backend/tests/test_driver_isolation.py::") >= 4
     assert "host-only tooling node inventory differs" in runner
-    assert "$hostToolingNodes.Count -ne 10" in runner
+    assert "$hostToolingNodes.Count -ne 11" in runner
     assert (
         'scripts/tests/test_release_v05.py::'
         "test_v05_package_scans_canonical_candidate_canaries_structurally"
@@ -146,6 +146,10 @@ def test_v05_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     assert (
         'scripts/tests/test_release_v05.py::'
         "test_v05_package_rejects_duplicate_or_mislocated_evidence_canaries"
+    ) in runner
+    assert (
+        'scripts/tests/test_release_v05.py::'
+        "test_v05_package_publication_fault_rolls_back_executably"
     ) in runner
     assert (
         'scripts/tests/test_validate_release_evidence_v05.py::'

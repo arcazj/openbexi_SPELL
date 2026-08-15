@@ -157,10 +157,8 @@ def _release_evidence_scanner_input(relative: str, data: bytes) -> bytes:
             scanned = scanned.replace(encoded, b'""', 1)
         return scanned
     if relative in TOOLING_EVIDENCE_PATHS:
-        from scripts.validate_candidate_evidence_v05 import _scan_tooling_xml_secrets
         from scripts.validate_release_evidence_v05 import _secret_scannable_evidence
 
-        _scan_tooling_xml_secrets(Path(relative), data)
         return _secret_scannable_evidence(relative, data)
     return data
 

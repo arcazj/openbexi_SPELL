@@ -3,7 +3,10 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import os
 import subprocess
+import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -125,6 +128,52 @@ def _manifest_shape() -> dict:
 def test_strict_json_rejects_duplicate_nonfinite_and_non_utf8(raw: bytes) -> None:
     with pytest.raises(release.ReleaseEvidenceError):
         release.parse_strict_json(raw, "release fixture")
+
+
+def test_validator_direct_path_bootstraps_repo_imports_under_isolated_python(
+    tmp_path: Path,
+) -> None:
+    validator = Path(release.__file__).resolve()
+    code = (
+        "import runpy;"
+        f"module=runpy.run_path({str(validator)!r},run_name='isolated_validator');"
+        "import scripts.validate_candidate_evidence_v05 as candidate;"
+        "print(module['SCHEMA_VERSION']+' '+candidate.__name__)"
+    )
+    environment = os.environ.copy()
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    direct = subprocess.run(
+        [sys.executable, "-I", "-B", str(validator), "--help"],
+        cwd=tmp_path,
+        env=environment,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        text=True,
+        timeout=30,
+    )
+    assert direct.returncode == 0, direct.stderr
+    assert direct.stderr == ""
+    assert direct.stdout.startswith("usage: validate_release_evidence_v05.py ")
+    assert "--require-tag" in direct.stdout
+
+    completed = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", code],
+        cwd=tmp_path,
+        env=environment,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        text=True,
+        timeout=30,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert completed.stdout.strip() == (
+        "spell.v05.release-qualification/1 "
+        "scripts.validate_candidate_evidence_v05"
+    )
 
 
 def test_junit_accepts_and_counts_a_strict_capture(tmp_path: Path) -> None:
@@ -479,6 +528,17 @@ def test_evidence_inventory_is_exact_hash_bound_and_secret_scanned(
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_bytes(f"bounded evidence {index}\n".encode("ascii"))
         files[relative] = artifact
+    for relative, nodes in (
+        (
+            "artifacts/v0.5/work-package/tests/tooling.xml",
+            release.TOOLING_SECRET_CANARY_NODES,
+        ),
+        (
+            "artifacts/v0.5/final/tests/tooling.xml",
+            release.FINAL_TOOLING_SECRET_TESTCASE_NODES,
+        ),
+    ):
+        files[relative].write_bytes(_tooling_secret_xml(nodes))
     release_manifest = evidence_root / release.MANIFEST_NAME
     release_manifest.write_text("{}", encoding="utf-8")
     declared = {
@@ -510,26 +570,171 @@ def test_evidence_inventory_is_exact_hash_bound_and_secret_scanned(
         release.validate_evidence_inventory(tmp_path, evidence_root, declared)
 
 
-def test_tooling_secret_canaries_are_exact_single_occurrence_exemptions() -> None:
+def _tooling_secret_xml(
+    nodes: tuple[str, ...] | list[str],
+    *,
+    comment: str | None = None,
+    nested_first: bool = False,
+    extra_value: str | None = None,
+) -> bytes:
+    root = ET.Element("testsuites")
+    suite = ET.SubElement(
+        root,
+        "testsuite",
+        tests=str(len(nodes)),
+        skipped="0",
+        failures="0",
+        errors="0",
+    )
+    wrapper = ET.SubElement(suite, "wrapper") if nested_first else None
+    for index, node in enumerate(nodes):
+        module, name = node.split(".py::", 1)
+        parent = wrapper if index == 0 and wrapper is not None else suite
+        ET.SubElement(
+            parent,
+            "testcase",
+            classname=module.replace("/", "."),
+            name=name,
+        )
+    if comment is not None:
+        suite.append(ET.Comment(comment))
+    if extra_value is not None:
+        ET.SubElement(suite, "property", name="probe", value=extra_value)
+    return release.CANONICAL_XML_DECLARATION + ET.tostring(
+        root, encoding="utf-8"
+    )
+
+
+def test_tooling_secret_testcases_are_exact_structured_exemptions() -> None:
     from scripts.validate_candidate_evidence_v05 import TOOLING_SYNTHETIC_NODES
 
     assert tuple(TOOLING_SYNTHETIC_NODES) == release.TOOLING_SECRET_CANARY_NODES
-    raw = b" | ".join(release.TOOLING_SECRET_CANARY_PAYLOADS)
-    scanned = release._secret_scannable_evidence(
-        "artifacts/v0.5/final/tests/tooling.xml", raw
-    ).lower()
-    assert all(marker not in scanned for marker in release.SECRET_MARKERS)
-
-    with pytest.raises(release.ReleaseEvidenceError, match="duplicates a secret canary"):
-        release._secret_scannable_evidence(
+    assert len(release.FINAL_TOOLING_SECRET_TESTCASE_NODES) == 8
+    for relative, nodes in (
+        (
+            "artifacts/v0.5/work-package/tests/tooling.xml",
+            release.TOOLING_SECRET_CANARY_NODES,
+        ),
+        (
             "artifacts/v0.5/final/tests/tooling.xml",
-            raw + b" " + release.TOOLING_SECRET_CANARY_PAYLOADS[0],
+            release.FINAL_TOOLING_SECRET_TESTCASE_NODES,
+        ),
+    ):
+        scanner_input = release._secret_scannable_evidence(
+            relative, _tooling_secret_xml(nodes)
         )
-    rogue = raw + b" postgresql+psycopg://spell:real@postgres/spell"
-    scanned = release._secret_scannable_evidence(
-        "artifacts/v0.5/final/tests/tooling.xml", rogue
-    ).lower()
-    assert b"postgresql+psycopg://" in scanned
+        assert scanner_input.startswith(release.CANONICAL_XML_DECLARATION)
+        assert scanner_input != b""
+
+
+def test_tooling_secret_testcases_reject_duplicates_mutations_and_mislocation() -> None:
+    relative = "artifacts/v0.5/final/tests/tooling.xml"
+    nodes = list(release.FINAL_TOOLING_SECRET_TESTCASE_NODES)
+    with pytest.raises(release.ReleaseEvidenceError, match="inventory differs"):
+        release._secret_scannable_evidence(
+            relative, _tooling_secret_xml([*nodes, nodes[0]])
+        )
+    with pytest.raises(release.ReleaseEvidenceError, match="inventory differs"):
+        release._secret_scannable_evidence(relative, _tooling_secret_xml(nodes[:-1]))
+
+    module, name = nodes[0].split(".py::", 1)
+    for mutated_name in ("prefix-" + name, name + "-suffix"):
+        mutated = [f"{module}.py::{mutated_name}", *nodes[1:]]
+        with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+            release._secret_scannable_evidence(
+                relative, _tooling_secret_xml(mutated)
+            )
+
+    canary = "postgresql+psycopg://spell:real@postgres/spell"
+    for raw, error in (
+        (_tooling_secret_xml(nodes, nested_first=True), "secret material"),
+        (_tooling_secret_xml(nodes, comment=canary), "comment"),
+        (_tooling_secret_xml(nodes, extra_value=canary), "secret material"),
+        (
+            _tooling_secret_xml(
+                nodes,
+                extra_value="-----BEGIN " + "PRIVATE KEY-----\nreal payload",
+            ),
+            "secret material",
+        ),
+    ):
+        with pytest.raises(release.ReleaseEvidenceError, match=error):
+            release._secret_scannable_evidence(relative, raw)
+
+
+def test_tooling_xml_enforces_builder_token_patterns_outside_exempt_names() -> None:
+    from scripts import build_reproducible_v05 as builder
+
+    relative = "artifacts/v0.5/final/tests/tooling.xml"
+    nodes = release.FINAL_TOOLING_SECRET_TESTCASE_NODES
+    tokens = (
+        b"AKIA" + b"0123456789ABCDEF",
+        b"ghp_" + b"0123456789abcdefghijklmnopqrstuvwxyz",
+        b"xoxb-" + b"0123456789abcdefghij",
+    )
+    assert all(any(pattern.search(token) for pattern in builder.SECRET_PATTERNS) for token in tokens)
+    for token in tokens:
+        raw = _tooling_secret_xml(nodes, extra_value=token.decode("ascii"))
+        with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+            release._secret_scannable_evidence(relative, raw)
+        with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+            builder._validate_bytes(Path(relative), raw)
+
+    body = _tooling_secret_xml(nodes).removeprefix(
+        release.CANONICAL_XML_DECLARATION
+    )
+    top_level_comment = (
+        release.CANONICAL_XML_DECLARATION
+        + b"<!--"
+        + tokens[0]
+        + b"-->"
+        + body
+    )
+    with pytest.raises(release.ReleaseEvidenceError, match="comment"):
+        release._secret_scannable_evidence(relative, top_level_comment)
+
+
+def test_tooling_xml_rejects_alternate_encoding_before_structured_parse() -> None:
+    from scripts import build_reproducible_v05 as builder
+
+    relative = "artifacts/v0.5/final/tests/tooling.xml"
+    canonical = _tooling_secret_xml(
+        release.FINAL_TOOLING_SECRET_TESTCASE_NODES,
+        extra_value=(b"AKIA" + b"0123456789ABCDEF").decode("ascii"),
+    )
+    text = canonical.decode("utf-8").replace(
+        'encoding="utf-8"', 'encoding="utf-16"', 1
+    )
+    alternate = text.encode("utf-16")
+    body = canonical.decode("utf-8").removeprefix(
+        release.CANONICAL_XML_DECLARATION.decode("ascii")
+    )
+    alternate_dtd = (
+        '<?xml version="1.0" encoding="utf-16"?>'
+        '<!DOCTYPE testsuites [<!ENTITY injected "'
+        'postgresql+psycopg://spell:secret@postgres/spell">]>'
+        + body
+    ).encode("utf-16")
+    for validate in (
+        lambda: release._secret_scannable_evidence(relative, alternate),
+        lambda: builder._validate_bytes(Path(relative), alternate),
+        lambda: release._secret_scannable_evidence(relative, alternate_dtd),
+        lambda: builder._validate_bytes(Path(relative), alternate_dtd),
+    ):
+        with pytest.raises(
+            release.ReleaseEvidenceError, match="exact UTF-8 XML declaration"
+        ):
+            validate()
+
+    for mutated in (
+        canonical.removeprefix(release.CANONICAL_XML_DECLARATION),
+        canonical.replace(b'encoding="utf-8"', b'encoding="UTF-8"', 1),
+        canonical.replace(b'"utf-8"', b"'utf-8'", 1),
+    ):
+        with pytest.raises(
+            release.ReleaseEvidenceError, match="exact UTF-8 XML declaration"
+        ):
+            release._secret_scannable_evidence(relative, mutated)
 
 
 def test_evidence_fingerprint_is_path_and_byte_sensitive(tmp_path: Path) -> None:
@@ -713,6 +918,96 @@ def test_tag_policy_requires_annotated_semver_tag_and_nonclaims() -> None:
         release.validate_tag_policy(mutation)
 
 
+def test_tag_message_producer_is_exact_ordered_and_rejects_any_mutation() -> None:
+    policy = _tag_policy()
+    values = {
+        "release_head": "a" * 40,
+        "qualified_source": "b" * 40,
+        "source_fingerprint": "c" * 64,
+        "evidence_fingerprint": "d" * 64,
+        "product_package_sha256": "e" * 64,
+        "work_package_sha256": "f" * 64,
+        "final_archive_sha256": "1" * 64,
+    }
+    expected = release.create_release_tag_message_v05(policy, **values)
+    lines = expected.splitlines()
+    assert lines[:2] == [release.RELEASE_TAG_TITLE, ""]
+    assert len(lines[2:]) == 15
+    assert lines[2:9] == policy["required_static_markers"]
+    assert [line.partition(":")[0] for line in lines[9:]] == list(
+        release.RELEASE_TAG_DYNAMIC_FIELDS
+    )
+    release.validate_release_tag_message_v05(expected.encode("utf-8"), expected)
+
+    reordered = lines.copy()
+    reordered[2], reordered[3] = reordered[3], reordered[2]
+    mutations = (
+        expected.replace(release.RELEASE_TAG_TITLE, "SPELL v0.5", 1),
+        "\n".join(reordered) + "\n",
+        expected + "Unexpected field: value\n",
+        expected.replace(lines[2] + "\n", lines[2] + "\n" + lines[2] + "\n", 1),
+        expected.replace(lines[10] + "\n", "", 1),
+        expected.replace("\n\n", "\n", 1),
+    )
+    for mutation in mutations:
+        with pytest.raises(release.ReleaseEvidenceError, match="exact ordered"):
+            release.validate_release_tag_message_v05(
+                mutation.encode("utf-8"), expected
+            )
+
+
+def test_tag_object_requires_exact_headers_and_rejects_signature_headers() -> None:
+    head = "a" * 40
+    required = [
+        f"object {head}".encode("ascii"),
+        b"type commit",
+        b"tag v0.5.0",
+        b"tagger Release Test <release-test@example.invalid> 1786665600 -0400",
+    ]
+    message = b"SPELL v0.5.0\n"
+
+    def tag_object(headers: list[bytes], body: bytes = message) -> bytes:
+        return b"\n".join(headers) + b"\n\n" + body
+
+    assert release._release_tag_message_from_object(
+        tag_object(required), head
+    ) == message
+
+    header_mutations = (
+        required[:3],
+        [*required, b"unknown release-header"],
+        [*required, required[3]],
+        [*required[:3], b"tagger malformed"],
+        [
+            *required[:3],
+            b"tagger  <release-test@example.invalid> 1786665600 -0400",
+        ],
+        [
+            *required[:3],
+            b"tagger Release Test <invalid> 1786665600 -0400",
+        ],
+        [required[0], required[1], required[3], required[2]],
+    )
+    for headers in header_mutations:
+        with pytest.raises(release.ReleaseEvidenceError, match="headers differ"):
+            release._release_tag_message_from_object(tag_object(headers), head)
+
+    for signature_header in (
+        b"gpgsig unclaimed",
+        b"gpgsig-sha256 unclaimed",
+        b"sshsig unclaimed",
+        b"signature unclaimed",
+        b"x-header: -----BEGIN PGP SIGNATURE-----",
+    ):
+        with pytest.raises(
+            release.ReleaseEvidenceError,
+            match="unclaimed cryptographic signature",
+        ):
+            release._release_tag_message_from_object(
+                tag_object([*required, signature_header]), head
+            )
+
+
 def _git(root: Path, *arguments: str) -> str:
     result = subprocess.run(
         ["git", *arguments],
@@ -748,19 +1043,18 @@ def test_require_tag_validates_real_annotated_object_target_markers_and_sidecar(
     product = "e" * 64
     work = "f" * 64
     policy = _tag_policy()
-    markers = [
-        *policy["required_static_markers"],
-        f"Release commit: {head}",
-        f"Qualified source commit: {qualified}",
-        f"Candidate implementation commit: {release.CANDIDATE_COMMIT}",
-        f"Source fingerprint: {source}",
-        f"Evidence fingerprint: {evidence}",
-        f"Product package SHA-256: {product}",
-        f"Work-package evidence SHA-256: {work}",
-        f"Final archive SHA-256: {archive_sha}",
-    ]
+    expected_message = release.create_release_tag_message_v05(
+        policy,
+        release_head=head,
+        qualified_source=qualified,
+        source_fingerprint=source,
+        evidence_fingerprint=evidence,
+        product_package_sha256=product,
+        work_package_sha256=work,
+        final_archive_sha256=archive_sha,
+    )
     message = tmp_path / "tag-message.txt"
-    message.write_text("SPELL v0.5.0\n\n" + "\n".join(markers) + "\n", encoding="utf-8")
+    message.write_text(expected_message, encoding="utf-8")
     _git(tmp_path, "tag", "-a", "v0.5.0", "-F", str(message))
 
     tag_object, tagged = release.validate_release_tag(
@@ -776,6 +1070,32 @@ def test_require_tag_validates_real_annotated_object_target_markers_and_sidecar(
 
     assert len(tag_object) == 40
     assert tagged == head
+
+    _git(tmp_path, "tag", "-d", "v0.5.0")
+    message.write_text(
+        expected_message
+        + "-----BEGIN SSH SIGNATURE-----\n"
+        + "unclaimed\n"
+        + "-----END SSH SIGNATURE-----\n",
+        encoding="utf-8",
+    )
+    _git(tmp_path, "tag", "-a", "v0.5.0", "-F", str(message))
+    with pytest.raises(
+        release.ReleaseEvidenceError, match="unclaimed cryptographic signature"
+    ):
+        release.validate_release_tag(
+            tmp_path,
+            policy,
+            release_head=head,
+            qualified_source=qualified,
+            source_fingerprint=source,
+            evidence_fingerprint=evidence,
+            product_package_sha256=product,
+            work_package_sha256=work,
+        )
+    _git(tmp_path, "tag", "-d", "v0.5.0")
+    message.write_text(expected_message, encoding="utf-8")
+    _git(tmp_path, "tag", "-a", "v0.5.0", "-F", str(message))
 
     _git(tmp_path, "tag", "v0.5")
     with pytest.raises(release.ReleaseEvidenceError, match="secondary v0.5 tag"):

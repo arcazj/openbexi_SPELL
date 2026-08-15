@@ -8,6 +8,8 @@ $first = Join-Path $artifactRoot ".package-a-$runId.tar.gz"
 $second = Join-Path $artifactRoot ".package-b-$runId.tar.gz"
 $stagedRelease = Join-Path $artifactRoot ".openbexi-spell-v0.5.0.tar.gz.staging-$runId"
 $stagedSidecar = "$stagedRelease.sha256"
+$backupRelease = Join-Path $artifactRoot ".openbexi-spell-v0.5.0.tar.gz.backup-$runId"
+$backupSidecar = "$backupRelease.sha256"
 
 & (Join-Path $PSScriptRoot "assert_release_toolchain_v04.ps1")
 if ($LASTEXITCODE -ne 0) { throw "inherited release toolchain validation failed" }
@@ -20,6 +22,150 @@ function Invoke-PackageBuild([string]$OutputPath) {
   $jsonLine = $lines | Where-Object { $_ -cmatch '^\{.+\}$' } | Select-Object -Last 1
   if (-not $jsonLine) { throw "v0.5 deterministic package build emitted no JSON" }
   return $jsonLine | ConvertFrom-Json
+}
+
+function Publish-V05PackagePair {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)] [string]$SourceRelease,
+    [Parameter(Mandatory = $true)] [string]$StagedRelease,
+    [Parameter(Mandatory = $true)] [string]$StagedSidecar,
+    [Parameter(Mandatory = $true)] [string]$Release,
+    [Parameter(Mandatory = $true)] [string]$Sidecar,
+    [Parameter(Mandatory = $true)] [string]$BackupRelease,
+    [Parameter(Mandatory = $true)] [string]$BackupSidecar,
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^[0-9a-f]{64}$')]
+    [string]$ExpectedHash,
+    [ValidateSet("None", "AfterArchivePublication")]
+    [string]$TestOnlyFault = "None"
+  )
+
+  $paths = @(
+    $SourceRelease, $StagedRelease, $StagedSidecar, $Release,
+    $Sidecar, $BackupRelease, $BackupSidecar
+  ) | ForEach-Object { [IO.Path]::GetFullPath($_) }
+  if (@($paths | Sort-Object -Unique).Count -ne $paths.Count) {
+    throw "v0.5 package transaction paths are not distinct"
+  }
+
+  $releaseExists = Test-Path -LiteralPath $Release
+  $sidecarExists = Test-Path -LiteralPath $Sidecar
+  if ($releaseExists -ne $sidecarExists) {
+    throw "existing v0.5 package publication is incomplete"
+  }
+  foreach ($path in @($SourceRelease, $Release, $Sidecar)) {
+    if (Test-Path -LiteralPath $path) {
+      $item = Get-Item -Force -LiteralPath $path
+      if ($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "refusing to use unsafe v0.5 package publication path: $path"
+      }
+    }
+  }
+  if (-not (Test-Path -LiteralPath $SourceRelease -PathType Leaf)) {
+    throw "v0.5 package source archive is missing"
+  }
+  if ((Get-FileHash -LiteralPath $SourceRelease -Algorithm SHA256).Hash.ToLower() -cne $ExpectedHash) {
+    throw "v0.5 package source archive hash differs"
+  }
+  foreach ($path in @($StagedRelease, $StagedSidecar, $BackupRelease, $BackupSidecar)) {
+    if (Test-Path -LiteralPath $path) {
+      $item = Get-Item -Force -LiteralPath $path
+      if ($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "refusing to use unsafe v0.5 package publication path: $path"
+      }
+      throw "v0.5 package transaction path already exists: $path"
+    }
+  }
+
+  $expectedSidecar = "$ExpectedHash  openbexi-spell-v0.5.0.tar.gz`n"
+  $releaseBackedUp = $false
+  $sidecarBackedUp = $false
+  $releasePublished = $false
+  $sidecarPublished = $false
+  try {
+    Copy-Item -LiteralPath $SourceRelease -Destination $StagedRelease
+    [IO.File]::WriteAllText($StagedSidecar, $expectedSidecar, [Text.Encoding]::ASCII)
+    if (
+      (Get-FileHash -LiteralPath $StagedRelease -Algorithm SHA256).Hash.ToLower() -cne
+        $ExpectedHash -or
+      [IO.File]::ReadAllText($StagedSidecar, [Text.Encoding]::ASCII) -cne
+        $expectedSidecar
+    ) { throw "staged v0.5 package pair differs" }
+
+    try {
+      if ($releaseExists) {
+        Move-Item -LiteralPath $Release -Destination $BackupRelease
+        $releaseBackedUp = $true
+        Move-Item -LiteralPath $Sidecar -Destination $BackupSidecar
+        $sidecarBackedUp = $true
+      }
+      Move-Item -LiteralPath $StagedRelease -Destination $Release
+      $releasePublished = $true
+      if ($TestOnlyFault -cne "None") {
+        throw "injected v0.5 package publication failure"
+      }
+      Move-Item -LiteralPath $StagedSidecar -Destination $Sidecar
+      $sidecarPublished = $true
+      if (
+        (Get-FileHash -LiteralPath $Release -Algorithm SHA256).Hash.ToLower() -cne
+          $ExpectedHash -or
+        [IO.File]::ReadAllText($Sidecar, [Text.Encoding]::ASCII) -cne
+          $expectedSidecar
+      ) { throw "published v0.5 package pair failed final verification" }
+    }
+    catch {
+      $publicationFailure = $_
+      $rollbackErrors = [Collections.Generic.List[string]]::new()
+      if ($releasePublished -and (Test-Path -LiteralPath $Release -PathType Leaf)) {
+        try {
+          Remove-Item -LiteralPath $Release -Force
+          $releasePublished = $false
+        }
+        catch { $rollbackErrors.Add("published archive cleanup failed") }
+      }
+      if ($sidecarPublished -and (Test-Path -LiteralPath $Sidecar -PathType Leaf)) {
+        try {
+          Remove-Item -LiteralPath $Sidecar -Force
+          $sidecarPublished = $false
+        }
+        catch { $rollbackErrors.Add("published sidecar cleanup failed") }
+      }
+      if ($releaseBackedUp) {
+        try {
+          Move-Item -LiteralPath $BackupRelease -Destination $Release
+          $releaseBackedUp = $false
+        }
+        catch { $rollbackErrors.Add("archive restore failed") }
+      }
+      if ($sidecarBackedUp) {
+        try {
+          Move-Item -LiteralPath $BackupSidecar -Destination $Sidecar
+          $sidecarBackedUp = $false
+        }
+        catch { $rollbackErrors.Add("sidecar restore failed") }
+      }
+      if ($rollbackErrors.Count -ne 0) {
+        throw "v0.5 package publication failed and rollback was incomplete; recovery files retained"
+      }
+      throw $publicationFailure
+    }
+    if ($releaseBackedUp) {
+      Remove-Item -LiteralPath $BackupRelease -Force
+      $releaseBackedUp = $false
+    }
+    if ($sidecarBackedUp) {
+      Remove-Item -LiteralPath $BackupSidecar -Force
+      $sidecarBackedUp = $false
+    }
+  }
+  finally {
+    foreach ($path in @($StagedRelease, $StagedSidecar)) {
+      if (Test-Path -LiteralPath $path -PathType Leaf) {
+        Remove-Item -LiteralPath $path -Force
+      }
+    }
+  }
 }
 
 New-Item -ItemType Directory -Force $artifactRoot | Out-Null
@@ -38,22 +184,10 @@ try {
     $a.product_package_sha256 -cne $b.product_package_sha256
   ) { throw "independent v0.5 package processes produced different results" }
 
-  Copy-Item -LiteralPath $first -Destination $stagedRelease
-  [IO.File]::WriteAllText(
-    $stagedSidecar,
-    "$firstHash  openbexi-spell-v0.5.0.tar.gz`n",
-    [Text.Encoding]::ASCII
-  )
-  if ((Get-FileHash -LiteralPath $stagedRelease -Algorithm SHA256).Hash.ToLower() -cne $firstHash) {
-    throw "staged v0.5 package hash differs"
-  }
-  Move-Item -Force -LiteralPath $stagedRelease -Destination $release
-  Move-Item -Force -LiteralPath $stagedSidecar -Destination $sidecar
-  if (
-    (Get-FileHash -LiteralPath $release -Algorithm SHA256).Hash.ToLower() -cne $firstHash -or
-    [IO.File]::ReadAllText($sidecar, [Text.Encoding]::ASCII) -cne
-      "$firstHash  openbexi-spell-v0.5.0.tar.gz`n"
-  ) { throw "published v0.5 package pair failed verification" }
+  Publish-V05PackagePair -SourceRelease $first -StagedRelease $stagedRelease `
+    -StagedSidecar $stagedSidecar -Release $release -Sidecar $sidecar `
+    -BackupRelease $backupRelease -BackupSidecar $backupSidecar `
+    -ExpectedHash $firstHash
 
   [ordered]@{
     schema_version = "spell.v05.package-publication/1"
@@ -70,8 +204,9 @@ try {
   } | ConvertTo-Json -Depth 5 -Compress | Write-Output
 }
 finally {
+  # A failed rollback keeps its uniquely named backup files for manual recovery.
   foreach ($path in @(
-    $first, "$first.sha256", $second, "$second.sha256", $stagedRelease, $stagedSidecar
+    $first, "$first.sha256", $second, "$second.sha256"
   )) {
     if (Test-Path -LiteralPath $path -PathType Leaf) {
       Remove-Item -LiteralPath $path -Force
