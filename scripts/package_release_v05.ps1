@@ -4,8 +4,10 @@ $artifactRoot = Join-Path $root "artifacts/v0.5"
 $release = Join-Path $artifactRoot "openbexi-spell-v0.5.0.tar.gz"
 $sidecar = "$release.sha256"
 $runId = [guid]::NewGuid().ToString("N")
-$first = Join-Path $artifactRoot ".package-a-$runId.tar.gz"
-$second = Join-Path $artifactRoot ".package-b-$runId.tar.gz"
+$qualificationRoot = Join-Path $artifactRoot ".qualification"
+$scratchRoot = Join-Path $qualificationRoot "package-$runId"
+$first = Join-Path $scratchRoot "package-a.tar.gz"
+$second = Join-Path $scratchRoot "package-b.tar.gz"
 $stagedRelease = Join-Path $artifactRoot ".openbexi-spell-v0.5.0.tar.gz.staging-$runId"
 $stagedSidecar = "$stagedRelease.sha256"
 $backupRelease = Join-Path $artifactRoot ".openbexi-spell-v0.5.0.tar.gz.backup-$runId"
@@ -168,8 +170,48 @@ function Publish-V05PackagePair {
   }
 }
 
-New-Item -ItemType Directory -Force $artifactRoot | Out-Null
+$artifactFull = [IO.Path]::GetFullPath($artifactRoot)
+$qualificationFull = [IO.Path]::GetFullPath($qualificationRoot)
+$scratchFull = [IO.Path]::GetFullPath($scratchRoot)
+$pathComparison = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+  [StringComparison]::OrdinalIgnoreCase
+} else {
+  [StringComparison]::Ordinal
+}
+if (
+  -not [string]::Equals(
+    [IO.Path]::GetDirectoryName($qualificationFull), $artifactFull, $pathComparison
+  ) -or
+  -not [string]::Equals(
+    [IO.Path]::GetDirectoryName($scratchFull), $qualificationFull, $pathComparison
+  )
+) { throw "v0.5 package scratch path escapes its owned artifact directory" }
+
+$scratchOwned = $false
 try {
+  foreach ($path in @($artifactRoot, $qualificationRoot)) {
+    if (-not (Test-Path -LiteralPath $path)) {
+      New-Item -ItemType Directory -Path $path | Out-Null
+    }
+    $item = Get-Item -Force -LiteralPath $path
+    if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+      throw "refusing unsafe v0.5 package scratch parent: $path"
+    }
+  }
+  if (Test-Path -LiteralPath $scratchRoot) {
+    throw "v0.5 package scratch path already exists"
+  }
+  New-Item -ItemType Directory -Path $scratchRoot | Out-Null
+  $scratchOwned = $true
+  $scratchItem = Get-Item -Force -LiteralPath $scratchRoot
+  if (
+    -not $scratchItem.PSIsContainer -or
+    ($scratchItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+    -not [string]::Equals(
+      [IO.Path]::GetFullPath($scratchItem.FullName), $scratchFull, $pathComparison
+    )
+  ) { throw "v0.5 package scratch directory is unsafe" }
+
   $a = Invoke-PackageBuild $first
   $b = Invoke-PackageBuild $second
   $firstHash = (Get-FileHash -LiteralPath $first -Algorithm SHA256).Hash.ToLower()
@@ -205,11 +247,22 @@ try {
 }
 finally {
   # A failed rollback keeps its uniquely named backup files for manual recovery.
-  foreach ($path in @(
-    $first, "$first.sha256", $second, "$second.sha256"
-  )) {
-    if (Test-Path -LiteralPath $path -PathType Leaf) {
-      Remove-Item -LiteralPath $path -Force
+  if ($scratchOwned -and (Test-Path -LiteralPath $scratchRoot)) {
+    $scratchItem = Get-Item -Force -LiteralPath $scratchRoot
+    if (
+      -not $scratchItem.PSIsContainer -or
+      ($scratchItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+      -not [string]::Equals(
+        [IO.Path]::GetFullPath($scratchItem.FullName), $scratchFull, $pathComparison
+      )
+    ) { throw "refusing unsafe v0.5 package scratch cleanup" }
+    $unsafeChild = Get-ChildItem -Force -Recurse -LiteralPath $scratchRoot |
+      Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint } |
+      Select-Object -First 1
+    if ($null -ne $unsafeChild) {
+      throw "refusing v0.5 package scratch cleanup containing a reparse point"
     }
+    Remove-Item -LiteralPath $scratchRoot -Recurse -Force
+    $scratchOwned = $false
   }
 }
