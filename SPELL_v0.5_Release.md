@@ -1,5 +1,32 @@
 # SPELL v0.5.0 Release Closeout Record
 
+## Post-Tag Verification - 2026-08-15
+
+The conditional decision preserved below became effective when annotated tag
+`v0.5.0` was created and verified on 2026-08-14. This is a retrospective
+status addendum; it does not imply that the immutable tag contains a later
+documentation commit. The tagged record deliberately made the verified tag
+the final condition and required no post-tag documentation commit.
+
+| Verified release field | Accepted value |
+| --- | --- |
+| Decision | ACCEPTED for the bounded `V05-IR-001` increment; no accepted exceptions |
+| Annotated tag | `v0.5.0`; tag object `a1b277d74d2fb19062ca3e4388e9104d45c50ec4`; created 2026-08-14 22:22:33 EDT |
+| Release commit | `e7b6bb9428833437e0160040541eb840deee7cca` |
+| Qualified source | `2f31e6a011b8aad63b29bd55780c37c1b68712f1` |
+| Final qualification | PASS; eight suites, 1,096 concrete tests, 1,090 passes, six exact approved SQLite environment skips, 36 subtests, zero failures/errors |
+| Supply chain | PASS; four image-bound SBOMs, zero High/Critical findings, zero unlocked inputs |
+| Source fingerprint | `84681e915fa3b0decc2a36f18588bd74f4840a7f4d1dcfae419e69753f6dda8d` |
+| Evidence fingerprint | `c3df31909b8c16f57c80ab3db906e3d25df72c91a855019022098ddd46aab0bd` |
+| Product package fingerprint | `e5b5b69c5951c1ec7fe7023293f0584471fed98d144a97afde12323d78fd7901` |
+| Deterministic archive | `artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz`; SHA-256 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241` |
+| Operational authorization | None |
+| Compliance determination | None |
+
+The Document Control, evidence-status, and conditional-decision sections below
+are the pre-tag release-commit record and intentionally retain their original
+pending language. They are historical conditions, not the current status.
+
 ## Document Control
 
 | Field | Value |

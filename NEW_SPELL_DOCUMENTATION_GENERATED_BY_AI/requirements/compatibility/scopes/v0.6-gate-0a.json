@@ -1,0 +1,204 @@
+{
+  "schema_version": "ng-spell-v06-gate-0a-scope/1",
+  "gate_id": "V06-GATE-0A",
+  "status": "PASS",
+  "target_increment": "v0.6",
+  "target_release": "v0.6.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "proposal_date": "2026-08-15",
+    "approval_date": "2026-08-15",
+    "authorization": "V06_OP_001_THROUGH_V06_OP_009",
+    "owner_request": "finish up v0.6",
+    "precondition": "ANNOTATED_V0_5_0_ACCEPTED_RELEASE_TAG_VERIFIED",
+    "owner_approval_recorded": true
+  },
+  "approval_mechanics": {
+    "pass_validator_marker": "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+    "required_owner_approval_marker": "V06-GATE-0A OWNER-APPROVAL: APPROVED",
+    "required_marker_location": "STANDALONE_LINE_IN_SPELL_V0_6_PRE_IMPLEMENTATION_MD",
+    "marker_present": true,
+    "required_scope_status_after_approval": "PASS",
+    "required_authorization_after_approval": "EXPLICIT_BOUNDED_WORK_PACKAGE_ID_LIST",
+    "authorized_work_package_ids": [
+      "V06-OP-001",
+      "V06-OP-002",
+      "V06-OP-003",
+      "V06-OP-004",
+      "V06-OP-005",
+      "V06-OP-006",
+      "V06-OP-007",
+      "V06-OP-008",
+      "V06-OP-009"
+    ],
+    "automatic_approval_from_REQUEST_OR_TOOL_SUCCESS": false
+  },
+  "accepted_baseline": {
+    "tag_ref": "refs/tags/v0.5.0",
+    "tag_object_type": "tag",
+    "tag_object_id": "a1b277d74d2fb19062ca3e4388e9104d45c50ec4",
+    "raw_tag_object_sha256": "6c642ec6f7461db9fdce2347ca6ab493686430d5bd36218a4c0306b1b70ba48f",
+    "peeled_release_commit": "e7b6bb9428833437e0160040541eb840deee7cca",
+    "qualified_source_commit": "2f31e6a011b8aad63b29bd55780c37c1b68712f1",
+    "tagged_files_sha256": {
+      "SPELL_v0.5_Release.md": "055da745f54da76da097741e84dc15725d0584f54a20b499e658fbcfd9f85a4e",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0b.json": "f98d50498ef8caf7304ad2e027f0eb8f03c02b486d8ec871f6ca95cc28987248",
+      "artifacts/v0.5/release-qualification.json": "fe66fa5c232b063f8920f6087a49205754e6fa75fdefb1a105383b6f528e48ba"
+    }
+  },
+  "compatibility_delta": {
+    "accepted_ir_versions": [
+      "0.3"
+    ],
+    "new_ir_versions": [],
+    "claimed_construct_ids": [],
+    "claimed_artifact_ids": [],
+    "compatibility_ledger_rows_added": 0,
+    "v0_5_scope_rows_changed": 0
+  },
+  "proposed_work_packages": [
+    {
+      "work_package_id": "V06-OP-001",
+      "title": "Context, catalog, stable multi-instance history, and Master workspace",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "LOCAL_CONTEXT_ATTACHMENT_IMMUTABLE_CATALOG_PROPERTIES_HISTORY_STABLE_INSTANCE_IDENTITY_AND_MASTER_VIEW",
+      "planned_test_ids": [
+        "V06-OP-001-UNIT",
+        "V06-OP-001-INTEGRATION",
+        "V06-OP-001-RECOVERY",
+        "V06-OP-001-UI",
+        "V06-OP-001-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-002",
+      "title": "C/M/B modes and durable control lease, fencing, and reacquisition",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "EXCLUSIVE_CONTROLLER_READ_ONLY_MONITOR_BACKGROUND_MODE_DURABLE_LEASE_FENCING_DISCONNECT_PAUSE_AND_EXPLICIT_REACQUISITION",
+      "planned_test_ids": [
+        "V06-OP-002-UNIT",
+        "V06-OP-002-INTEGRATION",
+        "V06-OP-002-RACE",
+        "V06-OP-002-RECOVERY",
+        "V06-OP-002-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-003",
+      "title": "Procedure command and safe-point state matrix",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "RUN_STEP_STEP_OVER_PAUSE_SKIP_GOTO_RELOAD_BACKGROUND_STOP_ABORT_RECOVER_WITH_EXPLICIT_KILL_REJECTION_AND_EFFECT_CERTAINTY",
+      "planned_test_ids": [
+        "V06-OP-003-UNIT",
+        "V06-OP-003-MATRIX",
+        "V06-OP-003-RACE",
+        "V06-OP-003-RECOVERY",
+        "V06-OP-003-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-004",
+      "title": "Typed durable Prompt family",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "DOCUMENTED_TYPED_PROMPTS_VALIDATION_DEFAULTS_WARNING_TIMERS_COMMIT_RESET_ABORT_SETTINGS_ONE_DURABLE_OUTCOME_AND_CONTROLLER_LOSS_RECOVERY",
+      "planned_test_ids": [
+        "V06-OP-004-UNIT",
+        "V06-OP-004-INTEGRATION",
+        "V06-OP-004-RACE",
+        "V06-OP-004-RECOVERY",
+        "V06-OP-004-UI"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-005",
+      "title": "Durable relative and absolute procedure schedules",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "LOCAL_CLOCK_RELATIVE_AND_ABSOLUTE_SCHEDULE_IDENTITY_VALIDATION_CANCELLATION_ONE_START_OUTCOME_AND_RESTART_RECOVERY",
+      "planned_test_ids": [
+        "V06-OP-005-UNIT",
+        "V06-OP-005-INTEGRATION",
+        "V06-OP-005-CLOCK",
+        "V06-OP-005-RACE",
+        "V06-OP-005-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-006",
+      "title": "Procedure views, navigation, breakpoints, inspection, and safe edits",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "SOURCE_TEXT_AS_RUN_SUPPORT_LOG_OUTLINE_SEARCH_NESTED_NAVIGATION_BREAKPOINT_RUN_TO_LINE_TYPED_INSPECTION_SAFE_STATE_EDITS_AND_BOUNDED_NON_EVALUATING_CONSOLE",
+      "planned_test_ids": [
+        "V06-OP-006-UNIT",
+        "V06-OP-006-INTEGRATION",
+        "V06-OP-006-UI",
+        "V06-OP-006-RECOVERY",
+        "V06-OP-006-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-007",
+      "title": "Durable named allowlisted user actions",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "NAMED_VERSIONED_ALLOWLISTED_SAFE_POINT_ACTIONS_WITH_DURABLE_IDENTITY_AUDIT_AND_NO_ARBITRARY_ASYNCHRONOUS_PYTHON",
+      "planned_test_ids": [
+        "V06-OP-007-UNIT",
+        "V06-OP-007-INTEGRATION",
+        "V06-OP-007-RACE",
+        "V06-OP-007-RECOVERY",
+        "V06-OP-007-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-008",
+      "title": "Immutable StartProc parent-child composition",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "IMMUTABLE_LIBRARY_RESOLUTION_DURABLE_STARTPROC_PARENT_CHILD_IDENTITY_DEPTH_CYCLE_CRASH_AND_RESTART_RULES",
+      "planned_test_ids": [
+        "V06-OP-008-UNIT",
+        "V06-OP-008-INTEGRATION",
+        "V06-OP-008-GRAPH",
+        "V06-OP-008-RECOVERY",
+        "V06-OP-008-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V06-OP-009",
+      "title": "Cross-feature desktop and mobile operator acceptance",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "INTEGRATED_DESKTOP_MOBILE_ACCESSIBILITY_COMPETING_CONTROL_PROMPT_SCHEDULE_INSPECTION_ACTION_COMPOSITION_FAULT_RECOVERY_AND_SECURITY_ACCEPTANCE",
+      "planned_test_ids": [
+        "V06-OP-009-DESKTOP",
+        "V06-OP-009-MOBILE",
+        "V06-OP-009-ACCESSIBILITY",
+        "V06-OP-009-FAULT-RECOVERY",
+        "V06-OP-009-SECURITY"
+      ]
+    }
+  ],
+  "claims": {
+    "v0_5_release_accepted": true,
+    "v0_6_program_proposed": true,
+    "v0_6_implementation_authorized": true,
+    "v0_6_implementation_claimed_by_gate": false,
+    "v0_6_release_accepted": false,
+    "new_language_surface_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "SCOPE_BEYOND_V06_OP_001_THROUGH_V06_OP_009",
+    "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_OR_PRODUCTION_DATA",
+    "LIVE_DRIVER_GCS_SPACECRAFT_TELEMETRY_TELECOMMAND_OR_EXTERNAL_EFFECT_ROUTING",
+    "ARBITRARY_PYTHON_SOURCE_EXPRESSION_FUNCTION_EVALUATION_OR_SHELL_EXECUTION",
+    "UNBOUNDED_INSPECTION_CONSOLE_OR_UNSAFE_VARIABLE_SHARED_DATA_EDIT",
+    "ARBITRARY_ASYNCHRONOUS_OR_NON_ALLOWLISTED_USER_ACTIONS",
+    "HARD_KILL_OR_CLEAN_EXTERNAL_STATE_INFERENCE_AFTER_SKIP_STOP_ABORT_OR_FAILURE",
+    "MUTABLE_LIBRARY_RESOLUTION_OR_UNBOUNDED_PARENT_CHILD_GRAPH",
+    "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_OR_COMPATIBILITY_CHANGE",
+    "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_CONTRACTS",
+    "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+  ]
+}

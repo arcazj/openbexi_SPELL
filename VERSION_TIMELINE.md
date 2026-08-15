@@ -4,14 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.4.0 baseline, v0.5 Gates 0A/0B, and release-closeout candidate record |
-| Update type | Accepted-release status, gate decisions, and candidate closeout update |
-| Updated | 2026-08-13 |
+| Document revision | Accepted v0.5.0 baseline and approved v0.6 Gate 0A record |
+| Update type | Accepted-release status, tag verification, and bounded entry authorization |
+| Updated | 2026-08-15 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
-| Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
+| Current accepted product baseline | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
-| v0.5 status | Canonical candidate qualification and live Gate 0B validation PASS for `V05-IR-001`; Final validation, SBOM/supply-chain evidence, release commit, package, and tag pending |
+| v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
+| v0.6 status | `V06-GATE-0A PASS` recorded 2026-08-15 for nine exact work packages; no implementation, release, or tag claim |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -60,13 +61,35 @@ Conventions:
 | v0.4 gate draft | Typed simulator driver and context foundation planning | Uncommitted owner request date of 2026-07-17; intra-day request time not retained | Draft planning records revised after complete supplied-manual review on 2026-07-17; approval pending | Product build duration not applicable; planning elapsed time unknown | Author-recorded date only; no implementation or release claim |
 | v0.4 local gate revision | Candidate A local-only synthetic non-CUI simulator engineering gate | Direct project-owner instruction recorded 2026-07-18; exact time not retained | Scope, exclusions, budgets, and test plan owner-approved and Gate 0 passed on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Direct owner instruction plus digest-bound Python 3.13 working-tree evidence; authorizes product engineering but makes no release, operational, or compliance claim |
 | v0.4 | Typed Simulator Driver and Context Foundation | Gate date 2026-07-18; exact gate time not retained | Annotated tag `v0.4.0` at 2026-08-12 21:33:43 EDT | Total gate-to-tag duration unknown because the start has no exact time; candidate-source commit to tag was 16h 57m 56s | Exact Git interval only for candidate-source commit `f9a2cdb` at 04:35:47 EDT through tag; not total implementation effort |
-| v0.5 Gates 0A/0B / `V05-IR-001` | Existing IR 0.3 fail-closed validation hardening and bounded release closeout | Gate-ready work resumed 2026-08-12; exact start time not retained | Canonical candidate qualification and live Gate 0B PASS recorded 2026-08-13; Final completion pending | Total duration unknown because neither the gate start nor final completion is available | Evidence binds annotated `v0.4.0`, candidate `aefa658`, correction/source `ef26e53`, and canonical evidence SHA-256 `86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`; no v0.5 release commit or tag exists yet |
+| v0.5 / `V05-IR-001` | Existing IR 0.3 fail-closed validation hardening and bounded release closeout | Gate-ready work resumed 2026-08-12; exact start time not retained | Annotated tag `v0.5.0` at 2026-08-14 22:22:33 EDT | Total duration unknown; qualified-source commit to tag was 13m 21s, and release-commit to tag was 2m 25s | Exact Git intervals for qualified source `2f31e6a`, release commit `e7b6bb9`, tag object `a1b277d`, and accepted tag; not total implementation effort |
+| v0.6 Gate 0A | Durable Operator Workspace and Procedure Composition | Owner request recorded 2026-08-15; exact time not retained | Explicit owner approval and Gate 0A PASS recorded 2026-08-15; exact time not retained | Same calendar day; exact elapsed time and active effort unknown | `V06-OP-001` through `V06-OP-009` authorized; no implementation or executed product evidence claimed |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-WP-00 readiness | Gate G0 allocation, validation, and decision package | Owner request to implement the next step recorded 2026-07-18; exact start time not retained | Gate G0 passed under pinned Python 3.13 on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Digest-bound working-tree evidence; no product delivery, release, operational, or compliance claim |
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
+
+## 2026-08-15 - v0.5.0 Accepted Baseline And v0.6 Gate 0A
+
+| Field | Value |
+| --- | --- |
+| Current accepted release | SPELL v0.5.0, annotated tag `v0.5.0` |
+| Tag object | `a1b277d74d2fb19062ca3e4388e9104d45c50ec4`; created 2026-08-14 22:22:33 EDT |
+| Release commit | `e7b6bb9428833437e0160040541eb840deee7cca`; committed 2026-08-14 22:20:08 EDT |
+| Qualified source | `2f31e6a011b8aad63b29bd55780c37c1b68712f1`; committed 2026-08-14 22:09:12 EDT |
+| Final validation | PASS; 1,096 concrete tests, 1,090 passes, six exact approved SQLite environment skips, 36 subtests, zero failures/errors |
+| Supply chain and package | PASS; four image-bound SBOMs, zero High/Critical findings, archive SHA-256 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241` |
+| Accepted scope and exceptions | `V05-IR-001` only; no accepted exceptions |
+| v0.6 owner direction | Finish v0.6; explicitly approve `V06-OP-001` through `V06-OP-009` |
+| v0.6 status | `V06-GATE-0A PASS`; nine work packages authorized; no product implementation, release, or tag claim |
+| Operational authorization or compliance determination | None |
+
+This section reconciles the now-verifiable tag result and the later explicit
+v0.6 Gate 0A approval; it does not rewrite the
+2026-08-13 Gate 0B record below. That earlier section correctly describes the
+conditional state at its recorded date. The annotated tag later activated the
+conditional acceptance without requiring a post-tag documentation commit.
 
 ## 2026-08-13 - v0.5 Gate 0B And Release Closeout
 
@@ -716,6 +739,8 @@ Records:
 | --- | --- | --- |
 | v0.2 tag to v0.3 gate commit | 3m 36s | Exact Git/tag interval |
 | v0.2 tag to v0.3 tag | 3d 23h 32m 59s | Exact Git/tag interval |
+| v0.4 tag to v0.5 tag | 2d 0h 48m 50s | Exact annotated-tag interval |
+| v0.5 qualified-source commit to v0.5 tag | 13m 21s | Exact Git/tag interval; not total implementation effort |
 | v0.1 completion date to v0.3 release date | Four calendar days between 2026-07-12 and 2026-07-16; five inclusive calendar dates | Recorded dates only; not an exact elapsed-time interval because v0.1 completion time is absent |
 
 ## Known Evidence Gaps
@@ -730,8 +755,8 @@ Records:
   the final performance qualification and Git endpoints.
 - Repository timestamps measure elapsed calendar intervals, not active work,
   staffing, parallelism, review effort, or person-hours.
-- Current filesystem modification times, uncommitted screenshots, and an
-  untagged release archive are not used as historical release evidence.
+- Filesystem modification times, uncommitted screenshots, and an untagged
+  release archive alone are not used as historical release evidence.
 
 Future versions should close these gaps by recording approved gate time,
 implementation start, verification start/finish, release commit, annotated tag,

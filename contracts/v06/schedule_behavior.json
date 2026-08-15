@@ -1,0 +1,207 @@
+{
+  "schema_version": "spell.v06.schedule-behavior/1",
+  "contract_id": "V06-SCHEDULE-BEHAVIOR",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-005",
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v06-durable-operator-workspace-and-procedure-composition",
+    "SPELL-DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf#pages=41-42",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/STATE_MACHINES.md#deterministic-restart-registry"
+  ],
+  "schedule_types": [
+    {
+      "id": "RELATIVE",
+      "input": "positive bounded duration",
+      "canonical_target": "created_at_database_time plus duration",
+      "preserved_fields": [
+        "original_duration",
+        "created_at_database_time",
+        "target_at_database_time"
+      ]
+    },
+    {
+      "id": "ABSOLUTE",
+      "input": "RFC 3339 timestamp with an explicit UTC offset",
+      "canonical_target": "UTC database timestamp",
+      "preserved_fields": [
+        "original_timestamp",
+        "original_offset",
+        "target_at_database_time"
+      ]
+    }
+  ],
+  "explicitly_deferred_types": [
+    {
+      "id": "TELEMETRY_CONDITION",
+      "rejection_code": "SCHEDULE_TYPE_DEFERRED_V07",
+      "reason": "Telemetry-conditioned scheduling belongs to the v0.7 observation and condition engine."
+    },
+    {
+      "id": "RECURRING",
+      "rejection_code": "SCHEDULE_TYPE_NOT_IN_V06",
+      "reason": "v0.6 authorizes one-shot relative and absolute schedules only."
+    }
+  ],
+  "states": [
+    "PENDING",
+    "CLAIMED",
+    "FIRED",
+    "CANCELLED",
+    "MISSED",
+    "ERROR"
+  ],
+  "terminal_states": [
+    "FIRED",
+    "CANCELLED",
+    "MISSED",
+    "ERROR"
+  ],
+  "required_identity": [
+    "ScheduleId",
+    "ScheduleRevision",
+    "IdempotencyKey",
+    "ScheduleType",
+    "OriginalTarget",
+    "TargetAtDatabaseTime",
+    "ProcedureCatalogId",
+    "ProcedureRevision",
+    "BundleDigest",
+    "ContextId",
+    "CanonicalArgumentsDigest",
+    "Automatic",
+    "BackgroundAllowed",
+    "CreatedBy",
+    "CreatedAtDatabaseTime"
+  ],
+  "creation_guards": [
+    "authenticated C-mode holder has the current active lease and fence",
+    "procedure catalog identity and immutable bundle digest resolve",
+    "arguments validate without source execution",
+    "target parses, is within the bounded scheduling horizon, and is not ambiguous",
+    "database clock quality satisfies policy",
+    "idempotency key is new or resolves to the identical schedule"
+  ],
+  "clock_policy": {
+    "authority": "database UTC time",
+    "browser_clock": "presentation only",
+    "uncertain_clock": "remain PENDING and expose CLOCK_UNCERTAIN; never fire",
+    "restart": "preserve the original canonical target; never add restart downtime"
+  },
+  "misfire_policies": [
+    {
+      "id": "FIRE_ONCE",
+      "rule": "After recovery, claim and create the one occurrence if it has not already settled and lateness is within MaximumLateness."
+    },
+    {
+      "id": "SKIP",
+      "rule": "Settle MISSED without an ExecutionId when the target is late under the pinned policy."
+    }
+  ],
+  "occurrence_contract": {
+    "count": 1,
+    "occurrence_id": "stable digest of ScheduleId and TargetAtDatabaseTime",
+    "claim": "single compare-and-set from PENDING to CLAIMED",
+    "fire": "create at most one new ExecutionId in REQUESTED from the pinned catalog, bundle, context, arguments, and Automatic setting",
+    "outcome": "exactly one of FIRED with ExecutionId, CANCELLED, MISSED, or ERROR",
+    "automatic_rule": "Automatic true permits the admitted child to run; false leaves it PAUSED. Schedule settlement itself never bypasses admission."
+  },
+  "transitions": [
+    {
+      "id": "CREATE",
+      "from": null,
+      "to": "PENDING",
+      "guard": "all creation guards pass",
+      "result": "one durable ScheduleId with its original target and pinned inputs"
+    },
+    {
+      "id": "CLAIM_DUE",
+      "from": "PENDING",
+      "to": "CLAIMED",
+      "guard": "database time is at or beyond target, clock is acceptable, and no cancellation won",
+      "result": "one stable occurrence claim"
+    },
+    {
+      "id": "FIRE",
+      "from": "CLAIMED",
+      "to": "FIRED",
+      "guard": "admission creates or finds the occurrence-bound ExecutionId",
+      "result": "store that one ExecutionId"
+    },
+    {
+      "id": "CANCEL",
+      "from": "PENDING",
+      "to": "CANCELLED",
+      "guard": "authorized C-mode request wins before claim",
+      "result": "no ExecutionId"
+    },
+    {
+      "id": "MISFIRE",
+      "from": "PENDING",
+      "to": "MISSED",
+      "guard": "pinned SKIP policy or MaximumLateness requires skipping",
+      "result": "no ExecutionId and original target retained"
+    },
+    {
+      "id": "FAIL",
+      "from": "CLAIMED",
+      "to": "ERROR",
+      "guard": "deterministic admission failure cannot be retried under the same pinned inputs",
+      "result": "no hidden execution and a typed failure"
+    }
+  ],
+  "races": [
+    {
+      "id": "DUE_VS_CANCEL",
+      "contenders": [
+        "CLAIM_DUE",
+        "CANCEL"
+      ],
+      "winner": "FIRST_DURABLE_COMPARE_AND_SET",
+      "loser": "returns the winning state without compensating"
+    },
+    {
+      "id": "FIRE_VS_RESTART",
+      "contenders": [
+        "FIRE",
+        "PROCESS_RESTART"
+      ],
+      "winner": "reconcile by occurrence identity",
+      "loser": "never creates a second ExecutionId"
+    },
+    {
+      "id": "CLOCK_RECOVERY_VS_CANCEL",
+      "contenders": [
+        "CLOCK_QUALITY_RESTORED",
+        "CANCEL"
+      ],
+      "winner": "PENDING revision compare-and-set",
+      "loser": "returns the winning state"
+    }
+  ],
+  "restart_cases": [
+    {
+      "phase": "PENDING_BEFORE_TARGET",
+      "rule": "Reload the same target and remain PENDING."
+    },
+    {
+      "phase": "PENDING_AFTER_TARGET",
+      "rule": "Apply the pinned misfire policy against the original target."
+    },
+    {
+      "phase": "CLAIMED_BEFORE_EXECUTION_COMMIT",
+      "rule": "Find the occurrence-bound execution; create it once only when durable evidence proves none exists."
+    },
+    {
+      "phase": "EXECUTION_COMMITTED_BEFORE_SCHEDULE_SETTLEMENT",
+      "rule": "Settle FIRED with the existing ExecutionId; never create another."
+    },
+    {
+      "phase": "TERMINAL",
+      "rule": "Return the immutable terminal state and original target."
+    }
+  ]
+}

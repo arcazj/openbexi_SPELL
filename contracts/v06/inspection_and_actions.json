@@ -1,0 +1,221 @@
+{
+  "schema_version": "spell.v06.inspection-actions/1",
+  "contract_id": "V06-INSPECTION-ACTIONS",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-006",
+  "additional_work_package_ids": [
+    "V06-OP-007"
+  ],
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v06-durable-operator-workspace-and-procedure-composition",
+    "SPELL-DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf#pages=11-16,24-26,43-47,51-53",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "execution_states": [
+    "REQUESTED",
+    "VALIDATING",
+    "ADMISSION_PENDING",
+    "LOADING",
+    "PAUSED",
+    "RUNNING",
+    "WAITING",
+    "PROMPT",
+    "INTERRUPTED",
+    "SUSPENDED",
+    "RECOVERING",
+    "STOPPING",
+    "FINISHED",
+    "ABORTED",
+    "ERROR"
+  ],
+  "views": [
+    {
+      "id": "SOURCE",
+      "content": "immutable pinned procedure source with stable line IDs, current line, and executed-line coverage",
+      "mutability": "READ_ONLY",
+      "freshness": "live execution projection bound to source digest"
+    },
+    {
+      "id": "TEXT",
+      "content": "ordered scoped timestamped procedure, step, prompt, warning, and error messages",
+      "mutability": "READ_ONLY",
+      "freshness": "cursor-replayable live projection"
+    },
+    {
+      "id": "AS_RUN",
+      "content": "ordered operational actions and outcomes with prompt secrets redacted",
+      "mutability": "READ_ONLY",
+      "freshness": "immutable committed entries with explicit snapshot cursor"
+    },
+    {
+      "id": "SUPPORT_LOG",
+      "content": "bounded support and debug records with safe diagnostics and correlation IDs",
+      "mutability": "READ_ONLY",
+      "freshness": "immutable committed entries with explicit snapshot cursor"
+    },
+    {
+      "id": "OUTLINE",
+      "content": "statically parsed steps, labels, gotos, bounded functions, and child procedure references",
+      "mutability": "READ_ONLY",
+      "freshness": "pinned source digest"
+    },
+    {
+      "id": "SEARCH",
+      "content": "literal bounded search over the pinned source and selected committed text/log view",
+      "mutability": "READ_ONLY",
+      "freshness": "query records the searched cursor or source digest"
+    },
+    {
+      "id": "NESTED_PROCEDURE",
+      "content": "parent-child navigation by stable ExecutionId and pinned ProcedureCatalogId",
+      "mutability": "READ_ONLY",
+      "freshness": "current relationship revision"
+    }
+  ],
+  "inspectable_scopes": [
+    "LOCAL_VARIABLE",
+    "GLOBAL_VARIABLE",
+    "ARGS",
+    "IVARS",
+    "SHARED_DATA"
+  ],
+  "read_state_matrix": [
+    {
+      "scope": "LOCAL_VARIABLE",
+      "allowed_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "result_rule": "Return the newest committed bounded snapshot or typed NOT_AVAILABLE with its execution revision."
+    },
+    {
+      "scope": "GLOBAL_VARIABLE",
+      "allowed_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "result_rule": "Return the newest committed bounded snapshot or typed NOT_AVAILABLE with its execution revision."
+    },
+    {
+      "scope": "ARGS",
+      "allowed_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "result_rule": "Return the newest committed typed container or typed NOT_AVAILABLE."
+    },
+    {
+      "scope": "IVARS",
+      "allowed_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "result_rule": "Return the newest committed typed container or typed NOT_AVAILABLE."
+    },
+    {
+      "scope": "SHARED_DATA",
+      "allowed_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "result_rule": "Return only the bounded read-only v0.6 projection with scope, key, type, revision, and freshness."
+    }
+  ],
+  "edit_state_matrix": [
+    {
+      "scope": "LOCAL_VARIABLE",
+      "allowed_states": ["PAUSED", "PROMPT", "INTERRUPTED"],
+      "rejected_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "RUNNING", "WAITING", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "disposition": "AUDITED_TYPED_COMPARE_AND_SET"
+    },
+    {
+      "scope": "GLOBAL_VARIABLE",
+      "allowed_states": ["PAUSED", "PROMPT", "INTERRUPTED"],
+      "rejected_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "RUNNING", "WAITING", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "disposition": "AUDITED_TYPED_COMPARE_AND_SET"
+    },
+    {
+      "scope": "ARGS",
+      "allowed_states": ["PAUSED", "PROMPT", "INTERRUPTED"],
+      "rejected_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "RUNNING", "WAITING", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "disposition": "AUDITED_TYPED_COMPARE_AND_SET"
+    },
+    {
+      "scope": "IVARS",
+      "allowed_states": ["PAUSED", "PROMPT", "INTERRUPTED"],
+      "rejected_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "RUNNING", "WAITING", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "disposition": "AUDITED_TYPED_COMPARE_AND_SET"
+    },
+    {
+      "scope": "SHARED_DATA",
+      "allowed_states": [],
+      "rejected_states": ["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED", "SUSPENDED", "RECOVERING", "STOPPING", "FINISHED", "ABORTED", "ERROR"],
+      "disposition": "REJECTED_DEFERRED_V08"
+    }
+  ],
+  "edit_guards": [
+    "authenticated C-mode holder with current lease and fence",
+    "execution and value revisions match",
+    "target is an existing editable scope entry",
+    "new value parses as data under the bounded literal schema",
+    "no expression, call, import, interpolation, or implicit conversion",
+    "the compare-and-set, actor, reason, old-value digest, and new-value digest are audited atomically"
+  ],
+  "bounded_literal_schema": {
+    "types": [
+      "NULL",
+      "BOOLEAN",
+      "INTEGER",
+      "FINITE_DECIMAL",
+      "STRING",
+      "LIST",
+      "MAP"
+    ],
+    "bounds_required": [
+      "encoded bytes",
+      "string code points",
+      "container depth",
+      "container elements",
+      "integer digits"
+    ],
+    "forbidden": [
+      "NaN or infinity",
+      "duplicate map keys",
+      "object construction",
+      "function calls",
+      "expressions",
+      "references to procedure variables"
+    ]
+  },
+  "breakpoint_contract": {
+    "operations": ["ADD", "REMOVE", "REMOVE_ALL"],
+    "target": "executable line ID in the pinned source digest",
+    "effect": "pause at the next matching committed safe point",
+    "persistence": "survive reconnect and process restart for the same ExecutionId and source digest; clear on reload to a new ExecutionId",
+    "monitor_rule": "M mode may observe but cannot mutate breakpoints"
+  },
+  "run_to_line_contract": {
+    "allowed_states": ["PAUSED", "INTERRUPTED"],
+    "target": "statically reachable executable line in the same lexical frame and procedure",
+    "effect": "install one one-shot breakpoint, run, pause on the target, and remove the one-shot breakpoint",
+    "rejections": ["invalid line", "cross-frame target", "cross-procedure target", "unresolved external effect", "stale source digest", "stale execution revision"]
+  },
+  "console_operations": [
+    {"id": "LIST_SCOPE", "mutates": false},
+    {"id": "READ_VALUE", "mutates": false},
+    {"id": "EXPAND_VALUE", "mutates": false},
+    {"id": "SEARCH_SOURCE_LITERAL", "mutates": false},
+    {"id": "WRITE_TYPED_LITERAL", "mutates": true}
+  ],
+  "console_rule": "The console accepts only a typed operation object from console_operations; WRITE_TYPED_LITERAL uses the identical edit matrix and guards.",
+  "console_forbidden_capabilities": [
+    "EXPRESSION_EVALUATION",
+    "FUNCTION_EVALUATION",
+    "PROCEDURE_SCOPE_SHELL",
+    "ARBITRARY_PYTHON",
+    "IMPORT",
+    "FILE_IO",
+    "NETWORK_IO",
+    "PROCESS_CONTROL"
+  ],
+  "user_action_contract": {
+    "work_package_id": "V06-OP-007",
+    "operations": ["REGISTER", "ENABLE", "DISABLE", "DISMISS", "INVOKE"],
+    "required_fields": ["ActionId", "ActionRevision", "ExecutionId", "Name", "Label", "Severity", "HandlerId", "Enabled", "SourceDigest"],
+    "handler": "statically resolved allowlisted BOUNDED_IR_ACTION_BLOCK in the pinned bundle",
+    "invoke_allowed_states": ["PAUSED", "RUNNING", "WAITING", "PROMPT", "INTERRUPTED"],
+    "invoke_rule": "An authenticated C-mode holder creates one durable invocation; it executes synchronously at an allowed safe point under the accepted revisions or settles rejected, cancelled, or superseded.",
+    "settlements": ["EXECUTED", "REJECTED", "CANCELLED", "SUPERSEDED"],
+    "restart_rule": "Reconcile the same InvocationId and target event; never invoke the handler twice.",
+    "forbidden": ["callable object", "source text", "module name", "dynamic import", "asynchronous Python", "shell command", "unbounded argument payload"]
+  }
+}
