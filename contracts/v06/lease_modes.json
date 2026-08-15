@@ -1,0 +1,183 @@
+{
+  "schema_version": "spell.v06.lease-modes/1",
+  "contract_id": "V06-LEASE-MODES",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-002",
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v06-durable-operator-workspace-and-procedure-composition",
+    "SPELL-DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf#pages=17,21-23,38-40,48-50",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/OPERATING_MODES.md",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/STATE_MACHINES.md#controller-lease"
+  ],
+  "ownership_modes": [
+    {
+      "id": "C",
+      "name": "CONTROLLED",
+      "controller_count": "EXACTLY_ONE",
+      "monitor_count": "ZERO_OR_MORE",
+      "lease_required": true,
+      "runtime_mutation": "ALLOWED_ONLY_BY_CURRENT_HOLDER",
+      "prompt_response": "ALLOWED_ONLY_BY_CURRENT_HOLDER"
+    },
+    {
+      "id": "M",
+      "name": "MONITOR",
+      "controller_count": "UNCHANGED",
+      "monitor_count": "ZERO_OR_MORE",
+      "lease_required": false,
+      "runtime_mutation": "FORBIDDEN",
+      "prompt_response": "FORBIDDEN"
+    },
+    {
+      "id": "B",
+      "name": "BACKGROUND",
+      "controller_count": "ZERO",
+      "monitor_count": "ZERO_OR_MORE",
+      "lease_required": false,
+      "runtime_mutation": "SERVICE_SAFE_POINT_ONLY",
+      "prompt_response": "FORBIDDEN"
+    }
+  ],
+  "projection_invariants": [
+    "Every nonterminal execution has exactly one primary ownership projection: C or B, except an explicit CONTROL_LOST hold awaiting disposition.",
+    "C and B are mutually exclusive for one execution.",
+    "M is a per-session read-only subscription and may coexist with C or B.",
+    "At most one active controller lease exists per execution control domain.",
+    "A monitor never gains prompt, command, edit, breakpoint, action, schedule, or lease authority from its M projection.",
+    "Background mode is an explicit committed transition and is never inferred from disconnect or lease loss."
+  ],
+  "lease_states": [
+    "ACTIVE",
+    "RELEASED",
+    "EXPIRED",
+    "REVOKED",
+    "TRANSFERRED"
+  ],
+  "required_lease_fields": [
+    "ControllerLeaseId",
+    "LeaseRevision",
+    "ControlFencingToken",
+    "ExecutionId",
+    "HolderSubjectId",
+    "HolderSessionId",
+    "ClientInstanceKeyId",
+    "IssuedAtDatabaseTime",
+    "ExpiresAtDatabaseTime",
+    "State",
+    "Reason"
+  ],
+  "transitions": [
+    {
+      "id": "ACQUIRE_AVAILABLE_CONTROL",
+      "source_mode": "B_OR_CONTROL_LOST",
+      "target_mode": "C",
+      "actor": "CONTROLLER",
+      "guards": ["authorized identity and session", "no active lease", "current execution revision", "reacquisition acknowledgement when state was CONTROL_LOST"],
+      "effects": ["allocate a new ControllerLeaseId", "strictly increase ControlFencingToken", "install the sole ACTIVE lease", "audit the ownership change"]
+    },
+    {
+      "id": "RENEW_CONTROL",
+      "source_mode": "C",
+      "target_mode": "C",
+      "actor": "CURRENT_HOLDER",
+      "guards": ["same subject, session, and client key", "expected lease revision", "before renewal cutoff"],
+      "effects": ["retain ControllerLeaseId and fence", "increase LeaseRevision", "set bounded database-time expiry"]
+    },
+    {
+      "id": "RELEASE_TO_BACKGROUND",
+      "source_mode": "C",
+      "target_mode": "B",
+      "actor": "CURRENT_HOLDER",
+      "guards": ["procedure explicitly permits background", "no prompt or interactive decision is open", "safe point reached", "expected execution and lease revisions"],
+      "effects": ["terminalize the lease as RELEASED", "preserve execution state and effect certainty", "commit B projection"]
+    },
+    {
+      "id": "START_MONITOR",
+      "source_mode": "C_OR_B",
+      "target_mode": "UNCHANGED_PLUS_M",
+      "actor": "AUTHORIZED_VIEWER",
+      "guards": ["read authorization", "current context attachment"],
+      "effects": ["create a read-only subscription", "grant no controller lease or mutation authority"]
+    },
+    {
+      "id": "STOP_MONITOR",
+      "source_mode": "M",
+      "target_mode": "PRIMARY_MODE_UNCHANGED",
+      "actor": "MONITOR_SESSION",
+      "guards": ["matching monitor subscription"],
+      "effects": ["close only that read-only subscription"]
+    },
+    {
+      "id": "LEASE_EXPIRES_OR_IS_REVOKED",
+      "source_mode": "C",
+      "target_mode": "CONTROL_LOST",
+      "actor": "CLOCK_OR_CONTROL_SERVICE",
+      "guards": ["database deadline reached or revocation evidence committed"],
+      "effects": ["terminalize old lease", "pause at the next safe point", "set SUSPENDED hold_reason CONTROL_LOST", "retain prompts, waits, failures, and effect certainty"]
+    },
+    {
+      "id": "EXPLICIT_HANDOVER",
+      "source_mode": "C_PLUS_REQUESTING_M",
+      "target_mode": "NEW_C_PLUS_FORMER_M",
+      "actor": "CURRENT_HOLDER_AND_NAMED_REQUESTER",
+      "guards": ["named request", "current-holder approval", "requester responsibility acknowledgement", "both current authenticated sessions", "expected revisions"],
+      "effects": ["terminalize old lease as TRANSFERRED", "create one successor lease", "strictly increase fence", "atomically swap holder projections"]
+    }
+  ],
+  "competing_control_cases": [
+    {
+      "case": "TWO_ACQUIRE_REQUESTS_WHILE_AVAILABLE",
+      "winner": "first serializable lease creation",
+      "loser": "CONTROL_LEASE_ALREADY_HELD with the privacy-safe current projection"
+    },
+    {
+      "case": "ACQUIRE_WHILE_ACTIVE_HOLDER_EXISTS",
+      "winner": "existing active lease",
+      "loser": "must remain M and use explicit handover; no force takeover in v0.6"
+    },
+    {
+      "case": "OLD_HOLDER_COMMAND_AFTER_HANDOVER",
+      "winner": "new higher fence",
+      "loser": "STALE_CONTROL_FENCE before target mutation"
+    },
+    {
+      "case": "RENEWAL_VS_EXPIRY",
+      "winner": "first database-time compare-and-set",
+      "loser": "returns the immutable winning lease revision and state"
+    },
+    {
+      "case": "DISCONNECT_VS_COMMAND",
+      "winner": "accepted command remains ordered, but application revalidates the active lease and fence at its safe point",
+      "loser": "cannot infer application from acceptance"
+    }
+  ],
+  "background_rules": [
+    "Opening directly in B requires BackgroundAllowed and Automatic true; otherwise reject or create PAUSED awaiting explicit control according to the request.",
+    "B may continue deterministic simulator work and durable waits without a browser.",
+    "When B reaches a prompt or another interactive decision, it enters SUSPENDED with hold_reason CONTROL_LOST, raises a durable warning, and waits for authenticated acquisition.",
+    "B cannot synthesize prompt defaults solely because no controller exists; only the prompt's pinned timeout policy may settle it.",
+    "Taking control from B creates a new lease and fence; it does not rewrite prior B history."
+  ],
+  "disconnect_restart_rules": [
+    "Browser disconnect alone does not instantly transfer control or select B.",
+    "The active lease remains authoritative until a committed release, expiry, revocation, or handover.",
+    "On lease loss, execution pauses at a safe point and preserves its saved resume target.",
+    "Restart reconstructs the current lease by ControllerLeaseId, revision, fence, and database deadline; it creates no implicit holder.",
+    "Authenticated reacquisition acknowledges active executions, prompts, alarms, and uncertain effects, then allocates a new or policy-valid renewed authority before explicit resume."
+  ],
+  "strict_monitor_denials": [
+    "execution command",
+    "prompt commit or abort",
+    "variable or container edit",
+    "breakpoint mutation or run-to-line",
+    "user-action invocation",
+    "schedule creation or cancellation",
+    "background transition",
+    "source mutation",
+    "control acquisition when an active lease exists"
+  ]
+}

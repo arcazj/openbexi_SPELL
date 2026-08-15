@@ -6,6 +6,40 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-15 - v0.5.0 Accepted And v0.6 Completion Requested
+
+### Accepted Baseline
+
+The conditional v0.5.0 acceptance recorded in release commit
+`e7b6bb9428833437e0160040541eb840deee7cca` became effective when the project
+owner created and verified annotated tag `v0.5.0` on 2026-08-14. The tag object
+is `a1b277d74d2fb19062ca3e4388e9104d45c50ec4` and peels to that release
+commit. Final qualification passed 1,096 concrete tests with 1,090 passes, six
+exact approved SQLite environment skips, 36 subtests, no failures or errors,
+four image-bound SBOMs, no High or Critical supply-chain findings, and no
+accepted exceptions. The deterministic archive SHA-256 is
+`cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241`.
+
+This entry is a post-tag factual reconciliation. It does not alter the tagged
+release record or imply that the tag contained a later documentation update.
+The tag itself activated the conditional decision exactly as the tagged record
+specified. Operational authorization and compliance determination remain none.
+
+### v0.6 Owner Direction And Gate 0A Approval
+
+The project owner requested completion of v0.6 and subsequently explicitly
+approved the exact bounded Gate 0A recorded in
+[`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+`V06-GATE-0A PASS` authorizes implementation of `V06-OP-001` through
+`V06-OP-009` under the accepted v0.5.0 baseline binding, exclusions, operator
+state/command/prompt/inspection matrices, and recovery/security acceptance
+rules. The exact owner marker is `V06-GATE-0A OWNER-APPROVAL: APPROVED`.
+
+Gate 0A is implementation authorization, not an implementation or release
+result. No v0.6 runtime, API, schema, migration, frontend, dependency, driver,
+package, release, tag, deployment, operational, or compliance result is yet
+claimed.
+
 ## 2026-08-13 - v0.5 Candidate Evidence Integrated And Release Closeout Continued
 
 ### Owner Direction And Gate Decision

@@ -1,18 +1,23 @@
 # SPELL v0.5 Operations Console
 
 React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
-v0.5 local-only, synthetic non-CUI simulator release candidate. The v0.5 increment does
+v0.5 local-only, synthetic non-CUI simulator release. The v0.5 increment does
 not change frontend behavior: it retains the accepted v0.4 console, v0.3
 execution and restricted-IR contracts, and authenticated read-only projection
 of the bundled simulator driver foundation. Browser driver mutations and direct
 browser-to-driver access remain outside scope.
 
-The canonical `V05-IR-001` candidate work package and live Gate 0B validator
-pass for candidate `aefa658`, test-only Docker inspection timeout metadata
+The canonical `V05-IR-001` work package and live Gate 0B validator passed for
+candidate `aefa658`, test-only Docker inspection timeout metadata
 correction/source `ef26e53`, four suites, six identities, and 949 concrete
-tests. This does not change frontend behavior or accept v0.5: Final validation,
-SBOM/supply-chain evidence, deterministic packaging, the release commit, and
-the verified `v0.5.0` tag remain pending.
+tests. Final qualification passed 1,096 concrete tests with 1,090 passes, six
+exact approved SQLite environment skips, and no failures or errors. Annotated
+tag `v0.5.0` over release commit
+`e7b6bb9428833437e0160040541eb840deee7cca` activated the bounded acceptance.
+
+The owner explicitly approved the bounded v0.6 Gate 0A for `V06-OP-001`
+through `V06-OP-009`. The gate authorizes implementation but does not claim
+that any v0.6 frontend behavior exists or that a release or tag is accepted.
 
 The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide
@@ -50,4 +55,4 @@ are staged with its `run` and `collect` commands, checked with `status`, and onl
 become canonical v0.4 evidence after `publish` validates the complete shared
 source fingerprint. Supply-chain and package commands are documented in
 `PROMPT_Instructions.md`; successful frontend tests alone do not accept the
-candidate or establish an operational or compliance claim.
+next release or establish an operational or compliance claim.

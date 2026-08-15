@@ -1,0 +1,266 @@
+{
+  "schema_version": "spell.v06.prompt-behavior/1",
+  "contract_id": "V06-PROMPT-BEHAVIOR",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-004",
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "SPELL_DOCUMENTATION_REVIEW.md#language-function-inventory",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=70-72",
+    "SPELL-DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf#pages=19-20",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/STATE_MACHINES.md#durable-prompts"
+  ],
+  "prompt_states": [
+    "CREATED",
+    "OPEN",
+    "SETTLED"
+  ],
+  "prompt_types": [
+    {
+      "id": "OK",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "OK"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "CANCEL",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "CANCEL"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "OK_CANCEL",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "OK",
+        "CANCEL"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "YES",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "YES"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "NO",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "NO"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "YES_NO",
+      "input_kind": "FIXED_CHOICE",
+      "choices": [
+        "YES",
+        "NO"
+      ],
+      "result_kind": "TOKEN"
+    },
+    {
+      "id": "ALPHA",
+      "input_kind": "TEXT",
+      "choices": [],
+      "result_kind": "STRING"
+    },
+    {
+      "id": "NUM",
+      "input_kind": "NUMBER",
+      "choices": [],
+      "result_kind": "DECIMAL"
+    },
+    {
+      "id": "DATE",
+      "input_kind": "DATE",
+      "choices": [],
+      "result_kind": "ISO_DATE"
+    },
+    {
+      "id": "LIST",
+      "input_kind": "LIST",
+      "choices": "REQUIRED_NONEMPTY_BOUNDED_LIST",
+      "result_kind": "SELECTED_LIST_VALUE"
+    }
+  ],
+  "list_modes": [
+    {
+      "id": "KEY",
+      "source_shape": "unique key and display-label pairs",
+      "result": "selected key"
+    },
+    {
+      "id": "INDEX",
+      "source_shape": "unique display-label list",
+      "result": "zero-based selected index"
+    },
+    {
+      "id": "VALUE",
+      "source_shape": "unique typed value and display-label pairs",
+      "result": "selected typed value"
+    }
+  ],
+  "validation_profiles": {
+    "FIXED_CHOICE": "Exact canonical token from the declared choices; presentation case does not change the stored token.",
+    "TEXT": "Nonempty UTF-8 string after policy normalization, no control characters, within configured byte and code-point limits.",
+    "NUMBER": "Finite base-10 integer or decimal; NaN, infinity, expressions, units, and locale-dependent separators are rejected.",
+    "DATE": "Valid calendar date normalized to YYYY-MM-DD; locale-dependent or ambiguous dates are rejected.",
+    "LIST": "Exactly one declared option selected under KEY, INDEX, or VALUE mode; duplicate keys or values and out-of-range indices are rejected."
+  },
+  "actions": [
+    {
+      "id": "COMMIT",
+      "requires_controller_lease": true,
+      "effect": "Validate the value, then attempt the single OPEN-to-SETTLED compare-and-set with ANSWERED."
+    },
+    {
+      "id": "RESET",
+      "requires_controller_lease": false,
+      "effect": "Clear only the initiating client's uncommitted draft; prompt revision, deadline, attempts, and durable state do not change."
+    },
+    {
+      "id": "ABORT",
+      "requires_controller_lease": true,
+      "effect": "Attempt the single OPEN-to-SETTLED compare-and-set with CANCELLED; it is not an execution kill."
+    }
+  ],
+  "validation_outcomes": [
+    "ACCEPTED_SETTLEMENT",
+    "INVALID_VALUE",
+    "STALE_PROMPT_REVISION",
+    "CONTROL_LEASE_REQUIRED",
+    "CONTROL_LEASE_STALE",
+    "PROMPT_NOT_OPEN",
+    "LOST_SETTLEMENT_RACE"
+  ],
+  "default_policy": {
+    "precedence": [
+      "explicit prompt declaration",
+      "execution setting",
+      "context setting",
+      "type default"
+    ],
+    "validation": "A default must validate under the same type and option revision as an operator answer.",
+    "timeout_use": "A validated explicit default may settle ANSWERED when the response deadline wins; otherwise deadline expiry settles TIMED_OUT and never invents a value.",
+    "zero_timeout": "Normalize legacy zero to no response deadline; it does not create an immediate settlement."
+  },
+  "settings": [
+    {
+      "id": "PROMPT_WARNING_DELAY",
+      "scopes": [
+        "CONTEXT",
+        "EXECUTION"
+      ],
+      "execution_override": true,
+      "durable_for_open_prompt": true,
+      "effect": "Emit an accessible visual and optional audible warning without settling or extending the prompt."
+    },
+    {
+      "id": "PROMPT_RESPONSE_TIMEOUT",
+      "scopes": [
+        "CONTEXT",
+        "EXECUTION"
+      ],
+      "execution_override": true,
+      "durable_for_open_prompt": true,
+      "effect": "Pin one database-time response deadline when the prompt opens."
+    },
+    {
+      "id": "NO_CONTROLLER_GRACE",
+      "scopes": [
+        "CONTEXT",
+        "EXECUTION"
+      ],
+      "execution_override": true,
+      "durable_for_open_prompt": true,
+      "effect": "Bound how long an open prompt may remain without a controller before NO_CONTROLLER may win."
+    }
+  ],
+  "settlement_outcomes": [
+    "ANSWERED",
+    "CANCELLED",
+    "TIMED_OUT",
+    "NO_CONTROLLER",
+    "EXECUTION_TERMINATED",
+    "ERROR"
+  ],
+  "settlement_contenders": [
+    {
+      "id": "ANSWER",
+      "outcome": "ANSWERED"
+    },
+    {
+      "id": "ABORT",
+      "outcome": "CANCELLED"
+    },
+    {
+      "id": "TIMEOUT",
+      "outcome": "TIMED_OUT"
+    },
+    {
+      "id": "NO_CONTROLLER_POLICY",
+      "outcome": "NO_CONTROLLER"
+    },
+    {
+      "id": "EXECUTION_TERMINATION",
+      "outcome": "EXECUTION_TERMINATED"
+    },
+    {
+      "id": "INTERNAL_ERROR",
+      "outcome": "ERROR"
+    }
+  ],
+  "settlement_races": [
+    {"contenders": ["ANSWER", "ABORT"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ANSWER", "TIMEOUT"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ANSWER", "NO_CONTROLLER_POLICY"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ANSWER", "EXECUTION_TERMINATION"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ANSWER", "INTERNAL_ERROR"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ABORT", "TIMEOUT"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ABORT", "NO_CONTROLLER_POLICY"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ABORT", "EXECUTION_TERMINATION"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["ABORT", "INTERNAL_ERROR"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["TIMEOUT", "NO_CONTROLLER_POLICY"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["TIMEOUT", "EXECUTION_TERMINATION"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["TIMEOUT", "INTERNAL_ERROR"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["NO_CONTROLLER_POLICY", "EXECUTION_TERMINATION"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["NO_CONTROLLER_POLICY", "INTERNAL_ERROR"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"},
+    {"contenders": ["EXECUTION_TERMINATION", "INTERNAL_ERROR"], "winner": "FIRST_DURABLE_COMPARE_AND_SET"}
+  ],
+  "race_loser_rule": "Return the immutable winning SettlementId and outcome; never reopen, retry, or replace it.",
+  "invalid_attempt_rule": "Record a bounded rejected attempt without changing PromptRevision, deadline, or prompt state.",
+  "controller_loss_and_recovery": [
+    {
+      "event": "CONTROLLER_LOST",
+      "prompt_result": "Remain OPEN with the same PromptId and deadline while the execution enters SUSPENDED with hold_reason CONTROL_LOST.",
+      "authority": "No monitor or background session may answer."
+    },
+    {
+      "event": "LEASE_REACQUIRED_BEFORE_SETTLEMENT",
+      "prompt_result": "Republish the same PromptId and revision to the authenticated new holder; explicit resume restores PROMPT.",
+      "authority": "The new active lease and fence are required for COMMIT or ABORT."
+    },
+    {
+      "event": "RESTART_WHILE_OPEN",
+      "prompt_result": "Republish the same PromptId, original database deadline, warning state, settings snapshot, and attempts.",
+      "authority": "Restart grants no lease and resets no timer."
+    },
+    {
+      "event": "RECONNECT_AFTER_SETTLEMENT",
+      "prompt_result": "Return the single stored settlement and never present an answerable prompt.",
+      "authority": "Read access only."
+    }
+  ],
+  "secret_policy": "Secret or password responses are outside this v0.6 family; plaintext secrets are rejected and never stored in events, logs, audit, browser persistence, or as-run views."
+}

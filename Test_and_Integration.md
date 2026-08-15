@@ -5,12 +5,62 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current accepted product release | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
-| Planning target | SPELL v0.5.0 release closeout for existing IR 0.3 fail-closed validation hardening |
-| Status | v0.4 accepted; canonical v0.5 candidate qualification and live Gate 0B validation PASS; Final validation, SBOM/supply-chain evidence, release commit, package, and tag pending |
-| Date | Updated 2026-08-13 |
+| Current accepted product release | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
+| Planning target | SPELL v0.6 Durable Operator Workspace and Procedure Composition |
+| Status | v0.5.0 accepted for `V05-IR-001`; `V06-GATE-0A PASS` authorizes nine exact work packages; no v0.6 implementation or tag claim |
+| Date | Updated 2026-08-15 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
+
+## Version 0.6 Gate 0A Test Plan
+
+### Current Disposition And Boundary
+
+The owner requested completion of v0.6 and explicitly approved the exact scope
+in [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+`V06-GATE-0A PASS` makes the requirements and planned test identities below
+the bounded implementation contract. None is represented as implemented,
+executed, passed, accepted, or released by the gate. No arbitrary Python,
+expression/function evaluation, procedure-scope shell execution, implicit
+external-success claim, operational capability, or spacecraft connection is
+permitted.
+
+### Planned Requirements And Tests
+
+| Work package | Requirement and expected result | Planned test identities | Status |
+| --- | --- | --- | --- |
+| `V06-OP-001` | Context selection/attachment, immutable procedure-catalog resolution, properties/history, stable multi-instance identity, and Master view remain consistent across create, reopen, concurrency, and restart | `V06-OP-001-UNIT`, `V06-OP-001-INTEGRATION`, `V06-OP-001-RECOVERY`, `V06-OP-001-UI`, `V06-OP-001-SECURITY` | Authorized; not yet executed |
+| `V06-OP-002` | `C/M/B` ownership is explicit; monitor mode is read-only; one durable lease holder is generation-fenced; loss pauses required interaction and authorized reacquisition cannot accept a stale controller action | `V06-OP-002-UNIT`, `V06-OP-002-INTEGRATION`, `V06-OP-002-RACE`, `V06-OP-002-RECOVERY`, `V06-OP-002-SECURITY` | Authorized; not yet executed |
+| `V06-OP-003` | An approved state/command/safe-point matrix governs run, step, step-over, pause, skip, goto, reload, background, stop, abort, and recover; unsupported transitions and kill are rejected and audited without claiming clean external state | `V06-OP-003-UNIT`, `V06-OP-003-MATRIX`, `V06-OP-003-RACE`, `V06-OP-003-RECOVERY`, `V06-OP-003-SECURITY` | Authorized; not yet executed |
+| `V06-OP-004` | The complete approved typed durable `Prompt` family validates defaults and responses, applies warning timers and setting scope, supports commit/reset/abort, records one outcome, and resolves response/controller-loss/reacquisition races deterministically | `V06-OP-004-UNIT`, `V06-OP-004-INTEGRATION`, `V06-OP-004-RACE`, `V06-OP-004-RECOVERY`, `V06-OP-004-UI` | Authorized; not yet executed |
+| `V06-OP-005` | Relative and absolute schedules validate clock/source and authorization, survive restart, support idempotent cancellation, and settle exactly one start/cancel/expiry/failure disposition under races | `V06-OP-005-UNIT`, `V06-OP-005-INTEGRATION`, `V06-OP-005-CLOCK`, `V06-OP-005-RACE`, `V06-OP-005-RECOVERY` | Authorized; not yet executed |
+| `V06-OP-006` | Source/text/as-run/support-log, outline/search/navigation, breakpoints/run-to-line, typed inspection, and safe-state-limited audited edits remain source-bound and bounded; the console cannot evaluate expressions/functions or execute shell/Python | `V06-OP-006-UNIT`, `V06-OP-006-INTEGRATION`, `V06-OP-006-UI`, `V06-OP-006-RECOVERY`, `V06-OP-006-SECURITY` | Authorized; not yet executed |
+| `V06-OP-007` | Durable named user actions resolve only allowlisted safe-point behavior with role checks, bounded inputs, idempotent settlement, restart recovery, and audit; arbitrary asynchronous Python is rejected | `V06-OP-007-UNIT`, `V06-OP-007-INTEGRATION`, `V06-OP-007-RACE`, `V06-OP-007-RECOVERY`, `V06-OP-007-SECURITY` | Authorized; not yet executed |
+| `V06-OP-008` | `StartProc` binds an immutable library identity and durable parent-child relationship; depth/cycle checks, cancellation/failure propagation, crash windows, and restart recovery settle each child start once | `V06-OP-008-UNIT`, `V06-OP-008-INTEGRATION`, `V06-OP-008-GRAPH`, `V06-OP-008-RECOVERY`, `V06-OP-008-SECURITY` | Authorized; not yet executed |
+| `V06-OP-009` | Desktop/mobile workflows and cross-feature fault tests cover competing control, prompt/schedule/action races, disconnect/restart, parent-child recovery, certainty preservation, authorization, bounded resource use, and arbitrary-code rejection | `V06-OP-009-DESKTOP`, `V06-OP-009-MOBILE`, `V06-OP-009-ACCESSIBILITY`, `V06-OP-009-FAULT-RECOVERY`, `V06-OP-009-SECURITY` | Authorized; not yet executed |
+
+Gate 0A binds the exact matrices, fixtures, test-node selection, budgets,
+environment-only skip policy, and completion rule that authorize these bounded
+product edits. Final release acceptance will additionally require
+current-source qualification, dependency and image audit, distinct SBOMs,
+deterministic packaging, release evidence validation, a fixed release commit,
+and the one authorized annotated semantic-version tag.
+
+## Version 0.5 Final Release Result
+
+The 2026-08-13 Gate 0A/0B sections below preserve their gate-time contracts and
+conditional status. Release commit
+`e7b6bb9428833437e0160040541eb840deee7cca` later fixed the complete evidence,
+and annotated tag `v0.5.0` activated the recorded conditional acceptance.
+
+| Evidence | Final result |
+| --- | --- |
+| Qualified source | `2f31e6a011b8aad63b29bd55780c37c1b68712f1`; source fingerprint `84681e915fa3b0decc2a36f18588bd74f4840a7f4d1dcfae419e69753f6dda8d` |
+| Final suites | PASS; eight suites, 1,096 concrete tests, 1,090 passes, six exact approved SQLite environment skips, 36 subtests, zero failures/errors |
+| Supply chain and SBOM | PASS; four distinct image-bound SBOMs; zero High/Critical findings; zero unlocked inputs |
+| Package | `artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz`; SHA-256 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241` |
+| Release evidence | `artifacts/v0.5/release-qualification.json`; overall PASS; evidence fingerprint `c3df31909b8c16f57c80ab3db906e3d25df72c91a855019022098ddd46aab0bd` |
+| Accepted identity | Annotated tag object `a1b277d74d2fb19062ca3e4388e9104d45c50ec4` over release commit `e7b6bb9428833437e0160040541eb840deee7cca`; no accepted exceptions |
 
 ## Version 0.5 Gate 0A Test Plan
 

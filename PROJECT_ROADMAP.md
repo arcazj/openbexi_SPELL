@@ -4,13 +4,14 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.4.0 baseline, v0.5 Gates 0A/0B, and release-closeout candidate record |
-| Update type | Release status, bounded gate decisions, and candidate closeout update |
-| Updated | 2026-08-13 |
-| Current accepted product baseline | SPELL v0.4.0, tag `v0.4.0`, release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` |
+| Document revision | Accepted v0.5.0 baseline and approved v0.6 Gate 0A record |
+| Update type | Accepted-release status and bounded entry authorization |
+| Updated | 2026-08-15 |
+| Current accepted product baseline | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
-| v0.5 planning status | Canonical candidate qualification and live Gate 0B validation PASS for `V05-IR-001`; Final validation, SBOM/supply-chain evidence, package, release commit, and tag pending |
+| v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
+| v0.6 status | `V06-GATE-0A PASS`; `V06-OP-001` through `V06-OP-009` authorized; no implementation, release, or tag claim |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
 | Runtime, API, schema, frontend, dependency, or driver change | IR 0.3 validation hardening in `aefa658`; product metadata 0.5.0; no new API, schema, frontend behavior, dependency, driver, or language surface |
 | Operational authorization | None |
@@ -28,20 +29,19 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.4.0 is now the accepted product baseline. Its annotated tag
-`v0.4.0` peels to release commit
-`4546d313a2d8f50504b2bc602d56b3b459ca7597`. The first v0.5 entry decision is
+SPELL v0.5.0 is now the accepted product baseline. Its annotated tag object
+`a1b277d74d2fb19062ca3e4388e9104d45c50ec4` peels to release commit
+`e7b6bb9428833437e0160040541eb840deee7cca`. Its bounded entry decision was
 [`V05-GATE-0A`](SPELL_v0.5_Pre-Implementation.md), which authorizes only
 `V05-IR-001` hardening of the existing IR 0.3 validation boundary. It does not
 authorize the broader v0.5 language roadmap. The authorized work later produced
 candidate commit `aefa658ce01d49a7879d0471b50425ac3bcf9e2d`.
 [`V05-GATE-0B`](SPELL_v0.5_Gate_0B.md) now records PASS for the bounded release
-closeout authorization. The canonical candidate work package and live Gate 0B
-validator now pass. It does not presently accept v0.5: Final validation,
-SBOM/supply-chain evidence, the release commit, deterministic package, and
-annotated `v0.5.0` tag remain pending. When those controls pass, the verified
-tag makes the conditional owner acceptance effective without a post-tag
-documentation commit.
+closeout authorization. Final validation, supply-chain/SBOM checks,
+deterministic packaging, release-evidence validation, and annotated tagging all
+passed. The verified tag activated the conditional owner acceptance without a
+post-tag documentation commit. This acceptance remains limited to
+`V05-IR-001` and provides no operational authorization.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -216,11 +216,11 @@ strengthens them:
 
 ## Release Outlook
 
-v0.2, v0.3, and v0.4 are accepted product releases. v0.1 is a delivered planning
+v0.2, v0.3, v0.4, and v0.5 are accepted product releases. v0.1 is a delivered planning
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
-is a planning label until its applicable gate is approved. v0.5 has passed its
-bounded Gates 0A and 0B but is not accepted until Final closeout and tagging.
+is a planning label until its applicable gate is approved. v0.6 has passed its
+bounded Gate 0A, which authorizes nine exact work packages but claims no result.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -230,8 +230,8 @@ bounded Gates 0A and 0B but is not accepted until Final closeout and tagging.
 | v0.3.1 | Roadmap and Timeline Records | Documentation-only | Prepared | Establish `PROJECT_ROADMAP.md` and `VERSION_TIMELINE.md` as maintained project records without changing product behavior. | Owner request limited to these two documents; formal release workflow remains separate. |
 | NG spec 0.1 | Next-Generation Design Specification | Documentation-only | Draft prepared | Convert the complete manual review and modernization objectives into a controlled, implementation-ready web/server/data/security/operations blueprint while preserving the two core 2.4.4 authorities. This specification version is independent of product versions. | Multidisciplinary approval, closed phase-entry decisions, feature-level compatibility rows, verified traceability, and a signed documentation baseline. |
 | v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
-| v0.5 | Core Language and Deterministic Runtime | Product | `V05-IR-001` canonical qualification and Gate 0B PASS; Final acceptance and tag pending | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Pass supply-chain/SBOM/package/Final validation, fix the release commit, and create annotated `v0.5.0`; every additional construct or artifact requires a later gate. |
-| v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Accepted v0.5 runtime plus approved operator state/command/prompt/inspection matrices and recovery tests. |
+| v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
+| v0.6 | Durable Operator Workspace and Procedure Composition | Product | `V06-GATE-0A PASS`; nine exact work packages authorized; implementation not yet claimed | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Passed: accepted v0.5.0 binding plus explicit owner approval of `V06-OP-001` through `V06-OP-009`, operator state/command/prompt/inspection matrices, exclusions, and recovery tests. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Candidate | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Accepted typed driver/runtime foundation and approved telemetry identity, quality, time, condition, resource, lookup, and stream contracts. |
 | v0.8 | Data and Local Service Compatibility | Product | Candidate | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
 | v0.9 | SPELL Development Environment | Product | Candidate | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Stable compatibility grammar/catalog schemas, approved non-executing language-service design, and authoring acceptance plan. |
@@ -604,12 +604,11 @@ only Docker inspection test timeout metadata. Product metadata is now `0.5.0`,
 while procedure IR 0.3, API v1, report schema 0.3, and the unchanged driver
 implementation identity `0.4.0` remain stable.
 
-Gate 0B is not final release acceptance. The supply-chain result, four SBOMs,
-deterministic package and sidecar, Final validation, release commit, and
-annotated tag are pending. SPELL v0.4.0 remains the accepted baseline until the
-conditional v0.5 controls pass and the verified tag makes acceptance effective.
-The remaining bullets in this section are candidate release properties beyond
-Gates 0A/0B and require a later entry decision.
+Gate 0B was not by itself final release acceptance. The later supply-chain
+result, four SBOMs, deterministic package and sidecar, Final validation,
+release commit, and annotated tag passed, so `v0.5.0` is now accepted. The
+remaining bullets in this section are still candidate release properties
+beyond Gates 0A/0B and require a later entry decision.
 
 Candidate release properties beyond Gates 0A/0B:
 
@@ -635,6 +634,23 @@ checkpoint, restart, source-identity, errata, and golden-trace tests.
 Goal: preserve the documented context, catalog, multi-instance, control,
 prompt, monitoring, scheduling, source, log, and subprocedure workflows in the
 simulator-only 2D workspace.
+
+Current disposition: the owner explicitly approved the exact bounded scope in
+[`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+`V06-GATE-0A PASS` authorizes the following work packages. The gate does not
+claim that any package is implemented, qualified, accepted, or released.
+
+| Planned identity | Bounded requirement and acceptance focus |
+| --- | --- |
+| `V06-OP-001` | Context selection/attachment, immutable catalog resolution, procedure properties/history, stable multi-instance identity, and Master view |
+| `V06-OP-002` | `C/M/B` modes, read-only monitoring, durable control leases, fencing, loss behavior, and authorized reacquisition |
+| `V06-OP-003` | Approved state/command/safe-point matrix for run, step, step-over, pause, skip, goto, reload, background, stop, abort, recover, and deliberate kill rejection |
+| `V06-OP-004` | Typed durable `Prompt` family, validation/defaults/warnings, commit/reset/abort, setting scope, one outcome, and controller-loss recovery |
+| `V06-OP-005` | Durable relative and absolute schedules with validation, cancellation, restart recovery, and exactly one start disposition |
+| `V06-OP-006` | Source/text/as-run/support-log views, outline/search/navigation, breakpoints/run-to-line, typed inspection, safe-state audited edits, and bounded non-evaluating console |
+| `V06-OP-007` | Durable named user actions limited to allowlisted safe-point behavior, with authorization, idempotency, and audit |
+| `V06-OP-008` | Immutable `StartProc` library resolution and durable parent-child identity, depth/cycle limits, crash handling, and restart recovery |
+| `V06-OP-009` | Cross-feature desktop/mobile workflows, competing control, prompt/schedule races, disconnect/restart, recovery, certainty preservation, and arbitrary-code-execution rejection |
 
 Required properties:
 

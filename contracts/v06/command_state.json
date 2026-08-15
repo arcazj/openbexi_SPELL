@@ -1,0 +1,428 @@
+{
+  "schema_version": "spell.v06.command-state/1",
+  "contract_id": "V06-COMMAND-STATE",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-003",
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v06-durable-operator-workspace-and-procedure-composition",
+    "SPELL_DOCUMENTATION_REVIEW.md#operator-workspace-contract",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/STATE_MACHINES.md#allowed-command-and-state-matrix"
+  ],
+  "execution_states": [
+    "REQUESTED",
+    "VALIDATING",
+    "ADMISSION_PENDING",
+    "LOADING",
+    "PAUSED",
+    "RUNNING",
+    "WAITING",
+    "PROMPT",
+    "INTERRUPTED",
+    "SUSPENDED",
+    "RECOVERING",
+    "STOPPING",
+    "FINISHED",
+    "ABORTED",
+    "ERROR"
+  ],
+  "legacy_state_projection": {
+    "UNINIT": [
+      "REQUESTED",
+      "VALIDATING",
+      "ADMISSION_PENDING",
+      "LOADING"
+    ],
+    "LOADED": [
+      "PAUSED"
+    ],
+    "RUNNING": [
+      "RUNNING"
+    ],
+    "WAITING": [
+      "WAITING"
+    ],
+    "PROMPT": [
+      "PROMPT"
+    ],
+    "PAUSED": [
+      "PAUSED"
+    ],
+    "INTERRUPTED": [
+      "INTERRUPTED"
+    ],
+    "RELOADING": [
+      "LOADING"
+    ],
+    "FINISHED": [
+      "FINISHED"
+    ],
+    "ABORTED": [
+      "ABORTED"
+    ],
+    "ERROR": [
+      "SUSPENDED",
+      "RECOVERING",
+      "STOPPING",
+      "ERROR"
+    ],
+    "UNKNOWN": []
+  },
+  "legacy_unknown_rule": "UNKNOWN is projection quality and never mutates the authoritative execution state.",
+  "effect_certainty_values": [
+    "NO_EFFECT",
+    "EFFECT_CONFIRMED",
+    "EFFECT_POSSIBLE",
+    "EFFECT_UNKNOWN"
+  ],
+  "global_acceptance_guards": [
+    "authenticated controller identity",
+    "C mode with the current active lease",
+    "matching controller fence and expected execution revision",
+    "command schema and target identity valid",
+    "target state allowed by this matrix",
+    "no unresolved external effect is crossed",
+    "idempotency key is new or resolves to the identical command"
+  ],
+  "default_rejection": {
+    "code": "COMMAND_NOT_ALLOWED_IN_STATE",
+    "target_mutation": "NONE",
+    "existing_external_effect_certainty": "PRESERVE",
+    "clean_external_state_claim": false
+  },
+  "commands": [
+    {
+      "id": "RUN",
+      "allowed_states": [
+        "PAUSED",
+        "INTERRUPTED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "RUNNING or the saved WAITING/PROMPT target",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "STEP",
+      "allowed_states": [
+        "PAUSED",
+        "INTERRUPTED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "PAUSED at the next statement boundary",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "STEP_OVER",
+      "allowed_states": [
+        "PAUSED",
+        "INTERRUPTED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "PAUSED after the current statically resolved call boundary",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "PAUSE",
+      "allowed_states": [
+        "RUNNING",
+        "WAITING",
+        "PROMPT"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "PAUSED with any durable wait or prompt preserved as the resume target",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "SKIP",
+      "allowed_states": [
+        "PAUSED",
+        "INTERRUPTED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "PAUSED at a statically validated successor in the same scope",
+      "existing_external_effect_certainty": "PRESERVE",
+      "special_rule": "SKIP never clears, downgrades, or converts an existing failure or effect certainty and cannot cross unresolved effect evidence."
+    },
+    {
+      "id": "GOTO",
+      "allowed_states": [
+        "PAUSED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "PAUSED at a statically valid label or line in the same lexical frame and procedure",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "RELOAD",
+      "allowed_states": [
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING"
+      ],
+      "safe_point": "NOT_REQUIRED",
+      "accepted_result": "new ExecutionId in REQUESTED linked to the immutable terminal predecessor",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "ABORT",
+      "allowed_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING"
+      ],
+      "rejected_states": [
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED_AFTER_ACCEPTANCE",
+      "accepted_result": "STOPPING, then ABORTED only after cleanup settles; otherwise visible SUSPENDED or ERROR",
+      "existing_external_effect_certainty": "PRESERVE",
+      "clean_external_state_claim": false
+    },
+    {
+      "id": "RECOVER",
+      "allowed_states": [
+        "ERROR"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED"
+      ],
+      "safe_point": "NOT_REQUIRED",
+      "accepted_result": "new ExecutionId in REQUESTED from a compatible committed checkpoint, linked to the immutable ERROR predecessor",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "BACKGROUND",
+      "allowed_states": [
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "INTERRUPTED"
+      ],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PROMPT",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "additional_guards": [
+        "procedure bundle explicitly permits background execution",
+        "no prompt is open",
+        "no interactive decision is pending"
+      ],
+      "safe_point": "REQUIRED",
+      "accepted_result": "B ownership with no controller lease; execution state and pending wait remain unchanged",
+      "existing_external_effect_certainty": "PRESERVE"
+    },
+    {
+      "id": "STOP",
+      "allowed_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING"
+      ],
+      "rejected_states": [
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "REQUIRED_AFTER_ACCEPTANCE",
+      "accepted_result": "compatibility request for graceful STOPPING and ABORTED cleanup semantics; never a process kill",
+      "existing_external_effect_certainty": "PRESERVE",
+      "clean_external_state_claim": false
+    },
+    {
+      "id": "KILL",
+      "allowed_states": [],
+      "rejected_states": [
+        "REQUESTED",
+        "VALIDATING",
+        "ADMISSION_PENDING",
+        "LOADING",
+        "PAUSED",
+        "RUNNING",
+        "WAITING",
+        "PROMPT",
+        "INTERRUPTED",
+        "SUSPENDED",
+        "RECOVERING",
+        "STOPPING",
+        "FINISHED",
+        "ABORTED",
+        "ERROR"
+      ],
+      "safe_point": "NOT_APPLICABLE",
+      "accepted_result": null,
+      "rejection_code": "KILL_UNSUPPORTED",
+      "request_effect": "NO_EFFECT",
+      "existing_external_effect_certainty": "PRESERVE",
+      "clean_external_state_claim": false,
+      "special_rule": "The product exposes no kill action. An independently observed hard termination projects ERROR or SUSPENDED and retains the original failure and effect certainty; it never implies clean external state."
+    }
+  ],
+  "command_resource": {
+    "states": [
+      "RECEIVED",
+      "VALIDATING",
+      "ACCEPTED",
+      "WAITING_SAFE_POINT",
+      "APPLYING",
+      "RECONCILING",
+      "SETTLED",
+      "REJECTED",
+      "CANCELLED",
+      "SUPERSEDED",
+      "FAILED"
+    ],
+    "acceptance_is_application": false,
+    "one_terminal_disposition": true,
+    "blind_retry": "FORBIDDEN",
+    "restart_rule": "Reconcile the same CommandId against the target revision and event; requeue that same ID only after durable proof of no application."
+  }
+}

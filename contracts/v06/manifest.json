@@ -1,0 +1,62 @@
+{
+  "schema_version": "spell.v06.contract-manifest/1",
+  "contract_id": "V06-CONTRACT-MANIFEST",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "purpose": "Machine-readable planning inputs for the proposed v0.6 behavior gate; presence does not claim implementation or acceptance.",
+  "work_packages": [
+    "V06-OP-001",
+    "V06-OP-002",
+    "V06-OP-003",
+    "V06-OP-004",
+    "V06-OP-005",
+    "V06-OP-006",
+    "V06-OP-007",
+    "V06-OP-008",
+    "V06-OP-009"
+  ],
+  "matrices": [
+    {
+      "file": "command_state.json",
+      "contract_id": "V06-COMMAND-STATE",
+      "schema_version": "spell.v06.command-state/1",
+      "work_package_id": "V06-OP-003"
+    },
+    {
+      "file": "prompt_behavior.json",
+      "contract_id": "V06-PROMPT-BEHAVIOR",
+      "schema_version": "spell.v06.prompt-behavior/1",
+      "work_package_id": "V06-OP-004"
+    },
+    {
+      "file": "schedule_behavior.json",
+      "contract_id": "V06-SCHEDULE-BEHAVIOR",
+      "schema_version": "spell.v06.schedule-behavior/1",
+      "work_package_id": "V06-OP-005"
+    },
+    {
+      "file": "inspection_and_actions.json",
+      "contract_id": "V06-INSPECTION-ACTIONS",
+      "schema_version": "spell.v06.inspection-actions/1",
+      "work_package_id": "V06-OP-006",
+      "additional_work_package_ids": [
+        "V06-OP-007"
+      ]
+    },
+    {
+      "file": "startproc_behavior.json",
+      "contract_id": "V06-STARTPROC-BEHAVIOR",
+      "schema_version": "spell.v06.startproc-behavior/1",
+      "work_package_id": "V06-OP-008"
+    },
+    {
+      "file": "lease_modes.json",
+      "contract_id": "V06-LEASE-MODES",
+      "schema_version": "spell.v06.lease-modes/1",
+      "work_package_id": "V06-OP-002"
+    }
+  ],
+  "cross_feature_qualification_work_package_id": "V06-OP-009"
+}

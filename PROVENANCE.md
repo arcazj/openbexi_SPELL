@@ -2,13 +2,15 @@
 
 ## Record Status
 
-This record applies to the bounded SPELL v0.5.0 release closeout. SPELL v0.4.0
-is the accepted local-only, synthetic, non-CUI simulator engineering baseline.
-`V05-GATE-0B PASS` authorizes release closeout for `V05-IR-001` only. Canonical
-candidate qualification integration and live Gate 0B validation now pass;
-Final validation, SBOM/supply-chain evidence, the release commit, deterministic
-package, and annotated `v0.5.0` tag remain pending. This document makes no
-compliance, deployment, mission, or operational authorization claim.
+This record applies to the bounded SPELL v0.5.0 release. SPELL v0.5.0 is the
+accepted local-only, synthetic, non-CUI simulator engineering baseline at
+annotated tag `v0.5.0`, tag object
+`a1b277d74d2fb19062ca3e4388e9104d45c50ec4`, and release commit
+`e7b6bb9428833437e0160040541eb840deee7cca`. `V05-GATE-0B PASS` limited the
+release to `V05-IR-001`. Final validation, four image-bound SBOMs,
+supply-chain review, deterministic packaging, release-evidence validation,
+and annotated tagging passed with no accepted exceptions. This document makes
+no compliance, deployment, mission, or operational authorization claim.
 
 ## AI Assistance Record
 
@@ -19,7 +21,7 @@ establish a compliance determination or operational authorization.
 
 ## Clean-Room Boundary
 
-The accepted v0.4 baseline and the bounded v0.5 IR-hardening implementation are
+The accepted v0.4 and v0.5 baselines and their bounded implementations are
 new first-party work. The three legacy archives are read-only behavioral and
 historical references; no legacy implementation may be compiled, imported,
 linked, copied into generated sources, loaded at runtime, or shipped by the
@@ -132,7 +134,7 @@ controls are local engineering evidence only. Their presence or successful
 execution would not establish production PKI suitability, compliance, shared
 deployment approval, or operational security accreditation.
 
-## v0.5 Inherited Controls, Candidate Evidence, And Pending Release Evidence
+## v0.5 Inherited Controls And Accepted Release Evidence
 
 The v0.5 increment introduces no dependency or driver implementation change.
 It deliberately inherits the accepted digest-pinned
@@ -155,13 +157,24 @@ product, dependency, driver, or runtime behavior change. Live Gate 0B
 validation passes with exact marker
 `gate=PASS work_packages=1 identities=6 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
 
-The v0.5 closeout must independently generate four source- and image-bound
-inventories under `artifacts/v0.5/sbom`, validate their checksum manifest,
-re-run the current-source dependency audit, reject unresolved Critical/High
-findings, and prove accepted `artifacts/v0.4` bytes were not modified. Those
-release-level artifacts are not yet integrated; the canonical candidate record
-does not imply their result. No v0.5 SBOM, supply-chain, package, or Final pass
-is claimed.
+The v0.5 closeout independently generated four source- and image-bound
+inventories under `artifacts/v0.5/sbom`, validated their checksum manifest,
+re-ran the current-source dependency audit, found zero unresolved High or
+Critical findings and zero unlocked inputs, and proved accepted
+`artifacts/v0.4` bytes were not modified. Final qualification passed eight
+suites, 1,096 concrete tests, 1,090 passes, six exact approved SQLite
+environment skips, 36 subtests, and zero failures or errors. The product
+package fingerprint is
+`e5b5b69c5951c1ec7fe7023293f0584471fed98d144a97afde12323d78fd7901`,
+and the final deterministic archive SHA-256 is
+`cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241`.
+
+The release evidence fingerprint is
+`c3df31909b8c16f57c80ab3db906e3d25df72c91a855019022098ddd46aab0bd`.
+Annotated tag `v0.5.0` verified over release commit
+`e7b6bb9428833437e0160040541eb840deee7cca` and activated the conditional
+acceptance. This post-tag reconciliation does not imply that the immutable tag
+contains a later documentation commit.
 
 ## Release Evidence Integrity
 
@@ -183,11 +196,13 @@ visual assets and deterministic generated contract artifacts remain included.
 Retained `artifacts/v0.3` evidence must not be read as v0.4 evidence or modified
 by v0.4 qualification and packaging.
 
-The v0.5 closeout must similarly bind exact audit results, image identities,
-evidence fingerprints, package hashes, exceptions, and the project-owner
-decision in canonical artifacts and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md).
-Until those fields are populated and Final validation passes, SPELL v0.4.0
-remains the accepted release and no v0.5 tag or final acceptance is claimed.
-If all release conditions pass, the verified annotated `v0.5.0` tag activates
-the conditional owner acceptance recorded in the release commit; no post-tag
-documentation commit is required.
+The v0.5 closeout binds exact audit results, image identities, evidence
+fingerprints, package hashes, exceptions, and the project-owner decision in
+canonical artifacts and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md).
+The verified annotated `v0.5.0` tag activated the conditional owner acceptance
+recorded in the release commit; no post-tag documentation commit was required.
+
+The approved v0.6 Gate 0A scope inherits this clean-room boundary.
+`V06-GATE-0A PASS` authorizes only `V06-OP-001` through `V06-OP-009`; it does
+not claim that any v0.6 dependency, source, image, package, or release evidence
+exists. Every such result still requires version-scoped provenance evidence.

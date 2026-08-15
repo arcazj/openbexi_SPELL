@@ -1,0 +1,156 @@
+{
+  "schema_version": "spell.v06.startproc-behavior/1",
+  "contract_id": "V06-STARTPROC-BEHAVIOR",
+  "release": "v0.6.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V06-OP-008",
+  "cross_feature_work_package_id": "V06-OP-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v06-durable-operator-workspace-and-procedure-composition",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=86-89",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "operation_states": [
+    "REQUESTED",
+    "VALIDATING",
+    "ADMITTING",
+    "CHILD_CREATED",
+    "WAITING_CHILD",
+    "SETTLED",
+    "REJECTED",
+    "CANCELLED",
+    "RECONCILING"
+  ],
+  "terminal_operation_states": [
+    "SETTLED",
+    "REJECTED",
+    "CANCELLED"
+  ],
+  "required_identity": [
+    "StartProcId",
+    "StartProcRevision",
+    "IdempotencyKey",
+    "ParentExecutionId",
+    "ParentExecutionRevision",
+    "ParentProcedureCatalogId",
+    "ChildProcedureRef",
+    "ResolvedChildProcedureCatalogId",
+    "LibraryRevision",
+    "BundleDigest",
+    "CanonicalArgumentsDigest",
+    "Blocking",
+    "Visible",
+    "Automatic",
+    "Depth"
+  ],
+  "resolution_rules": [
+    "A path-qualified reference resolves exactly within the immutable procedure library virtual root.",
+    "An unqualified name resolves to the unique highest-priority matching catalog entry.",
+    "A tie at the highest priority rejects AMBIGUOUS_PROCEDURE_REFERENCE.",
+    "Traversal, symlink escape, mutable working-tree input, missing digest, and post-resolution replacement reject before child creation.",
+    "The resolved ProcedureCatalogId, LibraryRevision, dependency closure, and BundleDigest are pinned before admission."
+  ],
+  "limits": {
+    "maximum_depth": 8,
+    "maximum_active_children_per_execution": 32,
+    "maximum_argument_entries": 64,
+    "maximum_argument_container_depth": 8
+  },
+  "cycle_policy": {
+    "identity": "ResolvedChildProcedureCatalogId plus BundleDigest",
+    "check": "Reject when the resolved child identity already appears in the durable ancestor chain.",
+    "direct_code": "STARTPROC_DIRECT_CYCLE",
+    "indirect_code": "STARTPROC_INDIRECT_CYCLE",
+    "effect": "No child ExecutionId or capacity reservation is created."
+  },
+  "depth_policy": {
+    "calculation": "child Depth equals parent Depth plus one",
+    "rejection_code": "STARTPROC_DEPTH_EXCEEDED",
+    "effect": "Reject before admission or child creation."
+  },
+  "argument_policy": {
+    "shape": "unique string keys mapped to bounded typed literals",
+    "child_binding": "copy into the child's durable ARGS container before its first executable safe point",
+    "forbidden": ["expressions", "callables", "object references", "source evaluation", "implicit shared mutable aliases"]
+  },
+  "mode_matrix": [
+    {"id": "B1-V1-A1", "blocking": true, "visible": true, "automatic": true, "parent_after_create": "WAITING_CHILD", "child_after_admission": "RUNNING"},
+    {"id": "B1-V1-A0", "blocking": true, "visible": true, "automatic": false, "parent_after_create": "WAITING_CHILD", "child_after_admission": "PAUSED"},
+    {"id": "B1-V0-A1", "blocking": true, "visible": false, "automatic": true, "parent_after_create": "WAITING_CHILD", "child_after_admission": "RUNNING"},
+    {"id": "B1-V0-A0", "blocking": true, "visible": false, "automatic": false, "parent_after_create": "WAITING_CHILD", "child_after_admission": "PAUSED"},
+    {"id": "B0-V1-A1", "blocking": false, "visible": true, "automatic": true, "parent_after_create": "CONTINUE", "child_after_admission": "RUNNING"},
+    {"id": "B0-V1-A0", "blocking": false, "visible": true, "automatic": false, "parent_after_create": "CONTINUE", "child_after_admission": "PAUSED"},
+    {"id": "B0-V0-A1", "blocking": false, "visible": false, "automatic": true, "parent_after_create": "CONTINUE", "child_after_admission": "RUNNING"},
+    {"id": "B0-V0-A0", "blocking": false, "visible": false, "automatic": false, "parent_after_create": "CONTINUE", "child_after_admission": "PAUSED"}
+  ],
+  "visibility_rule": "Visible controls default workspace presentation only. Hidden children remain discoverable to authorized operators in parent-child, audit, recovery, and Master projections.",
+  "parent_child_relationship": {
+    "identity": "one ParentChildId binding StartProcId, parent ExecutionId, and child ExecutionId",
+    "immutability": "parent, child, pinned procedure identity, arguments digest, and mode tuple never change",
+    "blocking_success": "Child FINISHED settles StartProc success and resumes the parent at its saved successor.",
+    "blocking_failure": "Child ABORTED or ERROR settles StartProc failure and routes the parent through its declared failure policy without inventing success.",
+    "nonblocking_success": "StartProc settles success after durable child admission; later child termination does not rewrite that result.",
+    "nonblocking_start_failure": "Failure before durable child admission settles StartProc failure.",
+    "prompt_isolation": "A child prompt has its own PromptId and never overwrites a parent prompt or wait."
+  },
+  "parent_terminal_policy": [
+    {
+      "parent_event": "ABORT_OR_STOP",
+      "blocking_child": "Issue one durable child abort request, retain WAITING_CHILD until child cleanup is resolved, then continue parent cleanup.",
+      "nonblocking_child": "Do not infer cancellation; apply the pinned propagation policy and record the independent child outcome."
+    },
+    {
+      "parent_event": "HARD_PROCESS_LOSS",
+      "blocking_child": "Supervisor retains the child and reconstructs the parent's WAITING_CHILD relationship.",
+      "nonblocking_child": "Child continues under its own ExecutionId and remains linked for inspection."
+    }
+  ],
+  "crash_restart_cases": [
+    {
+      "phase": "BEFORE_REQUEST_COMMIT",
+      "rule": "No StartProc resource or child exists; retry uses a new request unless the original idempotency key later resolves."
+    },
+    {
+      "phase": "REQUEST_COMMITTED_BEFORE_RESOLUTION",
+      "rule": "Resume pure resolution for the same StartProcId and pinned library revision."
+    },
+    {
+      "phase": "RESOLVED_BEFORE_CHILD_CREATE",
+      "rule": "Reconcile admission and create at most one child using StartProcId as the creation key."
+    },
+    {
+      "phase": "CHILD_CREATED_BEFORE_PARENT_LINK_ACK",
+      "rule": "Find the existing child and atomically complete or return the same ParentChildId; never create another child."
+    },
+    {
+      "phase": "BLOCKING_PARENT_WAIT",
+      "rule": "Restore the parent's saved successor and WAITING_CHILD state, then observe the same child ExecutionId."
+    },
+    {
+      "phase": "CHILD_CRASH",
+      "rule": "Child recovery uses its own checkpoint and identity; parent stays WAITING_CHILD in blocking mode or remains independent in nonblocking mode."
+    },
+    {
+      "phase": "CHILD_TERMINAL_BEFORE_PARENT_SETTLEMENT",
+      "rule": "Settle from the immutable child terminal event and resume or fail the parent once."
+    },
+    {
+      "phase": "STARTPROC_TERMINAL",
+      "rule": "Return the immutable settlement and linked child identity."
+    }
+  ],
+  "rejection_codes": [
+    "PROCEDURE_NOT_FOUND",
+    "AMBIGUOUS_PROCEDURE_REFERENCE",
+    "IMMUTABLE_BUNDLE_REQUIRED",
+    "INVALID_ARGUMENTS",
+    "STARTPROC_DIRECT_CYCLE",
+    "STARTPROC_INDIRECT_CYCLE",
+    "STARTPROC_DEPTH_EXCEEDED",
+    "STARTPROC_CHILD_CAPACITY_EXCEEDED",
+    "PARENT_REVISION_CONFLICT",
+    "ADMISSION_REJECTED"
+  ]
+}
