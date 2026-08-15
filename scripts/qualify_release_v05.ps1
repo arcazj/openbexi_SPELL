@@ -995,6 +995,7 @@ raise SystemExit(pytest.main(sys.argv[3:]))
         "scripts/tests/test_qualify_release_v05.py::test_v05_final_runner_parses_as_powershell",
         "scripts/tests/test_release_v05.py::test_v05_package_scans_canonical_candidate_canaries_structurally",
         "scripts/tests/test_release_v05.py::test_v05_package_rejects_duplicate_or_mislocated_evidence_canaries",
+        "scripts/tests/test_release_v05.py::test_v05_package_publication_fault_rolls_back_executably",
         "scripts/tests/test_validate_release_evidence_v05.py::test_require_tag_validates_real_annotated_object_target_markers_and_sidecar",
         "scripts/tests/test_qualify_release_v04.py::test_cleanup_inspection_distinguishes_absence_from_transport_failure",
         "scripts/tests/test_qualify_release_v04.py::test_stop_exact_tree_rejects_children_of_a_reused_root_pid",
@@ -1006,7 +1007,7 @@ raise SystemExit(pytest.main(sys.argv[3:]))
       )
     }
   )
-  if ($hostToolingNodes.Count -ne 10) { throw "host-only tooling node inventory differs" }
+  if ($hostToolingNodes.Count -ne 11) { throw "host-only tooling node inventory differs" }
   $toolingBaseXml = Join-Path $captureRoot "tooling-base.xml"
   $toolingArguments = @("scripts/tests", "-q")
   foreach ($node in $hostToolingNodes) { $toolingArguments += "--deselect=$node" }
