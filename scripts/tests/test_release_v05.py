@@ -205,11 +205,36 @@ def test_v05_package_publication_is_a_rollback_transaction() -> None:
     function_cleanup = package[package.index("function Publish-V05PackagePair") :]
     assert "foreach ($path in @($StagedRelease, $StagedSidecar))" in function_cleanup
     final_cleanup = package.rsplit("\nfinally {", 1)[1]
-    assert '$first, "$first.sha256", $second, "$second.sha256"' in final_cleanup
+    assert "Remove-Item -LiteralPath $scratchRoot -Recurse -Force" in final_cleanup
     assert "$stagedRelease" not in final_cleanup
     assert "$stagedSidecar" not in final_cleanup
     assert "$backupRelease" not in final_cleanup
     assert "$backupSidecar" not in final_cleanup
+
+
+def test_v05_package_build_outputs_use_owned_qualification_scratch() -> None:
+    package = (release.ROOT / "scripts/package_release_v05.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert '$qualificationRoot = Join-Path $artifactRoot ".qualification"' in package
+    assert '$scratchRoot = Join-Path $qualificationRoot "package-$runId"' in package
+    assert '$first = Join-Path $scratchRoot "package-a.tar.gz"' in package
+    assert '$second = Join-Path $scratchRoot "package-b.tar.gz"' in package
+    assert '$first = Join-Path $artifactRoot ".package-' not in package
+    assert '$second = Join-Path $artifactRoot ".package-' not in package
+    assert "v0.5 package scratch path already exists" in package
+    assert "v0.5 package scratch directory is unsafe" in package
+    assert "refusing v0.5 package scratch cleanup containing a reparse point" in package
+
+    create = package.index("New-Item -ItemType Directory -Path $scratchRoot")
+    ownership = package.index("$scratchOwned = $true", create)
+    first_build = package.index("$a = Invoke-PackageBuild $first")
+    second_build = package.index("$b = Invoke-PackageBuild $second")
+    cleanup = package.index(
+        "Remove-Item -LiteralPath $scratchRoot -Recurse -Force", second_build
+    )
+    assert create < ownership < first_build < second_build < cleanup
 
 
 def test_v05_package_publication_fault_rolls_back_executably(
@@ -234,6 +259,22 @@ $ast = [Management.Automation.Language.Parser]::ParseFile(
   $PackageScript, [ref]$tokens, [ref]$errors
 )
 if ($errors.Count -ne 0) { throw "package script does not parse" }
+$firstAssignments = @($ast.FindAll({
+  param($node)
+  $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+    $node.Left.Extent.Text -ceq '$first'
+}, $true))
+$secondAssignments = @($ast.FindAll({
+  param($node)
+  $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+    $node.Left.Extent.Text -ceq '$second'
+}, $true))
+if (
+  $firstAssignments.Count -ne 1 -or
+  $firstAssignments[0].Right.Extent.Text -cne 'Join-Path $scratchRoot "package-a.tar.gz"' -or
+  $secondAssignments.Count -ne 1 -or
+  $secondAssignments[0].Right.Extent.Text -cne 'Join-Path $scratchRoot "package-b.tar.gz"'
+) { throw "package build outputs are not isolated in qualification scratch" }
 $definitions = @($ast.FindAll({
   param($node)
   $node -is [Management.Automation.Language.FunctionDefinitionAst] -and
