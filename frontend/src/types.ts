@@ -285,6 +285,81 @@ export interface ExecutionSchedule {
   execution_id?: string | null;
 }
 
+export type TelemetryConditionScalarType =
+  | "BOOLEAN"
+  | "INT64"
+  | "UINT64"
+  | "FINITE_DOUBLE"
+  | "STRING"
+  | "BYTES";
+
+export type TelemetryComparisonOperator = "EQ" | "NE" | "LT" | "LE" | "GT" | "GE";
+
+export interface TelemetryConditionPlan {
+  schema_version: "spell.v07.condition-plan/1";
+  condition_plan_id: string;
+  condition_plan_digest?: string;
+  root: {
+    type: "PREDICATE";
+    node_id: string;
+    operator: TelemetryComparisonOperator;
+    left: {
+      kind: "TELEMETRY";
+      item_id: string;
+      catalog_digest: string;
+      scalar_type: TelemetryConditionScalarType;
+      value_field: "ENGINEERING";
+    };
+    right: {
+      kind: "LITERAL";
+      value: {
+        type: TelemetryConditionScalarType;
+        value: boolean | number | string;
+      };
+    };
+  };
+}
+
+export interface TelemetryConditionSchedule {
+  schedule_id: string;
+  idempotency_key: string;
+  revision: number;
+  controller_execution_id: string;
+  schedule_type: "TELEMETRY_CONDITION";
+  state: "PENDING" | "CLAIMED" | "FIRED" | "CANCELLED" | "MISSED" | "ERROR";
+  condition_plan_id: string;
+  condition_plan_digest: string;
+  quality_freshness_policy_id: string;
+  quality_freshness_policy_revision: string;
+  start_snapshot_cursor: string;
+  last_snapshot_cursor: string | null;
+  attempt_count: number;
+  retry_count: number;
+  retry_interval_ns: number;
+  next_attempt_at_database_time: string | null;
+  created_at_database_time: string | null;
+  deadline_at_database_time: string;
+  procedure_catalog_id: string;
+  procedure_revision: number;
+  bundle_digest: string;
+  context_id: string;
+  arguments: Record<string, unknown>;
+  arguments_digest: string;
+  automatic: boolean;
+  background_allowed: boolean;
+  visible: boolean;
+  created_by?: string;
+  last_evaluation_id: string | null;
+  winning_evaluation_id: string | null;
+  occurrence_id: string | null;
+  fired_execution_id: string | null;
+  dispatch_attempts: number;
+  failure_code: string | null;
+  error_message: string | null;
+  claimed_at_database_time: string | null;
+  settled_at_database_time: string | null;
+}
+
 export interface InspectionValue {
   path: string;
   scope: "LOCAL_VARIABLE" | "GLOBAL_VARIABLE" | "ARGS" | "IVARS" | "SHARED_DATA";
@@ -550,6 +625,123 @@ export interface DriverLifecycleEvent {
   payload?: {
     reason?: string;
     authoritative_sequence?: number;
+  };
+}
+
+export type ObservationScalarKind =
+  | "BOOLEAN"
+  | "INT64"
+  | "UINT64"
+  | "FINITE_DOUBLE"
+  | "STRING"
+  | "BYTES";
+
+export interface ObservationScalarValue {
+  type: ObservationScalarKind;
+  value: boolean | number | string;
+}
+
+export interface DriverTimeObservation {
+  observation_id: string;
+  context_id: string;
+  context_generation_id: string;
+  driver_host_generation: string;
+  time_unix_ns: string;
+  acquired_at_unix_ns: string;
+  received_at_unix_ns: string;
+  received_at: string;
+  clock_source: "SIMULATOR_GCS_TIME" | "SIMULATOR" | "HOST_FALLBACK";
+  provenance: string;
+  uncertainty_ns: string;
+  validity: "VALID" | "INVALID" | "UNKNOWN";
+  quality: "GOOD" | "SUSPECT" | "BAD" | "UNKNOWN";
+}
+
+export interface DriverTelemetrySample {
+  sample_id: string;
+  item_id: string;
+  qualified_name: string;
+  catalog_digest: string;
+  source_id: string;
+  source_epoch: string;
+  source_sequence: string;
+  raw_value: ObservationScalarValue;
+  engineering_value: ObservationScalarValue;
+  description: string;
+  unit: string;
+  acquired_at_unix_ns: string;
+  received_at_unix_ns: string;
+  source: string;
+  clock_provenance: string;
+  clock_uncertainty_ns: string;
+  validity: "VALID" | "INVALID" | "UNKNOWN";
+  quality: "GOOD" | "SUSPECT" | "BAD" | "UNKNOWN";
+  quality_reason: string;
+  freshness: "FRESH" | "STALE" | "UNKNOWN";
+  freshness_policy_revision: string;
+  synchronization_state: "COMPLETE" | "GAPPED" | "NO_SAMPLE";
+  alarm?: {
+    alarm_observation_id: string;
+    item_id: string;
+    sample_id: string | null;
+    limit_set_id: string | null;
+    limit_revision: string | null;
+    state:
+      | "NOT_ALARMED"
+      | "WARNING_LOW"
+      | "WARNING_HIGH"
+      | "CRITICAL_LOW"
+      | "CRITICAL_HIGH"
+      | "INDETERMINATE";
+    severity: "NONE" | "WARNING" | "CRITICAL" | "INDETERMINATE";
+    evaluated_engineering_value: ObservationScalarValue | null;
+    quality: "GOOD" | "SUSPECT" | "BAD" | "UNKNOWN";
+    validity: "VALID" | "INVALID" | "UNKNOWN";
+    freshness: "FRESH" | "STALE" | "UNKNOWN";
+    boolean_value: boolean | null;
+    snapshot_cursor: { stream_epoch: string; projection_sequence: string };
+    evaluated_at_database_time: string;
+    reason: string;
+  } | null;
+}
+
+export interface TelemetryObservationSourceEpoch {
+  source_id: string;
+  item_id: string;
+  source_epoch: string;
+  last_source_sequence: string;
+  synchronization_state: "COMPLETE" | "GAPPED" | "NO_SAMPLE";
+}
+
+export interface TelemetryObservationSnapshot {
+  schema_version: string;
+  stream: "driver.observation";
+  context_id: string;
+  context_generation_id: string;
+  stream_epoch: string;
+  through_sequence: string;
+  snapshot_at_database_time: string;
+  source_epochs: TelemetryObservationSourceEpoch[];
+  items: DriverTelemetrySample[];
+  driver_time: DriverTimeObservation | null;
+  synchronization_state: "NO_SAMPLE" | "COMPLETE" | "GAPPED";
+}
+
+export interface TelemetryObservationEvent {
+  schema_version: "spell.driver.observation.event/1";
+  stream: "driver.observation";
+  stream_epoch: string;
+  projection_sequence?: string;
+  event_id?: string;
+  event_type: string;
+  aggregate_type?: string;
+  aggregate_id?: string;
+  created_at?: string;
+  data?: {
+    reason?: string;
+    authoritative_sequence?: string;
+    authoritative_stream_epoch?: string;
+    [key: string]: unknown;
   };
 }
 

@@ -5,7 +5,12 @@ from sqlalchemy.engine import Engine
 
 from backend.driver_repository import DEFAULT_PROFILE_ID
 from backend.migrations import _migration_lock, schema_migrations
-from backend.migrations.versions import v0003_driver_foundation, v0004_operator_workspace
+from backend.migrations.versions import (
+    v0003_driver_foundation,
+    v0004_operator_workspace,
+    v0005_observation_projection,
+    v0006_observation_conditions,
+)
 
 
 class UnsafeDriverRollbackError(RuntimeError):
@@ -24,7 +29,14 @@ def rollback_driver_foundation(engine: Engine) -> tuple[str, ...]:
         applied = set(connection.execute(select(schema_migrations.c.version)).scalars())
         if v0003_driver_foundation.VERSION not in applied:
             raise UnsafeDriverRollbackError("v0.4 driver migration is not applied")
-        if v0004_operator_workspace.VERSION in applied:
+        if any(
+            version in applied
+            for version in (
+                v0004_operator_workspace.VERSION,
+                v0005_observation_projection.VERSION,
+                v0006_observation_conditions.VERSION,
+            )
+        ):
             raise UnsafeDriverRollbackError(
                 "later migrations depend on the driver foundation"
             )

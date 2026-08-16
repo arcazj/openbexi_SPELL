@@ -403,12 +403,15 @@ def _replace_marked_body(
     markers: tuple[str, str],
     body: str,
     label: str,
+    *,
+    blank_before_end: bool = False,
 ) -> str:
     _marked_body(text, markers, label)
     begin, end = markers
     start = text.index(begin) + len(begin)
     finish = text.index(end)
-    return f"{text[:start]}\n{body.strip(chr(10))}\n{text[finish:]}"
+    separator = "\n\n" if blank_before_end else "\n"
+    return f"{text[:start]}\n{body.strip(chr(10))}{separator}{text[finish:]}"
 
 
 def _gate_record_body(scope: Mapping[str, Any]) -> str:
@@ -610,7 +613,13 @@ def render_activation_documents(
         (RELEASE_EVIDENCE_MARKERS, _release_evidence_body(scope, scope_sha256), "release evidence bindings"),
         (RELEASE_FINDING_MARKERS, _release_finding_body("PASS"), "release current finding"),
     ):
-        release_text = _replace_marked_body(release_text, markers, body, label)
+        release_text = _replace_marked_body(
+            release_text,
+            markers,
+            body,
+            label,
+            blank_before_end=markers == RELEASE_EVIDENCE_MARKERS,
+        )
     return (
         gate_text.replace("\n", gate_newline).encode("utf-8"),
         release_text.replace("\n", release_newline).encode("utf-8"),

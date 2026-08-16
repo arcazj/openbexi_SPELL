@@ -12,8 +12,9 @@ import uuid
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from decimal import Decimal, ROUND_CEILING
 from functools import wraps
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session, sessionmaker
@@ -26,6 +27,20 @@ from .ir_v06 import (
     V06ValidationError,
     validate_ir_v06,
     validate_safe_point,
+)
+from .ir_v07 import (
+    IR_VERSION as V07_IR_VERSION,
+    ObservationAnchorProvider,
+    ObservationRuntime,
+    V07ValidationError,
+    bind_observation_anchor,
+    canonicalize_observation_result,
+    unavailable_observation_anchor,
+    unavailable_observation_result,
+    validate_anchored_observation_request,
+    validate_ir_v07,
+    validate_observation_request,
+    validate_observation_result,
 )
 from .models import Command, Event, Execution, Prompt
 from .operator_models import OperatorCommand, OperatorPrompt
@@ -56,6 +71,7 @@ _LEGACY_EVENT_REFERENCE_NAMESPACE = uuid.uuid5(
     uuid.NAMESPACE_URL, "openbexi-spell:legacy-event-reference"
 )
 _WORKER_HANDLE_UNSET = object()
+_V06_PLUS_IR_VERSIONS = frozenset({V06_IR_VERSION, V07_IR_VERSION})
 
 
 def _legacy_event_reference(value: str | None) -> str | None:
@@ -149,6 +165,12 @@ class Supervisor:
         hub: EventHub,
         command_ack_timeout_seconds: float = 5.0,
         operator_service: "OperatorService | None" = None,
+        observation_runtime: (
+            ObservationRuntime
+            | Callable[[Mapping[str, Any]], Mapping[str, Any]]
+            | None
+        ) = None,
+        observation_anchor_provider: ObservationAnchorProvider | None = None,
     ):
         self.session_factory = session_factory
         self.catalog = catalog
@@ -158,6 +180,7 @@ class Supervisor:
         self._workers: dict[str, WorkerHandle] = {}
         self._spawning: set[str] = set()
         self._startproc_watchers: set[tuple[str, str, int]] = set()
+        self._observation_requests: set[tuple[str, str, int]] = set()
         self._abort_cleanup_barriers: set[tuple[str, str]] = set()
         self._recovery_pause_pending: set[str] = set()
         self._prompt_settlement_attempts: dict[str, float] = {}
@@ -171,6 +194,8 @@ class Supervisor:
             raise ValueError("command ACK timeout must be a positive finite number")
         self.command_ack_timeout_seconds = command_ack_timeout_seconds
         self.operator_service = operator_service
+        self.observation_runtime = observation_runtime
+        self.observation_anchor_provider = observation_anchor_provider
         if operator_service is not None:
             if operator_service.prompt_settlement_sink is None:
                 operator_service.prompt_settlement_sink = self.dispatch_prompt_settlement
@@ -247,7 +272,7 @@ class Supervisor:
             settings=operator_settings or {},
             authoritative=True,
         )
-        if procedure.ir_version != V06_IR_VERSION:
+        if procedure.ir_version not in _V06_PLUS_IR_VERSIONS:
             return
         reparsed = self.catalog.validate_source(
             procedure.source,
@@ -346,7 +371,7 @@ class Supervisor:
             }
         )
         if (
-            procedure.ir_version == V06_IR_VERSION
+            procedure.ir_version in _V06_PLUS_IR_VERSIONS
             or not automatic
             or initial_variables
             or background_allowed
@@ -2339,7 +2364,7 @@ class Supervisor:
                         OperatorPrompt.state == "OPEN",
                     ).limit(2)
                 ).all()
-                if execution.ir_version == V06_IR_VERSION
+                if execution.ir_version in _V06_PLUS_IR_VERSIONS
                 else []
             )
             settled_resume_prompt = (
@@ -2353,7 +2378,7 @@ class Supervisor:
                     .order_by(OperatorPrompt.settled_at.desc())
                     .limit(1)
                 )
-                if execution.ir_version == V06_IR_VERSION
+                if execution.ir_version in _V06_PLUS_IR_VERSIONS
                 else None
             )
             all_resume_prompts = [*resume_prompts, *operator_resume_prompts]
@@ -2377,7 +2402,7 @@ class Supervisor:
             persisted_checkpoint = dict(execution.variables)
             durable_arguments = None
             runtime_checkpoint: dict[str, Any] = {}
-            if ir_version == V06_IR_VERSION:
+            if ir_version in _V06_PLUS_IR_VERSIONS:
                 durable_arguments = persisted_checkpoint.pop("ARGS", {})
                 runtime_checkpoint = {
                     name: persisted_checkpoint.pop(name)
@@ -2403,7 +2428,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v06
+                    validate_ir_v07
+                    if ir_version == V07_IR_VERSION
+                    else validate_ir_v06
                     if ir_version == V06_IR_VERSION
                     else validate_ir_v03
                 )
@@ -2416,7 +2443,7 @@ class Supervisor:
                     expected_total_steps=execution.total_steps,
                     **validation_metadata,
                 )
-            except (IRValidationError, V06ValidationError) as exc:
+            except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
                 rejection = self._add_event(
                     session,
                     execution,
@@ -2663,6 +2690,8 @@ class Supervisor:
                         )
                     elif kind == "startproc_requested":
                         self._handle_startproc_request(execution_id, handle, message)
+                    elif kind == "observation_requested":
+                        self._handle_observation_request(execution_id, handle, message)
                     else:
                         raise ValueError(f"unsupported worker message kind: {kind!r}")
             except Exception as exc:
@@ -3043,6 +3072,266 @@ class Supervisor:
             self._start_startproc_watch(execution_id, handle, result)
         if outcome != "WAITING_CHILD":
             self._deliver_startproc_result(execution_id, result, handle=handle)
+
+    @staticmethod
+    def _observation_event(
+        session: Session,
+        execution_id: str,
+        event_type: str,
+        request_id: str,
+    ) -> Event | None:
+        event = session.scalar(
+            select(Event)
+            .where(
+                Event.execution_id == execution_id,
+                Event.event_type == event_type,
+                Event.correlation_id == request_id,
+            )
+            .order_by(Event.sequence.desc())
+            .limit(1)
+        )
+        if event is not None and (
+            type(event.payload) is not dict
+            or event.payload.get("request_id") != request_id
+        ):
+            raise ConflictError("durable observation event identity is inconsistent")
+        return event
+
+    def _handle_observation_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        message: dict[str, Any],
+    ) -> None:
+        request_payload = {
+            key: value
+            for key, value in message.items()
+            if key not in {"kind", "generation"}
+        }
+        published: list[dict[str, Any]] = []
+        replay: dict[str, Any] | None = None
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(
+                session, execution_id, handle.generation
+            )
+            if execution is None:
+                raise StaleWorkerMessage("worker generation is no longer current")
+            step_index = request_payload.get("step_index")
+            if (
+                execution.ir_version != V07_IR_VERSION
+                or type(step_index) is not int
+                or step_index != execution.current_step
+                or step_index < 0
+                or step_index >= len(execution.steps)
+            ):
+                raise ConflictError("observation request does not target the current v0.7 step")
+            base_request = validate_observation_request(
+                execution.steps[step_index],
+                request_payload,
+                execution_id=execution_id,
+            )
+            request_id = base_request["request_id"]
+            requested = self._observation_event(
+                session,
+                execution_id,
+                "procedure.observation_requested",
+                request_id,
+            )
+            is_next = (
+                base_request["operation"] == "GET_TM"
+                and base_request["parameters"]["mode"] == "NEXT"
+            )
+            if requested is not None:
+                request = (
+                    validate_anchored_observation_request(
+                        execution.steps[step_index],
+                        requested.payload,
+                        execution_id=execution_id,
+                        context_id=execution.context_id,
+                    )
+                    if is_next
+                    else validate_observation_request(
+                        execution.steps[step_index],
+                        requested.payload,
+                        execution_id=execution_id,
+                    )
+                )
+            else:
+                request = (
+                    self._anchored_observation_request(
+                        base_request,
+                        execution.context_id,
+                    )
+                    if is_next
+                    else base_request
+                )
+                event = self._add_event(
+                    session,
+                    execution,
+                    "procedure.observation_requested",
+                    request,
+                    source="worker",
+                    correlation_id=request_id,
+                )
+                session.commit()
+                published.append(event_dict(event))
+
+            settled = self._observation_event(
+                session,
+                execution_id,
+                "procedure.observation_result",
+                request_id,
+            )
+            if settled is not None:
+                replay = validate_observation_result(request, settled.payload)
+            else:
+                inflight = getattr(self, "_observation_requests", None)
+                if inflight is None:
+                    inflight = self._observation_requests = set()
+                key = (execution_id, request_id, handle.generation)
+                if key in inflight:
+                    return
+                inflight.add(key)
+
+            for event in published:
+                self.hub.publish(execution_id, event)
+
+        if replay is not None:
+            handle.control.put({"type": "observation_result", **replay})
+            return
+
+        threading.Thread(
+            target=self._resolve_observation_request,
+            args=(execution_id, handle, request),
+            name=f"spell-observation-{execution_id[:8]}-{step_index}",
+            daemon=True,
+        ).start()
+
+    def _anchored_observation_request(
+        self,
+        request: dict[str, Any],
+        context_id: str,
+    ) -> dict[str, Any]:
+        provider = getattr(self, "observation_anchor_provider", None)
+        try:
+            capture = getattr(provider, "telemetry_anchor", None)
+            if not callable(capture):
+                raise RuntimeError("observation anchor provider is unavailable")
+            anchor = capture(context_id, request["parameters"]["item_id"])
+        except Exception:
+            anchor = unavailable_observation_anchor(
+                "OBSERVATION_ANCHOR_UNAVAILABLE"
+            )
+        requested_at_unix_ns = time.time_ns()
+        timeout_ns = int(
+            (
+                Decimal(str(request["parameters"]["timeout_seconds"]))
+                * Decimal(1_000_000_000)
+            ).to_integral_value(rounding=ROUND_CEILING)
+        )
+        return bind_observation_anchor(
+            request,
+            context_id,
+            anchor,
+            requested_at_unix_ns=str(requested_at_unix_ns),
+            deadline_at_unix_ns=str(requested_at_unix_ns + timeout_ns),
+        )
+
+    def _resolve_observation_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+    ) -> None:
+        key = (execution_id, request["request_id"], handle.generation)
+        try:
+            anchor = request.get("anchor")
+            if type(anchor) is dict and anchor.get("status") == "UNAVAILABLE":
+                result = unavailable_observation_result(
+                    request, anchor["error_code"]
+                )
+            elif (runtime := getattr(self, "observation_runtime", None)) is None:
+                result = unavailable_observation_result(
+                    request, "OBSERVATION_RUNTIME_UNAVAILABLE"
+                )
+            else:
+                runtime_request = json.loads(
+                    json.dumps(request, sort_keys=True, separators=(",", ":"))
+                )
+                runtime_request["resolver_generation"] = handle.generation
+                resolver = getattr(runtime, "resolve", None)
+                raw_result = (
+                    resolver(runtime_request)
+                    if callable(resolver)
+                    else runtime(runtime_request)
+                    if callable(runtime)
+                    else None
+                )
+                if raw_result is None:
+                    raise V07ValidationError(
+                        "OBSERVATION_RESULT_INVALID",
+                        "$.result",
+                        "runtime returned no result",
+                    )
+                result = canonicalize_observation_result(request, raw_result)
+        except Exception:
+            result = unavailable_observation_result(
+                request, "OBSERVATION_RUNTIME_RESULT_INVALID"
+            )
+        try:
+            self._settle_observation_result(execution_id, handle, request, result)
+        finally:
+            with self._lock:
+                getattr(self, "_observation_requests", set()).discard(key)
+
+    def _settle_observation_result(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+        result: dict[str, Any],
+    ) -> bool:
+        canonical = validate_observation_result(request, result)
+        published: dict[str, Any] | None = None
+        delivered: dict[str, Any] | None = None
+        with handle.dispatch_lock:
+            with self._lock, self.session_factory() as session:
+                if self._workers.get(execution_id) is not handle:
+                    return False
+                execution = self._require_worker_epoch(
+                    session, execution_id, handle.generation
+                )
+                if (
+                    execution is None
+                    or execution.current_step != request["step_index"]
+                    or execution.ir_version != V07_IR_VERSION
+                ):
+                    return False
+                existing = self._observation_event(
+                    session,
+                    execution_id,
+                    "procedure.observation_result",
+                    request["request_id"],
+                )
+                if existing is None:
+                    event = self._add_event(
+                        session,
+                        execution,
+                        "procedure.observation_result",
+                        canonical,
+                        source="observation-runtime",
+                        severity=("info" if canonical["outcome"] in {"OK", "TRUE", "FALSE", "SATISFIED"} else "warning"),
+                        correlation_id=request["request_id"],
+                    )
+                    session.commit()
+                    published = event_dict(event)
+                    delivered = canonical
+                else:
+                    delivered = validate_observation_result(request, existing.payload)
+                if published is not None:
+                    self.hub.publish(execution_id, published)
+            handle.control.put({"type": "observation_result", **delivered})
+        return True
 
     def _watch_startproc_child(
         self,
@@ -4469,6 +4758,40 @@ class Supervisor:
         if settle_terminal is not None:
             for prompt_id, outcome in terminal_typed_prompts:
                 settle_terminal(prompt_id, outcome)
+        if previous != state:
+            self._reconcile_observation_lifecycle(
+                execution_id, previous_state=previous, state=state
+            )
+
+    def _reconcile_observation_lifecycle(
+        self,
+        execution_id: str,
+        *,
+        previous_state: str,
+        state: str,
+    ) -> None:
+        runtime = getattr(self, "observation_runtime", None)
+        if runtime is None:
+            return
+        callback = None
+        if state in TERMINAL_STATES:
+            callback = getattr(runtime, "cancel_execution", None)
+        elif state in {"paused", "recovery_required"}:
+            callback = getattr(runtime, "interrupt_execution", None)
+        elif previous_state in {"paused", "pausing", "recovery_required"} and state in {
+            "running",
+            "resuming",
+            "recovering",
+            "waiting",
+            "prompting",
+        }:
+            callback = getattr(runtime, "resume_execution", None)
+        if callable(callback):
+            try:
+                callback(execution_id)
+            except Exception:
+                # The durable recovery loop re-derives execution lifecycle state.
+                pass
 
     def _complete_command(self, command_id: str, result: dict[str, Any]) -> None:
         published: list[dict[str, Any]] = []

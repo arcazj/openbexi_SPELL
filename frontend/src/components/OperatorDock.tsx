@@ -3,7 +3,21 @@ import { useEffect, useMemo, useState } from "react";
 import { api, currentControlProof, type ConsoleOperationInput } from "../api";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { openExecution } from "../store";
-import type { ExecutionSchedule, InspectionValue, NamedUserAction, ParentChildLink } from "../types";
+import {
+  TELEMETRY_COMPARISON_LABELS,
+  TELEMETRY_CONDITION_ITEMS,
+  createTelemetryConditionPlan,
+  telemetryConditionItem,
+  type TelemetryConditionItem,
+} from "../telemetryConditions";
+import type {
+  ExecutionSchedule,
+  InspectionValue,
+  NamedUserAction,
+  ParentChildLink,
+  TelemetryComparisonOperator,
+  TelemetryConditionSchedule,
+} from "../types";
 import { useActiveControlLease } from "../useControlLease";
 
 function message(reason: unknown): string {
@@ -156,19 +170,34 @@ export function InspectionPanel() {
 export function SchedulesPanel() {
   const { execution, selectedProcedureId, contextId, connection } = useAppSelector((state) => state.console);
   const [items, setItems] = useState<ExecutionSchedule[]>([]);
-  const [type, setType] = useState<"RELATIVE" | "ABSOLUTE">("RELATIVE");
+  const [telemetryItems, setTelemetryItems] = useState<TelemetryConditionSchedule[]>([]);
+  const [type, setType] = useState<"RELATIVE" | "ABSOLUTE" | "TELEMETRY_CONDITION">("RELATIVE");
   const [target, setTarget] = useState("60");
+  const [telemetryItemId, setTelemetryItemId] = useState<string>(TELEMETRY_CONDITION_ITEMS[0].itemId);
+  const [telemetryOperator, setTelemetryOperator] = useState<TelemetryComparisonOperator>("GE");
+  const [telemetryValue, setTelemetryValue] = useState<string>(TELEMETRY_CONDITION_ITEMS[0].defaultValue);
+  const [telemetryTimeout, setTelemetryTimeout] = useState("300");
   const [automatic, setAutomatic] = useState(true);
   const [background, setBackground] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const proof = currentControlProof(execution?.controller_lease);
   const canControl = useActiveControlLease(execution);
+  const selectedTelemetryItem: TelemetryConditionItem = telemetryConditionItem(telemetryItemId) ?? TELEMETRY_CONDITION_ITEMS[0];
   const load = async () => {
     if (!execution) return;
-    try { setItems(await api.schedules(execution.id)); setError(null); } catch (reason) { setError(message(reason)); }
+    try {
+      const [loaded, loadedTelemetry] = await Promise.all([
+        api.schedules(execution.id),
+        api.telemetrySchedules(execution.id),
+      ]);
+      setItems(loaded);
+      setTelemetryItems(loadedTelemetry);
+      setError(null);
+    } catch (reason) { setError(message(reason)); }
   };
   useEffect(() => { setItems(execution?.schedules ?? []); }, [execution?.id, execution?.schedules]);
+  useEffect(() => { setTelemetryItems([]); }, [execution?.id]);
   useEffect(() => {
     void load();
     if (connection.phase !== "CONNECTED") return;
@@ -181,6 +210,35 @@ export function SchedulesPanel() {
     if (!execution || !selectedProcedureId) return;
     setBusy(true); setError(null);
     try {
+      if (type === "TELEMETRY_CONDITION") {
+        const timeoutSeconds = Number(telemetryTimeout);
+        if (!Number.isFinite(timeoutSeconds) || timeoutSeconds < 1 || timeoutSeconds > 604_800) {
+          throw new Error("Telemetry timeout must be between 1 and 604800 seconds.");
+        }
+        const conditionPlan = createTelemetryConditionPlan({
+          planId: `schedule-condition-${crypto.randomUUID()}`,
+          itemId: telemetryItemId,
+          operator: telemetryOperator,
+          rawValue: telemetryValue,
+        });
+        const created = await api.createTelemetrySchedule({
+          controller_execution_id: execution.id,
+          condition_plan: conditionPlan,
+          timeout_seconds: timeoutSeconds,
+          retry_count: 1000,
+          retry_interval_seconds: Math.max(0.25, timeoutSeconds / 1000),
+          procedure_catalog_id: selectedProcedureId,
+          context_id: contextId,
+          arguments: {},
+          automatic,
+          background_allowed: background,
+          visible: true,
+          expected_execution_revision: execution.revision,
+          proof,
+        });
+        setTelemetryItems((current) => [created, ...current.filter((item) => item.schedule_id !== created.schedule_id)]);
+        return;
+      }
       const originalTarget = type === "RELATIVE" ? Number(target) : target.trim();
       if (type === "RELATIVE" && (!Number.isFinite(Number(target)) || Number(target) <= 0)) throw new Error("Relative delay must be a positive number of seconds.");
       if (type === "ABSOLUTE" && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(String(originalTarget))) throw new Error("Absolute target must be RFC 3339 with an explicit UTC offset.");
@@ -188,25 +246,51 @@ export function SchedulesPanel() {
       setItems((current) => [created, ...current.filter((item) => item.id !== created.id)]);
     } catch (reason) { setError(message(reason)); } finally { setBusy(false); }
   };
-  const cancel = async (item: ExecutionSchedule) => {
+  const cancel = async (item: ExecutionSchedule | TelemetryConditionSchedule) => {
     setBusy(true); setError(null);
-    try { const updated = await api.cancelSchedule(item.id, item.revision, proof); setItems((current) => current.map((candidate) => candidate.id === updated.id ? updated : candidate)); }
+    try {
+      if (item.schedule_type === "TELEMETRY_CONDITION") {
+        const updated = await api.cancelTelemetrySchedule(item.schedule_id, item.controller_execution_id, item.revision, proof);
+        setTelemetryItems((current) => current.map((candidate) => candidate.schedule_id === updated.schedule_id ? updated : candidate));
+      } else {
+        const updated = await api.cancelSchedule(item.id, item.revision, proof);
+        setItems((current) => current.map((candidate) => candidate.id === updated.id ? updated : candidate));
+      }
+    }
     catch (reason) { setError(message(reason)); } finally { setBusy(false); }
   };
+  const displayedItems: Array<ExecutionSchedule | TelemetryConditionSchedule> = [...items, ...telemetryItems];
   return (
     <div className="schedule-layout">
       <form className="schedule-form" onSubmit={create}>
-        <div className="dock-panel-header"><h3>One-shot schedule</h3><CalendarClock aria-hidden="true" size={16} /></div>
-        <div className="segmented-control"><button type="button" aria-pressed={type === "RELATIVE"} onClick={() => { setType("RELATIVE"); setTarget("60"); }}>Relative</button><button type="button" aria-pressed={type === "ABSOLUTE"} onClick={() => { setType("ABSOLUTE"); setTarget(""); }}>Absolute</button></div>
-        <label>{type === "RELATIVE" ? "Delay (seconds)" : "RFC 3339 target"}<input value={target} onChange={(event) => setTarget(event.target.value)} inputMode={type === "RELATIVE" ? "numeric" : undefined} placeholder={type === "ABSOLUTE" ? "2026-08-16T01:30:00-04:00" : undefined} /></label>
+        <div className="dock-panel-header"><h3>{type === "TELEMETRY_CONDITION" ? "Telemetry schedule" : "One-shot schedule"}</h3><CalendarClock aria-hidden="true" size={16} /></div>
+        <div className="segmented-control schedule-mode-control"><button type="button" aria-pressed={type === "RELATIVE"} onClick={() => { setType("RELATIVE"); setTarget("60"); }}>Relative</button><button type="button" aria-pressed={type === "ABSOLUTE"} onClick={() => { setType("ABSOLUTE"); setTarget(""); }}>Absolute</button><button type="button" aria-pressed={type === "TELEMETRY_CONDITION"} onClick={() => setType("TELEMETRY_CONDITION")}>Telemetry</button></div>
+        {type === "TELEMETRY_CONDITION" ? <div className="telemetry-schedule-fields">
+          <label>Telemetry item<select aria-label="Telemetry item" value={telemetryItemId} onChange={(event) => {
+            const selected = telemetryConditionItem(event.target.value);
+            if (!selected) return;
+            setTelemetryItemId(selected.itemId);
+            setTelemetryOperator(selected.operators[0] ?? "EQ");
+            setTelemetryValue(selected.defaultValue);
+          }}>{TELEMETRY_CONDITION_ITEMS.map((item) => <option key={item.itemId} value={item.itemId}>{item.label}{item.unit ? ` (${item.unit})` : ""}</option>)}</select></label>
+          <label>Comparison operator<select aria-label="Comparison operator" value={telemetryOperator} onChange={(event) => setTelemetryOperator(event.target.value as TelemetryComparisonOperator)}>{selectedTelemetryItem.operators.map((operator) => <option key={operator} value={operator}>{TELEMETRY_COMPARISON_LABELS[operator]}</option>)}</select></label>
+          <label>{selectedTelemetryItem.scalarType === "FINITE_DOUBLE" ? "Threshold value" : "Expected value"}{selectedTelemetryItem.valueOptions
+            ? <select aria-label="Condition value" value={telemetryValue} onChange={(event) => setTelemetryValue(event.target.value)}>{selectedTelemetryItem.valueOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+            : <input aria-label="Condition value" type="number" value={telemetryValue} onChange={(event) => setTelemetryValue(event.target.value)} min={selectedTelemetryItem.minimum} max={selectedTelemetryItem.maximum} step={selectedTelemetryItem.step} />}</label>
+          <label>Timeout (seconds)<input aria-label="Telemetry timeout in seconds" type="number" value={telemetryTimeout} onChange={(event) => setTelemetryTimeout(event.target.value)} min={1} max={604800} step={1} /></label>
+        </div> : <label>{type === "RELATIVE" ? "Delay (seconds)" : "RFC 3339 target"}<input value={target} onChange={(event) => setTarget(event.target.value)} inputMode={type === "RELATIVE" ? "numeric" : undefined} placeholder={type === "ABSOLUTE" ? "2026-08-16T01:30:00-04:00" : undefined} /></label>}
         <label className="compact-check"><input type="checkbox" checked={automatic} onChange={(event) => { setAutomatic(event.target.checked); if (event.target.checked) setBackground(true); }} /> Automatic</label>
         <label className="compact-check"><input type="checkbox" checked={background} onChange={(event) => setBackground(event.target.checked)} disabled={automatic} /> Background allowed</label>
-        <button type="submit" className="primary-command compact-primary" disabled={!canControl || busy || !selectedProcedureId}>{busy ? <LoaderCircle className="spin" aria-hidden="true" size={14} /> : <CalendarClock aria-hidden="true" size={14} />} Create schedule</button>
+        <button type="submit" className="primary-command compact-primary" disabled={!canControl || busy || !selectedProcedureId}>{busy ? <LoaderCircle className="spin" aria-hidden="true" size={14} /> : <CalendarClock aria-hidden="true" size={14} />} {type === "TELEMETRY_CONDITION" ? "Create telemetry schedule" : "Create schedule"}</button>
         {error && <p className="dock-error" role="alert">{error}</p>}
       </form>
-      <div className="table-scroll schedule-table" tabIndex={0}><table><thead><tr><th>Schedule</th><th>Type</th><th>Target UTC</th><th>Procedure</th><th>State</th><th><span className="sr-only">Cancel</span></th></tr></thead><tbody>
-        {items.map((item) => <tr key={item.id}><td><code title={item.id}>{item.id.slice(0, 12)}</code></td><td>{item.schedule_type}</td><td>{item.target_at_database_time}</td><td><code>{item.catalog_revision_id}</code></td><td><span className={`schedule-state ${item.state.toLowerCase()}`}>{item.state}</span></td><td><button type="button" className="icon-command" aria-label={`Cancel schedule ${item.id}`} title="Cancel schedule" onClick={() => void cancel(item)} disabled={!canControl || busy || item.state !== "PENDING"}><Trash2 aria-hidden="true" size={14} /></button></td></tr>)}
-        {!items.length && <tr><td colSpan={6}>No schedules.</td></tr>}
+      <div className="table-scroll schedule-table" tabIndex={0}><table><thead><tr><th>Schedule</th><th>Type</th><th>Trigger / target</th><th>Procedure</th><th>State</th><th><span className="sr-only">Cancel</span></th></tr></thead><tbody>
+        {displayedItems.map((item) => {
+          const telemetry = item.schedule_type === "TELEMETRY_CONDITION";
+          const scheduleId = telemetry ? item.schedule_id : item.id;
+          return <tr key={`${item.schedule_type}:${scheduleId}`}><td><code title={scheduleId}>{scheduleId.slice(0, 12)}</code></td><td>{item.schedule_type}</td><td>{telemetry ? <code title={item.condition_plan_digest}>{item.condition_plan_id}</code> : item.target_at_database_time}</td><td><code>{telemetry ? `${item.procedure_catalog_id}@${item.procedure_revision}` : item.catalog_revision_id}</code></td><td><span className={`schedule-state ${item.state.toLowerCase()}`}>{item.state}</span></td><td><button type="button" className="icon-command" aria-label={`Cancel schedule ${scheduleId}`} title="Cancel schedule" onClick={() => void cancel(item)} disabled={!canControl || busy || item.state !== "PENDING"}><Trash2 aria-hidden="true" size={14} /></button></td></tr>;
+        })}
+        {!displayedItems.length && <tr><td colSpan={6}>No schedules.</td></tr>}
       </tbody></table></div>
     </div>
   );

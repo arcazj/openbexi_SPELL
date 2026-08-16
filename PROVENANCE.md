@@ -3,9 +3,10 @@
 ## Record Status
 
 This record retains the bounded SPELL v0.5.0 provenance, records the accepted
-v0.6.0 release, and identifies the v0.7 Gate 0A planning authorization. SPELL
-v0.6.0 is the accepted local-only, synthetic, non-CUI simulator engineering
-baseline at annotated tag `v0.6.0`, tag object
+v0.6.0 release, and identifies both the v0.7 Gate 0A authorization and latest
+committed implementation candidate. SPELL v0.6.0 remains the accepted
+local-only, synthetic, non-CUI simulator engineering baseline at annotated tag
+`v0.6.0`, tag object
 `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, and release commit
 `05ec783a6e54a76e0548bdd536c18538f6bff51b`.
 
@@ -19,11 +20,13 @@ deterministic packaging, release-evidence validation, and annotated tagging
 passed with no accepted exceptions. The final archive SHA-256 is
 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`.
 
-`V07-GATE-0A PASS` authorizes only the nine `V07-OBS-001` through
-`V07-OBS-009` planning contracts and their 45 planned proof identities. The
-manifest and six matrices under `contracts/v07` are first-party planning data;
-they claim no implementation, runtime conformance, qualification evidence, or
-live/legacy route. This document makes no compliance, deployment, mission, or
+`V07-GATE-0A PASS` authorized only the nine `V07-OBS-001` through
+`V07-OBS-009` packages and their 45 planned proof identities. The manifest and
+six matrices under `contracts/v07` remain first-party authorization data and do
+not themselves prove implementation or conformance. A separate committed
+candidate now implements those nine packages, while canonical candidate
+qualification, Gate 0B, Final provenance, packaging, and acceptance remain
+pending. This document makes no compliance, deployment, mission, or
 operational authorization claim.
 
 Before this binding, Docker Scout identified 18 High findings in the pinned
@@ -250,3 +253,12 @@ read-only planning inputs. They authorize implementation of exactly
 `V07-OBS-001` through `V07-OBS-009`, but do not establish that any v0.7 source,
 API, schema, migration, dependency, driver behavior, runtime artifact, test
 result, or release exists.
+
+The committed v0.7 candidate implements only those nine approved
+simulator-only, read-only packages. New source remains project-authored and
+dependency-locked; the driver observation service, backend projections,
+condition runtime, APIs, and frontend use synthetic local data only.
+Prequalification tests are diagnostic and do not become release provenance
+until canonical candidate and Final evidence bind the exact source revisions.
+No live GCS, spacecraft, mission-network, classified, CUI, or production data
+was introduced. No v0.8 or v0.9 implementation or provenance is claimed.

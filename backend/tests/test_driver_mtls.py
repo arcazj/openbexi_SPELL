@@ -206,6 +206,58 @@ def test_valid_current_gateway_identity_reaches_dispatch() -> None:
     asyncio.run(run())
 
 
+def test_valid_gateway_identity_reaches_read_only_observation_service(
+    tmp_path: Path,
+) -> None:
+    async def run() -> None:
+        bundle = generate_bundle()
+        async with _strict_wire_loopback_server(
+            bundle, tmp_path / "observation-mtls.sqlite"
+        ) as (target, service, journal):
+            config = service.config
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=bundle.ca_certificate,
+                private_key=bundle.client_private_key,
+                certificate_chain=bundle.client_certificate,
+            )
+            channel = grpc.aio.secure_channel(
+                target, credentials, options=_AUTHORITY_OPTIONS
+            )
+            try:
+                response = await driver_pb2_grpc.DriverObservationServiceStub(
+                    channel
+                ).GetTime(
+                    driver_pb2.GetTimeRequest(
+                        identity=driver_pb2.ObservationRequestIdentity(
+                            contract_version=driver_pb2.ContractVersion(
+                                major=1, minor=0
+                            ),
+                            server_profile_id=config.server_profile_id,
+                            driver_host_generation=config.driver_host_generation,
+                            host_profile_digest=config.host_profile_digest,
+                            observation_id="observation-mtls",
+                            correlation_id="correlation-mtls",
+                            deadline_unix_ns=time.time_ns() + 2_000_000_000,
+                            credential_epoch=config.credential_epoch,
+                        )
+                    ),
+                    timeout=2,
+                    metadata=(
+                        (CONTRACT_MAJOR_METADATA, "1"),
+                        (CREDENTIAL_EPOCH_METADATA, "1"),
+                    ),
+                    wait_for_ready=False,
+                )
+                assert response.result_code == driver_pb2.OBSERVATION_RESULT_CODE_OK
+                assert service.authorization_audit == {"authorized": 1}
+                assert service.wire_audit == {}
+                assert journal.list_operations() == ()
+            finally:
+                await channel.close()
+
+    asyncio.run(run())
+
+
 def test_ambiguous_raw_wire_is_rejected_before_dispatch_or_journal_effect(
     tmp_path: Path,
 ) -> None:

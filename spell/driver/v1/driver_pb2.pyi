@@ -183,6 +183,58 @@ class DetachmentReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DETACHMENT_REASON_EXPLICIT_UNLOAD: _ClassVar[DetachmentReason]
     DETACHMENT_REASON_CONTEXT_CLOSE: _ClassVar[DetachmentReason]
     DETACHMENT_REASON_HOST_DRAIN: _ClassVar[DetachmentReason]
+
+class ObservationResultCode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    OBSERVATION_RESULT_CODE_UNSPECIFIED: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_OK: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_NOT_FOUND: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_NOT_AVAILABLE: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_DEADLINE_EXCEEDED: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_CANCELLED: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_GAP: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_STALE_GENERATION: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_CLOCK_UNCERTAIN: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_CONTRACT_MISMATCH: _ClassVar[ObservationResultCode]
+    OBSERVATION_RESULT_CODE_INTERNAL: _ClassVar[ObservationResultCode]
+
+class ClockSource(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CLOCK_SOURCE_UNSPECIFIED: _ClassVar[ClockSource]
+    CLOCK_SOURCE_SIMULATOR_GCS_TIME: _ClassVar[ClockSource]
+    CLOCK_SOURCE_SIMULATOR: _ClassVar[ClockSource]
+    CLOCK_SOURCE_HOST_FALLBACK: _ClassVar[ClockSource]
+
+class ObservationValidity(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    OBSERVATION_VALIDITY_UNSPECIFIED: _ClassVar[ObservationValidity]
+    OBSERVATION_VALIDITY_VALID: _ClassVar[ObservationValidity]
+    OBSERVATION_VALIDITY_INVALID: _ClassVar[ObservationValidity]
+    OBSERVATION_VALIDITY_UNKNOWN: _ClassVar[ObservationValidity]
+
+class ObservationQuality(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    OBSERVATION_QUALITY_UNSPECIFIED: _ClassVar[ObservationQuality]
+    OBSERVATION_QUALITY_GOOD: _ClassVar[ObservationQuality]
+    OBSERVATION_QUALITY_SUSPECT: _ClassVar[ObservationQuality]
+    OBSERVATION_QUALITY_BAD: _ClassVar[ObservationQuality]
+    OBSERVATION_QUALITY_UNKNOWN: _ClassVar[ObservationQuality]
+
+class ScalarKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    SCALAR_KIND_UNSPECIFIED: _ClassVar[ScalarKind]
+    SCALAR_KIND_BOOLEAN: _ClassVar[ScalarKind]
+    SCALAR_KIND_INT64: _ClassVar[ScalarKind]
+    SCALAR_KIND_UINT64: _ClassVar[ScalarKind]
+    SCALAR_KIND_FINITE_DOUBLE: _ClassVar[ScalarKind]
+    SCALAR_KIND_STRING: _ClassVar[ScalarKind]
+    SCALAR_KIND_BYTES: _ClassVar[ScalarKind]
+
+class GetTMMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    GET_TM_MODE_UNSPECIFIED: _ClassVar[GetTMMode]
+    GET_TM_MODE_CURRENT: _ClassVar[GetTMMode]
+    GET_TM_MODE_NEXT: _ClassVar[GetTMMode]
 RPC_METHOD_UNSPECIFIED: RpcMethod
 RPC_METHOD_HANDSHAKE: RpcMethod
 RPC_METHOD_HEALTH: RpcMethod
@@ -303,6 +355,40 @@ DETACHMENT_REASON_RELOAD: DetachmentReason
 DETACHMENT_REASON_EXPLICIT_UNLOAD: DetachmentReason
 DETACHMENT_REASON_CONTEXT_CLOSE: DetachmentReason
 DETACHMENT_REASON_HOST_DRAIN: DetachmentReason
+OBSERVATION_RESULT_CODE_UNSPECIFIED: ObservationResultCode
+OBSERVATION_RESULT_CODE_OK: ObservationResultCode
+OBSERVATION_RESULT_CODE_NOT_FOUND: ObservationResultCode
+OBSERVATION_RESULT_CODE_NOT_AVAILABLE: ObservationResultCode
+OBSERVATION_RESULT_CODE_DEADLINE_EXCEEDED: ObservationResultCode
+OBSERVATION_RESULT_CODE_CANCELLED: ObservationResultCode
+OBSERVATION_RESULT_CODE_GAP: ObservationResultCode
+OBSERVATION_RESULT_CODE_STALE_GENERATION: ObservationResultCode
+OBSERVATION_RESULT_CODE_CLOCK_UNCERTAIN: ObservationResultCode
+OBSERVATION_RESULT_CODE_CONTRACT_MISMATCH: ObservationResultCode
+OBSERVATION_RESULT_CODE_INTERNAL: ObservationResultCode
+CLOCK_SOURCE_UNSPECIFIED: ClockSource
+CLOCK_SOURCE_SIMULATOR_GCS_TIME: ClockSource
+CLOCK_SOURCE_SIMULATOR: ClockSource
+CLOCK_SOURCE_HOST_FALLBACK: ClockSource
+OBSERVATION_VALIDITY_UNSPECIFIED: ObservationValidity
+OBSERVATION_VALIDITY_VALID: ObservationValidity
+OBSERVATION_VALIDITY_INVALID: ObservationValidity
+OBSERVATION_VALIDITY_UNKNOWN: ObservationValidity
+OBSERVATION_QUALITY_UNSPECIFIED: ObservationQuality
+OBSERVATION_QUALITY_GOOD: ObservationQuality
+OBSERVATION_QUALITY_SUSPECT: ObservationQuality
+OBSERVATION_QUALITY_BAD: ObservationQuality
+OBSERVATION_QUALITY_UNKNOWN: ObservationQuality
+SCALAR_KIND_UNSPECIFIED: ScalarKind
+SCALAR_KIND_BOOLEAN: ScalarKind
+SCALAR_KIND_INT64: ScalarKind
+SCALAR_KIND_UINT64: ScalarKind
+SCALAR_KIND_FINITE_DOUBLE: ScalarKind
+SCALAR_KIND_STRING: ScalarKind
+SCALAR_KIND_BYTES: ScalarKind
+GET_TM_MODE_UNSPECIFIED: GetTMMode
+GET_TM_MODE_CURRENT: GetTMMode
+GET_TM_MODE_NEXT: GetTMMode
 
 class ContractVersion(_message.Message):
     __slots__ = ("major", "minor")
@@ -709,3 +795,209 @@ class GetOperationResponse(_message.Message):
     operation: OperationRecord
     error: SafeError
     def __init__(self, contract_version: _Optional[_Union[ContractVersion, _Mapping]] = ..., operation: _Optional[_Union[OperationRecord, _Mapping]] = ..., error: _Optional[_Union[SafeError, _Mapping]] = ...) -> None: ...
+
+class ObservationRequestIdentity(_message.Message):
+    __slots__ = ("contract_version", "server_profile_id", "driver_host_generation", "host_profile_digest", "context_id", "context_generation", "context_binding_digest", "observation_id", "correlation_id", "deadline_unix_ns", "credential_epoch")
+    CONTRACT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    SERVER_PROFILE_ID_FIELD_NUMBER: _ClassVar[int]
+    DRIVER_HOST_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    HOST_PROFILE_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_ID_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_BINDING_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    OBSERVATION_ID_FIELD_NUMBER: _ClassVar[int]
+    CORRELATION_ID_FIELD_NUMBER: _ClassVar[int]
+    DEADLINE_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    CREDENTIAL_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    contract_version: ContractVersion
+    server_profile_id: str
+    driver_host_generation: str
+    host_profile_digest: str
+    context_id: str
+    context_generation: str
+    context_binding_digest: str
+    observation_id: str
+    correlation_id: str
+    deadline_unix_ns: int
+    credential_epoch: int
+    def __init__(self, contract_version: _Optional[_Union[ContractVersion, _Mapping]] = ..., server_profile_id: _Optional[str] = ..., driver_host_generation: _Optional[str] = ..., host_profile_digest: _Optional[str] = ..., context_id: _Optional[str] = ..., context_generation: _Optional[str] = ..., context_binding_digest: _Optional[str] = ..., observation_id: _Optional[str] = ..., correlation_id: _Optional[str] = ..., deadline_unix_ns: _Optional[int] = ..., credential_epoch: _Optional[int] = ...) -> None: ...
+
+class ObservationGeneration(_message.Message):
+    __slots__ = ("server_profile_id", "driver_host_generation", "host_profile_digest", "context_id", "context_generation", "context_binding_digest")
+    SERVER_PROFILE_ID_FIELD_NUMBER: _ClassVar[int]
+    DRIVER_HOST_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    HOST_PROFILE_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_ID_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_BINDING_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    server_profile_id: str
+    driver_host_generation: str
+    host_profile_digest: str
+    context_id: str
+    context_generation: str
+    context_binding_digest: str
+    def __init__(self, server_profile_id: _Optional[str] = ..., driver_host_generation: _Optional[str] = ..., host_profile_digest: _Optional[str] = ..., context_id: _Optional[str] = ..., context_generation: _Optional[str] = ..., context_binding_digest: _Optional[str] = ...) -> None: ...
+
+class ObservationError(_message.Message):
+    __slots__ = ("code", "safe_message", "retryable")
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    SAFE_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    RETRYABLE_FIELD_NUMBER: _ClassVar[int]
+    code: ObservationResultCode
+    safe_message: str
+    retryable: bool
+    def __init__(self, code: _Optional[_Union[ObservationResultCode, str]] = ..., safe_message: _Optional[str] = ..., retryable: _Optional[bool] = ...) -> None: ...
+
+class ScalarValue(_message.Message):
+    __slots__ = ("kind", "boolean_value", "int64_value", "uint64_value", "finite_double_value", "string_value", "bytes_value")
+    KIND_FIELD_NUMBER: _ClassVar[int]
+    BOOLEAN_VALUE_FIELD_NUMBER: _ClassVar[int]
+    INT64_VALUE_FIELD_NUMBER: _ClassVar[int]
+    UINT64_VALUE_FIELD_NUMBER: _ClassVar[int]
+    FINITE_DOUBLE_VALUE_FIELD_NUMBER: _ClassVar[int]
+    STRING_VALUE_FIELD_NUMBER: _ClassVar[int]
+    BYTES_VALUE_FIELD_NUMBER: _ClassVar[int]
+    kind: ScalarKind
+    boolean_value: bool
+    int64_value: int
+    uint64_value: int
+    finite_double_value: float
+    string_value: str
+    bytes_value: bytes
+    def __init__(self, kind: _Optional[_Union[ScalarKind, str]] = ..., boolean_value: _Optional[bool] = ..., int64_value: _Optional[int] = ..., uint64_value: _Optional[int] = ..., finite_double_value: _Optional[float] = ..., string_value: _Optional[str] = ..., bytes_value: _Optional[bytes] = ...) -> None: ...
+
+class ItemIdentity(_message.Message):
+    __slots__ = ("item_id", "qualified_name", "catalog_digest")
+    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    QUALIFIED_NAME_FIELD_NUMBER: _ClassVar[int]
+    CATALOG_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    item_id: str
+    qualified_name: str
+    catalog_digest: str
+    def __init__(self, item_id: _Optional[str] = ..., qualified_name: _Optional[str] = ..., catalog_digest: _Optional[str] = ...) -> None: ...
+
+class SampleIdentity(_message.Message):
+    __slots__ = ("sample_id", "item_id", "source_id", "source_epoch", "source_sequence")
+    SAMPLE_ID_FIELD_NUMBER: _ClassVar[int]
+    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_ID_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    sample_id: str
+    item_id: str
+    source_id: str
+    source_epoch: str
+    source_sequence: int
+    def __init__(self, sample_id: _Optional[str] = ..., item_id: _Optional[str] = ..., source_id: _Optional[str] = ..., source_epoch: _Optional[str] = ..., source_sequence: _Optional[int] = ...) -> None: ...
+
+class DriverTimeObservation(_message.Message):
+    __slots__ = ("observation_id", "generation", "time_unix_ns", "acquired_at_unix_ns", "clock_source", "provenance", "uncertainty_ns", "quality", "validity")
+    OBSERVATION_ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
+    TIME_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    ACQUIRED_AT_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    CLOCK_SOURCE_FIELD_NUMBER: _ClassVar[int]
+    PROVENANCE_FIELD_NUMBER: _ClassVar[int]
+    UNCERTAINTY_NS_FIELD_NUMBER: _ClassVar[int]
+    QUALITY_FIELD_NUMBER: _ClassVar[int]
+    VALIDITY_FIELD_NUMBER: _ClassVar[int]
+    observation_id: str
+    generation: ObservationGeneration
+    time_unix_ns: int
+    acquired_at_unix_ns: int
+    clock_source: ClockSource
+    provenance: str
+    uncertainty_ns: int
+    quality: ObservationQuality
+    validity: ObservationValidity
+    def __init__(self, observation_id: _Optional[str] = ..., generation: _Optional[_Union[ObservationGeneration, _Mapping]] = ..., time_unix_ns: _Optional[int] = ..., acquired_at_unix_ns: _Optional[int] = ..., clock_source: _Optional[_Union[ClockSource, str]] = ..., provenance: _Optional[str] = ..., uncertainty_ns: _Optional[int] = ..., quality: _Optional[_Union[ObservationQuality, str]] = ..., validity: _Optional[_Union[ObservationValidity, str]] = ...) -> None: ...
+
+class DriverTelemetrySample(_message.Message):
+    __slots__ = ("observation_id", "generation", "sample_identity", "item_identity", "raw_value", "engineering_value", "description", "unit", "acquired_at_unix_ns", "source", "clock_provenance", "clock_uncertainty_ns", "validity", "quality", "quality_reason")
+    OBSERVATION_ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_FIELD_NUMBER: _ClassVar[int]
+    SAMPLE_IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    ITEM_IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    RAW_VALUE_FIELD_NUMBER: _ClassVar[int]
+    ENGINEERING_VALUE_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    UNIT_FIELD_NUMBER: _ClassVar[int]
+    ACQUIRED_AT_UNIX_NS_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    CLOCK_PROVENANCE_FIELD_NUMBER: _ClassVar[int]
+    CLOCK_UNCERTAINTY_NS_FIELD_NUMBER: _ClassVar[int]
+    VALIDITY_FIELD_NUMBER: _ClassVar[int]
+    QUALITY_FIELD_NUMBER: _ClassVar[int]
+    QUALITY_REASON_FIELD_NUMBER: _ClassVar[int]
+    observation_id: str
+    generation: ObservationGeneration
+    sample_identity: SampleIdentity
+    item_identity: ItemIdentity
+    raw_value: ScalarValue
+    engineering_value: ScalarValue
+    description: str
+    unit: str
+    acquired_at_unix_ns: int
+    source: str
+    clock_provenance: str
+    clock_uncertainty_ns: int
+    validity: ObservationValidity
+    quality: ObservationQuality
+    quality_reason: str
+    def __init__(self, observation_id: _Optional[str] = ..., generation: _Optional[_Union[ObservationGeneration, _Mapping]] = ..., sample_identity: _Optional[_Union[SampleIdentity, _Mapping]] = ..., item_identity: _Optional[_Union[ItemIdentity, _Mapping]] = ..., raw_value: _Optional[_Union[ScalarValue, _Mapping]] = ..., engineering_value: _Optional[_Union[ScalarValue, _Mapping]] = ..., description: _Optional[str] = ..., unit: _Optional[str] = ..., acquired_at_unix_ns: _Optional[int] = ..., source: _Optional[str] = ..., clock_provenance: _Optional[str] = ..., clock_uncertainty_ns: _Optional[int] = ..., validity: _Optional[_Union[ObservationValidity, str]] = ..., quality: _Optional[_Union[ObservationQuality, str]] = ..., quality_reason: _Optional[str] = ...) -> None: ...
+
+class GapBounds(_message.Message):
+    __slots__ = ("source_epoch", "first_available_sequence", "last_available_sequence")
+    SOURCE_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    FIRST_AVAILABLE_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    LAST_AVAILABLE_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    source_epoch: str
+    first_available_sequence: int
+    last_available_sequence: int
+    def __init__(self, source_epoch: _Optional[str] = ..., first_available_sequence: _Optional[int] = ..., last_available_sequence: _Optional[int] = ...) -> None: ...
+
+class GetTimeRequest(_message.Message):
+    __slots__ = ("identity",)
+    IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    identity: ObservationRequestIdentity
+    def __init__(self, identity: _Optional[_Union[ObservationRequestIdentity, _Mapping]] = ...) -> None: ...
+
+class GetTimeResponse(_message.Message):
+    __slots__ = ("contract_version", "result_code", "observation", "error")
+    CONTRACT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    RESULT_CODE_FIELD_NUMBER: _ClassVar[int]
+    OBSERVATION_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    contract_version: ContractVersion
+    result_code: ObservationResultCode
+    observation: DriverTimeObservation
+    error: ObservationError
+    def __init__(self, contract_version: _Optional[_Union[ContractVersion, _Mapping]] = ..., result_code: _Optional[_Union[ObservationResultCode, str]] = ..., observation: _Optional[_Union[DriverTimeObservation, _Mapping]] = ..., error: _Optional[_Union[ObservationError, _Mapping]] = ...) -> None: ...
+
+class GetTMRequest(_message.Message):
+    __slots__ = ("identity", "item_id", "mode", "source_epoch", "after_source_sequence")
+    IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    MODE_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    AFTER_SOURCE_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    identity: ObservationRequestIdentity
+    item_id: str
+    mode: GetTMMode
+    source_epoch: str
+    after_source_sequence: int
+    def __init__(self, identity: _Optional[_Union[ObservationRequestIdentity, _Mapping]] = ..., item_id: _Optional[str] = ..., mode: _Optional[_Union[GetTMMode, str]] = ..., source_epoch: _Optional[str] = ..., after_source_sequence: _Optional[int] = ...) -> None: ...
+
+class GetTMResponse(_message.Message):
+    __slots__ = ("contract_version", "result_code", "sample", "gap", "error")
+    CONTRACT_VERSION_FIELD_NUMBER: _ClassVar[int]
+    RESULT_CODE_FIELD_NUMBER: _ClassVar[int]
+    SAMPLE_FIELD_NUMBER: _ClassVar[int]
+    GAP_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    contract_version: ContractVersion
+    result_code: ObservationResultCode
+    sample: DriverTelemetrySample
+    gap: GapBounds
+    error: ObservationError
+    def __init__(self, contract_version: _Optional[_Union[ContractVersion, _Mapping]] = ..., result_code: _Optional[_Union[ObservationResultCode, str]] = ..., sample: _Optional[_Union[DriverTelemetrySample, _Mapping]] = ..., gap: _Optional[_Union[GapBounds, _Mapping]] = ..., error: _Optional[_Union[ObservationError, _Mapping]] = ...) -> None: ...

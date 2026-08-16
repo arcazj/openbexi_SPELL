@@ -1,4 +1,4 @@
-"""Generate and verify the Candidate A protobuf artifacts deterministically."""
+"""Generate and verify the typed driver protobuf artifacts deterministically."""
 
 from __future__ import annotations
 
@@ -32,6 +32,12 @@ EXPECTED_METHODS = (
     "CancelLifecycleOperation",
     "DrainHost",
     "GetOperation",
+)
+EXPECTED_OBSERVATION_SERVICE = "spell.driver.v1.DriverObservationService"
+EXPECTED_OBSERVATION_METHODS = ("GetTime", "GetTM")
+EXPECTED_SERVICES = (
+    (EXPECTED_SERVICE, EXPECTED_METHODS),
+    (EXPECTED_OBSERVATION_SERVICE, EXPECTED_OBSERVATION_METHODS),
 )
 
 
@@ -91,8 +97,8 @@ def _validate_descriptor(path: Path) -> None:
                         None,
                     )
                     if target is not None and target.options.map_entry:
-                        raise RuntimeError("protobuf map fields are outside Candidate A")
-    if services != [(EXPECTED_SERVICE, EXPECTED_METHODS)]:
+                        raise RuntimeError("protobuf map fields are outside the driver contract")
+    if tuple(services) != EXPECTED_SERVICES:
         raise RuntimeError(f"descriptor RPC surface differs: {services!r}")
 
 
@@ -139,7 +145,8 @@ def main() -> int:
             _check_or_write(first, first_root, args.write)
             digest = hashlib.sha256((first_root / DESCRIPTOR_RELATIVE).read_bytes()).hexdigest()
             print(
-                f"service={EXPECTED_SERVICE} methods={len(EXPECTED_METHODS)} "
+                "infrastructure_service=spell.driver.v1.DriverInfrastructureService "
+                "infrastructure_methods=9 observation_methods=2 "
                 f"descriptor_sha256={digest} deterministic=true"
             )
     return 0

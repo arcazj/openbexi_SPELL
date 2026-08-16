@@ -127,3 +127,38 @@ def test_aio_interceptor_replaces_the_handler_raw_request_deserializer() -> None
         assert calls == [valid]
 
     asyncio.run(scenario())
+
+
+def test_observation_rpc_uses_the_same_strict_raw_wire_boundary() -> None:
+    calls: list[object] = []
+
+    async def behavior(request, _context):
+        calls.append(request)
+        return driver_pb2.GetTMResponse()
+
+    original = grpc.unary_unary_rpc_method_handler(
+        behavior,
+        request_deserializer=driver_pb2.GetTMRequest.FromString,
+        response_serializer=driver_pb2.GetTMResponse.SerializeToString,
+    )
+
+    async def continuation(_details):
+        return original
+
+    async def scenario() -> None:
+        interceptor = StrictDriverWireInterceptor()
+        wrapped = await interceptor.intercept_service(
+            continuation,
+            SimpleNamespace(method="/spell.driver.v1.DriverObservationService/GetTM"),
+        )
+        first = _length_field(2, b"TM.POWER.BUS_VOLTAGE")
+        second = _length_field(2, b"TM.POWER.SAFE_MODE")
+        ambiguous = first + second
+        assert driver_pb2.GetTMRequest.FromString(ambiguous).item_id == (
+            "TM.POWER.SAFE_MODE"
+        )
+        invalid = wrapped.request_deserializer(ambiguous)
+        assert type(invalid).__name__ == "_InvalidWireRequest"
+        assert calls == []
+
+    asyncio.run(scenario())

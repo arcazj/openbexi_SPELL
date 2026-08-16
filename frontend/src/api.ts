@@ -6,6 +6,7 @@ import type {
   DriverContextGeneration,
   DriverOperation,
   DriverRecord,
+  DriverTimeObservation,
   ContextSummary,
   ControllerHandover,
   ControllerLease,
@@ -23,6 +24,9 @@ import type {
   ProcedureRevision,
   ProcedureSummary,
   ProcedureValidationResult,
+  TelemetryConditionPlan,
+  TelemetryConditionSchedule,
+  TelemetryObservationSnapshot,
   WorkspaceHistoryResult,
   WorkspaceHistoryView,
   WorkspaceSearchResult,
@@ -453,6 +457,51 @@ function normalizeSchedule(raw: JsonObject): ExecutionSchedule {
   };
 }
 
+function normalizeTelemetryConditionSchedule(raw: JsonObject): TelemetryConditionSchedule {
+  const argumentsValue = raw.arguments;
+  return {
+    schedule_id: String(raw.schedule_id ?? raw.id ?? ""),
+    idempotency_key: String(raw.idempotency_key ?? ""),
+    revision: Number(raw.revision ?? 0),
+    controller_execution_id: String(raw.controller_execution_id ?? ""),
+    schedule_type: "TELEMETRY_CONDITION",
+    state: String(raw.state ?? "PENDING").toUpperCase() as TelemetryConditionSchedule["state"],
+    condition_plan_id: String(raw.condition_plan_id ?? ""),
+    condition_plan_digest: String(raw.condition_plan_digest ?? ""),
+    quality_freshness_policy_id: String(raw.quality_freshness_policy_id ?? ""),
+    quality_freshness_policy_revision: String(raw.quality_freshness_policy_revision ?? ""),
+    start_snapshot_cursor: String(raw.start_snapshot_cursor ?? "0"),
+    last_snapshot_cursor: raw.last_snapshot_cursor == null ? null : String(raw.last_snapshot_cursor),
+    attempt_count: Number(raw.attempt_count ?? 0),
+    retry_count: Number(raw.retry_count ?? 0),
+    retry_interval_ns: Number(raw.retry_interval_ns ?? 0),
+    next_attempt_at_database_time: raw.next_attempt_at_database_time == null ? null : String(raw.next_attempt_at_database_time),
+    created_at_database_time: raw.created_at_database_time == null ? null : String(raw.created_at_database_time),
+    deadline_at_database_time: String(raw.deadline_at_database_time ?? ""),
+    procedure_catalog_id: String(raw.procedure_catalog_id ?? ""),
+    procedure_revision: Number(raw.procedure_revision ?? 0),
+    bundle_digest: String(raw.bundle_digest ?? ""),
+    context_id: String(raw.context_id ?? "simulator"),
+    arguments: typeof argumentsValue === "object" && argumentsValue !== null && !Array.isArray(argumentsValue)
+      ? argumentsValue as Record<string, unknown>
+      : {},
+    arguments_digest: String(raw.arguments_digest ?? ""),
+    automatic: Boolean(raw.automatic),
+    background_allowed: Boolean(raw.background_allowed),
+    visible: Boolean(raw.visible),
+    created_by: optionalString(raw.created_by),
+    last_evaluation_id: raw.last_evaluation_id == null ? null : String(raw.last_evaluation_id),
+    winning_evaluation_id: raw.winning_evaluation_id == null ? null : String(raw.winning_evaluation_id),
+    occurrence_id: raw.occurrence_id == null ? null : String(raw.occurrence_id),
+    fired_execution_id: raw.fired_execution_id == null ? null : String(raw.fired_execution_id),
+    dispatch_attempts: Number(raw.dispatch_attempts ?? 0),
+    failure_code: raw.failure_code == null ? null : String(raw.failure_code),
+    error_message: raw.error_message == null ? null : String(raw.error_message),
+    claimed_at_database_time: raw.claimed_at_database_time == null ? null : String(raw.claimed_at_database_time),
+    settled_at_database_time: raw.settled_at_database_time == null ? null : String(raw.settled_at_database_time),
+  };
+}
+
 function normalizeInspection(raw: JsonObject): InspectionValue {
   return {
     path: String(raw.path),
@@ -632,6 +681,23 @@ export interface ControlProof {
   control_fencing_token?: number;
 }
 
+export interface TelemetryScheduleCreateInput {
+  controller_execution_id: string;
+  condition_plan: TelemetryConditionPlan;
+  timeout_seconds: number;
+  retry_count?: number;
+  retry_interval_seconds?: number;
+  procedure_catalog_id: string;
+  procedure_revision?: number;
+  context_id: string;
+  arguments?: Record<string, unknown>;
+  automatic: boolean;
+  background_allowed: boolean;
+  visible?: boolean;
+  expected_execution_revision: number;
+  proof: ControlProof;
+}
+
 export interface PromptResponseResult {
   prompt: {
     id?: string;
@@ -666,7 +732,7 @@ export const api = {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.6.0"),
+      version: String(raw.version ?? "0.7.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,
@@ -1029,6 +1095,57 @@ export const api = {
     return normalizeSchedule(unwrapResource<JsonObject>(body, "schedule"));
   },
 
+  async telemetrySchedules(controllerExecutionId?: string): Promise<TelemetryConditionSchedule[]> {
+    const query = controllerExecutionId
+      ? `?${new URLSearchParams({ controller_execution_id: controllerExecutionId })}`
+      : "";
+    const body = await request<{ items: JsonObject[] }>(`/telemetry-schedules${query}`);
+    return body.items.map(normalizeTelemetryConditionSchedule);
+  },
+
+  async telemetrySchedule(scheduleId: string): Promise<TelemetryConditionSchedule> {
+    const body = await request<JsonObject | { schedule: JsonObject }>(
+      `/telemetry-schedules/${encodeURIComponent(scheduleId)}`,
+    );
+    return normalizeTelemetryConditionSchedule(unwrapResource<JsonObject>(body, "schedule"));
+  },
+
+  async createTelemetrySchedule(input: TelemetryScheduleCreateInput): Promise<TelemetryConditionSchedule> {
+    const { proof, ...schedule } = input;
+    const body = await request<JsonObject | { schedule: JsonObject }>("/telemetry-schedules", {
+      method: "POST",
+      body: JSON.stringify({
+        ...schedule,
+        ...mutationProof(proof),
+        idempotency_key: crypto.randomUUID(),
+        reason: "Telemetry-conditioned schedule created by SPELL console operator",
+      }),
+    });
+    return normalizeTelemetryConditionSchedule(unwrapResource<JsonObject>(body, "schedule"));
+  },
+
+  async cancelTelemetrySchedule(
+    scheduleId: string,
+    controllerExecutionId: string,
+    revision: number,
+    proof: ControlProof,
+  ): Promise<TelemetryConditionSchedule> {
+    const body = await request<JsonObject | { schedule: JsonObject }>(
+      `/telemetry-schedules/${encodeURIComponent(scheduleId)}/cancel`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          controller_execution_id: controllerExecutionId,
+          expected_schedule_revision: revision,
+          ...mutationProof(proof),
+          idempotency_key: crypto.randomUUID(),
+          reason: "Telemetry-conditioned schedule cancelled by SPELL console operator",
+        }),
+      },
+    );
+    return normalizeTelemetryConditionSchedule(unwrapResource<JsonObject>(body, "schedule"));
+  },
+
   async inspection(executionId: string): Promise<InspectionValue[]> {
     const body = await request<{ items: JsonObject[] }>(`/executions/${encodeURIComponent(executionId)}/inspection`);
     return body.items.map(normalizeInspection);
@@ -1177,6 +1294,24 @@ export const api = {
     );
     return unwrapResource(body, "operation");
   },
+
+  async driverTime(contextId: string): Promise<DriverTimeObservation> {
+    const query = new URLSearchParams({ context_id: contextId });
+    const body = await request<
+      DriverTimeObservation | { driver_time: DriverTimeObservation }
+    >(
+      `/driver-time?${query.toString()}`,
+    );
+    return unwrapResource(body, "driver_time");
+  },
+
+  async telemetrySnapshot(contextId: string): Promise<TelemetryObservationSnapshot> {
+    const query = new URLSearchParams({ context_id: contextId });
+    const body = await request<
+      TelemetryObservationSnapshot | { snapshot: TelemetryObservationSnapshot }
+    >(`/telemetry/snapshot?${query.toString()}`);
+    return unwrapResource(body, "snapshot");
+  },
 };
 
 export function websocketUrl(executionId: string, afterSequence: number): string {
@@ -1192,6 +1327,20 @@ export function driverWebsocketUrl(afterSequence: number): string {
   const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
   const query = new URLSearchParams({ after_sequence: String(afterSequence) });
   return `${scheme}//${window.location.host}${API_ROOT}/driver-events/ws?${query.toString()}`;
+}
+
+export function telemetryWebsocketUrl(
+  contextId: string,
+  afterSequence: string,
+  streamEpoch?: string,
+): string {
+  const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const query = new URLSearchParams({
+    context_id: contextId,
+    after_sequence: afterSequence,
+  });
+  if (streamEpoch) query.set("stream_epoch", streamEpoch);
+  return `${scheme}//${window.location.host}${API_ROOT}/telemetry-events/ws?${query.toString()}`;
 }
 
 export function websocketProtocols(): string[] {

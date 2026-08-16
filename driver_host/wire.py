@@ -162,10 +162,10 @@ def validate_protobuf_wire(
                 raise DecodeError("conflicting oneof fields")
 
 
-_SERVICE = driver_pb2.DESCRIPTOR.services_by_name["DriverInfrastructureService"]
 _REQUEST_DESCRIPTORS = {
-    f"/{_SERVICE.full_name}/{method.name}": method.input_type
-    for method in _SERVICE.methods
+    f"/{service.full_name}/{method.name}": method.input_type
+    for service in driver_pb2.DESCRIPTOR.services_by_name.values()
+    for method in service.methods
 }
 
 
