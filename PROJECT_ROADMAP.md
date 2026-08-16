@@ -4,16 +4,16 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.5.0 baseline and pending v0.6 candidate closeout |
-| Update type | Accepted-release status, bounded implementation, and fail-closed closeout preparation |
-| Updated | 2026-08-15 |
+| Document revision | Accepted v0.5.0 baseline and authorized v0.6 release closeout |
+| Update type | Accepted-release status, bounded candidate qualification, and Gate 0B closeout authorization |
+| Updated | 2026-08-16 |
 | Current accepted product baseline | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
-| v0.6 status | Candidate implementation and exact ten-suite/45-ID closeout contract prepared; `V06-GATE-0B PENDING_CANDIDATE`; no release or tag claim |
+| v0.6 status | Candidate `0ea26105e72d7830de4a265989ed7d9074ffbe09`; ten suites and 45 identities PASS; nine work packages `IMPLEMENTED_AND_QUALIFIED`; `V06-GATE-0B PASS` authorizes closeout; Final, four v0.6 SBOMs, supply-chain evidence, package and sidecar, release commit, and tag pending |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Candidate adds internal opt-in IR 0.6, local operator API/UI, and migration 0004 while preserving accepted IR 0.3 bytes; no new runtime dependency or driver-contract change; product metadata 0.6.0 |
+| Runtime, API, schema, frontend, dependency, or driver change | Candidate adds internal opt-in IR 0.6, local operator API/UI, and migration 0004 while preserving accepted IR 0.3 bytes; PostgreSQL image package updated from vulnerable 18.4-r0 to 18.6-r0 with no new dependency or driver-contract change; product metadata 0.6.0 |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -219,8 +219,10 @@ strengthens them:
 v0.2, v0.3, v0.4, and v0.5 are accepted product releases. v0.1 is a delivered planning
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
-is a planning label until its applicable gate is approved. v0.6 has passed its
-bounded Gate 0A, which authorizes nine exact work packages but claims no result.
+is a planning label until its applicable gate is approved. v0.6 passed its
+bounded Gate 0A and now has canonical ten-suite/45-identity candidate evidence
+plus Gate 0B release-closeout authorization; Final release acceptance remains
+pending.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -231,7 +233,7 @@ bounded Gate 0A, which authorizes nine exact work packages but claims no result.
 | NG spec 0.1 | Next-Generation Design Specification | Documentation-only | Draft prepared | Convert the complete manual review and modernization objectives into a controlled, implementation-ready web/server/data/security/operations blueprint while preserving the two core 2.4.4 authorities. This specification version is independent of product versions. | Multidisciplinary approval, closed phase-entry decisions, feature-level compatibility rows, verified traceability, and a signed documentation baseline. |
 | v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
 | v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
-| v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate implementation and exact closeout contract prepared; `V06-GATE-0B PENDING_CANDIDATE`; no release/tag claim | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Pending: canonical ten-suite evidence, 45 mapped passing identities, Gate 0B, Final, supply chain, deterministic package, release commit, and annotated `v0.6.0` tag. |
+| v0.6 | Durable Operator Workspace and Procedure Composition | Product | Candidate implemented and qualified; ten suites and 45 identities PASS; `V06-GATE-0B PASS`; closeout authorized but no release/tag claim | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Completed: candidate `0ea26105e72d7830de4a265989ed7d9074ffbe09`, evidence SHA-256 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`, nine work packages `IMPLEMENTED_AND_QUALIFIED`. Pending: Final, four v0.6 SBOMs, supply-chain evidence, deterministic package and committed sidecar, release commit, and annotated `v0.6.0` tag. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Candidate | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Accepted typed driver/runtime foundation and approved telemetry identity, quality, time, condition, resource, lookup, and stream contracts. |
 | v0.8 | Data and Local Service Compatibility | Product | Candidate | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
 | v0.9 | SPELL Development Environment | Product | Candidate | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Stable compatibility grammar/catalog schemas, approved non-executing language-service design, and authoring acceptance plan. |
@@ -637,10 +639,14 @@ simulator-only 2D workspace.
 
 Current disposition: the owner explicitly approved the exact bounded scope in
 [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
-`V06-GATE-0A PASS` authorized the following work packages. Their bounded
-candidate implementation and exact ten-suite/45-ID evidence contract are now
-prepared, but canonical candidate evidence and `V06-GATE-0B` remain pending.
-No package is yet recorded as qualified, accepted, or released.
+`V06-GATE-0A PASS` authorized the following work packages. Candidate commit
+`0ea26105e72d7830de4a265989ed7d9074ffbe09` and canonical evidence SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`
+now bind ten passing suites and all 45 required identities. `V06-GATE-0B PASS`
+records all nine work packages as `IMPLEMENTED_AND_QUALIFIED` and authorizes
+release closeout. Final qualification, four v0.6 SBOMs, supply-chain evidence,
+the deterministic package and committed sidecar, the release commit, and the
+annotated tag remain pending; v0.6 is not yet an accepted release.
 
 | Planned identity | Bounded requirement and acceptance focus |
 | --- | --- |

@@ -37,23 +37,27 @@ supply-chain audit passed with zero High or Critical findings. The deterministic
 archive SHA-256 is
 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241`.
 
-## Version 0.6 Candidate Closeout
+## Version 0.6 Gate 0B Closeout
 
 The owner has requested completion of v0.6, Durable Operator Workspace and
-Procedure Composition. Its nine planned operator work packages are
+Procedure Composition. Its nine bounded operator work packages are
 `V06-OP-001` through `V06-OP-009`, covering context/catalog/instances,
 control leases and modes, the command matrix, durable prompts, schedules,
 operator views and bounded inspection, safe named user actions, durable
 `StartProc`, and cross-feature recovery/security. The owner explicitly approved
 the exact bounded gate in
 [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md), so
-`V06-GATE-0A PASS` authorizes those nine work packages. A bounded candidate
-implementation, ten-suite/45-ID qualification contract, version-scoped release
-tooling, and pending Gate 0B/release records now exist. Canonical candidate
-evidence has not yet activated
-[`V06-GATE-0B`](SPELL_v0.6_Gate_0B.md), so no v0.6 release, tag, deployment,
-operational authorization, broad compatibility, or compliance result is
-claimed.
+`V06-GATE-0A PASS` authorized those nine work packages. Candidate commit
+`0ea26105e72d7830de4a265989ed7d9074ffbe09` is now bound to canonical
+work-package evidence SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
+All ten suites and all 45 mapped identities PASS, all nine work packages are
+`IMPLEMENTED_AND_QUALIFIED`, and
+[`V06-GATE-0B PASS`](SPELL_v0.6_Gate_0B.md) authorizes release closeout.
+Final qualification, four v0.6 SBOMs, supply-chain evidence, the deterministic
+package and committed sidecar, the release commit, and annotated `v0.6.0` tag
+remain pending. No v0.6 release, deployment, operational authorization, broad
+compatibility, or compliance result is claimed.
 
 ## Version 0.3 Foundation
 
@@ -190,6 +194,15 @@ The v0.5 package excludes qualification staging, retained v0.4 evidence,
 legacy archives, supplied/generated PDFs, secrets, and runtime journals.
 Product PNG and other required visual assets remain included.
 
+The canonical v0.6 candidate record at
+`artifacts/v0.6/work-package/qualification.json` passes for candidate
+`0ea26105e72d7830de4a265989ed7d9074ffbe09` with SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
+Its ten suites prove all 45 required identities without a mapped skip, failure,
+accepted failure, or waiver. Gate 0B authorizes closeout only; the v0.5.0
+accepted baseline remains unchanged until every v0.6 Final and tag condition
+passes.
+
 ## Project Documents
 
 | Document | Purpose |
@@ -208,7 +221,7 @@ Product PNG and other required visual assets remain included.
 | [`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) | Gate 0B release-closeout authorization; not final release acceptance |
 | [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) | v0.5.0 conditional closeout record and post-tag acceptance verification |
 | [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md) | Approved Gate 0A scope for the nine bounded operator work packages; not implementation or release acceptance |
-| [`SPELL_v0.6_Gate_0B.md`](SPELL_v0.6_Gate_0B.md) | Pending evidence-bound closeout contract and deterministic activation/freeze sequence |
+| [`SPELL_v0.6_Gate_0B.md`](SPELL_v0.6_Gate_0B.md) | Evidence-bound Gate 0B PASS and authorized deterministic release-closeout sequence |
 | [`SPELL_v0.6_Release.md`](SPELL_v0.6_Release.md) | Conditional v0.6.0 release record; Final evidence, release commit, and annotated tag pending |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
@@ -232,8 +245,10 @@ are static source and negative-scope evidence, not implementations or executed
 semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
 The accepted v0.4 Gate 1-5 evidence remains immutable. The accepted v0.5
-release evidence is likewise fixed by its annotated tag. v0.6 Gate 0A now
-authorizes the nine exact work packages but claims no implementation result.
+release evidence is likewise fixed by its annotated tag. v0.6 Gate 0A
+authorized the nine exact work packages, and Gate 0B now records all nine as
+implemented and qualified for closeout without claiming Final release
+acceptance.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4

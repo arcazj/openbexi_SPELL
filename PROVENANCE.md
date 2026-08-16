@@ -3,15 +3,30 @@
 ## Record Status
 
 This record retains the bounded SPELL v0.5.0 release provenance and records the
-pending v0.6 candidate closeout boundary. SPELL v0.5.0 remains the accepted
-local-only, synthetic, non-CUI simulator engineering baseline at
+v0.6 candidate qualification and Gate 0B closeout authorization. SPELL v0.5.0
+remains the accepted local-only, synthetic, non-CUI simulator engineering
+baseline at
 annotated tag `v0.5.0`, tag object
 `a1b277d74d2fb19062ca3e4388e9104d45c50ec4`, and release commit
 `e7b6bb9428833437e0160040541eb840deee7cca`. `V05-GATE-0B PASS` limited the
 release to `V05-IR-001`. Final validation, four image-bound SBOMs,
 supply-chain review, deterministic packaging, release-evidence validation,
-and annotated tagging passed with no accepted exceptions. This document makes
-no compliance, deployment, mission, or operational authorization claim.
+and annotated tagging passed with no accepted exceptions.
+
+For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
+is bound to canonical work-package evidence SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
+All ten suites and all 45 identities PASS, all nine work packages are
+`IMPLEMENTED_AND_QUALIFIED`, and `V06-GATE-0B PASS` authorizes release
+closeout. Final qualification, four v0.6 SBOMs, supply-chain evidence, the
+deterministic package and committed sidecar, the release commit, and the
+annotated `v0.6.0` tag remain pending. This document makes no compliance,
+deployment, mission, or operational authorization claim.
+
+Before this binding, Docker Scout identified 18 High findings in the pinned
+`postgresql18=18.4-r0` local image package. The candidate updates that exact
+pin to patched `18.6-r0` and re-runs the complete SQLite and isolated
+PostgreSQL inventories. No vulnerability waiver or accepted exception is used.
 
 ## AI Assistance Record
 
@@ -205,12 +220,19 @@ recorded in the release commit; no post-tag documentation commit was required.
 
 The approved v0.6 Gate 0A scope inherits this clean-room boundary.
 `V06-GATE-0A PASS` authorizes only `V06-OP-001` through `V06-OP-009`; it does
-not itself qualify or accept an implementation. The current candidate adds
+not itself qualify or accept an implementation. Candidate commit
+`0ea26105e72d7830de4a265989ed7d9074ffbe09` adds
 internal opt-in IR 0.6, the local operator API/UI, and migration 0004 while
 pinning accepted IR 0.3 bytes, adding no runtime dependency, and retaining the
-bundled simulator driver implementation/default at `0.4.0`. The exact
-ten-suite/45-ID candidate evidence, Final evidence, four v0.6 SBOMs,
-supply-chain result, and deterministic package must be generated and validated
-under `artifacts/v0.6`; none may reuse or rewrite canonical v0.5 evidence.
-`V06-GATE-0B` remains pending until canonical candidate evidence passes with
-zero mapped skips, failures, accepted failures, or waivers.
+bundled simulator driver implementation/default at `0.4.0`.
+
+Canonical work-package evidence SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`
+binds that candidate. All ten suites and all 45 identities PASS with zero
+mapped skips, failures, accepted failures, or waivers. `V06-GATE-0B PASS`
+records all nine work packages as `IMPLEMENTED_AND_QUALIFIED` and authorizes
+release closeout. It does not accept v0.6: Final qualification, four v0.6
+SBOMs, supply-chain evidence, the deterministic package and committed sidecar,
+the release commit, and the annotated `v0.6.0` tag remain pending under
+`artifacts/v0.6`. None may reuse or rewrite canonical v0.5 evidence, and the
+accepted v0.5.0 baseline remains unchanged.

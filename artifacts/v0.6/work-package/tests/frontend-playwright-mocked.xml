@@ -1,0 +1,10 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="5.1628680000000005">
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-16T16:39:32.796Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.047" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="3.047">
+</testcase>
+</testsuite>
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-16T16:39:32.796Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.95" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="2.95">
+</testcase>
+</testsuite>
+</testsuites>
