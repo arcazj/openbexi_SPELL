@@ -7,8 +7,8 @@
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
 | Planning target | SPELL v0.6 Durable Operator Workspace and Procedure Composition |
-| Status | v0.5.0 accepted for `V05-IR-001`; v0.6 candidate and ten-suite/45-ID contract prepared; `V06-GATE-0B PENDING_CANDIDATE`; no release or tag claim |
-| Date | Updated 2026-08-15 |
+| Status | v0.5.0 accepted for `V05-IR-001` and unchanged; v0.6 candidate `0ea26105e72d7830de4a265989ed7d9074ffbe09` qualified across ten suites/45 identities; `V06-GATE-0B PASS`, closeout authorized; Final, SBOM, supply-chain, package, release commit, and tag pending |
+| Date | Updated 2026-08-16 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
@@ -47,23 +47,38 @@ current-source qualification, dependency and image audit, distinct SBOMs,
 deterministic packaging, release evidence validation, a fixed release commit,
 and the one authorized annotated semantic-version tag.
 
-### Candidate Qualification And Gate 0B Contract
+### Candidate Qualification And Gate 0B Result
 
-Candidate qualification is fixed at ten exact suites: SQLite backend,
+Candidate qualification was fixed at ten exact suites: SQLite backend,
 isolated PostgreSQL backend, host Docker controls, bounded v0.6 replay soak,
 driver host, tooling, frontend Vitest, frontend build, mocked desktop/mobile
-Playwright, and live-backend Playwright. The canonical manifest must map every
-one of the 45 IDs above to concrete passing nodes. Mapped skips, accepted
-failures, and waivers are all forbidden.
+Playwright, and live-backend Playwright. The canonical manifest maps every one
+of the 45 IDs above to concrete passing nodes. All ten suites and all 45
+identities PASS; mapped skips, failures, accepted failures, and waivers are
+zero.
 
-The pending Gate 0B scope explicitly reviews internal IR 0.6, the additive
+The canonical record at `artifacts/v0.6/work-package/qualification.json` binds
+candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09` and has SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
+Gate 0B passed with the exact marker
+`gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
+All nine work packages are `IMPLEMENTED_AND_QUALIFIED`.
+
+The refrozen candidate also replaces the vulnerable local PostgreSQL image pin
+`postgresql18=18.4-r0` with patched `18.6-r0`. The complete isolated
+PostgreSQL inventory passed on the new pin; no vulnerability waiver or
+accepted exception is carried into release closeout.
+
+The Gate 0B scope explicitly reviewed internal IR 0.6, the additive
 local operator API and strict mutation schemas, and migration
 `0004_operator_workspace` with 20 new tables. Accepted `backend/ir_v03.py`
 bytes remain pinned; no broad legacy/API/database compatibility, new runtime
 dependency, driver-contract change, live route, deployment, operational, or
-compliance result is claimed. Gate 0B remains denied until the frozen candidate
-commit and canonical manifest digest are bound and the independent candidate
-validator passes.
+compliance result is claimed. Gate 0B authorizes release closeout only and does
+not accept v0.6. SPELL v0.5.0 remains the accepted baseline unchanged. Final
+qualification, four v0.6 SBOMs, supply-chain evidence, the deterministic
+package and committed sidecar, the release commit, and the annotated `v0.6.0`
+tag remain pending.
 
 ## Version 0.5 Final Release Result
 

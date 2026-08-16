@@ -6,6 +6,30 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-16 - v0.6 Candidate Qualified And Gate 0B Passed
+
+### Candidate And Evidence Binding
+
+Candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09` is bound to the
+canonical work-package evidence at
+`artifacts/v0.6/work-package/qualification.json`, SHA-256
+`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
+All ten suites and all 45 planned identities PASS with no mapped skips,
+failures, accepted failures, or waivers. All nine `V06-OP-001` through
+`V06-OP-009` work packages are `IMPLEMENTED_AND_QUALIFIED`.
+
+Gate 0B passed and authorized release closeout with the exact validator marker
+`gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
+
+### Closeout Boundary
+
+Gate 0B authorizes release closeout only; it is not Final qualification or
+release acceptance. SPELL v0.5.0 remains the accepted baseline unchanged.
+Final qualification, four v0.6 SBOMs, supply-chain evidence, the deterministic
+package and committed sidecar, the release commit, and the annotated `v0.6.0`
+tag remain pending. No v0.6 release, deployment, operational authorization,
+compliance determination, or cryptographic-signature claim is made.
+
 ## 2026-08-15 - v0.5.0 Accepted And v0.6 Completion Requested
 
 ### Accepted Baseline

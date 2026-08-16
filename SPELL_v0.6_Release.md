@@ -7,12 +7,12 @@
 | --- | --- |
 | Version | SPELL v0.6.0 |
 | Release name | Durable Operator Workspace and Procedure Composition |
-| Record state | `CONDITIONAL_PENDING`; this document is not an acceptance claim |
+| Record state | `CONDITIONAL_FINAL_CLOSEOUT`; this document is not yet an acceptance claim |
 | Scope | `V06-OP-001` through `V06-OP-009` only |
 | Accepted baseline | SPELL v0.5.0, annotated tag `v0.5.0` |
 | Gate 0A | `PASS` at commit `f6eba8be0f7ca9e2f1d466aea66902152fb1bbc1` |
-| Gate 0B | `PENDING_CANDIDATE` |
-| Candidate source commit | Pending |
+| Gate 0B | `PASS` |
+| Candidate source commit | `0ea26105e72d7830de4a265989ed7d9074ffbe09` |
 | Final qualified source commit | Pending |
 | Release commit | Pending |
 | Release tag | Pending annotated tag `v0.6.0` |
@@ -145,8 +145,8 @@ independent validators pass:
 
 | Evidence | Required canonical location | Current value |
 | --- | --- | --- |
-| Candidate qualification | `artifacts/v0.6/work-package/qualification.json` | Pending |
-| Gate 0B machine scope | `.../scopes/v0.6-gate-0b.json` | Pending activation |
+| Candidate qualification | `artifacts/v0.6/work-package/qualification.json` | `PASS`; SHA-256 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538` |
+| Gate 0B machine scope | `.../scopes/v0.6-gate-0b.json` | `PASS`; SHA-256 `0deef3794c7dd34ef9995f95d33f2688aebfa198b96579e655273603555205bc` |
 | Final qualification | `artifacts/v0.6/final/qualification.json` | Pending |
 | Release qualification manifest | `artifacts/v0.6/release-qualification.json` | Pending |
 | Backend SBOM | `artifacts/v0.6/sbom/backend.cdx.json` | Pending |
@@ -211,7 +211,5 @@ not release evidence.
 ## Current Finding
 
 <!-- V06_RELEASE_CURRENT_FINDING_BEGIN -->
-SPELL v0.6.0 is not yet accepted by this record. Gate 0B activation, final
-qualification, supply-chain evidence, deterministic packaging, the release
-commit, annotated tag, and strict post-tag verification remain pending.
+Gate 0B has passed for the exact nine-package v0.6 candidate, but SPELL v0.6.0 is not yet accepted by this record. Final qualification, supply-chain evidence, deterministic packaging, the release commit, annotated tag, and strict post-tag verification remain pending.
 <!-- V06_RELEASE_CURRENT_FINDING_END -->
