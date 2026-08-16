@@ -1,0 +1,151 @@
+{
+  "schema_version": "spell.v07.resource-lookup-reads/1",
+  "contract_id": "V07-RESOURCE-LOOKUP-READS",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-006",
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "Test_and_Integration.md#driver-conformance",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "qualification_test_ids": [
+    "V07-OBS-006-UNIT",
+    "V07-OBS-006-INTEGRATION",
+    "V07-OBS-006-BOUNDARY",
+    "V07-OBS-006-RECOVERY",
+    "V07-OBS-006-SECURITY"
+  ],
+  "service_boundary": {
+    "mutability": "READ_ONLY",
+    "catalogs": "bundled deterministic simulator catalogs only",
+    "live_mission_route": false,
+    "legacy_adapter_route": false,
+    "generic_query_language": false,
+    "arbitrary_filter_string": false,
+    "filesystem_access": false,
+    "network_access": false
+  },
+  "catalog_identity": {
+    "required_fields": [
+      "CatalogId",
+      "CatalogKind",
+      "CatalogRevision",
+      "CatalogDigest"
+    ],
+    "rule": "Every read is pinned to one immutable finite catalog revision and returns that identity.",
+    "replacement_rule": "A catalog replacement creates a new revision and digest; results from different revisions are never merged."
+  },
+  "operations": [
+    {
+      "id": "GetResource",
+      "workload": "read one resource by exact typed ResourceId",
+      "input_fields": [
+        "CatalogId",
+        "CatalogDigest",
+        "ResourceType",
+        "ResourceId"
+      ],
+      "result_fields": [
+        "ResourceId",
+        "ResourceType",
+        "TypedValue",
+        "Unit",
+        "Description",
+        "CatalogRevision",
+        "CatalogDigest"
+      ],
+      "maximum_results": 1
+    },
+    {
+      "id": "MemoryLookup",
+      "workload": "read bounded simulator memory metadata by exact symbolic identity or bounded unsigned address range",
+      "input_fields": [
+        "CatalogId",
+        "CatalogDigest",
+        "MemoryRegionIdOrAddress",
+        "MaximumEntries"
+      ],
+      "result_fields": [
+        "MemoryRegionId",
+        "StartAddress",
+        "Length",
+        "ValueType",
+        "Description",
+        "CatalogRevision",
+        "CatalogDigest"
+      ],
+      "maximum_results": 128
+    },
+    {
+      "id": "TMTCLookup",
+      "workload": "read bounded TM or TC catalog metadata by exact ItemId or exact qualified name",
+      "input_fields": [
+        "CatalogId",
+        "CatalogDigest",
+        "Direction",
+        "ItemIdOrQualifiedName",
+        "MaximumEntries"
+      ],
+      "result_fields": [
+        "ItemId",
+        "QualifiedName",
+        "Direction",
+        "ValueType",
+        "Unit",
+        "Description",
+        "CatalogRevision",
+        "CatalogDigest"
+      ],
+      "maximum_results": 128
+    }
+  ],
+  "typed_values": [
+    "BOOLEAN",
+    "INT64",
+    "UINT64",
+    "FINITE_DOUBLE",
+    "STRING",
+    "BYTES"
+  ],
+  "query_rules": [
+    "Identifiers are bounded ASCII tokens or exact qualified names under the selected catalog schema.",
+    "Address arithmetic uses checked unsigned integers and rejects overflow, wrap, negative length, and cross-region reads.",
+    "Every collection query has an explicit maximum result count and deterministic ItemId ordering.",
+    "No wildcard, regular expression, SQL fragment, expression, callback, or executable predicate is accepted.",
+    "Unknown identity returns typed NOT_FOUND; a disabled capability returns UNSUPPORTED; neither outcome mutates state.",
+    "A response that exceeds byte, depth, or result bounds fails closed without returning a partial success."
+  ],
+  "consistency_rules": [
+    "One response is read entirely from one catalog revision and digest.",
+    "Restart reloads and verifies the same immutable bundled catalog before serving reads.",
+    "A digest mismatch makes the catalog unavailable and never falls back to a mutable working tree or legacy source.",
+    "Result ordering and canonical typed-value encoding are deterministic across SQLite and PostgreSQL control-plane deployments."
+  ],
+  "authorization_rules": [
+    "The backend checks catalog and item visibility before reading or returning metadata.",
+    "Rejected reads disclose neither hidden result counts nor neighboring identifiers.",
+    "Secrets, credentials, host paths, and unapproved raw memory content are never catalog values."
+  ],
+  "safe_outcomes": [
+    "OK",
+    "NOT_FOUND",
+    "UNSUPPORTED",
+    "STALE_CATALOG",
+    "BOUND_EXCEEDED",
+    "INVALID_ARGUMENT",
+    "CONTRACT_MISMATCH",
+    "INTERNAL"
+  ],
+  "forbidden_effects": [
+    "resource creation, update, or deletion",
+    "memory write",
+    "telecommand construction or dispatch",
+    "catalog mutation or promotion",
+    "driver lifecycle mutation",
+    "generic shell, file, process, or network access"
+  ]
+}

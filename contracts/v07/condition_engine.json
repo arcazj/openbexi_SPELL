@@ -1,0 +1,144 @@
+{
+  "schema_version": "spell.v07.condition-engine/1",
+  "contract_id": "V07-CONDITION-ENGINE",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-003",
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=39-47",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "qualification_test_ids": [
+    "V07-OBS-003-UNIT",
+    "V07-OBS-003-MATRIX",
+    "V07-OBS-003-CLOCK",
+    "V07-OBS-003-RECOVERY",
+    "V07-OBS-003-SECURITY"
+  ],
+  "plan_contract": {
+    "shape": "bounded declarative tree",
+    "immutable_identity": "ConditionPlanId and canonical ConditionPlanDigest",
+    "maximum_depth": 16,
+    "maximum_nodes": 128,
+    "maximum_operands": 256,
+    "arbitrary_code_execution": false,
+    "generic_expression_strings": false
+  },
+  "node_types": [
+    {
+      "id": "PREDICATE",
+      "arity": 2,
+      "result": "TRUE, FALSE, or INDETERMINATE"
+    },
+    {
+      "id": "AND",
+      "minimum_children": 2,
+      "result": "FALSE if any child is FALSE, TRUE if all are TRUE, otherwise INDETERMINATE"
+    },
+    {
+      "id": "OR",
+      "minimum_children": 2,
+      "result": "TRUE if any child is TRUE, FALSE if all are FALSE, otherwise INDETERMINATE"
+    }
+  ],
+  "operand_types": [
+    {
+      "id": "TELEMETRY",
+      "identity": "ItemId plus CatalogDigest",
+      "sample_requirement": "one durable sample reference from the evaluation snapshot"
+    },
+    {
+      "id": "LITERAL",
+      "identity": "canonical typed scalar digest",
+      "sample_requirement": "none"
+    }
+  ],
+  "comparisons": [
+    "EQ",
+    "NE",
+    "LT",
+    "LE",
+    "GT",
+    "GE"
+  ],
+  "comparison_rules": [
+    "Ordering comparisons require compatible numeric types or the same explicitly orderable scalar type.",
+    "EQ and NE compare canonical typed values; implicit string-to-number conversion is forbidden.",
+    "Tolerance is a finite nonnegative numeric scalar and is permitted only for compatible numeric EQ or NE predicates.",
+    "A missing, invalid, unacceptable-quality, stale, gapped, or clock-unacceptable sample produces INDETERMINATE under the pinned policy rather than FALSE.",
+    "NaN, infinity, type mismatch, unknown operator, and unbounded plans reject before evaluation."
+  ],
+  "quality_freshness_policy": {
+    "required_identity": "QualityFreshnessPolicyId and immutable policy revision",
+    "minimum_validity": "VALID",
+    "accepted_quality": [
+      "GOOD"
+    ],
+    "accepted_freshness": [
+      "FRESH"
+    ],
+    "gap_state": "INDETERMINATE",
+    "clock_uncertainty_exceeded": "INDETERMINATE",
+    "policy_change_rule": "A running evaluation retains its pinned policy revision."
+  },
+  "atomic_sampling": {
+    "unit": "the same committed telemetry snapshot cursor and source-epoch set for every leaf in one evaluation attempt",
+    "tm_to_tm": "Both telemetry operands resolve from the same committed snapshot cursor; each sample identity remains visible.",
+    "nested_tree": "Every leaf in one attempt uses the same snapshot cursor even when Boolean short-circuiting avoids unused reads.",
+    "retry": "Each retry may acquire one newer complete snapshot; samples from different attempts are never combined.",
+    "gap": "A cursor gap prevents an atomic result and produces INDETERMINATE with the gap fact."
+  },
+  "verify_options": {
+    "delay": "nonnegative duration before the first attempt, measured from the original durable start target",
+    "timeout": "bounded total duration including delay and retry intervals",
+    "retry_count": "bounded nonnegative integer",
+    "retry_interval": "bounded nonnegative duration",
+    "deadline_clock": "authoritative backend monotonic deadline correlated to recorded UTC database time",
+    "zero_retry_rule": "evaluate exactly once after any delay",
+    "deadline_rule": "No attempt starts after the deadline; an attempt already holding a complete snapshot may settle against that snapshot."
+  },
+  "result_contract": {
+    "states": [
+      "TRUE",
+      "FALSE",
+      "INDETERMINATE",
+      "TIMED_OUT",
+      "CANCELLED",
+      "REJECTED"
+    ],
+    "required_fields": [
+      "ConditionPlanId",
+      "ConditionPlanDigest",
+      "QualityFreshnessPolicyId",
+      "AttemptCount",
+      "StartedAtDatabaseTime",
+      "SettledAtDatabaseTime",
+      "SnapshotCursor",
+      "CompositeResult",
+      "LeafResults",
+      "ConsumedSampleIds"
+    ],
+    "leaf_result_fields": [
+      "NodeId",
+      "Operator",
+      "LeftTypedValueOrSampleId",
+      "RightTypedValueOrSampleId",
+      "Tolerance",
+      "Result",
+      "Reason"
+    ],
+    "durability_rule": "Any result consumed by procedure progress is durable before that progress settles.",
+    "external_effect_dispatch": false,
+    "external_effect_rule": "A v0.7 condition result cannot authorize or dispatch any external operation."
+  },
+  "restart_rule": "Resume the same ConditionPlanId, original deadline, retry budget, pinned policy, and last fully settled attempt; never extend timeout by downtime or reuse a partial attempt.",
+  "security_rules": [
+    "Condition plans contain only typed operands and enumerated operators.",
+    "Catalog authorization and telemetry visibility are checked server-side for every referenced item.",
+    "Results expose only authorized sample metadata and never leak hidden item counts through cursors."
+  ]
+}

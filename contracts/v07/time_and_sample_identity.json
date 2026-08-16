@@ -1,0 +1,212 @@
+{
+  "schema_version": "spell.v07.time-sample-identity/1",
+  "contract_id": "V07-TIME-SAMPLE-IDENTITY",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-001",
+  "additional_work_package_ids": [
+    "V07-OBS-002"
+  ],
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "Test_and_Integration.md#driver-conformance",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/DATA_ARCHITECTURE.md#telemetry-strategy",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "work_package_test_ids": {
+    "V07-OBS-001": [
+      "V07-OBS-001-UNIT",
+      "V07-OBS-001-CONTRACT",
+      "V07-OBS-001-CLOCK",
+      "V07-OBS-001-RECOVERY",
+      "V07-OBS-001-SECURITY"
+    ],
+    "V07-OBS-002": [
+      "V07-OBS-002-UNIT",
+      "V07-OBS-002-INTEGRATION",
+      "V07-OBS-002-ATOMIC",
+      "V07-OBS-002-QUALITY",
+      "V07-OBS-002-SECURITY"
+    ]
+  },
+  "service_boundary": {
+    "observation_service": "DriverObservationService",
+    "rpcs": [
+      "GetTime",
+      "GetTM"
+    ],
+    "transport": "bounded unary protobuf; GetTM NEXT is a cancellable bounded long poll",
+    "mutability": "READ_ONLY",
+    "lifecycle_operation_created": false,
+    "driver_effect_journal_entry_created": false,
+    "v04_driver_infrastructure_service_changed": false,
+    "v04_lifecycle_rpc_numbers_changed": false,
+    "v04_lifecycle_event_stream_changed": false
+  },
+  "get_time": {
+    "required_fields": [
+      "observation_id",
+      "driver_host_generation",
+      "time_unix_ns",
+      "acquired_at_unix_ns",
+      "received_at_unix_ns",
+      "clock_source",
+      "provenance",
+      "uncertainty_ns",
+      "quality",
+      "validity"
+    ],
+    "clock_sources": [
+      "SIMULATOR_GCS_TIME",
+      "SIMULATOR",
+      "HOST_FALLBACK"
+    ],
+    "source_rules": [
+      "The bundled deterministic simulator reports SIMULATOR or SIMULATOR_GCS_TIME with deterministic simulator provenance.",
+      "SIMULATOR_GCS_TIME is explicitly simulator-emulated and never claims live GCS, mission-network, or legacy-adapter evidence.",
+      "A host-clock fallback reports HOST_FALLBACK and never reports or implies GCS or SIMULATOR_GCS_TIME.",
+      "Live GCS, mission-network, and legacy-adapter clock routes are rejected and outside this gate.",
+      "Uncertainty is a nonnegative integer and is never omitted or inferred as zero."
+    ],
+    "time_rules": [
+      "All wire times are signed Unix nanoseconds with an explicit UTC interpretation.",
+      "The driver supplies acquisition time; the backend supplies receive time.",
+      "Clock regression, overflow, unavailable provenance, and excessive uncertainty are typed outcomes rather than substituted values."
+    ]
+  },
+  "scalar_value": {
+    "wire_shape": "oneof with one explicit type tag and one value",
+    "types": [
+      "BOOLEAN",
+      "INT64",
+      "UINT64",
+      "FINITE_DOUBLE",
+      "STRING",
+      "BYTES"
+    ],
+    "json_rules": {
+      "INT64": "canonical base-10 string",
+      "UINT64": "canonical base-10 string",
+      "FINITE_DOUBLE": "JSON number with NaN and infinity forbidden",
+      "BYTES": "canonical base64 string",
+      "BOOLEAN": "JSON boolean",
+      "STRING": "bounded UTF-8 string"
+    },
+    "forbidden": [
+      "implicit numeric conversion",
+      "ambiguous untagged JSON",
+      "NaN or infinity",
+      "duplicate oneof values",
+      "unbounded strings or bytes",
+      "generic object or expression payloads"
+    ]
+  },
+  "item_identity": {
+    "required_fields": [
+      "item_id",
+      "qualified_name",
+      "catalog_digest"
+    ],
+    "identity_rule": "ItemId and CatalogDigest identify one immutable bounded catalog definition; display names never substitute for ItemId.",
+    "catalog_rule": "The simulator catalog is finite, versioned, deterministic, and digest-bound. Unknown items return NOT_FOUND without mutation."
+  },
+  "sample_identity": {
+    "required_fields": [
+      "sample_id",
+      "item_id",
+      "source_id",
+      "source_epoch",
+      "source_sequence"
+    ],
+    "canonical_identity": "SampleId is the digest of SourceId, SourceEpoch, ItemId, and SourceSequence.",
+    "sequence_scope": "strictly increasing per SourceId, SourceEpoch, and ItemId",
+    "restart_rule": "A source restart creates a new SourceEpoch; sequences in different epochs are never numerically compared.",
+    "duplicate_rule": "The same identity and payload digest is idempotent; the same identity with different content is a contract violation.",
+    "gap_rule": "A jump beyond the next expected source sequence is preserved as an explicit gap and never synthesized away."
+  },
+  "telemetry_sample": {
+    "required_fields": [
+      "sample_identity",
+      "item_identity",
+      "raw_value",
+      "engineering_value",
+      "description",
+      "unit",
+      "acquired_at_unix_ns",
+      "received_at_unix_ns",
+      "source",
+      "clock_provenance",
+      "clock_uncertainty_ns",
+      "validity",
+      "quality",
+      "quality_reason",
+      "freshness",
+      "freshness_policy_revision"
+    ],
+    "validity_values": [
+      "VALID",
+      "INVALID",
+      "UNKNOWN"
+    ],
+    "quality_values": [
+      "GOOD",
+      "SUSPECT",
+      "BAD",
+      "UNKNOWN"
+    ],
+    "freshness_values": [
+      "FRESH",
+      "STALE",
+      "UNKNOWN"
+    ],
+    "orthogonality_rule": "Validity, quality, freshness, stream synchronization, and availability are independent facts and are never collapsed into one status.",
+    "atomicity_rule": "Raw value, engineering value, identity, time, source, validity, quality, and metadata come from one locked simulator sample and one source sequence.",
+    "receive_time_rule": "ReceivedAt is assigned by the backend authoritative clock at durable ingestion and cannot be supplied by the driver or browser.",
+    "freshness_rule": "Server policy evaluates freshness from the pinned policy revision, receive time, acquisition time when comparable, and clock uncertainty; browser age is presentation only."
+  },
+  "get_tm_modes": [
+    {
+      "id": "CURRENT",
+      "blocking": false,
+      "input": "complete context-generation tuple and ItemId",
+      "success": "the atomically captured latest sample",
+      "empty": "typed NOT_AVAILABLE",
+      "sequence_rule": "does not promise a sample newer than a caller cursor"
+    },
+    {
+      "id": "NEXT",
+      "blocking": true,
+      "input": "complete context-generation tuple, ItemId, SourceEpoch, AfterSourceSequence, and deadline",
+      "success": "one sample with SourceSequence strictly greater than AfterSourceSequence in the same SourceEpoch",
+      "empty": "typed DEADLINE_EXCEEDED or CANCELLED",
+      "sequence_rule": "never returns CURRENT as a substitute; unavailable retained history returns GAP with available bounds"
+    }
+  ],
+  "generation_fencing": [
+    "GetTM requires the exact active driver host and context-generation tuple.",
+    "NEXT revalidates the tuple after its wait and before returning a sample.",
+    "Context close, replacement, or host-generation change settles the query with STALE_GENERATION.",
+    "Observation queries do not reserve lifecycle capacity and cannot change context or attachment state."
+  ],
+  "durable_projection_rules": [
+    "One backend collector performs CURRENT bootstrap and then NEXT reads; browsers never advance the driver source cursor.",
+    "Sample, current-item head, source cursor, gap fact, and observation outbox event commit atomically.",
+    "The current head advances only for the same source epoch and a greater source sequence.",
+    "Restart resumes from the committed source cursor; source-epoch change bootstraps CURRENT without comparing epochs.",
+    "A freshness transition is committed once when policy changes FRESH to STALE and returns to FRESH only on qualifying new evidence."
+  ],
+  "safe_outcomes": [
+    "NOT_FOUND",
+    "NOT_AVAILABLE",
+    "DEADLINE_EXCEEDED",
+    "CANCELLED",
+    "GAP",
+    "STALE_GENERATION",
+    "CLOCK_UNCERTAIN",
+    "CONTRACT_MISMATCH",
+    "INTERNAL"
+  ]
+}

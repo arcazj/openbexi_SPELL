@@ -1,0 +1,152 @@
+{
+  "schema_version": "spell.v07.limits-alarm-state/1",
+  "contract_id": "V07-LIMITS-ALARM-STATE",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-007",
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "Test_and_Integration.md#driver-conformance",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/DATA_ARCHITECTURE.md#telemetry-strategy"
+  ],
+  "qualification_test_ids": [
+    "V07-OBS-007-UNIT",
+    "V07-OBS-007-MATRIX",
+    "V07-OBS-007-QUALITY",
+    "V07-OBS-007-RECOVERY",
+    "V07-OBS-007-SECURITY"
+  ],
+  "service_boundary": {
+    "operations": [
+      "GetLimits",
+      "IsAlarmed"
+    ],
+    "mutability": "READ_ONLY",
+    "alarm_acknowledgement": false,
+    "alarm_shelving": false,
+    "alarm_suppression_mutation": false,
+    "limit_configuration_mutation": false,
+    "external_effect_dispatch": false
+  },
+  "limit_identity": {
+    "required_fields": [
+      "LimitSetId",
+      "ItemId",
+      "CatalogDigest",
+      "LimitRevision",
+      "ValueDomain",
+      "Unit"
+    ],
+    "rule": "One immutable LimitSetId and revision is evaluated against one telemetry ItemId definition and engineering unit.",
+    "replacement_rule": "Changing a threshold, unit, enablement, or hysteresis creates a new limit revision."
+  },
+  "limit_bands": [
+    {
+      "id": "HARD_LOW",
+      "direction": "value less than threshold",
+      "severity": "CRITICAL"
+    },
+    {
+      "id": "SOFT_LOW",
+      "direction": "value less than threshold",
+      "severity": "WARNING"
+    },
+    {
+      "id": "SOFT_HIGH",
+      "direction": "value greater than threshold",
+      "severity": "WARNING"
+    },
+    {
+      "id": "HARD_HIGH",
+      "direction": "value greater than threshold",
+      "severity": "CRITICAL"
+    }
+  ],
+  "limit_rules": [
+    "Thresholds are finite typed values compatible with the telemetry engineering value and unit.",
+    "Enabled bands are ordered HARD_LOW <= SOFT_LOW <= SOFT_HIGH <= HARD_HIGH.",
+    "Disabled or absent bands remain explicit and are never synthesized from neighboring thresholds.",
+    "Boundary comparison inclusivity and any finite nonnegative hysteresis are fields of the immutable limit revision.",
+    "Raw values are not compared to engineering limits unless the limit set explicitly declares RAW as its value domain."
+  ],
+  "alarm_states": [
+    "NOT_ALARMED",
+    "WARNING_LOW",
+    "WARNING_HIGH",
+    "CRITICAL_LOW",
+    "CRITICAL_HIGH",
+    "INDETERMINATE"
+  ],
+  "evaluation_matrix": [
+    {
+      "sample_state": "VALID_GOOD_FRESH_CONTIGUOUS",
+      "limit_state": "AVAILABLE_COMPATIBLE",
+      "result": "deterministic band result"
+    },
+    {
+      "sample_state": "INVALID_OR_UNKNOWN_VALIDITY",
+      "limit_state": "ANY",
+      "result": "INDETERMINATE"
+    },
+    {
+      "sample_state": "UNACCEPTABLE_QUALITY",
+      "limit_state": "ANY",
+      "result": "INDETERMINATE"
+    },
+    {
+      "sample_state": "STALE_OR_UNKNOWN_FRESHNESS",
+      "limit_state": "ANY",
+      "result": "INDETERMINATE"
+    },
+    {
+      "sample_state": "GAPPED_OR_UNSYNCHRONIZED",
+      "limit_state": "ANY",
+      "result": "INDETERMINATE"
+    },
+    {
+      "sample_state": "AVAILABLE",
+      "limit_state": "MISSING_DISABLED_OR_TYPE_MISMATCH",
+      "result": "INDETERMINATE"
+    }
+  ],
+  "is_alarmed_result": {
+    "required_fields": [
+      "AlarmObservationId",
+      "ItemId",
+      "SampleId",
+      "LimitSetId",
+      "LimitRevision",
+      "State",
+      "Severity",
+      "EvaluatedEngineeringValue",
+      "Quality",
+      "Validity",
+      "Freshness",
+      "SnapshotCursor",
+      "EvaluatedAtDatabaseTime",
+      "Reason"
+    ],
+    "boolean_projection": "true only for WARNING_LOW, WARNING_HIGH, CRITICAL_LOW, or CRITICAL_HIGH; false only for NOT_ALARMED; INDETERMINATE has no boolean value",
+    "atomicity_rule": "Sample, limit revision, and result are pinned in one evaluation and returned together.",
+    "no_sample_rule": "No sample returns INDETERMINATE and never NOT_ALARMED.",
+    "gap_rule": "A gap returns INDETERMINATE until a complete resynchronized snapshot is evaluated."
+  },
+  "transition_projection": {
+    "event_types": [
+      "telemetry.alarm_changed",
+      "telemetry.alarm_indeterminate"
+    ],
+    "deduplication": "No event is emitted when state, sample identity, limit revision, and reason are unchanged.",
+    "durability": "A projected transition and its observation-stream event commit atomically.",
+    "restart": "Rebuild from the durable current sample and pinned limit revision; never invent a clear transition from missing evidence.",
+    "latching": "Not provided by this read-only v0.7 projection; operator alarm lifecycle is outside this contract."
+  },
+  "security_rules": [
+    "Limit metadata and alarm results follow the telemetry item's server-side visibility policy.",
+    "Unauthorized callers receive no threshold, hidden item, result-count, or transition-timing information.",
+    "All values and reasons are bounded and contain no driver, database, or credential secrets."
+  ]
+}

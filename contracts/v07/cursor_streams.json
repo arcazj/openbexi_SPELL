@@ -1,0 +1,144 @@
+{
+  "schema_version": "spell.v07.cursor-streams/1",
+  "contract_id": "V07-CURSOR-STREAMS",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-008",
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "Test_and_Integration.md#rest-and-real-time-apis",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/REAL_TIME_STATE.md#event-families",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/DATA_ARCHITECTURE.md#telemetry-strategy"
+  ],
+  "qualification_test_ids": [
+    "V07-OBS-008-UNIT",
+    "V07-OBS-008-INTEGRATION",
+    "V07-OBS-008-BACKPRESSURE",
+    "V07-OBS-008-RECONNECT",
+    "V07-OBS-008-SECURITY"
+  ],
+  "stream_identity": {
+    "stream": "driver.observation",
+    "v04_lifecycle_stream": "driver.lifecycle",
+    "shares_v04_lifecycle_outbox": false,
+    "shares_v04_lifecycle_cursor": false,
+    "required_fields": [
+      "ObservationStreamEpoch",
+      "ProjectionSequence",
+      "EventId"
+    ],
+    "epoch_rule": "A restored, replaced, or incompatible observation projection creates a new opaque epoch whose first sequence is 1.",
+    "sequence_rule": "ProjectionSequence is positive, unique, contiguous, and commit-ordered within one ObservationStreamEpoch.",
+    "cross_epoch_rule": "Sequences from different epochs are never numerically compared."
+  },
+  "snapshot_contract": {
+    "required_fields": [
+      "SchemaVersion",
+      "ObservationStreamEpoch",
+      "ThroughSequence",
+      "SnapshotAtDatabaseTime",
+      "ContextGenerationId",
+      "SourceEpochs",
+      "Items",
+      "DriverTime",
+      "SynchronizationState"
+    ],
+    "consistency": "Item heads, time head, gap state, stream epoch, and ThroughSequence are read in one repeatable committed view.",
+    "resume": "A client applies only events from the same epoch with ProjectionSequence greater than ThroughSequence.",
+    "empty": "An empty snapshot still returns epoch, ThroughSequence, time, and explicit NO_SAMPLE states.",
+    "bounded": "Item count, encoded bytes, source-epoch count, and query filters are bounded server-side."
+  },
+  "event_types": [
+    {
+      "id": "telemetry.sample_observed",
+      "delivery": "one immutable sample identity plus current-head revision"
+    },
+    {
+      "id": "telemetry.freshness_changed",
+      "delivery": "one durable freshness transition with policy revision and evaluated time"
+    },
+    {
+      "id": "telemetry.gap_detected",
+      "delivery": "expected and observed source sequence bounds without synthesizing samples"
+    },
+    {
+      "id": "telemetry.alarm_changed",
+      "delivery": "one durable read-only alarm projection transition"
+    },
+    {
+      "id": "driver.time_observed",
+      "delivery": "one typed time observation with source, provenance, and uncertainty"
+    },
+    {
+      "id": "stream.keepalive",
+      "delivery": "liveness and server time only; never advances ProjectionSequence"
+    },
+    {
+      "id": "stream.resync_required",
+      "delivery": "terminal stream frame with reason, authoritative epoch, and authoritative sequence"
+    }
+  ],
+  "delivery_rules": [
+    "Subscribe before replay so a racing commit is read durably, observed as a wake-up, or both and then deduplicated.",
+    "Live fan-out is only a wake-up signal; every delivered data event is reread from the committed observation outbox.",
+    "Events are deduplicated by EventId and ProjectionSequence and delivered in increasing contiguous sequence.",
+    "Telemetry may be batched or coalesced only when individual sample identities remain queryable and dropped count, source-sequence bounds, and gap facts are explicit.",
+    "Freshness, gap, alarm, epoch, and resynchronization transitions are never silently coalesced.",
+    "Keepalive, browser time, and connection state never establish telemetry freshness or advance a cursor."
+  ],
+  "cursor_outcomes": [
+    {
+      "reason": "SEQUENCE_AHEAD_OF_AUTHORITY",
+      "action": "send stream.resync_required and close"
+    },
+    {
+      "reason": "CURSOR_UNAVAILABLE",
+      "action": "send stream.resync_required and close"
+    },
+    {
+      "reason": "REPLAY_LIMIT_EXCEEDED",
+      "action": "send stream.resync_required and close"
+    },
+    {
+      "reason": "CLIENT_QUEUE_OVERFLOW",
+      "action": "send stream.resync_required and close"
+    },
+    {
+      "reason": "STREAM_EPOCH_CHANGED",
+      "action": "send stream.resync_required without comparing sequence values and close"
+    },
+    {
+      "reason": "SOURCE_SEQUENCE_GAP",
+      "action": "deliver the durable gap event; conditions remain indeterminate until a new complete snapshot"
+    }
+  ],
+  "backpressure": {
+    "per_client_queue": "finite and configured",
+    "replay_window": "finite and configured",
+    "batch_size": "finite and configured",
+    "slow_consumer": "close with CLIENT_QUEUE_OVERFLOW and require a new snapshot",
+    "priority": "observation traffic cannot consume or reorder the v0.4 lifecycle stream queue or cursor",
+    "silent_drop": false
+  },
+  "reconnect_restart": [
+    "Reconnect with a same-epoch available cursor replays exactly the committed suffix and then continues live.",
+    "Reconnect with an unavailable or different-epoch cursor requires a complete replacement snapshot.",
+    "Backend restart resumes relay from unpublished committed observation events and collector reads from durable per-item source cursors.",
+    "Driver source restart creates a new SourceEpoch and visible source transition without resetting the observation projection epoch.",
+    "Projection restore or incompatible rebuild creates a new ObservationStreamEpoch and never offsets an old cursor."
+  ],
+  "cancellation_shutdown": [
+    "Client disconnect cancels its bounded queue subscription and no driver GetTM NEXT request.",
+    "Collector shutdown cancels outstanding driver NEXT calls, commits no partial sample, and retains the last durable source cursor.",
+    "Server shutdown closes authenticated streams without manufacturing a cursor advance."
+  ],
+  "security_rules": [
+    "Snapshot and stream require authenticated authorization and expire with credentials.",
+    "Filtering and redaction occur before cursor allocation for an authorization scope; hidden events cannot leak count or timing.",
+    "Query-string credentials are forbidden; the approved WebSocket subprotocol carries the bounded token.",
+    "Event payloads contain no secrets, raw peer diagnostics, host paths, or unapproved catalog values."
+  ]
+}

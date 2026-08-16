@@ -1,0 +1,180 @@
+{
+  "schema_version": "spell.v07.contract-manifest/1",
+  "contract_id": "V07-CONTRACT-MANIFEST",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "purpose": "Machine-readable planning inputs for the accepted v0.7 Gate 0A scope; presence and validation do not claim implementation, runtime conformance, or qualification evidence.",
+  "work_packages": [
+    "V07-OBS-001",
+    "V07-OBS-002",
+    "V07-OBS-003",
+    "V07-OBS-004",
+    "V07-OBS-005",
+    "V07-OBS-006",
+    "V07-OBS-007",
+    "V07-OBS-008",
+    "V07-OBS-009"
+  ],
+  "work_package_definitions": [
+    {
+      "id": "V07-OBS-001",
+      "title": "Typed simulator driver time and provenance",
+      "test_ids": [
+        "V07-OBS-001-UNIT",
+        "V07-OBS-001-CONTRACT",
+        "V07-OBS-001-CLOCK",
+        "V07-OBS-001-RECOVERY",
+        "V07-OBS-001-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-002",
+      "title": "Typed GetTM samples and atomic raw/engineering projection",
+      "test_ids": [
+        "V07-OBS-002-UNIT",
+        "V07-OBS-002-INTEGRATION",
+        "V07-OBS-002-ATOMIC",
+        "V07-OBS-002-QUALITY",
+        "V07-OBS-002-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-003",
+      "title": "Bounded declarative Verify condition engine",
+      "test_ids": [
+        "V07-OBS-003-UNIT",
+        "V07-OBS-003-MATRIX",
+        "V07-OBS-003-CLOCK",
+        "V07-OBS-003-RECOVERY",
+        "V07-OBS-003-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-004",
+      "title": "Deterministic telemetry WaitFor",
+      "test_ids": [
+        "V07-OBS-004-UNIT",
+        "V07-OBS-004-INTEGRATION",
+        "V07-OBS-004-CLOCK",
+        "V07-OBS-004-RACE",
+        "V07-OBS-004-RECOVERY"
+      ]
+    },
+    {
+      "id": "V07-OBS-005",
+      "title": "Telemetry-conditioned durable procedure scheduling",
+      "test_ids": [
+        "V07-OBS-005-UNIT",
+        "V07-OBS-005-INTEGRATION",
+        "V07-OBS-005-CLOCK",
+        "V07-OBS-005-RACE",
+        "V07-OBS-005-RECOVERY"
+      ]
+    },
+    {
+      "id": "V07-OBS-006",
+      "title": "Typed simulator resource and lookup reads",
+      "test_ids": [
+        "V07-OBS-006-UNIT",
+        "V07-OBS-006-INTEGRATION",
+        "V07-OBS-006-BOUNDARY",
+        "V07-OBS-006-RECOVERY",
+        "V07-OBS-006-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-007",
+      "title": "Read-only telemetry limits and alarm state",
+      "test_ids": [
+        "V07-OBS-007-UNIT",
+        "V07-OBS-007-MATRIX",
+        "V07-OBS-007-QUALITY",
+        "V07-OBS-007-RECOVERY",
+        "V07-OBS-007-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-008",
+      "title": "Durable telemetry snapshot and cursor streams",
+      "test_ids": [
+        "V07-OBS-008-UNIT",
+        "V07-OBS-008-INTEGRATION",
+        "V07-OBS-008-BACKPRESSURE",
+        "V07-OBS-008-RECONNECT",
+        "V07-OBS-008-SECURITY"
+      ]
+    },
+    {
+      "id": "V07-OBS-009",
+      "title": "Cross-feature read-only observation acceptance",
+      "test_ids": [
+        "V07-OBS-009-SEMANTIC-GOLDEN",
+        "V07-OBS-009-BROWSER",
+        "V07-OBS-009-ACCESSIBILITY",
+        "V07-OBS-009-FAULT-RECOVERY",
+        "V07-OBS-009-LOAD-SECURITY"
+      ]
+    }
+  ],
+  "hash_algorithm": "sha256",
+  "matrices": [
+    {
+      "file": "time_and_sample_identity.json",
+      "sha256": "08a36552d311c6cb6297a493197480a5fbe2df0153ac4e4c63ddf9c0d66d58cd",
+      "contract_id": "V07-TIME-SAMPLE-IDENTITY",
+      "schema_version": "spell.v07.time-sample-identity/1",
+      "work_package_id": "V07-OBS-001",
+      "additional_work_package_ids": [
+        "V07-OBS-002"
+      ]
+    },
+    {
+      "file": "condition_engine.json",
+      "sha256": "5373bbe93f0b19656cd266dc0341f03df11e02e4e7a1038e8b64ff30a253ef1b",
+      "contract_id": "V07-CONDITION-ENGINE",
+      "schema_version": "spell.v07.condition-engine/1",
+      "work_package_id": "V07-OBS-003"
+    },
+    {
+      "file": "waitfor_and_scheduling.json",
+      "sha256": "53cfb3d168765495ee46b2383dfd14dca79154ac59eed3fd857953cf14119f79",
+      "contract_id": "V07-WAITFOR-SCHEDULING",
+      "schema_version": "spell.v07.waitfor-scheduling/1",
+      "work_package_id": "V07-OBS-004",
+      "additional_work_package_ids": [
+        "V07-OBS-005"
+      ]
+    },
+    {
+      "file": "resource_and_lookup_reads.json",
+      "sha256": "07c93d6960f312eb8c31832f455ae874ac6b54b05cbc85df038f5acd8be16eb8",
+      "contract_id": "V07-RESOURCE-LOOKUP-READS",
+      "schema_version": "spell.v07.resource-lookup-reads/1",
+      "work_package_id": "V07-OBS-006"
+    },
+    {
+      "file": "limits_and_alarm_state.json",
+      "sha256": "e42c7da301fb340f0e8cada67806a620194802f77658bc8029df2857a0cf4977",
+      "contract_id": "V07-LIMITS-ALARM-STATE",
+      "schema_version": "spell.v07.limits-alarm-state/1",
+      "work_package_id": "V07-OBS-007"
+    },
+    {
+      "file": "cursor_streams.json",
+      "sha256": "e18f62e3cb949ddeab7c0533712d0f6666f6b9eef59b78e6255bd3c963a41c8d",
+      "contract_id": "V07-CURSOR-STREAMS",
+      "schema_version": "spell.v07.cursor-streams/1",
+      "work_package_id": "V07-OBS-008"
+    }
+  ],
+  "cross_feature_qualification_work_package_id": "V07-OBS-009",
+  "claims": {
+    "implemented_constructs": [],
+    "runtime_artifacts": [],
+    "qualification_results": [],
+    "live_gcs_routes": [],
+    "legacy_adapter_routes": []
+  }
+}

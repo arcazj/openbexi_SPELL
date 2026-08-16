@@ -2,26 +2,29 @@
 
 ## Record Status
 
-This record retains the bounded SPELL v0.5.0 release provenance and records the
-v0.6 candidate qualification and Gate 0B closeout authorization. SPELL v0.5.0
-remains the accepted local-only, synthetic, non-CUI simulator engineering
-baseline at
-annotated tag `v0.5.0`, tag object
-`a1b277d74d2fb19062ca3e4388e9104d45c50ec4`, and release commit
-`e7b6bb9428833437e0160040541eb840deee7cca`. `V05-GATE-0B PASS` limited the
-release to `V05-IR-001`. Final validation, four image-bound SBOMs,
-supply-chain review, deterministic packaging, release-evidence validation,
-and annotated tagging passed with no accepted exceptions.
+This record retains the bounded SPELL v0.5.0 provenance, records the accepted
+v0.6.0 release, and identifies the v0.7 Gate 0A planning authorization. SPELL
+v0.6.0 is the accepted local-only, synthetic, non-CUI simulator engineering
+baseline at annotated tag `v0.6.0`, tag object
+`b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, and release commit
+`05ec783a6e54a76e0548bdd536c18538f6bff51b`.
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256
 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
-All ten suites and all 45 identities PASS, all nine work packages are
-`IMPLEMENTED_AND_QUALIFIED`, and `V06-GATE-0B PASS` authorizes release
-closeout. Final qualification, four v0.6 SBOMs, supply-chain evidence, the
-deterministic package and committed sidecar, the release commit, and the
-annotated `v0.6.0` tag remain pending. This document makes no compliance,
-deployment, mission, or operational authorization claim.
+All ten candidate suites and all 45 identities PASS, all nine work packages are
+`IMPLEMENTED_AND_QUALIFIED`, and `V06-GATE-0B PASS` authorized release
+closeout. Final qualification, four v0.6 SBOMs, supply-chain evidence,
+deterministic packaging, release-evidence validation, and annotated tagging
+passed with no accepted exceptions. The final archive SHA-256 is
+`b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`.
+
+`V07-GATE-0A PASS` authorizes only the nine `V07-OBS-001` through
+`V07-OBS-009` planning contracts and their 45 planned proof identities. The
+manifest and six matrices under `contracts/v07` are first-party planning data;
+they claim no implementation, runtime conformance, qualification evidence, or
+live/legacy route. This document makes no compliance, deployment, mission, or
+operational authorization claim.
 
 Before this binding, Docker Scout identified 18 High findings in the pinned
 `postgresql18=18.4-r0` local image package. The candidate updates that exact
@@ -37,11 +40,11 @@ establish a compliance determination or operational authorization.
 
 ## Clean-Room Boundary
 
-The accepted v0.4 and v0.5 baselines and their bounded implementations are
-new first-party work. The three legacy archives are read-only behavioral and
-historical references; no legacy implementation may be compiled, imported,
-linked, copied into generated sources, loaded at runtime, or shipped by the
-backend, driver, frontend, proxy, or release package.
+The accepted v0.4, v0.5, and v0.6 baselines and their bounded implementations
+are new first-party work. The three legacy archives are read-only behavioral
+and historical references; no legacy implementation may be compiled,
+imported, linked, copied into generated sources, loaded at runtime, or shipped
+by the backend, driver, frontend, proxy, or release package.
 
 The archives are explicitly ignored and excluded from the reproducible package:
 
@@ -53,8 +56,8 @@ The archives are explicitly ignored and excluded from the reproducible package:
 
 A v0.2 SHA-256 comparison found no exact match between a new first-party source
 file and an archive entry. That mechanical check supports but does not by itself
-prove clean-room authorship. The accepted v0.4 release and v0.5 candidate
-retain the same source boundary.
+prove clean-room authorship. The accepted v0.4, v0.5, and v0.6 releases and the
+v0.7 planning contracts retain the same source boundary.
 
 ### Manual Evidence Boundary
 
@@ -231,8 +234,19 @@ Canonical work-package evidence SHA-256
 binds that candidate. All ten suites and all 45 identities PASS with zero
 mapped skips, failures, accepted failures, or waivers. `V06-GATE-0B PASS`
 records all nine work packages as `IMPLEMENTED_AND_QUALIFIED` and authorizes
-release closeout. It does not accept v0.6: Final qualification, four v0.6
-SBOMs, supply-chain evidence, the deterministic package and committed sidecar,
-the release commit, and the annotated `v0.6.0` tag remain pending under
-`artifacts/v0.6`. None may reuse or rewrite canonical v0.5 evidence, and the
-accepted v0.5.0 baseline remains unchanged.
+release closeout. Final qualification then passed nine suite captures with
+1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, 36
+subtests, and zero failures or errors. Four image-bound SBOMs, supply-chain
+evidence, deterministic packaging, and release-evidence validation passed.
+Annotated tag `v0.6.0` verified over release commit
+`05ec783a6e54a76e0548bdd536c18538f6bff51b` and activated the conditional
+acceptance with no accepted exceptions. None of that evidence reuses or
+rewrites canonical v0.5 evidence.
+
+The approved v0.7 Gate 0A record independently binds the accepted v0.6.0 tag,
+tagged release evidence and archive/sidecar bytes, and all seven files under
+`contracts/v07`. Those contracts are bounded, declarative, simulator-only,
+read-only planning inputs. They authorize implementation of exactly
+`V07-OBS-001` through `V07-OBS-009`, but do not establish that any v0.7 source,
+API, schema, migration, dependency, driver behavior, runtime artifact, test
+result, or release exists.

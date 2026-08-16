@@ -6,6 +6,48 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-16 - v0.6.0 Accepted And v0.7 Gate 0A Approved
+
+### v0.6.0 Accepted Release
+
+The conditional v0.6.0 acceptance recorded in release commit
+`05ec783a6e54a76e0548bdd536c18538f6bff51b` became effective when the project
+owner created and verified annotated tag `v0.6.0` on 2026-08-16. Tag object
+`b6dc64dc8fb6cfe9845f454904a078ec6f3c0919` peels to that release commit and
+binds qualified source `8d9db4b6acc443ca6309cdfb12b5d4f9b2fef213`, candidate
+`0ea26105e72d7830de4a265989ed7d9074ffbe09`, the canonical evidence
+fingerprints, and final archive SHA-256
+`b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`.
+
+Final qualification passed nine suite captures with 1,626 concrete tests,
+1,620 passes, six exact SQLite environment skips, 36 subtests, and zero
+failures or errors. Four image-bound SBOMs, the supply-chain audit, and
+deterministic packaging passed with zero High or Critical findings, zero
+unlocked inputs, and no accepted exceptions. This post-tag reconciliation does
+not modify the tagged release record or grant deployment, operational,
+compliance, or cryptographic-signature authority.
+
+### v0.7 Owner Direction And Gate 0A Approval
+
+The owner request was recorded exactly as: `resume and finish up asap v0.6 asap and move forward to finis up v0.7 asap. you have all aprrovals.` The
+accepted v0.6.0 tag satisfies the baseline precondition, and
+[`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md) maps
+that direction to the bounded explicit authorization set `V07-OBS-001` through
+`V07-OBS-009`. The exact owner marker is
+`V07-GATE-0A OWNER-APPROVAL: APPROVED`.
+
+Gate validation passed under locked Python 3.13.14 with the exact marker
+`gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
+All 22 adversarial Gate tests and eight semantic planning-contract tests
+passed. The manifest and six matrices under `contracts/v07` bind the exact 45
+planned proof identities and the read-only simulator time, telemetry,
+condition, resource/lookup, limits/alarm, and stream boundaries.
+
+Gate 0A authorizes bounded implementation only. No v0.7 product construct,
+runtime artifact, candidate evidence, qualification result, release,
+deployment, live or legacy GCS route, operational authorization, or compliance
+determination is claimed.
+
 ## 2026-08-16 - v0.6 Candidate Qualified And Gate 0B Passed
 
 ### Candidate And Evidence Binding
