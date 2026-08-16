@@ -347,10 +347,31 @@ FINAL_TOOLING_SECRET_TESTCASE_NODES = (
     *TOOLING_SECRET_CANARY_NODES,
     *_final_tooling_manifest_mutation_nodes(),
 )
+V06_PRIVATE_KEY_CANARY = "-----BEGIN " + "PRIVATE KEY-----"
+V06_AWS_ACCESS_KEY_CANARY = "AKIA" + "ABCDEFGHIJKLMNOP"
+BACKEND_SECRET_CANARY_NODES = (
+    "backend/tests/test_ir_v06.py::"
+    "test_prompt_secret_material_is_rejected_without_echo["
+    f"{V06_PRIVATE_KEY_CANARY}\\nredacted]",
+    "backend/tests/test_ir_v06.py::"
+    "test_action_and_startproc_secrets_are_rejected_without_echo["
+    f"{V06_PRIVATE_KEY_CANARY}\\nredacted]",
+    "backend/tests/test_ir_v06.py::"
+    "test_action_and_startproc_secrets_are_rejected_without_echo["
+    f"{V06_AWS_ACCESS_KEY_CANARY}]",
+)
 TOOLING_CAPTURE_PATHS = frozenset(
     {
         "artifacts/v0.6/work-package/tests/tooling.xml",
         "artifacts/v0.6/final/tests/tooling.xml",
+    }
+)
+BACKEND_SECRET_CAPTURE_PATHS = frozenset(
+    {
+        "artifacts/v0.6/work-package/tests/backend-postgresql.xml",
+        "artifacts/v0.6/work-package/tests/backend-sqlite.xml",
+        "artifacts/v0.6/final/tests/backend-postgresql.xml",
+        "artifacts/v0.6/final/tests/backend-sqlite.xml",
     }
 )
 
@@ -1059,39 +1080,44 @@ def _scan_secret_bytes(payload: bytes, label: str) -> None:
         )
 
 
-def _structured_tooling_scanner_input(relative: str, raw: bytes) -> bytes:
-    expected_nodes = FINAL_TOOLING_SECRET_TESTCASE_NODES
+def _structured_junit_scanner_input(
+    relative: str,
+    raw: bytes,
+    *,
+    expected_nodes: tuple[str, ...],
+    capture_label: str,
+) -> bytes:
     _require(
         0 < len(raw) <= MAX_XML_BYTES,
-        f"canonical tooling evidence has an invalid size: {relative}",
+        f"canonical {capture_label} evidence has an invalid size: {relative}",
     )
     _require(
         raw.startswith(CANONICAL_XML_DECLARATION),
-        f"canonical tooling evidence must use the exact UTF-8 XML declaration: {relative}",
+        f"canonical {capture_label} evidence must use the exact UTF-8 XML declaration: {relative}",
     )
     try:
         raw.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise ReleaseEvidenceError(
-            f"canonical tooling evidence is not strict UTF-8: {relative}"
+            f"canonical {capture_label} evidence is not strict UTF-8: {relative}"
         ) from exc
     lowered = raw.lower()
     _require(
         b"<!doctype" not in lowered,
-        f"canonical tooling evidence contains a DTD: {relative}",
+        f"canonical {capture_label} evidence contains a DTD: {relative}",
     )
     _require(
         b"<!entity" not in lowered,
-        f"canonical tooling evidence contains an entity declaration: {relative}",
+        f"canonical {capture_label} evidence contains an entity declaration: {relative}",
     )
     xml_body = raw[len(CANONICAL_XML_DECLARATION) :]
     _require(
         b"<!--" not in xml_body,
-        f"canonical tooling evidence contains a comment: {relative}",
+        f"canonical {capture_label} evidence contains a comment: {relative}",
     )
     _require(
         b"<?" not in xml_body,
-        f"canonical tooling evidence contains a processing instruction: {relative}",
+        f"canonical {capture_label} evidence contains a processing instruction: {relative}",
     )
     try:
         parser = ET.XMLParser(
@@ -1100,11 +1126,11 @@ def _structured_tooling_scanner_input(relative: str, raw: bytes) -> bytes:
         root = ET.fromstring(raw, parser=parser)
     except ET.ParseError as exc:
         raise ReleaseEvidenceError(
-            f"canonical tooling evidence is not valid XML: {relative}"
+            f"canonical {capture_label} evidence is not valid XML: {relative}"
         ) from exc
     _require(
         root.tag in {"testsuite", "testsuites"},
-        f"canonical tooling evidence has an invalid root: {relative}",
+        f"canonical {capture_label} evidence has an invalid root: {relative}",
     )
     parents = {
         id(child): parent
@@ -1150,7 +1176,7 @@ def _structured_tooling_scanner_input(relative: str, raw: bytes) -> bytes:
             scan(element.tail.encode("utf-8"))
     _require(
         all(count == 1 for count in counts.values()),
-        f"canonical tooling secret-testcase inventory differs: {relative}",
+        f"canonical {capture_label} secret-testcase inventory differs: {relative}",
     )
     return b"\0".join(scanner_chunks)
 
@@ -1160,7 +1186,19 @@ def _secret_scannable_evidence(relative: str, raw: bytes) -> bytes:
         # The candidate validator parses this manifest and its exact tooling inventory.
         return b""
     if relative in TOOLING_CAPTURE_PATHS:
-        return _structured_tooling_scanner_input(relative, raw)
+        return _structured_junit_scanner_input(
+            relative,
+            raw,
+            expected_nodes=FINAL_TOOLING_SECRET_TESTCASE_NODES,
+            capture_label="tooling",
+        )
+    if relative in BACKEND_SECRET_CAPTURE_PATHS:
+        return _structured_junit_scanner_input(
+            relative,
+            raw,
+            expected_nodes=BACKEND_SECRET_CANARY_NODES,
+            capture_label="backend",
+        )
     return raw
 
 

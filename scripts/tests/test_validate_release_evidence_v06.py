@@ -575,6 +575,10 @@ def test_evidence_inventory_is_exact_hash_bound_and_secret_scanned(
         ),
     ):
         files[relative].write_bytes(_tooling_secret_xml(nodes))
+    for relative in release.BACKEND_SECRET_CAPTURE_PATHS:
+        files[relative].write_bytes(
+            _tooling_secret_xml(release.BACKEND_SECRET_CANARY_NODES)
+        )
     release_manifest = evidence_root / release.MANIFEST_NAME
     release_manifest.write_text("{}", encoding="utf-8")
     declared = {
@@ -612,6 +616,8 @@ def _tooling_secret_xml(
     comment: str | None = None,
     nested_first: bool = False,
     extra_value: str | None = None,
+    failure_text: str | None = None,
+    system_out: str | None = None,
 ) -> bytes:
     root = ET.Element("testsuites")
     suite = ET.SubElement(
@@ -623,19 +629,26 @@ def _tooling_secret_xml(
         errors="0",
     )
     wrapper = ET.SubElement(suite, "wrapper") if nested_first else None
+    first_case: ET.Element | None = None
     for index, node in enumerate(nodes):
         module, name = node.split(".py::", 1)
         parent = wrapper if index == 0 and wrapper is not None else suite
-        ET.SubElement(
+        case = ET.SubElement(
             parent,
             "testcase",
             classname=module.replace("/", "."),
             name=name,
         )
+        if first_case is None:
+            first_case = case
     if comment is not None:
         suite.append(ET.Comment(comment))
     if extra_value is not None:
         ET.SubElement(suite, "property", name="probe", value=extra_value)
+    if failure_text is not None and first_case is not None:
+        ET.SubElement(first_case, "failure").text = failure_text
+    if system_out is not None:
+        ET.SubElement(suite, "system-out").text = system_out
     return release.CANONICAL_XML_DECLARATION + ET.tostring(
         root, encoding="utf-8"
     )
@@ -661,6 +674,99 @@ def test_tooling_secret_testcases_are_exact_structured_exemptions() -> None:
         )
         assert scanner_input.startswith(release.CANONICAL_XML_DECLARATION)
         assert scanner_input != b""
+
+
+def test_backend_secret_testcases_are_exact_structured_exemptions() -> None:
+    from scripts.validate_candidate_evidence_v06 import (
+        V06_SECRET_SCANNER_CANARY_NODES,
+    )
+
+    assert set(release.BACKEND_SECRET_CANARY_NODES) == {
+        *(
+            node
+            for node in V06_SECRET_SCANNER_CANARY_NODES
+            if release.V06_PRIVATE_KEY_CANARY in node
+        ),
+        "backend/tests/test_ir_v06.py::"
+        "test_action_and_startproc_secrets_are_rejected_without_echo["
+        f"{release.V06_AWS_ACCESS_KEY_CANARY}]",
+    }
+    assert len(release.BACKEND_SECRET_CANARY_NODES) == 3
+    assert release.BACKEND_SECRET_CAPTURE_PATHS == {
+        "artifacts/v0.6/work-package/tests/backend-postgresql.xml",
+        "artifacts/v0.6/work-package/tests/backend-sqlite.xml",
+        "artifacts/v0.6/final/tests/backend-postgresql.xml",
+        "artifacts/v0.6/final/tests/backend-sqlite.xml",
+    }
+    raw = _tooling_secret_xml(release.BACKEND_SECRET_CANARY_NODES)
+    for relative in release.BACKEND_SECRET_CAPTURE_PATHS:
+        scanner_input = release._secret_scannable_evidence(relative, raw)
+        assert scanner_input.startswith(release.CANONICAL_XML_DECLARATION)
+        assert scanner_input != b""
+
+
+def test_backend_secret_testcases_reject_duplicates_mutations_and_mislocation() -> None:
+    relative = "artifacts/v0.6/final/tests/backend-postgresql.xml"
+    nodes = list(release.BACKEND_SECRET_CANARY_NODES)
+    with pytest.raises(release.ReleaseEvidenceError, match="inventory differs"):
+        release._secret_scannable_evidence(
+            relative, _tooling_secret_xml([*nodes, nodes[0]])
+        )
+    with pytest.raises(release.ReleaseEvidenceError, match="inventory differs"):
+        release._secret_scannable_evidence(relative, _tooling_secret_xml(nodes[:-1]))
+
+    module, name = nodes[0].split(".py::", 1)
+    for mutated_node in (
+        f"{module}.py::prefix-{name}",
+        f"{module}.py::{name}-suffix",
+        f"backend/tests/not_ir_v06.py::{name}",
+    ):
+        with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+            release._secret_scannable_evidence(
+                relative, _tooling_secret_xml([mutated_node, *nodes[1:]])
+            )
+    aws_module, aws_name = nodes[-1].split(".py::", 1)
+    with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+        release._secret_scannable_evidence(
+            relative,
+            _tooling_secret_xml(
+                [*nodes[:-1], f"{aws_module}.py::{aws_name}-suffix"]
+            ),
+        )
+
+    canary = "postgresql+psycopg://spell:real@postgres/spell"
+    private_canary = release.V06_PRIVATE_KEY_CANARY + "\nreal payload"
+    aws_canary = release.V06_AWS_ACCESS_KEY_CANARY
+    for raw, error in (
+        (_tooling_secret_xml(nodes, nested_first=True), "secret material"),
+        (_tooling_secret_xml(nodes, comment=canary), "comment"),
+        (_tooling_secret_xml(nodes, extra_value=canary), "secret material"),
+        (_tooling_secret_xml(nodes, extra_value=aws_canary), "secret material"),
+        (_tooling_secret_xml(nodes, failure_text=private_canary), "secret material"),
+        (_tooling_secret_xml(nodes, system_out=aws_canary), "secret material"),
+    ):
+        with pytest.raises(release.ReleaseEvidenceError, match=error):
+            release._secret_scannable_evidence(relative, raw)
+
+    body = _tooling_secret_xml(nodes).removeprefix(
+        release.CANONICAL_XML_DECLARATION
+    )
+    processing_instruction = (
+        release.CANONICAL_XML_DECLARATION
+        + b"<?probe "
+        + aws_canary.encode("ascii")
+        + b"?>"
+        + body
+    )
+    with pytest.raises(release.ReleaseEvidenceError, match="processing instruction"):
+        release._secret_scannable_evidence(relative, processing_instruction)
+
+    misplaced = "artifacts/v0.6/final/tests/backend-docker-host.xml"
+    raw = _tooling_secret_xml(nodes)
+    with pytest.raises(release.ReleaseEvidenceError, match="secret material"):
+        release._scan_secret_bytes(
+            release._secret_scannable_evidence(misplaced, raw), misplaced
+        )
 
 
 def test_tooling_secret_testcases_reject_duplicates_mutations_and_mislocation() -> None:

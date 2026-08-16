@@ -99,19 +99,21 @@ def test_v06_scanner_literal_contract_rejects_path_and_byte_mutations(
         )
 
 
-def _tooling_canary_xml(*, duplicate: bool = False) -> bytes:
+def _evidence_canary_xml(
+    nodes: tuple[str, ...], *, duplicate: bool = False
+) -> bytes:
     from scripts import validate_release_evidence_v06 as evidence
 
     root = ET.Element("testsuites")
     suite = ET.SubElement(
         root,
         "testsuite",
-        tests=str(len(evidence.FINAL_TOOLING_SECRET_TESTCASE_NODES) + int(duplicate)),
+        tests=str(len(nodes) + int(duplicate)),
         skipped="0",
         failures="0",
         errors="0",
     )
-    for index, node in enumerate(evidence.FINAL_TOOLING_SECRET_TESTCASE_NODES):
+    for index, node in enumerate(nodes):
         module, name = node.split(".py::", 1)
         ET.SubElement(
             suite,
@@ -130,24 +132,51 @@ def _tooling_canary_xml(*, duplicate: bool = False) -> bytes:
 
 
 def test_v06_package_scans_candidate_manifest_and_tooling_structurally() -> None:
+    from scripts import validate_release_evidence_v06 as evidence
+
+    assert release.BACKEND_SECRET_EVIDENCE_PATHS == set(
+        evidence.BACKEND_SECRET_CAPTURE_PATHS
+    )
     release._validate_bytes(Path(release.WORK_PACKAGE_MANIFEST), b'{"bounded":true}\n')
     release._validate_bytes(
         Path("artifacts/v0.6/work-package/tests/tooling.xml"),
-        _tooling_canary_xml(),
+        _evidence_canary_xml(evidence.FINAL_TOOLING_SECRET_TESTCASE_NODES),
+    )
+    release._validate_bytes(
+        Path("artifacts/v0.6/final/tests/backend-postgresql.xml"),
+        _evidence_canary_xml(evidence.BACKEND_SECRET_CANARY_NODES),
     )
 
 
 def test_v06_package_rejects_duplicate_or_mislocated_evidence_canaries() -> None:
+    from scripts import validate_release_evidence_v06 as evidence
+
     tooling_relative = "artifacts/v0.6/work-package/tests/tooling.xml"
     with pytest.raises(ValueError, match="inventory differs"):
         release._validate_bytes(
             Path(tooling_relative),
-            _tooling_canary_xml(duplicate=True),
+            _evidence_canary_xml(
+                evidence.FINAL_TOOLING_SECRET_TESTCASE_NODES, duplicate=True
+            ),
         )
     with pytest.raises(ValueError, match="secret material"):
         release._validate_bytes(
             Path("artifacts/v0.6/final/tests/not-tooling.xml"),
-            _tooling_canary_xml(),
+            _evidence_canary_xml(evidence.FINAL_TOOLING_SECRET_TESTCASE_NODES),
+        )
+
+    backend_relative = "artifacts/v0.6/final/tests/backend-postgresql.xml"
+    with pytest.raises(ValueError, match="inventory differs"):
+        release._validate_bytes(
+            Path(backend_relative),
+            _evidence_canary_xml(
+                evidence.BACKEND_SECRET_CANARY_NODES, duplicate=True
+            ),
+        )
+    with pytest.raises(ValueError, match="secret material"):
+        release._validate_bytes(
+            Path("artifacts/v0.6/final/tests/backend-docker-host.xml"),
+            _evidence_canary_xml(evidence.BACKEND_SECRET_CANARY_NODES),
         )
 
 
