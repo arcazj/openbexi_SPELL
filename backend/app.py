@@ -5,6 +5,7 @@ import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Annotated, Any, Optional
 
 from fastapi import (
@@ -26,6 +27,28 @@ from sqlalchemy import select
 
 from .auth import AuthConfig, AuthenticationError, authenticate_bearer, decode_token
 from .config import Settings
+from .bundled_observation_catalog import CATALOG_ITEMS, POLICY_ID, POLICY_REVISION
+from .condition_engine import (
+    ConditionContractError,
+    ConditionPlan,
+    QualityFreshnessPolicy,
+)
+from .condition_runtime import (
+    CommittedObservationSnapshotProvider,
+    ConditionProcedureRuntime,
+    ConditionRecoveryLoop,
+    DurableExecutionCancellationProbe,
+    DurableOperationContextResolver,
+    OccurrenceBoundExecutionStarter,
+    RepositoryGetTMResolver,
+)
+from .condition_service import (
+    ConditionService,
+    ConditionServiceConflictError,
+    ConditionServiceError,
+    ConditionServiceNotFoundError,
+    ConditionServiceValidationError,
+)
 from .database import create_database
 from .driver_repository import (
     DriverNotFoundError,
@@ -38,6 +61,20 @@ from .driver_gateway import DriverGateway
 from .events import EventHub
 from .migrations import run_migrations
 from .models import Command, Event, Execution, Prompt
+from .observation_repository import (
+    MAX_OBSERVATION_REPLAY,
+    MAX_OBSERVATION_SEQUENCE,
+    OBSERVATION_EVENT_SCHEMA,
+    OBSERVATION_STREAM,
+    ObservationConflictError,
+    ObservationNotFoundError,
+    ObservationRepository,
+    ObservationRepositoryError,
+    ObservationStaleGenerationError,
+    ObservationValidationError,
+)
+from .observation_read_service import ObservationReadService
+from .observation_service import ObservationRuntime
 from .operator_service import (
     OperatorAuthorizationError,
     OperatorConflictError,
@@ -45,7 +82,12 @@ from .operator_service import (
     OperatorService,
     OperatorValidationError,
 )
-from .procedure_parser import IR_VERSION, ProcedureCatalog, ProcedureValidationError
+from .procedure_parser import (
+    IR_VERSION,
+    Procedure,
+    ProcedureCatalog,
+    ProcedureValidationError,
+)
 from .schemas import (
     CommandCreate,
     BreakpointMutationCreate,
@@ -64,6 +106,8 @@ from .schemas import (
     PromptResponseCreate,
     ScheduleCancelCreate,
     ScheduleCreate,
+    TelemetryScheduleCancelCreate,
+    TelemetryScheduleCreate,
     UserActionInvokeCreate,
     UserActionMutationCreate,
 )
@@ -187,6 +231,91 @@ def create_app(
             "driver.lifecycle", event
         ),
     )
+    observation_repository = ObservationRepository(session_factory)
+    observation_read_service = ObservationReadService()
+    observation_runtime = ObservationRuntime(
+        observation_repository,
+        publisher=lambda _topic, event: hub.publish(OBSERVATION_STREAM, event),
+        generation_provider=driver_gateway.observation_generations,
+        get_time=driver_gateway.get_time,
+        get_tm=driver_gateway.get_tm,
+        poll_seconds=settings.observation_poll_seconds,
+        freshness_sweep_seconds=settings.observation_freshness_sweep_seconds,
+    )
+
+    def execution_context_id(execution_id: str) -> str:
+        return str(supervisor.get_execution(execution_id).context_id)
+
+    def create_or_find_condition_execution(
+        *,
+        occurrence_id: str,
+        schedule: dict[str, Any],
+        condition_evidence: dict[str, Any],
+    ) -> str:
+        history = operator_service.catalog_history(schedule["procedure_catalog_id"])
+        entry = history["procedure"]
+        revision = next(
+            (
+                item
+                for item in history["items"]
+                if item["revision"] == schedule["procedure_revision"]
+            ),
+            None,
+        )
+        if revision is None:
+            raise OperatorNotFoundError("procedure catalog revision not found")
+        if revision["bundle_digest"] != schedule["bundle_digest"]:
+            raise OperatorConflictError("procedure bundle digest changed")
+        procedure = Procedure(
+            id=entry["procedure_ref"],
+            name=entry["name"],
+            description=entry["description"],
+            path=Path(entry["entrypoint"]),
+            source=revision["source"],
+            sha256=revision["source_digest"],
+            steps=tuple(revision["steps"]),
+            ir_version=revision["ir_version"],
+        )
+        execution = start_operator_execution(
+            procedure=procedure,
+            schedule={
+                **schedule,
+                "id": schedule["schedule_id"],
+                "occurrence_id": occurrence_id,
+                "catalog_revision_id": revision["id"],
+                "condition_evidence": condition_evidence,
+            },
+        )
+        return execution.id
+
+    operation_contexts = DurableOperationContextResolver(
+        session_factory, execution_context_id
+    )
+    condition_snapshots = CommittedObservationSnapshotProvider(
+        observation_repository,
+        operation_contexts,
+        expected_policy_revision=POLICY_REVISION,
+    )
+    condition_service = ConditionService(
+        session_factory,
+        snapshot_provider=condition_snapshots,
+        execution_starter=OccurrenceBoundExecutionStarter(
+            create_or_find_condition_execution
+        ),
+    )
+    condition_runtime = ConditionProcedureRuntime(
+        condition_service,
+        policy=QualityFreshnessPolicy(POLICY_ID, POLICY_REVISION),
+        get_tm_resolver=RepositoryGetTMResolver(
+            observation_repository,
+            execution_context_id,
+            known_item_ids=frozenset(item.item_id for item in CATALOG_ITEMS),
+            cancellation_probe=DurableExecutionCancellationProbe(session_factory),
+        ),
+    )
+    condition_recovery = ConditionRecoveryLoop(condition_service)
+    supervisor.observation_anchor_provider = observation_repository
+    supervisor.observation_runtime = condition_runtime
     resolved_auth_config = auth_config
 
     def get_auth_config() -> AuthConfig:
@@ -198,26 +327,42 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         gateway_started = False
+        observation_started = False
+        condition_recovery_started = False
         try:
             app.state.auth_config = get_auth_config()
             run_migrations(engine)
             operator_service.bootstrap()
             await driver_gateway.start()
             gateway_started = True
+            await observation_runtime.start()
+            observation_started = True
             supervisor.reconcile_orphaned_executions()
             operator_service.replay_prompt_deliveries()
             operator_service.start()
+            condition_recovery.start()
+            condition_recovery_started = True
             yield
         finally:
             try:
-                operator_service.close()
-                if gateway_started:
-                    await driver_gateway.close()
+                if condition_recovery_started:
+                    condition_recovery.stop()
             finally:
                 try:
-                    supervisor.close()
+                    operator_service.close()
                 finally:
-                    engine.dispose()
+                    try:
+                        if observation_started:
+                            await observation_runtime.close()
+                    finally:
+                        try:
+                            if gateway_started:
+                                await driver_gateway.close()
+                        finally:
+                            try:
+                                supervisor.close()
+                            finally:
+                                engine.dispose()
 
     app = FastAPI(
         title="OpenBEXI SPELL Simulator API",
@@ -250,6 +395,12 @@ def create_app(
     app.state.operator_service = operator_service
     app.state.driver_repository = driver_repository
     app.state.driver_gateway = driver_gateway
+    app.state.observation_repository = observation_repository
+    app.state.observation_read_service = observation_read_service
+    app.state.observation_runtime = observation_runtime
+    app.state.condition_service = condition_service
+    app.state.condition_runtime = condition_runtime
+    app.state.condition_recovery = condition_recovery
     app.state.hub = hub
     app.state.auth_config = auth_config
 
@@ -459,6 +610,32 @@ def create_app(
             return HTTPException(status_code=409, detail=str(exc))
         return HTTPException(status_code=500, detail="internal server error")
 
+    def translate_condition_error(exc: Exception) -> HTTPException:
+        if isinstance(exc, ConditionServiceNotFoundError):
+            status = 404
+            code = "NOT_FOUND"
+        elif isinstance(exc, ConditionServiceConflictError):
+            status = 409
+            code = "CONFLICT"
+        elif isinstance(
+            exc, (ConditionServiceValidationError, ConditionContractError)
+        ):
+            status = 422
+            code = (
+                exc.code
+                if isinstance(exc, ConditionContractError)
+                else "VALIDATION_FAILED"
+            )
+        elif isinstance(exc, ConditionServiceError):
+            status = 500
+            code = "CONDITION_SERVICE_ERROR"
+        else:
+            return translate_error(exc)
+        return HTTPException(
+            status_code=status,
+            detail={"code": code, "message": str(exc), "current": None},
+        )
+
     def operator_control_kwargs(request: Any) -> dict[str, Any]:
         return {
             "lease_id": request.lease_id,
@@ -639,7 +816,7 @@ def create_app(
                 request.reason,
                 key,
                 request.context_id,
-                automatic=procedure.ir_version != "0.6",
+                automatic=procedure.ir_version not in {"0.6", "0.7"},
             )
             projection = operator_service.ensure_execution_projection(
                 execution, actor=caller.actor
@@ -1303,6 +1480,172 @@ def create_app(
         )
         return cancel_schedule_resource(schedule_id, request, caller)
 
+    @app.get("/api/v1/telemetry-schedules")
+    def list_telemetry_schedules(
+        _: IdentityDep,
+        controller_execution_id: str | None = Query(default=None),
+        limit: int = Query(default=100, ge=1, le=500),
+    ) -> dict[str, Any]:
+        try:
+            return {
+                "items": condition_service.list_telemetry_schedules(
+                    controller_execution_id=controller_execution_id,
+                    limit=limit,
+                )
+            }
+        except ConditionServiceError as exc:
+            raise translate_condition_error(exc) from exc
+
+    @app.get("/api/v1/telemetry-schedules/{schedule_id}")
+    def get_telemetry_schedule(
+        schedule_id: str, _: IdentityDep
+    ) -> dict[str, Any]:
+        try:
+            return {
+                "schedule": condition_service.get_telemetry_schedule(schedule_id)
+            }
+        except ConditionServiceError as exc:
+            raise translate_condition_error(exc) from exc
+
+    @app.post("/api/v1/telemetry-schedules", status_code=201)
+    def create_telemetry_schedule(
+        request: TelemetryScheduleCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            control = operator_service.require_control(
+                request.controller_execution_id,
+                actor=caller.actor,
+                **operator_control_kwargs(request),
+            )
+            execution = supervisor.get_execution(request.controller_execution_id)
+            if execution.revision != request.expected_execution_revision:
+                raise OperatorConflictError(
+                    "execution revision conflict",
+                    current={"execution_revision": execution.revision},
+                )
+            if control["execution"]["state"] in {"FINISHED", "ABORTED", "ERROR"}:
+                raise OperatorConflictError(
+                    "terminal execution cannot create telemetry schedules"
+                )
+            context = next(
+                (
+                    item
+                    for item in operator_service.list_contexts()
+                    if item["id"] == request.context_id
+                ),
+                None,
+            )
+            if context is None or not context["enabled"]:
+                raise OperatorConflictError("schedule context is unavailable")
+            history = operator_service.catalog_history(
+                request.procedure_catalog_id
+            )
+            entry = history["procedure"]
+            wanted_revision = (
+                request.procedure_revision or entry["current_revision"]
+            )
+            revision = next(
+                (
+                    item
+                    for item in history["items"]
+                    if item["revision"] == wanted_revision
+                ),
+                None,
+            )
+            if revision is None:
+                raise OperatorNotFoundError(
+                    "procedure catalog revision not found"
+                )
+            snapshot = observation_repository.snapshot(request.context_id)
+            plan = ConditionPlan.from_dict(request.condition_plan)
+            schedule = condition_service.create_telemetry_schedule(
+                plan=plan,
+                policy=QualityFreshnessPolicy(POLICY_ID, POLICY_REVISION),
+                start_snapshot_cursor=int(snapshot["through_sequence"]),
+                timeout_seconds=request.timeout_seconds,
+                retry_count=request.retry_count,
+                retry_interval_seconds=request.retry_interval_seconds,
+                controller_execution_id=request.controller_execution_id,
+                procedure_catalog_id=entry["id"],
+                procedure_revision=revision["revision"],
+                bundle_digest=revision["bundle_digest"],
+                context_id=request.context_id,
+                arguments=request.arguments,
+                automatic=request.automatic,
+                background_allowed=request.background_allowed,
+                visible=request.visible,
+                created_by=caller.actor,
+                idempotency_key=request.idempotency_key,
+            )
+            return {"schedule": schedule}
+        except (
+            ConditionContractError,
+            ConditionServiceError,
+            ObservationRepositoryError,
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+            AuthorizationError,
+            ConflictError,
+            NotFoundError,
+        ) as exc:
+            if isinstance(exc, ObservationRepositoryError):
+                raise translate_observation_error(exc) from exc
+            if isinstance(exc, (ConditionContractError, ConditionServiceError)):
+                raise translate_condition_error(exc) from exc
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/telemetry-schedules/{schedule_id}/cancel")
+    def cancel_telemetry_schedule(
+        schedule_id: str,
+        request: TelemetryScheduleCancelCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            current = condition_service.get_telemetry_schedule(schedule_id)
+            if (
+                current["controller_execution_id"]
+                != request.controller_execution_id
+            ):
+                raise OperatorConflictError(
+                    "telemetry schedule controller mismatch"
+                )
+            operator_service.require_control(
+                request.controller_execution_id,
+                actor=caller.actor,
+                **operator_control_kwargs(request),
+            )
+            return {
+                "schedule": condition_service.cancel_telemetry_schedule(
+                    schedule_id,
+                    expected_revision=request.expected_schedule_revision,
+                )
+            }
+        except (
+            ConditionServiceError,
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            if isinstance(exc, ConditionServiceError):
+                raise translate_condition_error(exc) from exc
+            raise translate_error(exc) from exc
+
     @app.get("/api/v1/executions/{execution_id}/inspection")
     def inspect_execution(execution_id: str, _: IdentityDep) -> dict[str, Any]:
         try:
@@ -1786,6 +2129,140 @@ def create_app(
             return HTTPException(status_code=422, detail=str(exc))
         return HTTPException(status_code=500, detail="internal server error")
 
+    def translate_observation_error(exc: ObservationRepositoryError) -> HTTPException:
+        if isinstance(exc, ObservationNotFoundError):
+            status = 404
+        elif isinstance(exc, ObservationStaleGenerationError):
+            status = 409
+        elif isinstance(exc, ObservationConflictError):
+            status = 409
+        elif isinstance(exc, ObservationValidationError):
+            status = 422
+        else:
+            status = 500
+        return HTTPException(
+            status_code=status,
+            detail={"code": exc.code, "message": str(exc)},
+        )
+
+    @app.get("/api/v1/driver-time")
+    def get_driver_time(
+        _: IdentityDep,
+        context_id: str = Query("simulator", min_length=1, max_length=128),
+    ) -> dict[str, Any]:
+        try:
+            return {"driver_time": observation_repository.driver_time(context_id)}
+        except ObservationRepositoryError as exc:
+            raise translate_observation_error(exc) from exc
+
+    @app.get("/api/v1/observation-catalog")
+    def observation_catalog(_: IdentityDep) -> dict[str, Any]:
+        return observation_read_service.identity()
+
+    @app.get("/api/v1/resources/{resource_id}")
+    def observation_resource(
+        resource_id: str,
+        _: IdentityDep,
+        resource_type: str,
+        catalog_id: str,
+        catalog_digest: str,
+    ) -> dict[str, Any]:
+        return observation_read_service.get_resource(
+            catalog_id=catalog_id,
+            catalog_digest=catalog_digest,
+            resource_type=resource_type,
+            resource_id=resource_id,
+        )
+
+    @app.get("/api/v1/memory-lookup")
+    def observation_memory_lookup(
+        _: IdentityDep,
+        catalog_id: str,
+        catalog_digest: str,
+        maximum_entries: int = 128,
+        memory_region_id: str | None = None,
+        start_address: int | None = None,
+        length: int | None = None,
+    ) -> dict[str, Any]:
+        return observation_read_service.memory_lookup(
+            catalog_id=catalog_id,
+            catalog_digest=catalog_digest,
+            maximum_entries=maximum_entries,
+            memory_region_id=memory_region_id,
+            start_address=start_address,
+            length=length,
+        )
+
+    @app.get("/api/v1/tmtc-lookup")
+    def observation_tmtc_lookup(
+        _: IdentityDep,
+        catalog_id: str,
+        catalog_digest: str,
+        direction: str,
+        maximum_entries: int = 128,
+        item_id: str | None = None,
+        qualified_name: str | None = None,
+    ) -> dict[str, Any]:
+        return observation_read_service.tmtc_lookup(
+            catalog_id=catalog_id,
+            catalog_digest=catalog_digest,
+            direction=direction,
+            maximum_entries=maximum_entries,
+            item_id=item_id,
+            qualified_name=qualified_name,
+        )
+
+    @app.get("/api/v1/observation-limits/{item_id}")
+    def observation_limits(
+        item_id: str,
+        _: IdentityDep,
+        catalog_id: str,
+        catalog_digest: str,
+    ) -> dict[str, Any]:
+        return observation_read_service.get_limits(
+            catalog_id=catalog_id,
+            catalog_digest=catalog_digest,
+            item_id=item_id,
+        )
+
+    @app.get("/api/v1/telemetry/snapshot")
+    def telemetry_snapshot(
+        _: IdentityDep,
+        context_id: str = Query("simulator", min_length=1, max_length=128),
+    ) -> dict[str, Any]:
+        try:
+            return observation_repository.snapshot(context_id)
+        except ObservationRepositoryError as exc:
+            raise translate_observation_error(exc) from exc
+
+    @app.get("/api/v1/telemetry/{item_id}/limits")
+    def telemetry_limits(
+        item_id: Annotated[str, PathParam(min_length=1, max_length=128)],
+        _: IdentityDep,
+        catalog_digest: str = Query(min_length=64, max_length=64),
+    ) -> dict[str, Any]:
+        try:
+            return {
+                "limits": observation_repository.get_limits(
+                    item_id, catalog_digest
+                )
+            }
+        except ObservationRepositoryError as exc:
+            raise translate_observation_error(exc) from exc
+
+    @app.get("/api/v1/telemetry/{item_id}/alarm")
+    def telemetry_alarm(
+        item_id: Annotated[str, PathParam(min_length=1, max_length=128)],
+        _: IdentityDep,
+        context_id: str = Query("simulator", min_length=1, max_length=128),
+    ) -> dict[str, Any]:
+        try:
+            return {
+                "alarm": observation_repository.is_alarmed(context_id, item_id)
+            }
+        except ObservationRepositoryError as exc:
+            raise translate_observation_error(exc) from exc
+
     @app.get("/api/v1/drivers")
     def list_drivers(
         _: IdentityDep,
@@ -1882,6 +2359,149 @@ def create_app(
             return driver_repository.get_operation(operation_id)
         except (DriverNotFoundError, DriverValidationError) as exc:
             raise translate_driver_read_error(exc) from exc
+
+    @app.websocket("/api/v1/telemetry-events/ws")
+    async def websocket_telemetry_events(
+        websocket: WebSocket,
+        context_id: str = Query("simulator", min_length=1, max_length=128),
+        stream_epoch: str = Query(..., min_length=1, max_length=128),
+        after_sequence: int = Query(0, ge=0, le=MAX_OBSERVATION_SEQUENCE),
+    ) -> None:
+        protocols = websocket.scope.get("subprotocols", [])
+        if len(protocols) != 2 or protocols[0] != "spell-auth":
+            await websocket.close(code=4401, reason="invalid websocket credentials")
+            return
+        try:
+            websocket_identity = decode_token(get_auth_config(), protocols[1])
+        except AuthenticationError:
+            await websocket.close(code=4401, reason="invalid websocket credentials")
+            return
+        seconds_until_expiry = websocket_identity.expires_at - time.time()
+        if seconds_until_expiry <= 0:
+            await websocket.close(code=4401, reason="websocket credentials expired")
+            return
+        try:
+            authority = observation_repository.stream_cursor(context_id)
+        except ObservationRepositoryError:
+            await websocket.close(code=4404, reason="observation stream not found")
+            return
+
+        loop = asyncio.get_running_loop()
+        expiry_deadline = loop.time() + seconds_until_expiry
+        await websocket.accept(subprotocol="spell-auth")
+        subscription = hub.subscribe(OBSERVATION_STREAM)
+        last_sent = after_sequence
+        replay_limit = min(
+            settings.websocket_replay_limit, MAX_OBSERVATION_REPLAY - 1
+        )
+
+        async def resync(reason: str, cursor: dict[str, Any]) -> None:
+            await websocket.send_json(
+                {
+                    "schema_version": OBSERVATION_EVENT_SCHEMA,
+                    "stream": OBSERVATION_STREAM,
+                    "event_type": "stream.resync_required",
+                    "stream_epoch": cursor["stream_epoch"],
+                    "data": {
+                        "reason": reason,
+                        "authoritative_stream_epoch": cursor["stream_epoch"],
+                        "authoritative_sequence": cursor["last_sequence"],
+                    },
+                }
+            )
+            await websocket.close(
+                code=4409, reason="snapshot resynchronization required"
+            )
+
+        async def replay_committed() -> bool:
+            nonlocal last_sent, authority
+            authority = observation_repository.stream_cursor(context_id)
+            window = observation_repository.replay(
+                context_id,
+                stream_epoch=stream_epoch,
+                after_sequence=last_sent,
+                limit=replay_limit + 1,
+            )
+            if not window["epoch_matches"]:
+                await resync("STREAM_EPOCH_CHANGED", authority)
+                return False
+            if last_sent > int(window["last_sequence"]):
+                await resync("SEQUENCE_AHEAD_OF_AUTHORITY", authority)
+                return False
+            if not window["cursor_available"]:
+                await resync("CURSOR_UNAVAILABLE", authority)
+                return False
+            replay = window["items"]
+            if len(replay) > replay_limit:
+                await resync("REPLAY_LIMIT_EXCEEDED", authority)
+                return False
+            for item in replay:
+                if loop.time() >= expiry_deadline:
+                    await websocket.close(
+                        code=4401, reason="websocket credentials expired"
+                    )
+                    return False
+                sequence = int(item["projection_sequence"])
+                if sequence <= last_sent:
+                    continue
+                if sequence != last_sent + 1:
+                    await resync("CURSOR_UNAVAILABLE", authority)
+                    return False
+                await websocket.send_json(item)
+                last_sent = sequence
+            return True
+
+        try:
+            # Subscribe before replay. Live delivery is only a wake-up; every
+            # data frame is reread from the committed observation outbox.
+            if not await replay_committed():
+                return
+            while True:
+                seconds_remaining = expiry_deadline - loop.time()
+                if seconds_remaining <= 0:
+                    await websocket.close(
+                        code=4401, reason="websocket credentials expired"
+                    )
+                    return
+                if subscription.overflowed:
+                    authority = observation_repository.stream_cursor(context_id)
+                    await resync("CLIENT_QUEUE_OVERFLOW", authority)
+                    return
+                try:
+                    await asyncio.wait_for(
+                        subscription.queue.get(),
+                        timeout=min(
+                            settings.websocket_keepalive_seconds,
+                            seconds_remaining,
+                        ),
+                    )
+                except asyncio.TimeoutError:
+                    if loop.time() >= expiry_deadline:
+                        await websocket.close(
+                            code=4401, reason="websocket credentials expired"
+                        )
+                        return
+                    authority = observation_repository.stream_cursor(context_id)
+                    if authority["stream_epoch"] != stream_epoch:
+                        await resync("STREAM_EPOCH_CHANGED", authority)
+                        return
+                    await websocket.send_json(
+                        {
+                            "schema_version": OBSERVATION_EVENT_SCHEMA,
+                            "stream": OBSERVATION_STREAM,
+                            "stream_epoch": stream_epoch,
+                            "event_type": "stream.keepalive",
+                            "last_sequence": str(last_sent),
+                            "server_time": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+                    continue
+                if not await replay_committed():
+                    return
+        except WebSocketDisconnect:
+            pass
+        finally:
+            hub.unsubscribe(OBSERVATION_STREAM, subscription)
 
     @app.websocket("/api/v1/driver-events/ws")
     async def websocket_driver_events(

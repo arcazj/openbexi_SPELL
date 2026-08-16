@@ -37,6 +37,8 @@ class Settings:
     driver_rpc_timeout_seconds: float = 2.0
     driver_poll_seconds: float = 1.0
     driver_stale_after_seconds: float = 5.0
+    observation_poll_seconds: float = 0.2
+    observation_freshness_sweep_seconds: float = 0.5
 
     def __post_init__(self) -> None:
         if self.websocket_replay_limit <= 0:
@@ -68,6 +70,15 @@ class Settings:
             raise ValueError(
                 "SPELL_DRIVER_STALE_AFTER_SECONDS must exceed SPELL_DRIVER_POLL_SECONDS"
             )
+        for name, value in (
+            ("SPELL_OBSERVATION_POLL_SECONDS", self.observation_poll_seconds),
+            (
+                "SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS",
+                self.observation_freshness_sweep_seconds,
+            ),
+        ):
+            if not math.isfinite(value) or value <= 0:
+                raise ValueError(f"{name} must be a positive finite number")
         if self.driver_enabled:
             fixed_paths = (
                 (self.driver_ca_path, DRIVER_CA_PATH),
@@ -104,5 +115,11 @@ class Settings:
             driver_poll_seconds=float(os.getenv("SPELL_DRIVER_POLL_SECONDS", "1")),
             driver_stale_after_seconds=float(
                 os.getenv("SPELL_DRIVER_STALE_AFTER_SECONDS", "5")
+            ),
+            observation_poll_seconds=float(
+                os.getenv("SPELL_OBSERVATION_POLL_SECONDS", "0.2")
+            ),
+            observation_freshness_sweep_seconds=float(
+                os.getenv("SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS", "0.5")
             ),
         )

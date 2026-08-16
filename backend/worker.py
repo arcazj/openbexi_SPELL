@@ -20,6 +20,13 @@ from .ir_v06 import (
     validate_startproc_declaration,
     validate_user_action_block,
 )
+from .ir_v07 import (
+    IR_VERSION as V07_IR_VERSION,
+    V07ValidationError,
+    observation_request_for_step,
+    validate_ir_v07,
+    validate_observation_result,
+)
 
 
 MAX_INTEGER_BITS = 4_096
@@ -321,8 +328,15 @@ def worker_main(
         output.put({"kind": kind, "generation": generation, **fields})
 
     try:
-        v06_preflight = ir_version == V06_IR_VERSION
-        validator = validate_ir_v06 if v06_preflight else validate_ir_v03
+        v07_preflight = ir_version == V07_IR_VERSION
+        v06_preflight = ir_version in {V06_IR_VERSION, V07_IR_VERSION}
+        validator = (
+            validate_ir_v07
+            if v07_preflight
+            else validate_ir_v06
+            if v06_preflight
+            else validate_ir_v03
+        )
         lexical_checkpoint = checkpoint_variables
         runtime_checkpoint: dict[str, Any] = {}
         if v06_preflight and type(checkpoint_variables) is dict:
@@ -426,7 +440,7 @@ def worker_main(
                 **resume_prompt_settlement,
                 "response": bounded_response,
             }
-    except (IRValidationError, V06ValidationError) as exc:
+    except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
         send(
             "event",
             event_type="worker.ir_rejected",
@@ -443,7 +457,7 @@ def worker_main(
     variables.update(runtime_checkpoint)
     if durable_arguments is not None:
         variables["ARGS"] = durable_arguments
-    v06_runtime = ir_version == V06_IR_VERSION
+    v06_runtime = ir_version in {V06_IR_VERSION, V07_IR_VERSION}
     send(
         "event",
         event_type="worker.started",
@@ -456,6 +470,7 @@ def worker_main(
     completed_prompt_ids: set[str] = set()
     completed_prompt_settlement_ids: set[str] = set()
     completed_startproc_ids: set[str] = set()
+    completed_observation_ids: set[str] = set()
     applied_user_actions: dict[str, dict[str, Any]] = {}
     applied_inspection_edits: dict[str, dict[str, Any]] = {}
     applied_control_losses: set[str] = set()
@@ -819,6 +834,7 @@ def worker_main(
                 "prompt_response",
                 "prompt_settlement",
                 "startproc_result",
+                "observation_result",
             }:
                 deferred_controls.append(followup)
                 continue
@@ -947,6 +963,11 @@ def worker_main(
             return None
         if command_type == "startproc_result":
             if message.get("startproc_id") in completed_startproc_ids:
+                return None
+            deferred_controls.append(message)
+            return None
+        if command_type == "observation_result":
+            if message.get("request_id") in completed_observation_ids:
                 return None
             deferred_controls.append(message)
             return None
@@ -1150,6 +1171,8 @@ def worker_main(
                     if message is None:
                         continue
                     message_type = message.get("type")
+                    if message_type == "safe_point_ack":
+                        continue
                     if message_type in {"abort", "stop"}:
                         send("state", state="aborted", command_id=message.get("command_id"))
                         send("terminal", state="aborted")
@@ -1295,7 +1318,95 @@ def worker_main(
                     )
                     completed_startproc_ids.add(startproc_id)
                     break
-        except (ExpressionEvaluationError, V06ValidationError) as exc:
+            elif should_run and step["type"] in {"get_tm", "verify", "wait_for"}:
+                request = observation_request_for_step(execution_id, step)
+                send("observation_requested", **request)
+                send_safe_point("WAIT_BOUNDARY", step_index)
+                send("state", state="waiting")
+                observation_result: dict[str, Any] | None = None
+                while observation_result is None:
+                    message = wait_for_control(block=True, timeout=0.25)
+                    if message is None:
+                        continue
+                    message_type = message.get("type")
+                    if message_type == "safe_point_ack":
+                        continue
+                    if message_type in {"abort", "stop"}:
+                        send("state", state="aborted", command_id=message.get("command_id"))
+                        send("terminal", state="aborted")
+                        return
+                    if message_type == "kill":
+                        reject_control(message, "KILL_UNSUPPORTED", "hard kill is not supported")
+                        continue
+                    if message_type in {"pause", "control_loss"}:
+                        result = handle_control(message, step_index)
+                        if result is not None and result["disposition"] == "abort":
+                            return
+                        send("state", state="waiting")
+                        continue
+                    if message_type == "user_action":
+                        apply_user_action(message, step_index)
+                        continue
+                    if message_type == "inspection_edit":
+                        apply_inspection_edit(message, step_index)
+                        continue
+                    if message_type != "observation_result":
+                        reject_control(
+                            message,
+                            "COMMAND_NOT_ALLOWED_IN_STATE",
+                            "only an observation result is accepted at this boundary",
+                        )
+                        continue
+                    if message.get("request_id") != request["request_id"]:
+                        reject_control(
+                            message,
+                            "OBSERVATION_RESULT_INVALID",
+                            "observation result identity does not match",
+                        )
+                        continue
+                    candidate = {
+                        key: value
+                        for key, value in message.items()
+                        if key not in {"type", "generation"}
+                    }
+                    try:
+                        observation_result = validate_observation_result(request, candidate)
+                    except V07ValidationError as exc:
+                        reject_control(message, exc.code, exc.message)
+                        continue
+
+                completed_observation_ids.add(request["request_id"])
+                outcome = observation_result["outcome"]
+                if step["type"] == "get_tm":
+                    if outcome != "OK":
+                        raise ExpressionEvaluationError(f"GetTM failed with {outcome}")
+                    value = observation_result["value"]
+                    if not _matches_type(value, step["scalar_type"]):
+                        raise ExpressionEvaluationError("GetTM result type changed")
+                    variables[step["target"]] = (
+                        float(value)
+                        if step["scalar_type"] == "float" and type(value) is int
+                        else value
+                    )
+                elif step["type"] == "verify":
+                    variables[step["target"]] = outcome
+                elif outcome != "SATISFIED":
+                    raise ExpressionEvaluationError(f"WaitFor failed with {outcome}")
+                effects.append(
+                    {
+                        "event_type": "procedure.observation_settled",
+                        "source": "worker",
+                        "severity": "info",
+                        "payload": {
+                            "request_id": request["request_id"],
+                            "operation": request["operation"],
+                            "outcome": outcome,
+                            "step_index": step_index,
+                        },
+                    }
+                )
+                send("state", state="running")
+        except (ExpressionEvaluationError, V06ValidationError, V07ValidationError) as exc:
             send(
                 "event",
                 event_type="procedure.error",

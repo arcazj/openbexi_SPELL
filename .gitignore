@@ -22,6 +22,7 @@ frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+frontend/artifacts/
 
 artifacts/*.tar.gz
 artifacts/*.tar.gz.sha256
@@ -36,6 +37,7 @@ artifacts/v0.5/.qualification/
 artifacts/v0.5/*.tar.gz
 artifacts/v0.5/*.tar.gz.sha256
 artifacts/v0.6/.qualification/
+artifacts/v0.7/.qualification/
 
 *.log
 

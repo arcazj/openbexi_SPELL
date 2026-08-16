@@ -140,6 +140,82 @@ test("distinguishes every bounded driver fault state without a mutation route", 
     stale: false,
     staleness: "CURRENT",
   };
+  const driverTime = {
+    observation_id: "time-observation-1",
+    context_id: context.context_id,
+    context_generation_id: context.context_generation_id,
+    driver_host_generation: context.host_generation_id,
+    time_unix_ns: "1784462400123456789",
+    acquired_at_unix_ns: "1784462400123456789",
+    received_at_unix_ns: "1784462400123456799",
+    received_at: "2026-07-19T12:00:00.123456Z",
+    clock_source: "SIMULATOR",
+    provenance: "bundled deterministic simulator clock",
+    uncertainty_ns: "10",
+    quality: "GOOD",
+    validity: "VALID",
+  };
+  const telemetrySnapshot = {
+    schema_version: "spell.driver.observation.snapshot/1",
+    stream: "driver.observation",
+    stream_epoch: "observation-epoch-1",
+    through_sequence: "9007199254740993",
+    snapshot_at_database_time: "2026-07-19T12:00:00.123456Z",
+    context_id: context.context_id,
+    context_generation_id: context.context_generation_id,
+    source_epochs: [{
+      source_id: "bundled-simulator",
+      item_id: "tm.bus.voltage",
+      source_epoch: "source-epoch-4",
+      last_source_sequence: "9007199254740997",
+      synchronization_state: "COMPLETE",
+    }],
+    items: [{
+      sample_id: "e".repeat(64),
+      item_id: "tm.bus.voltage",
+      qualified_name: "SIM.POWER.BUS_VOLTAGE",
+      catalog_digest: "f".repeat(64),
+      raw_value: { type: "INT64", value: "9007199254740995" },
+      engineering_value: { type: "FINITE_DOUBLE", value: 28.25 },
+      description: "Synthetic main bus voltage",
+      unit: "V",
+      acquired_at_unix_ns: "1784462400123456789",
+      received_at_unix_ns: "1784462400123456799",
+      source: "bundled-simulator",
+      source_epoch: "source-epoch-4",
+      source_sequence: "9007199254740997",
+      clock_provenance: "bundled deterministic simulator clock",
+      clock_uncertainty_ns: "10",
+      validity: "VALID",
+      quality: "GOOD",
+      quality_reason: "SIMULATOR_NOMINAL",
+      freshness: "FRESH",
+      freshness_policy_revision: "freshness-v1",
+      synchronization_state: "COMPLETE",
+      alarm: {
+        alarm_observation_id: "alarm-observation-1",
+        item_id: "tm.bus.voltage",
+        sample_id: "e".repeat(64),
+        limit_set_id: "LIMIT.TM.POWER.BUS_VOLTAGE",
+        limit_revision: "v07-r1",
+        state: "NOT_ALARMED",
+        severity: "NONE",
+        evaluated_engineering_value: { type: "FINITE_DOUBLE", value: 28.25 },
+        quality: "GOOD",
+        validity: "VALID",
+        freshness: "FRESH",
+        boolean_value: false,
+        snapshot_cursor: {
+          stream_epoch: "observation-epoch-1",
+          projection_sequence: "9007199254740993",
+        },
+        evaluated_at_database_time: "2026-07-19T12:00:00.123456Z",
+        reason: "WITHIN_LIMITS",
+      },
+    }],
+    driver_time: driverTime,
+    synchronization_state: "COMPLETE",
+  };
 
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
@@ -181,6 +257,10 @@ test("distinguishes every bounded driver fault state without a mutation route", 
       body = { binding };
     } else if (path === "/api/v1/driver-operations/operation-13") {
       body = { operation };
+    } else if (path === "/api/v1/driver-time") {
+      body = { driver_time: driverTime };
+    } else if (path === "/api/v1/telemetry/snapshot") {
+      body = telemetrySnapshot;
     } else {
       await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: "not found" }) });
       return;
@@ -208,6 +288,14 @@ test("distinguishes every bounded driver fault state without a mutation route", 
   await expect(projection.getByText("REQUIRED")).toBeVisible();
   await expect(projection.getByText("SAFE / IDEMPOTENT / PROTOBUF BINARY")).toBeVisible();
   await expect(projection.getByText("NONE")).toBeVisible();
+  const telemetry = projection.getByRole("region", { name: "Telemetry observation" });
+  await expect(telemetry.getByText("SIM.POWER.BUS_VOLTAGE")).toBeVisible();
+  await expect(telemetry.getByText("9007199254740995")).toBeVisible();
+  await expect(telemetry.getByText("9007199254740997")).toBeVisible();
+  await expect(telemetry.getByText("GOOD", { exact: true }).first()).toBeVisible();
+  await expect(telemetry.getByText("VALID", { exact: true }).first()).toBeVisible();
+  await expect(telemetry.getByText("FRESH", { exact: true })).toBeVisible();
+  await expect(telemetry.getByText("NOT ALARMED", { exact: true })).toBeVisible();
 
   const mutationControls = [
     "Open context",
@@ -221,7 +309,7 @@ test("distinguishes every bounded driver fault state without a mutation route", 
     await expect(projection.getByRole("button", { name: mutation })).toHaveCount(0);
   }
 
-  await expect.poll(() => driverRequests.length).toBe(7);
+  await expect.poll(() => driverRequests.length).toBeGreaterThanOrEqual(7);
   expect(driverRequests.every((request) => request.method === "GET")).toBe(true);
   expect(new Set(driverRequests.map((request) => request.path))).toEqual(
     new Set([

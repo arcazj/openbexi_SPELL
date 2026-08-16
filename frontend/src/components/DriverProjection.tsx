@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import { useDriverProjectionStream } from "../useDriverProjectionStream";
+import { TelemetryObservation } from "./TelemetryObservation";
 import type {
   DriverBinding,
   DriverCapacityValue,
@@ -448,6 +449,8 @@ export function DriverProjection() {
               </dl>
             )}
           </section>
+
+          {context && <TelemetryObservation contextId={context.context_id} />}
 
           <section className="foundation-section" aria-labelledby="driver-binding-title">
             <div className="foundation-section-heading compact">

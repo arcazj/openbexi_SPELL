@@ -163,6 +163,37 @@ class ScheduleCancelCreate(OperatorControlProof):
     reason: str = Field(min_length=1, max_length=1000)
 
 
+class TelemetryScheduleCreate(OperatorControlProof):
+    controller_execution_id: str = Field(min_length=1, max_length=64)
+    condition_plan: dict[str, Any]
+    timeout_seconds: float = Field(gt=0, le=604_800)
+    retry_count: int = Field(default=1000, ge=0, le=1000)
+    retry_interval_seconds: float = Field(default=0.25, ge=0, le=86_400)
+    procedure_catalog_id: str = Field(min_length=1, max_length=200)
+    procedure_revision: int | None = Field(default=None, ge=1)
+    context_id: str = Field(default="simulator", min_length=1, max_length=100)
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    automatic: bool = True
+    background_allowed: bool = True
+    visible: bool = True
+    expected_execution_revision: int = Field(ge=0)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode="after")
+    def automatic_requires_background(self) -> "TelemetryScheduleCreate":
+        if self.automatic and not self.background_allowed:
+            raise ValueError("automatic telemetry schedule requires BackgroundAllowed")
+        return self
+
+
+class TelemetryScheduleCancelCreate(OperatorControlProof):
+    controller_execution_id: str = Field(min_length=1, max_length=64)
+    expected_schedule_revision: int = Field(ge=0)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
 class InspectionEditCreate(OperatorControlProof):
     path: str = Field(min_length=1, max_length=200)
     scope: Literal["LOCAL_VARIABLE", "GLOBAL_VARIABLE", "ARGS", "IVARS"]

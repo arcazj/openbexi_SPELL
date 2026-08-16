@@ -26,6 +26,8 @@ from backend.migrations.versions import (
     v0002_execution_variables,
     v0003_driver_foundation,
     v0004_operator_workspace,
+    v0005_observation_projection,
+    v0006_observation_conditions,
 )
 
 
@@ -35,11 +37,21 @@ DRIVER_TABLES = tuple(
 OPERATOR_TABLES = tuple(
     table.name for table in v0004_operator_workspace.NEW_TABLES
 )
+OBSERVATION_TABLES = tuple(
+    table.name for table in v0005_observation_projection.NEW_TABLES
+)
+CONDITION_TABLES = tuple(
+    table.name for table in v0006_observation_conditions.NEW_TABLES
+)
 V03_TABLES = ("executions", "events", "commands", "prompts")
 
 
 def reset_migration_database(engine) -> None:
     with engine.begin() as connection:
+        for table in reversed(CONDITION_TABLES):
+            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
+        for table in reversed(OBSERVATION_TABLES):
+            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in reversed(OPERATOR_TABLES):
             connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in reversed(DRIVER_TABLES):
@@ -222,6 +234,78 @@ def assert_operator_schema_contract(engine) -> None:
     assert context["id"] == "simulator"
     assert context["name"] == "Local Synthetic Simulator"
     assert context["revision"] == 0
+
+
+def assert_observation_schema_contract(engine) -> None:
+    inspector = inspect(engine)
+    assert set(OBSERVATION_TABLES) <= set(inspector.get_table_names())
+    for expected in v0005_observation_projection.NEW_TABLES:
+        actual_columns = {
+            item["name"]: item
+            for item in inspector.get_columns(expected.name)
+        }
+        assert set(actual_columns) == set(expected.columns.keys())
+        assert {
+            name for name, column in actual_columns.items() if not column["nullable"]
+        } == {
+            column.name for column in expected.columns if not column.nullable
+        }
+        assert set(inspector.get_pk_constraint(expected.name)["constrained_columns"]) == {
+            column.name for column in expected.primary_key.columns
+        }
+        expected_foreign_keys = {
+            (
+                tuple(column.name for column in constraint.columns),
+                constraint.referred_table.name,
+                tuple(element.column.name for element in constraint.elements),
+            )
+            for constraint in expected.foreign_key_constraints
+        }
+        actual_foreign_keys = {
+            (
+                tuple(constraint["constrained_columns"]),
+                constraint["referred_table"],
+                tuple(constraint["referred_columns"]),
+            )
+            for constraint in inspector.get_foreign_keys(expected.name)
+        }
+        assert expected_foreign_keys == actual_foreign_keys
+        expected_checks = {
+            constraint.name
+            for constraint in expected.constraints
+            if isinstance(constraint, CheckConstraint)
+        }
+        actual_checks = {
+            constraint["name"]
+            for constraint in inspector.get_check_constraints(expected.name)
+        }
+        assert expected_checks <= actual_checks
+    with engine.connect() as connection:
+        policy = connection.execute(
+            text(
+                "SELECT policy_id, revision, definition_digest "
+                "FROM observation_freshness_policies"
+            )
+        ).mappings().one()
+        limit_set = connection.execute(
+            text(
+                "SELECT limit_set_id, item_id, catalog_digest, limit_revision "
+                "FROM telemetry_limit_sets"
+            )
+        ).mappings().one()
+    assert dict(policy) == {
+        "policy_id": "simulator-default",
+        "revision": "v07-r1",
+        "definition_digest": (
+            "43799d5f5fd3e4f5744e4de5b302c10fe27d3601130ba14c0ee31bd62712702e"
+        ),
+    }
+    assert dict(limit_set) == {
+        "limit_set_id": "LIMIT.TM.POWER.BUS_VOLTAGE",
+        "item_id": "TM.POWER.BUS_VOLTAGE",
+        "catalog_digest": v0005_observation_projection.DEFAULT_CATALOG_DIGEST,
+        "limit_revision": "v07-r1",
+    }
 
 
 def seed_populated_v02_schema(engine) -> None:
@@ -417,11 +501,14 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
     assert run_migrations(engine) == (
         "0003_driver_foundation",
         "0004_operator_workspace",
+        "0005_observation_projection",
+        "0006_observation_conditions",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0004_operator_workspace"
+    assert database_version(engine) == "0006_observation_conditions"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
+    assert_observation_schema_contract(engine)
     with engine.connect() as connection:
         assert connection.scalar(
             text("SELECT COUNT(*) FROM driver_profiles WHERE enabled")
@@ -440,9 +527,11 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0002_execution_variables",
         "0003_driver_foundation",
         "0004_operator_workspace",
+        "0005_observation_projection",
+        "0006_observation_conditions",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0004_operator_workspace"
+    assert database_version(engine) == "0006_observation_conditions"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -460,6 +549,7 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
     } <= tables
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
+    assert_observation_schema_contract(engine)
 
 
 def test_migrations_upgrade_populated_v02_sqlite_database(tmp_path) -> None:
@@ -559,11 +649,14 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0002_execution_variables",
         "0003_driver_foundation",
         "0004_operator_workspace",
+        "0005_observation_projection",
+        "0006_observation_conditions",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0004_operator_workspace"
+    assert database_version(engine) == "0006_observation_conditions"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
+    assert_observation_schema_contract(engine)
 
 
 @pytest.mark.skipif(

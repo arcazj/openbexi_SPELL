@@ -26,8 +26,8 @@ if _version_not_supported:
 
 
 class DriverInfrastructureServiceStub:
-    """Candidate A exposes one infrastructure lifecycle service and exactly nine
-    unary RPCs. Data-plane and procedure-facing services are intentionally absent.
+    """The legacy infrastructure lifecycle service retains exactly its original nine
+    unary RPCs. The separate read-only observation service below is additive.
     """
 
     def __init__(self, channel):
@@ -84,8 +84,8 @@ class DriverInfrastructureServiceStub:
 
 
 class DriverInfrastructureServiceServicer:
-    """Candidate A exposes one infrastructure lifecycle service and exactly nine
-    unary RPCs. Data-plane and procedure-facing services are intentionally absent.
+    """The legacy infrastructure lifecycle service retains exactly its original nine
+    unary RPCs. The separate read-only observation service below is additive.
     """
 
     def Handshake(self, request, context):
@@ -199,8 +199,8 @@ def add_DriverInfrastructureServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class DriverInfrastructureService:
-    """Candidate A exposes one infrastructure lifecycle service and exactly nine
-    unary RPCs. Data-plane and procedure-facing services are intentionally absent.
+    """The legacy infrastructure lifecycle service retains exactly its original nine
+    unary RPCs. The separate read-only observation service below is additive.
     """
 
     @staticmethod
@@ -436,6 +436,127 @@ class DriverInfrastructureService:
             '/spell.driver.v1.DriverInfrastructureService/GetOperation',
             spell_dot_driver_dot_v1_dot_driver__pb2.GetOperationRequest.SerializeToString,
             spell_dot_driver_dot_v1_dot_driver__pb2.GetOperationResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class DriverObservationServiceStub:
+    """The observation service is additive. It does not create lifecycle operations,
+    consume lifecycle capacity, or alter the legacy infrastructure capability set.
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.GetTime = channel.unary_unary(
+                '/spell.driver.v1.DriverObservationService/GetTime',
+                request_serializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeRequest.SerializeToString,
+                response_deserializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeResponse.FromString,
+                _registered_method=True)
+        self.GetTM = channel.unary_unary(
+                '/spell.driver.v1.DriverObservationService/GetTM',
+                request_serializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTMRequest.SerializeToString,
+                response_deserializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTMResponse.FromString,
+                _registered_method=True)
+
+
+class DriverObservationServiceServicer:
+    """The observation service is additive. It does not create lifecycle operations,
+    consume lifecycle capacity, or alter the legacy infrastructure capability set.
+    """
+
+    def GetTime(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetTM(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_DriverObservationServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'GetTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTime,
+                    request_deserializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeRequest.FromString,
+                    response_serializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeResponse.SerializeToString,
+            ),
+            'GetTM': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTM,
+                    request_deserializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTMRequest.FromString,
+                    response_serializer=spell_dot_driver_dot_v1_dot_driver__pb2.GetTMResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'spell.driver.v1.DriverObservationService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('spell.driver.v1.DriverObservationService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class DriverObservationService:
+    """The observation service is additive. It does not create lifecycle operations,
+    consume lifecycle capacity, or alter the legacy infrastructure capability set.
+    """
+
+    @staticmethod
+    def GetTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/spell.driver.v1.DriverObservationService/GetTime',
+            spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeRequest.SerializeToString,
+            spell_dot_driver_dot_v1_dot_driver__pb2.GetTimeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetTM(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/spell.driver.v1.DriverObservationService/GetTM',
+            spell_dot_driver_dot_v1_dot_driver__pb2.GetTMRequest.SerializeToString,
+            spell_dot_driver_dot_v1_dot_driver__pb2.GetTMResponse.FromString,
             options,
             channel_credentials,
             insecure,

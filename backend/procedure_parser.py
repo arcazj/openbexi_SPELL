@@ -21,6 +21,11 @@ from .ir_v06 import (
     validate_user_action,
     validate_user_action_block,
 )
+from .ir_v07 import (
+    IR_VERSION as V07_IR_VERSION,
+    V07ValidationError,
+    validate_ir_v07,
+)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
@@ -87,7 +92,16 @@ class Procedure:
 class ProcedureCatalog:
     """Compile the safe language to versioned, data-only checkpointable IR."""
 
-    _step_calls = {"Log", "Telemetry", "Wait", "Prompt", "StartProc"}
+    _step_calls = {
+        "Log",
+        "Telemetry",
+        "Wait",
+        "Prompt",
+        "StartProc",
+        "GetTM",
+        "Verify",
+        "WaitFor",
+    }
 
     def __init__(self, directory: Path):
         self.directory = directory
@@ -315,14 +329,22 @@ class ProcedureCatalog:
                 column=None,
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
-        ir_version = V06_IR_VERSION if compiler.uses_v06 else IR_VERSION
+        ir_version = (
+            V07_IR_VERSION
+            if compiler.uses_v07
+            else V06_IR_VERSION
+            if compiler.uses_v06
+            else IR_VERSION
+        )
         try:
             validated_ir = (
-                validate_ir_v06(ir_version, steps)
+                validate_ir_v07(ir_version, steps)
+                if compiler.uses_v07
+                else validate_ir_v06(ir_version, steps)
                 if compiler.uses_v06
                 else validate_ir_v03(ir_version, steps)
             )
-        except (IRValidationError, V06ValidationError) as exc:
+        except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
             diagnostic = ProcedureDiagnostic(
                 code="SPELL105",
                 message=f"compiled IR failed independent validation at {exc.path}",
@@ -382,7 +404,16 @@ class ProcedureCatalog:
 
 
 class _Compiler:
-    _step_calls = {"Log", "Telemetry", "Wait", "Prompt", "StartProc"}
+    _step_calls = {
+        "Log",
+        "Telemetry",
+        "Wait",
+        "Prompt",
+        "StartProc",
+        "GetTM",
+        "Verify",
+        "WaitFor",
+    }
     _reserved_calls = {*_step_calls, "UserAction", "Label"}
 
     def __init__(self, source_name: str):
@@ -395,6 +426,7 @@ class _Compiler:
         self.called_functions: set[str] = set()
         self.user_actions: list[dict[str, Any]] = []
         self.uses_v06 = False
+        self.uses_v07 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -434,7 +466,17 @@ class _Compiler:
                 f"local function {function_name} is never called",
             )
         if not any(
-            step["type"] in {"log", "telemetry", "wait", "prompt", "startproc"}
+            step["type"]
+            in {
+                "log",
+                "telemetry",
+                "wait",
+                "prompt",
+                "startproc",
+                "get_tm",
+                "verify",
+                "wait_for",
+            }
             for step in self.steps
         ):
             self._reject(tree, "SPELL101", "procedure contains no executable steps")
@@ -818,6 +860,9 @@ class _Compiler:
         call: ast.Call,
         guard: dict[str, Any] | None,
     ) -> None:
+        if name in {"GetTM", "Verify", "WaitFor"}:
+            self._compile_v07_step(node, name, call, guard)
+            return
         if any(keyword.arg is None for keyword in call.keywords):
             self._reject(call, "SPELL407", "keyword expansion is not allowed")
         allowed: dict[str, set[str]] = {
@@ -991,6 +1036,136 @@ class _Compiler:
             step.update(spec.as_ir_fields())
             self.uses_v06 = True
         self._append(node, name.lower(), guard=guard, **step)
+
+    def _compile_v07_step(
+        self,
+        node: ast.Expr,
+        name: str,
+        call: ast.Call,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        allowed = {
+            "GetTM": {
+                "item_id",
+                "target",
+                "scalar_type",
+                "field",
+                "mode",
+                "timeout_seconds",
+            },
+            "Verify": {
+                "condition",
+                "target",
+                "delay",
+                "timeout",
+                "retry_count",
+                "retry_interval",
+            },
+            "WaitFor": {"seconds", "at", "condition", "timeout", "timeout_seconds"},
+        }[name]
+        positional = {"GetTM": ["item_id"], "Verify": ["condition"], "WaitFor": ["seconds"]}[
+            name
+        ]
+        if len(call.args) > len(positional):
+            self._reject(call, "SPELL408", f"too many positional arguments for {name}")
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        if set(values) - allowed:
+            self._reject(call, "SPELL409", f"unsupported keyword for {name}")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+
+        if name == "GetTM":
+            for required in ("item_id", "target", "scalar_type"):
+                if required not in values:
+                    self._reject(call, "SPELL411", f"missing argument {required}")
+            scalar_type = self._literal_choice(
+                values["scalar_type"],
+                "",
+                {"float", "int", "bool", "str"},
+                "GetTM scalar type",
+            )
+            target = self._v07_target(values["target"], scalar_type, "GetTM")
+            step = {
+                "item_id": self._literal_required_string(values["item_id"], "GetTM item id"),
+                "target": target,
+                "scalar_type": scalar_type,
+                "field": self._literal_choice(
+                    values.get("field"), "ENGINEERING", {"ENGINEERING", "RAW"}, "GetTM field"
+                ),
+                "mode": self._literal_choice(
+                    values.get("mode"), "CURRENT", {"CURRENT", "NEXT"}, "GetTM mode"
+                ),
+                "timeout_seconds": self._literal_value(
+                    values.get("timeout_seconds"), 30, "GetTM timeout"
+                ),
+            }
+            step_type = "get_tm"
+        elif name == "Verify":
+            for required in ("condition", "target"):
+                if required not in values:
+                    self._reject(call, "SPELL411", f"missing argument {required}")
+            step = {
+                "condition": self._literal_value(values["condition"], None, "Verify condition"),
+                "target": self._v07_target(values["target"], "str", "Verify"),
+                "delay_seconds": self._literal_value(values.get("delay"), 0, "Verify delay"),
+                "timeout_seconds": self._literal_value(
+                    values.get("timeout"), 30, "Verify timeout"
+                ),
+                "retry_count": self._literal_value(
+                    values.get("retry_count"), 0, "Verify retry count"
+                ),
+                "retry_interval_seconds": self._literal_value(
+                    values.get("retry_interval"), 0, "Verify retry interval"
+                ),
+            }
+            step_type = "verify"
+        else:
+            selected = {"seconds", "at", "condition"} & set(values)
+            if len(selected) != 1:
+                self._reject(
+                    call,
+                    "SPELL411",
+                    "WaitFor requires exactly one of seconds, at, or condition",
+                )
+            if "timeout" in values and "timeout_seconds" in values:
+                self._reject(call, "SPELL410", "duplicate argument timeout")
+            timeout_node = values.get("timeout", values.get("timeout_seconds"))
+            if "condition" in selected and timeout_node is None:
+                self._reject(call, "SPELL411", "WaitFor condition requires timeout")
+            if "condition" not in selected and timeout_node is not None:
+                self._reject(call, "SPELL409", "WaitFor timeout is valid only with condition")
+            selected_name = next(iter(selected))
+            step = {
+                selected_name: self._literal_value(
+                    values[selected_name], None, f"WaitFor {selected_name}"
+                )
+            }
+            if timeout_node is not None:
+                step["timeout_seconds"] = self._literal_value(
+                    timeout_node, None, "WaitFor timeout"
+                )
+            step_type = "wait_for"
+
+        self.uses_v07 = True
+        self.uses_v06 = True
+        self._append(node, step_type, guard=guard, **step)
+
+    def _v07_target(self, node: ast.AST, expected_type: str, label: str) -> str:
+        if not isinstance(node, ast.Name):
+            self._reject(node, "SPELL718", f"{label} target must be a declared variable")
+        self._validate_variable_name(node, node.id)
+        actual_type = self._declared_type(node)
+        if actual_type != expected_type:
+            self._reject(
+                node,
+                "SPELL718",
+                f"{label} target must have declared type {expected_type}",
+            )
+        return node.id
 
     def _compile_if(
         self,

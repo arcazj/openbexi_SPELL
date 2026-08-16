@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package spell.driver.v1;
 
-// Candidate A exposes one infrastructure lifecycle service and exactly nine
-// unary RPCs. Data-plane and procedure-facing services are intentionally absent.
+// The legacy infrastructure lifecycle service retains exactly its original nine
+// unary RPCs. The separate read-only observation service below is additive.
 service DriverInfrastructureService {
   rpc Handshake(HandshakeRequest) returns (HandshakeResponse);
   rpc Health(HealthRequest) returns (HealthResponse);
@@ -14,6 +14,13 @@ service DriverInfrastructureService {
   rpc CancelLifecycleOperation(CancelLifecycleOperationRequest) returns (LifecycleOperationResponse);
   rpc DrainHost(DrainHostRequest) returns (LifecycleOperationResponse);
   rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
+}
+
+// The observation service is additive. It does not create lifecycle operations,
+// consume lifecycle capacity, or alter the legacy infrastructure capability set.
+service DriverObservationService {
+  rpc GetTime(GetTimeRequest) returns (GetTimeResponse);
+  rpc GetTM(GetTMRequest) returns (GetTMResponse);
 }
 
 enum RpcMethod {
@@ -421,4 +428,174 @@ message GetOperationResponse {
   ContractVersion contract_version = 1;
   OperationRecord operation = 2;
   SafeError error = 3;
+}
+
+enum ObservationResultCode {
+  OBSERVATION_RESULT_CODE_UNSPECIFIED = 0;
+  OBSERVATION_RESULT_CODE_OK = 1;
+  OBSERVATION_RESULT_CODE_NOT_FOUND = 2;
+  OBSERVATION_RESULT_CODE_NOT_AVAILABLE = 3;
+  OBSERVATION_RESULT_CODE_DEADLINE_EXCEEDED = 4;
+  OBSERVATION_RESULT_CODE_CANCELLED = 5;
+  OBSERVATION_RESULT_CODE_GAP = 6;
+  OBSERVATION_RESULT_CODE_STALE_GENERATION = 7;
+  OBSERVATION_RESULT_CODE_CLOCK_UNCERTAIN = 8;
+  OBSERVATION_RESULT_CODE_CONTRACT_MISMATCH = 9;
+  OBSERVATION_RESULT_CODE_INTERNAL = 10;
+}
+
+enum ClockSource {
+  CLOCK_SOURCE_UNSPECIFIED = 0;
+  CLOCK_SOURCE_SIMULATOR_GCS_TIME = 1;
+  CLOCK_SOURCE_SIMULATOR = 2;
+  CLOCK_SOURCE_HOST_FALLBACK = 3;
+}
+
+enum ObservationValidity {
+  OBSERVATION_VALIDITY_UNSPECIFIED = 0;
+  OBSERVATION_VALIDITY_VALID = 1;
+  OBSERVATION_VALIDITY_INVALID = 2;
+  OBSERVATION_VALIDITY_UNKNOWN = 3;
+}
+
+enum ObservationQuality {
+  OBSERVATION_QUALITY_UNSPECIFIED = 0;
+  OBSERVATION_QUALITY_GOOD = 1;
+  OBSERVATION_QUALITY_SUSPECT = 2;
+  OBSERVATION_QUALITY_BAD = 3;
+  OBSERVATION_QUALITY_UNKNOWN = 4;
+}
+
+enum ScalarKind {
+  SCALAR_KIND_UNSPECIFIED = 0;
+  SCALAR_KIND_BOOLEAN = 1;
+  SCALAR_KIND_INT64 = 2;
+  SCALAR_KIND_UINT64 = 3;
+  SCALAR_KIND_FINITE_DOUBLE = 4;
+  SCALAR_KIND_STRING = 5;
+  SCALAR_KIND_BYTES = 6;
+}
+
+enum GetTMMode {
+  GET_TM_MODE_UNSPECIFIED = 0;
+  GET_TM_MODE_CURRENT = 1;
+  GET_TM_MODE_NEXT = 2;
+}
+
+message ObservationRequestIdentity {
+  ContractVersion contract_version = 1;
+  string server_profile_id = 2;
+  string driver_host_generation = 3;
+  string host_profile_digest = 4;
+  string context_id = 5;
+  string context_generation = 6;
+  string context_binding_digest = 7;
+  string observation_id = 8;
+  string correlation_id = 9;
+  int64 deadline_unix_ns = 10;
+  uint64 credential_epoch = 11;
+}
+
+message ObservationGeneration {
+  string server_profile_id = 1;
+  string driver_host_generation = 2;
+  string host_profile_digest = 3;
+  string context_id = 4;
+  string context_generation = 5;
+  string context_binding_digest = 6;
+}
+
+message ObservationError {
+  ObservationResultCode code = 1;
+  string safe_message = 2;
+  bool retryable = 3;
+}
+
+message ScalarValue {
+  ScalarKind kind = 1;
+  oneof typed_value {
+    bool boolean_value = 2;
+    sint64 int64_value = 3;
+    uint64 uint64_value = 4;
+    double finite_double_value = 5;
+    string string_value = 6;
+    bytes bytes_value = 7;
+  }
+}
+
+message ItemIdentity {
+  string item_id = 1;
+  string qualified_name = 2;
+  string catalog_digest = 3;
+}
+
+message SampleIdentity {
+  string sample_id = 1;
+  string item_id = 2;
+  string source_id = 3;
+  string source_epoch = 4;
+  uint64 source_sequence = 5;
+}
+
+message DriverTimeObservation {
+  string observation_id = 1;
+  ObservationGeneration generation = 2;
+  int64 time_unix_ns = 3;
+  int64 acquired_at_unix_ns = 4;
+  ClockSource clock_source = 5;
+  string provenance = 6;
+  uint64 uncertainty_ns = 7;
+  ObservationQuality quality = 8;
+  ObservationValidity validity = 9;
+}
+
+message DriverTelemetrySample {
+  string observation_id = 1;
+  ObservationGeneration generation = 2;
+  SampleIdentity sample_identity = 3;
+  ItemIdentity item_identity = 4;
+  ScalarValue raw_value = 5;
+  ScalarValue engineering_value = 6;
+  string description = 7;
+  string unit = 8;
+  int64 acquired_at_unix_ns = 9;
+  string source = 10;
+  string clock_provenance = 11;
+  uint64 clock_uncertainty_ns = 12;
+  ObservationValidity validity = 13;
+  ObservationQuality quality = 14;
+  string quality_reason = 15;
+}
+
+message GapBounds {
+  string source_epoch = 1;
+  uint64 first_available_sequence = 2;
+  uint64 last_available_sequence = 3;
+}
+
+message GetTimeRequest {
+  ObservationRequestIdentity identity = 1;
+}
+
+message GetTimeResponse {
+  ContractVersion contract_version = 1;
+  ObservationResultCode result_code = 2;
+  DriverTimeObservation observation = 3;
+  ObservationError error = 4;
+}
+
+message GetTMRequest {
+  ObservationRequestIdentity identity = 1;
+  string item_id = 2;
+  GetTMMode mode = 3;
+  string source_epoch = 4;
+  uint64 after_source_sequence = 5;
+}
+
+message GetTMResponse {
+  ContractVersion contract_version = 1;
+  ObservationResultCode result_code = 2;
+  DriverTelemetrySample sample = 3;
+  GapBounds gap = 4;
+  ObservationError error = 5;
 }

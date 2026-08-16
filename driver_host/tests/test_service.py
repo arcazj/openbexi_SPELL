@@ -36,9 +36,12 @@ class AbortContext:
         raise RpcAbort(code, details)
 
 
-def test_protobuf_exposes_exactly_one_nine_method_unary_infrastructure_service() -> None:
+def test_protobuf_preserves_nine_method_infrastructure_and_adds_observation() -> None:
     services = driver_pb2.DESCRIPTOR.services_by_name
-    assert tuple(services) == ("DriverInfrastructureService",)
+    assert tuple(services) == (
+        "DriverInfrastructureService",
+        "DriverObservationService",
+    )
     service = services["DriverInfrastructureService"]
     assert [method.name for method in service.methods] == [
         "Handshake",
@@ -53,6 +56,10 @@ def test_protobuf_exposes_exactly_one_nine_method_unary_infrastructure_service()
     ]
     assert all(not method.client_streaming for method in service.methods)
     assert all(not method.server_streaming for method in service.methods)
+    observation = services["DriverObservationService"]
+    assert [method.name for method in observation.methods] == ["GetTime", "GetTM"]
+    assert all(not method.client_streaming for method in observation.methods)
+    assert all(not method.server_streaming for method in observation.methods)
 
     forbidden_untyped_messages = {
         "google.protobuf.Any",

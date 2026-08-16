@@ -158,6 +158,7 @@ independent validators pass:
 | Archive sidecar | `artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz.sha256` | Pending |
 | Release commit | Git commit | Pending |
 | Annotated tag object | `refs/tags/v0.6.0` | Pending |
+
 <!-- V06_RELEASE_EVIDENCE_BINDINGS_END -->
 
 No placeholder may remain when this record changes to accepted. Every digest,

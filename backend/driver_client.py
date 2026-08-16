@@ -46,6 +46,25 @@ from .driver_domain import (
     ResultCode,
     SafeError,
 )
+from .observation_domain import (
+    ClockSource,
+    DriverTelemetrySample,
+    DriverTimeObservation,
+    GapBounds,
+    GetTMMode,
+    GetTMQuery,
+    GetTMResult,
+    GetTimeQuery,
+    GetTimeResult,
+    ItemIdentity,
+    ObservationError,
+    ObservationResultCode,
+    Quality,
+    SampleIdentity,
+    ScalarKind,
+    ScalarValue,
+    Validity,
+)
 
 
 MAX_MESSAGE_BYTES = 64 * 1024
@@ -84,6 +103,73 @@ def _safe_error(value: Any) -> Optional[SafeError]:
     if code in {"UNSPECIFIED", "NONE"} and not value.safe_message:
         return None
     return SafeError(code=code, message=value.safe_message, retryable=value.retryable)
+
+
+def _observation_code(value: Any) -> ObservationResultCode:
+    return ObservationResultCode(
+        _strip_prefix(_enum_name(value, "result_code"), "OBSERVATION_RESULT_CODE_")
+    )
+
+
+def _observation_error(value: Any) -> ObservationError:
+    code = ObservationResultCode(
+        _strip_prefix(_enum_name(value, "code"), "OBSERVATION_RESULT_CODE_")
+    )
+    return ObservationError(code, value.safe_message, value.retryable)
+
+
+def _observation_generations(value: Any) -> GenerationTuple:
+    return GenerationTuple(
+        server_profile_id=value.server_profile_id,
+        driver_host_generation=value.driver_host_generation,
+        host_profile_digest=value.host_profile_digest,
+        context_id=value.context_id,
+        context_generation=value.context_generation,
+        context_binding_digest=value.context_binding_digest,
+    )
+
+
+def _scalar(value: Any) -> ScalarValue:
+    kind = ScalarKind(_strip_prefix(_enum_name(value, "kind"), "SCALAR_KIND_"))
+    field = value.WhichOneof("typed_value")
+    expected = {
+        ScalarKind.BOOLEAN: "boolean_value",
+        ScalarKind.INT64: "int64_value",
+        ScalarKind.UINT64: "uint64_value",
+        ScalarKind.FINITE_DOUBLE: "finite_double_value",
+        ScalarKind.STRING: "string_value",
+        ScalarKind.BYTES: "bytes_value",
+    }[kind]
+    if field != expected:
+        raise ValueError("scalar kind and oneof value differ")
+    return ScalarValue(kind, getattr(value, field))
+
+
+def _observation_identity(query: GetTimeQuery | GetTMQuery) -> Any:
+    generations = query.generations
+    return driver_pb2.ObservationRequestIdentity(
+        contract_version=driver_pb2.ContractVersion(
+            major=CONTRACT_MAJOR, minor=CONTRACT_MINOR
+        ),
+        server_profile_id=generations.server_profile_id,
+        driver_host_generation=generations.driver_host_generation,
+        host_profile_digest=generations.host_profile_digest,
+        context_id=generations.context_id,
+        context_generation=generations.context_generation,
+        context_binding_digest=generations.context_binding_digest,
+        observation_id=query.observation_id,
+        correlation_id=query.correlation_id,
+        deadline_unix_ns=query.deadline_unix_ns,
+        credential_epoch=query.credential_epoch,
+    )
+
+
+def _transport_observation_error(code: str) -> ObservationError:
+    outcome = {
+        "CANCELLED": ObservationResultCode.CANCELLED,
+        "DEADLINE_EXCEEDED": ObservationResultCode.DEADLINE_EXCEEDED,
+    }.get(code, ObservationResultCode.INTERNAL)
+    return ObservationError(outcome, "driver observation transport failed")
 
 
 def _driver_identity(value: Any) -> DriverIdentity:
@@ -301,6 +387,7 @@ class DriverClient:
     ) -> None:
         self._channel = channel
         self._stub = driver_pb2_grpc.DriverInfrastructureServiceStub(channel)
+        self._observation_stub = driver_pb2_grpc.DriverObservationServiceStub(channel)
         self._timeout_seconds = timeout_seconds
         self._credential_epoch = credential_epoch
         self._host_profile_digest = host_profile_digest
@@ -365,11 +452,21 @@ class DriverClient:
             (CREDENTIAL_EPOCH_METADATA, str(self._credential_epoch)),
         )
 
-    async def _call(self, rpc: Any, request: Any) -> Any:
+    async def _call(
+        self,
+        rpc: Any,
+        request: Any,
+        *,
+        timeout_seconds: Optional[float] = None,
+    ) -> Any:
         try:
             return await rpc(
                 request,
-                timeout=self._timeout_seconds,
+                timeout=(
+                    self._timeout_seconds
+                    if timeout_seconds is None
+                    else timeout_seconds
+                ),
                 metadata=self._metadata(),
                 wait_for_ready=False,
             )
@@ -582,6 +679,162 @@ class DriverClient:
             error = _safe_error(response.error)
             raise DriverTransportError(error.code if error else "INTERNAL")
         return _operation(response.operation)
+
+    async def get_time(self, query: GetTimeQuery) -> GetTimeResult:
+        remaining = (query.deadline_unix_ns - time.time_ns()) / 1_000_000_000
+        if remaining <= 0:
+            error = ObservationError(
+                ObservationResultCode.DEADLINE_EXCEEDED,
+                "driver observation deadline elapsed before dispatch",
+            )
+            return GetTimeResult(error.code, error=error)
+        try:
+            response = await self._call(
+                self._observation_stub.GetTime,
+                driver_pb2.GetTimeRequest(identity=_observation_identity(query)),
+                timeout_seconds=min(self._timeout_seconds, remaining),
+            )
+        except DriverTransportError as exc:
+            error = _transport_observation_error(exc.code)
+            return GetTimeResult(error.code, error=error)
+        try:
+            if (
+                response.contract_version.major != CONTRACT_MAJOR
+                or response.contract_version.minor > CONTRACT_MINOR
+            ):
+                raise ValueError("observation response contract version differs")
+            code = _observation_code(response)
+            if code is not ObservationResultCode.OK:
+                error = _observation_error(response.error)
+                return GetTimeResult(code, error=error)
+            value = response.observation
+            generations = _observation_generations(value.generation)
+            if generations != query.generations or value.observation_id != query.observation_id:
+                raise ValueError("GetTime response identity differs")
+            observation = DriverTimeObservation(
+                observation_id=value.observation_id,
+                generations=generations,
+                time_unix_ns=value.time_unix_ns,
+                acquired_at_unix_ns=value.acquired_at_unix_ns,
+                clock_source=ClockSource(
+                    _strip_prefix(_enum_name(value, "clock_source"), "CLOCK_SOURCE_")
+                ),
+                provenance=value.provenance,
+                uncertainty_ns=value.uncertainty_ns,
+                quality=Quality(
+                    _strip_prefix(
+                        _enum_name(value, "quality"), "OBSERVATION_QUALITY_"
+                    )
+                ),
+                validity=Validity(
+                    _strip_prefix(
+                        _enum_name(value, "validity"), "OBSERVATION_VALIDITY_"
+                    )
+                ),
+            )
+            return GetTimeResult(code, observation=observation)
+        except (KeyError, TypeError, ValueError):
+            error = ObservationError(
+                ObservationResultCode.CONTRACT_MISMATCH,
+                "driver GetTime response violates the observation contract",
+            )
+            return GetTimeResult(error.code, error=error)
+
+    async def get_tm(self, query: GetTMQuery) -> GetTMResult:
+        remaining = (query.deadline_unix_ns - time.time_ns()) / 1_000_000_000
+        if remaining <= 0:
+            error = ObservationError(
+                ObservationResultCode.DEADLINE_EXCEEDED,
+                "driver observation deadline elapsed before dispatch",
+            )
+            return GetTMResult(error.code, error=error)
+        try:
+            response = await self._call(
+                self._observation_stub.GetTM,
+                driver_pb2.GetTMRequest(
+                    identity=_observation_identity(query),
+                    item_id=query.item_id,
+                    mode=getattr(driver_pb2, f"GET_TM_MODE_{query.mode.value}"),
+                    source_epoch=query.source_epoch,
+                    after_source_sequence=query.after_source_sequence,
+                ),
+                timeout_seconds=min(self._timeout_seconds, remaining),
+            )
+        except DriverTransportError as exc:
+            error = _transport_observation_error(exc.code)
+            return GetTMResult(error.code, error=error)
+        try:
+            if (
+                response.contract_version.major != CONTRACT_MAJOR
+                or response.contract_version.minor > CONTRACT_MINOR
+            ):
+                raise ValueError("observation response contract version differs")
+            code = _observation_code(response)
+            if code is ObservationResultCode.GAP:
+                gap = GapBounds(
+                    response.gap.source_epoch,
+                    response.gap.first_available_sequence,
+                    response.gap.last_available_sequence,
+                )
+                return GetTMResult(code, gap=gap)
+            if code is not ObservationResultCode.OK:
+                return GetTMResult(code, error=_observation_error(response.error))
+            value = response.sample
+            generations = _observation_generations(value.generation)
+            if generations != query.generations or value.observation_id != query.observation_id:
+                raise ValueError("GetTM response identity differs")
+            sample_identity = SampleIdentity(
+                value.sample_identity.sample_id,
+                value.sample_identity.item_id,
+                value.sample_identity.source_id,
+                value.sample_identity.source_epoch,
+                value.sample_identity.source_sequence,
+            )
+            item_identity = ItemIdentity(
+                value.item_identity.item_id,
+                value.item_identity.qualified_name,
+                value.item_identity.catalog_digest,
+            )
+            sample = DriverTelemetrySample(
+                observation_id=value.observation_id,
+                generations=generations,
+                sample_identity=sample_identity,
+                item_identity=item_identity,
+                raw_value=_scalar(value.raw_value),
+                engineering_value=_scalar(value.engineering_value),
+                description=value.description,
+                unit=value.unit,
+                acquired_at_unix_ns=value.acquired_at_unix_ns,
+                source=value.source,
+                clock_provenance=value.clock_provenance,
+                clock_uncertainty_ns=value.clock_uncertainty_ns,
+                validity=Validity(
+                    _strip_prefix(
+                        _enum_name(value, "validity"), "OBSERVATION_VALIDITY_"
+                    )
+                ),
+                quality=Quality(
+                    _strip_prefix(
+                        _enum_name(value, "quality"), "OBSERVATION_QUALITY_"
+                    )
+                ),
+                quality_reason=value.quality_reason,
+            )
+            if sample.item_identity.item_id != query.item_id:
+                raise ValueError("GetTM response item differs")
+            if query.mode is GetTMMode.NEXT and (
+                sample.sample_identity.source_epoch != query.source_epoch
+                or sample.sample_identity.source_sequence
+                <= query.after_source_sequence
+            ):
+                raise ValueError("GetTM NEXT cursor did not advance")
+            return GetTMResult(code, sample=sample)
+        except (KeyError, TypeError, ValueError):
+            error = ObservationError(
+                ObservationResultCode.CONTRACT_MISMATCH,
+                "driver GetTM response violates the observation contract",
+            )
+            return GetTMResult(error.code, error=error)
 
     async def close(self) -> None:
         await self._channel.close()

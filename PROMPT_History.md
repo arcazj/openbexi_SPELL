@@ -6,6 +6,31 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-16 - Documentation Repair And v0.7-v0.9 Direction
+
+The owner request was recorded exactly as: `table are not correctly formated
+for some md file like SPELL_v0.7_Release.md. fix that. make sure to update all
+docs as well regarding last version implemented. then resume and finish up
+V0.7 asap, asap. once done finish up V0.8 and v0.9 asap. You have all
+approvals.` This directs repair of malformed Markdown tables, synchronization
+of living documentation with the latest implemented version, completion of
+v0.7, and then bounded v0.8 and v0.9 work. At this event, v0.7 is the latest
+committed implementation candidate; its canonical qualification, Gate 0B,
+Final evidence, release, and tag remain pending. v0.8 and v0.9 are requested
+follow-on versions and are not represented as gated, implemented, qualified,
+released, or accepted.
+
+## 2026-08-16 - v0.7 Candidate Committed, Qualification Pending
+
+The owner direction remained the explicit authorization recorded by Gate 0A.
+The nine approved simulator read-only observation packages were implemented
+and committed as the current candidate,
+including additive driver time and telemetry reads, durable projections and
+conditions, brokered `GetTM`/`Verify`/`WaitFor`, telemetry schedules, bounded
+catalog reads, alarm state, cursor streaming, and the operator UI. Pre-freeze
+regressions passed, but no canonical candidate result, Gate 0B authorization,
+Final evidence, release package, or v0.7.0 tag is claimed by this event.
+
 ## 2026-08-16 - v0.6.0 Accepted And v0.7 Gate 0A Approved
 
 ### v0.6.0 Accepted Release
@@ -43,10 +68,11 @@ passed. The manifest and six matrices under `contracts/v07` bind the exact 45
 planned proof identities and the read-only simulator time, telemetry,
 condition, resource/lookup, limits/alarm, and stream boundaries.
 
-Gate 0A authorizes bounded implementation only. No v0.7 product construct,
-runtime artifact, candidate evidence, qualification result, release,
-deployment, live or legacy GCS route, operational authorization, or compliance
-determination is claimed.
+At the Gate 0A decision, the gate authorized bounded implementation only and
+claimed no v0.7 product construct, runtime artifact, candidate evidence,
+qualification result, release, deployment, live or legacy GCS route,
+operational authorization, or compliance determination. The later candidate
+event above preserves rather than rewrites that gate-time result.
 
 ## 2026-08-16 - v0.6 Candidate Qualified And Gate 0B Passed
 

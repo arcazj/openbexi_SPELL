@@ -294,6 +294,12 @@ class GateV06ZeroBValidatorTests(unittest.TestCase):
             gate.validate_release_document(release_path, scope)
             self.assertIn(scope["immutable_inputs"]["candidate"]["commit"].encode(), gate_raw)
             self.assertIn(scope["qualification_contract"]["manifest_sha256"].encode(), release_raw)
+            normalized_release = release_raw.replace(b"\r\n", b"\n")
+            self.assertIn(
+                b"| Annotated tag object | `refs/tags/v0.6.0` | Pending |\n\n"
+                + gate.RELEASE_EVIDENCE_MARKERS[1].encode(),
+                normalized_release,
+            )
 
     def test_atomic_activation_applies_exact_proposal_and_removes_lock(self) -> None:
         scope = self.bound_scope()

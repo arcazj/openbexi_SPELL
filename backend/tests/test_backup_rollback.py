@@ -281,4 +281,4 @@ def test_driver_rollback_rejects_a_later_applied_migration(tmp_path: Path) -> No
     with pytest.raises(UnsafeDriverRollbackError, match="later migrations"):
         rollback_driver_foundation(engine)
 
-    assert database_version(engine) == "0004_operator_workspace"
+    assert database_version(engine) == "0006_observation_conditions"

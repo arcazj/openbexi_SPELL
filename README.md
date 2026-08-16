@@ -9,6 +9,11 @@ object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919` for `v0.6.0` peels to
 release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` and activated the
 conditional acceptance recorded in that commit.
 
+The latest implemented source is the committed SPELL v0.7 candidate for the
+nine Gate 0A-authorized read-only observation packages. Canonical candidate
+qualification, Gate 0B, Final evidence, release packaging, and the annotated
+`v0.7.0` tag are still pending, so v0.7 is not the accepted product baseline.
+
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
 
@@ -66,7 +71,7 @@ Release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` and annotated tag
 no deployment, operational authorization, broad compatibility, or compliance
 result.
 
-## Version 0.7 Gate 0A
+## Version 0.7 Candidate
 
 The owner explicitly authorized the bounded simulator read-only observation
 and condition-engine increment in
@@ -75,8 +80,12 @@ and condition-engine increment in
 their 45 planned proof identities. The seven hash-bound planning contracts
 cover driver time and sample identity, `GetTM`, declarative `Verify`, telemetry
 `WaitFor` and scheduling, resource and lookup reads, limits and alarm state,
-and cursor streams. Product implementation and qualification have not started
-and v0.7.0 is not accepted. The gate creates no live GCS, spacecraft,
+and cursor streams. The bounded simulator-only implementation is now committed
+as the latest implemented candidate:
+it adds the read-only observation driver service, durable observation and
+condition migrations, brokered procedure operations, authenticated APIs and
+cursor stream, and operator UI. Candidate qualification, Gate 0B, Final
+evidence, and v0.7.0 acceptance remain pending. The gate creates no live GCS, spacecraft,
 mission-network, telecommand, external-effect, deployment, operational, or
 compliance authority.
 
@@ -222,8 +231,9 @@ The canonical v0.6 candidate record at
 Its ten suites prove all 45 required identities without a mapped skip, failure,
 accepted failure, or waiver. Final qualification and release closeout later
 passed, and annotated tag `v0.6.0` now fixes the accepted release. The v0.7
-Gate 0A contracts are planning authorization only and are not v0.7 product or
-qualification evidence.
+Gate 0A contracts remain planning authorization rather than product evidence;
+the separately committed implementation candidate has not yet produced
+canonical qualification or acceptance evidence.
 
 ## Project Documents
 
@@ -246,6 +256,8 @@ qualification evidence.
 | [`SPELL_v0.6_Gate_0B.md`](SPELL_v0.6_Gate_0B.md) | Evidence-bound Gate 0B PASS and authorized deterministic release-closeout sequence |
 | [`SPELL_v0.6_Release.md`](SPELL_v0.6_Release.md) | Conditional v0.6.0 release record activated by the verified annotated tag |
 | [`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine read-only simulator observation work packages; not implementation or release acceptance |
+| [`SPELL_v0.7_Gate_0B.md`](SPELL_v0.7_Gate_0B.md) | Pending evidence-bound Gate 0B decision record for the committed v0.7 candidate |
+| [`SPELL_v0.7_Release.md`](SPELL_v0.7_Release.md) | Pending conditional v0.7.0 release-closeout record; not acceptance before all required evidence and tag activation pass |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
@@ -268,9 +280,11 @@ are static source and negative-scope evidence, not implementations or executed
 semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
 The accepted v0.4 and v0.5 release evidence remains immutable. The accepted
-v0.6 release evidence is likewise fixed by its annotated tag. v0.7 Gate 0A now
-authorizes nine exact read-only simulator observation packages without claiming
-that any v0.7 implementation or qualification evidence exists.
+v0.6 release evidence is likewise fixed by its annotated tag. v0.7 Gate 0A
+authorized nine exact read-only simulator observation packages, and those
+packages now exist in the latest committed implementation candidate. Canonical
+candidate qualification, Gate 0B, Final evidence, and v0.7.0 acceptance do not
+yet exist.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4

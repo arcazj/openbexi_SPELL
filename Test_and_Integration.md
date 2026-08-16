@@ -6,8 +6,9 @@
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
-| Planning target | SPELL v0.7 Simulator Read-Only Observation and Condition Engine |
-| Status | v0.6.0 accepted with no exceptions; `V07-GATE-0A PASS` authorizes exactly nine packages and 45 planned identities, but no v0.7 product implementation or qualification is claimed |
+| Latest implemented candidate | SPELL v0.7 Simulator Read-Only Observation and Condition Engine |
+| Status | v0.6.0 accepted with no exceptions; the nine Gate 0A-authorized v0.7 packages are committed as the current candidate, with canonical candidate qualification, Gate 0B, Final evidence, and acceptance still pending |
+| Requested follow-on | v0.8 after v0.7 completion, then v0.9; neither follow-on has Gate 0A or implementation evidence yet |
 | Date | Updated 2026-08-16 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
@@ -25,12 +26,28 @@ the scope and independently compiled validator.
 
 The Gate validator passed under locked Python 3.13.14, all 22 adversarial Gate
 tests passed, and all eight semantic planning-contract tests passed. Those are
-planning authorization checks, not v0.7 product or qualification evidence. No
-v0.7 implementation, API, schema, migration, dependency, driver behavior,
-runtime artifact, candidate commit, release, live/legacy route, deployment,
-operational authorization, or compliance result is claimed.
+planning authorization checks, not v0.7 product or qualification evidence. At
+Gate 0A time, no v0.7 implementation, API, schema, migration, dependency,
+driver behavior, runtime artifact, candidate commit, release, live/legacy
+route, deployment, operational authorization, or compliance result was
+claimed. The later committed candidate is recorded separately below.
 
-### Planned Requirements And Tests
+### Candidate Implementation Verification
+
+The bounded v0.7 implementation is committed as the latest candidate and has
+passed noncanonical prequalification regression runs: 655 backend and driver
+tests passed with seven exact
+environment skips, 62 frontend unit tests passed, the production frontend build
+passed, and focused observation, condition, PostgreSQL clock, and browser
+checks passed. These runs guide the source freeze but do not replace canonical
+candidate evidence. All 45 identities, Gate 0B, Final evidence, SBOMs,
+supply-chain audit, package reproducibility, and tag validation remain pending.
+
+### Gate 0A Planned Requirements And Tests
+
+The status column preserves the Gate 0A authorization-time disposition. The
+current implementation status is the committed-candidate result above; no row
+is canonically qualified until the work-package evidence and Gate 0B pass.
 
 | Work package | Requirement and expected result | Planned test identities | Status |
 | --- | --- | --- | --- |

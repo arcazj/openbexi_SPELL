@@ -143,7 +143,8 @@ describe("durable projection panels", () => {
       const url = new URL(String(input), "http://localhost");
       requestedUrls.push(url);
       const path = url.pathname;
-      return new Response(JSON.stringify({ items: path.endsWith("/schedules") ? schedules : relationships }), { status: 200, headers: { "Content-Type": "application/json" } });
+      const items = path.endsWith("/telemetry-schedules") ? [] : path.endsWith("/schedules") ? schedules : relationships;
+      return new Response(JSON.stringify({ items }), { status: 200, headers: { "Content-Type": "application/json" } });
     });
     const store = configureStore({ reducer: { console: consoleSlice.reducer } });
     store.dispatch(startExecution.fulfilled({ ...execution, schedules, relationships }, "start", { procedureId: "demo", contextId: "simulator" }));
@@ -159,5 +160,103 @@ describe("durable projection panels", () => {
 
     expect(await screen.findByText("FIRED")).toBeInTheDocument();
     expect(await screen.findByTitle("child-2")).toBeInTheDocument();
+  });
+
+  it("creates and cancels a bounded typed telemetry-conditioned schedule", async () => {
+    const requests: Array<{ path: string; body?: Record<string, unknown> }> = [];
+    let telemetrySchedule: Record<string, unknown> | null = null;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://localhost");
+      const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : undefined;
+      requests.push({ path: url.pathname, body });
+      if (url.pathname === "/api/v1/schedules") {
+        return new Response(JSON.stringify({ items: [] }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      if (url.pathname.endsWith("/cancel")) {
+        telemetrySchedule = { ...telemetrySchedule, revision: 2, state: "CANCELLED" };
+        return new Response(JSON.stringify({ schedule: telemetrySchedule }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      if (url.pathname === "/api/v1/telemetry-schedules" && init?.method === "POST") {
+        const conditionPlan = body?.condition_plan as Record<string, unknown>;
+        telemetrySchedule = {
+          schedule_id: "e".repeat(64),
+          revision: 1,
+          controller_execution_id: "execution-1",
+          schedule_type: "TELEMETRY_CONDITION",
+          state: "PENDING",
+          condition_plan_id: conditionPlan.condition_plan_id,
+          condition_plan_digest: "b".repeat(64),
+          quality_freshness_policy_id: "simulator-default",
+          quality_freshness_policy_revision: "v07-r1",
+          start_snapshot_cursor: "4",
+          retry_count: 1000,
+          retry_interval_ns: 250_000_000,
+          deadline_at_database_time: "2026-08-15T10:02:00Z",
+          procedure_catalog_id: "demo",
+          procedure_revision: 1,
+          bundle_digest: "c".repeat(64),
+          context_id: "simulator",
+          arguments: {},
+          arguments_digest: "d".repeat(64),
+          automatic: true,
+          background_allowed: true,
+          visible: true,
+        };
+        return new Response(JSON.stringify({ schedule: telemetrySchedule }), { status: 201, headers: { "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ items: telemetrySchedule ? [telemetrySchedule] : [] }), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+
+    const store = configureStore({ reducer: { console: consoleSlice.reducer } });
+    store.dispatch(consoleSlice.actions.setSelectedProcedure("demo"));
+    store.dispatch(startExecution.fulfilled(execution, "start", { procedureId: "demo", contextId: "simulator" }));
+    render(<Provider store={store}><SchedulesPanel /></Provider>);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Telemetry" }));
+    expect(screen.getByRole("combobox", { name: "Telemetry item" })).toHaveValue("TM.POWER.BUS_VOLTAGE");
+    expect(screen.getByRole("combobox", { name: "Comparison operator" })).toHaveValue("GE");
+    await user.clear(screen.getByRole("spinbutton", { name: "Condition value" }));
+    await user.type(screen.getByRole("spinbutton", { name: "Condition value" }), "31.5");
+    await user.clear(screen.getByRole("spinbutton", { name: "Telemetry timeout in seconds" }));
+    await user.type(screen.getByRole("spinbutton", { name: "Telemetry timeout in seconds" }), "120");
+    await user.click(screen.getByRole("button", { name: "Create telemetry schedule" }));
+
+    expect(await screen.findByText("TELEMETRY_CONDITION")).toBeInTheDocument();
+    const createRequest = requests.find((request) => request.path === "/api/v1/telemetry-schedules" && request.body);
+    expect(createRequest?.body).toMatchObject({
+      controller_execution_id: "execution-1",
+      timeout_seconds: 120,
+      retry_count: 1000,
+      retry_interval_seconds: 0.25,
+      procedure_catalog_id: "demo",
+      context_id: "simulator",
+      expected_execution_revision: 5,
+      lease_id: "lease-1",
+      control_fencing_token: 7,
+    });
+    expect(createRequest?.body?.condition_plan).toMatchObject({
+      schema_version: "spell.v07.condition-plan/1",
+      root: {
+        operator: "GE",
+        left: {
+          item_id: "TM.POWER.BUS_VOLTAGE",
+          catalog_digest: "5cc5323c10c18e3b5e4d0b9eec0a12f0e896274821e488f85160dc6fde718d94",
+          scalar_type: "FINITE_DOUBLE",
+          value_field: "ENGINEERING",
+        },
+        right: { value: { type: "FINITE_DOUBLE", value: 31.5 } },
+      },
+    });
+
+    await user.click(screen.getByRole("button", { name: `Cancel schedule ${"e".repeat(64)}` }));
+    expect(await screen.findByText("CANCELLED")).toBeInTheDocument();
+    expect(requests.find((request) => request.path.endsWith("/cancel"))?.body).toMatchObject({
+      controller_execution_id: "execution-1",
+      expected_schedule_revision: 1,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Relative" }));
+    expect(screen.getByLabelText("Delay (seconds)")).toBeInTheDocument();
   });
 });

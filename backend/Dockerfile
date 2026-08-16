@@ -16,7 +16,7 @@ COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \
     scripts/qualify_browser_stream_server.py scripts/compose_qualification.py \
-    scripts/source_fingerprint.py /app/scripts/
+    scripts/source_fingerprint.py scripts/seed_observation_v07.py /app/scripts/
 
 RUN groupadd --gid 10001 spell \
     && useradd --uid 10001 --gid spell --no-create-home \

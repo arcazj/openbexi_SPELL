@@ -1143,9 +1143,9 @@ class OperatorService:
             execution = session.get(Execution, execution_id)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
-            if str(execution.ir_version).startswith("0.6"):
+            if execution.ir_version in {"0.6", "0.7"}:
                 raise OperatorAuthorizationError(
-                    "v0.6 executions require a fenced operator command"
+                    "v0.6-plus executions require a fenced operator command"
                 )
             if execution.created_by != actor and role != "admin":
                 raise OperatorAuthorizationError(
@@ -1218,9 +1218,9 @@ class OperatorService:
                 raise OperatorAuthorizationError(
                     "operator-projected prompts require a fenced response"
                 )
-            if execution.ir_version == "0.6":
+            if execution.ir_version in {"0.6", "0.7"}:
                 raise OperatorAuthorizationError(
-                    "v0.6 prompts require a fenced response"
+                    "v0.6-plus prompts require a fenced response"
                 )
             if execution.created_by != actor and role != "admin":
                 raise OperatorAuthorizationError(
@@ -2660,7 +2660,7 @@ class OperatorService:
                             execution, "lexical_frame_id"
                         )
                     )
-                    if execution.ir_version == "0.6" and current_frame is None:
+                    if execution.ir_version in {"0.6", "0.7"} and current_frame is None:
                         raise OperatorConflictError(
                             "command target requires a committed lexical frame"
                         )
@@ -2693,7 +2693,7 @@ class OperatorService:
                         )
                     target_step, target_item = candidates[0]
                     target_reachability = target_item.get("reachability_id")
-                    if execution.ir_version == "0.6" and (
+                    if execution.ir_version in {"0.6", "0.7"} and (
                         type(target_reachability) is not str
                         or not target_reachability
                     ):

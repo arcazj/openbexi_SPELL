@@ -1,0 +1,414 @@
+{
+  "schema_version": "ng-spell-v07-gate-0b-scope/1",
+  "gate_id": "V07-GATE-0B",
+  "status": "PENDING_CANDIDATE",
+  "target_increment": "v0.7",
+  "target_release": "v0.7.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "decision_date": "2026-08-16",
+    "authorization": "PENDING_V07_OBS_001_THROUGH_V07_OBS_009_RELEASE_CLOSEOUT",
+    "owner_request": "resume and finish up asap v0.6 asap and move forward to finis up v0.7 asap. you have all aprrovals.",
+    "gate_0a_owner_approval_reaffirmed": true,
+    "tag_resolution": "REQUESTED_V0_7_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_7_0",
+    "precondition": "CANONICAL_V07_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
+  },
+  "immutable_inputs": {
+    "accepted_v0_6_0": {
+      "tag_ref": "refs/tags/v0.6.0",
+      "tag_object_type": "tag",
+      "tag_object_id": "b6dc64dc8fb6cfe9845f454904a078ec6f3c0919",
+      "raw_tag_object_sha256": "b08b3e66b0018a6f559b696cdd478b639f5ecbabc750b9049c85a8f8a17dd8a4",
+      "peeled_release_commit": "05ec783a6e54a76e0548bdd536c18538f6bff51b",
+      "qualified_source_commit": "8d9db4b6acc443ca6309cdfb12b5d4f9b2fef213",
+      "tagged_files_sha256": {
+        "SPELL_v0.6_Release.md": "9eb9121470f7cdf097f55917bdcead7748b0257209ff8adfa957d7ca1bb4a7da",
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.6-gate-0b.json": "0deef3794c7dd34ef9995f95d33f2688aebfa198b96579e655273603555205bc",
+        "artifacts/v0.6/release-qualification.json": "cbff6f30fca8708260a0a94bf60f3834455dee9cfa2021b5ae4dd2ec83b4c98f"
+      }
+    },
+    "gate_0a": {
+      "commit": "07c19437d28bc32a88d9970a4104d6c0fde53073",
+      "parent": "05ec783a6e54a76e0548bdd536c18538f6bff51b",
+      "tree": "ad9487e0ba32c9a42fbbdaa1f9e7bce964674680",
+      "validator_output": "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+      "owner_marker": "V07-GATE-0A OWNER-APPROVAL: APPROVED",
+      "files": {
+        "SPELL_v0.7_Pre-Implementation.md": {
+          "blob": "b497089a21807eadcc8b78c6491ad6b0f4d7bc49",
+          "sha256": "b09ebd5505923f9321c523ed9c82bbe51f58ddb56c98f90f5d8ddc056da9fead"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.7-gate-0a.json": {
+          "blob": "4c08129e6dbefe71f374754e7bd6aad63e170f77",
+          "sha256": "af669f150a9bf8c2878f1692629cba78818ba1e4eecf3d16d8159d63d0eec710"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v07_gate_0a.py": {
+          "blob": "bb92f56e0145fd3bef52a879c78b5cd107b9a8dd",
+          "sha256": "4411a41291256a59f58d0a0ad9175fcbaac27aedf96d6b6dbd35675028be193d"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v07_gate_0a.py": {
+          "blob": "9af52ceca2152e4576d41a5a0e427c5f073bb490",
+          "sha256": "c414de6b4cb959bd31551635d5c4fb636152776ff6c3369b8b1e02afce23b27f"
+        }
+      },
+      "contracts": {
+        "contracts/v07/manifest.json": {
+          "blob": "3d372b76742cd72007b7fe780b275bb5a1adcb76",
+          "sha256": "df1c8060cf6ec8259d2949ac6ec14f7aebca7ceba041bb274fdbec6c354d1a7d"
+        },
+        "contracts/v07/time_and_sample_identity.json": {
+          "blob": "845f4fc90dd88730db6de10ff43b7a9d389de32d",
+          "sha256": "08a36552d311c6cb6297a493197480a5fbe2df0153ac4e4c63ddf9c0d66d58cd"
+        },
+        "contracts/v07/condition_engine.json": {
+          "blob": "69110362c02950c9b2792db72d2c75a19995b0ae",
+          "sha256": "5373bbe93f0b19656cd266dc0341f03df11e02e4e7a1038e8b64ff30a253ef1b"
+        },
+        "contracts/v07/waitfor_and_scheduling.json": {
+          "blob": "b83821ed27ef9104ef293734cca176ccae354f42",
+          "sha256": "53cfb3d168765495ee46b2383dfd14dca79154ac59eed3fd857953cf14119f79"
+        },
+        "contracts/v07/resource_and_lookup_reads.json": {
+          "blob": "c6f6ec515992d113b546a6ab8d54c6f7a6b52d48",
+          "sha256": "07c93d6960f312eb8c31832f455ae874ac6b54b05cbc85df038f5acd8be16eb8"
+        },
+        "contracts/v07/limits_and_alarm_state.json": {
+          "blob": "92204d500d1fb50c7bf4a0770affee51f1989e97",
+          "sha256": "e42c7da301fb340f0e8cada67806a620194802f77658bc8029df2857a0cf4977"
+        },
+        "contracts/v07/cursor_streams.json": {
+          "blob": "099258734583e8d4c9fc6bdc0d9c921751a9c6c8",
+          "sha256": "e18f62e3cb949ddeab7c0533712d0f6666f6b9eef59b78e6255bd3c963a41c8d"
+        }
+      }
+    },
+    "candidate": {
+      "binding_status": "PENDING_SOURCE_FREEZE",
+      "commit": null,
+      "parent": "07c19437d28bc32a88d9970a4104d6c0fde53073",
+      "tree": null,
+      "changed_paths": []
+    }
+  },
+  "qualification_contract": {
+    "status": "PENDING_CANONICAL_EVIDENCE",
+    "manifest_path": "artifacts/v0.7/work-package/qualification.json",
+    "manifest_schema": "spell.v07.candidate-qualification/1",
+    "manifest_sha256": null,
+    "validator_path": "scripts/validate_candidate_evidence_v07.py",
+    "validator_success_shape": {
+      "gate": "PASS",
+      "schema_version": "spell.v07.candidate-qualification/1",
+      "source_commit": null,
+      "suites": 10,
+      "test_ids": 45,
+      "tests_minimum": 1
+    },
+    "python_version": "3.13.14",
+    "suite_ids": [
+      "backend_sqlite",
+      "backend_postgresql",
+      "backend_docker_host",
+      "backend_v07_soak",
+      "driver_host",
+      "tooling",
+      "frontend_vitest",
+      "frontend_build",
+      "frontend_playwright_mocked",
+      "frontend_playwright_live"
+    ],
+    "postgresql_environment_variables": [
+      "SPELL_TEST_DATABASE_URL",
+      "SPELL_MIGRATION_TEST_DATABASE_URL"
+    ],
+    "mapped_test_ids_skipped": [],
+    "accepted_failures": [],
+    "waivers": [],
+    "waivers_allowed": false
+  },
+  "qualified_work_packages": [
+    {
+      "work_package_id": "V07-OBS-001",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-001-UNIT",
+        "V07-OBS-001-CONTRACT",
+        "V07-OBS-001-CLOCK",
+        "V07-OBS-001-RECOVERY",
+        "V07-OBS-001-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-002",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-002-UNIT",
+        "V07-OBS-002-INTEGRATION",
+        "V07-OBS-002-ATOMIC",
+        "V07-OBS-002-QUALITY",
+        "V07-OBS-002-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-003",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-003-UNIT",
+        "V07-OBS-003-MATRIX",
+        "V07-OBS-003-CLOCK",
+        "V07-OBS-003-RECOVERY",
+        "V07-OBS-003-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-004",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-004-UNIT",
+        "V07-OBS-004-INTEGRATION",
+        "V07-OBS-004-CLOCK",
+        "V07-OBS-004-RACE",
+        "V07-OBS-004-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-005",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-005-UNIT",
+        "V07-OBS-005-INTEGRATION",
+        "V07-OBS-005-CLOCK",
+        "V07-OBS-005-RACE",
+        "V07-OBS-005-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-006",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-006-UNIT",
+        "V07-OBS-006-INTEGRATION",
+        "V07-OBS-006-BOUNDARY",
+        "V07-OBS-006-RECOVERY",
+        "V07-OBS-006-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-007",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-007-UNIT",
+        "V07-OBS-007-MATRIX",
+        "V07-OBS-007-QUALITY",
+        "V07-OBS-007-RECOVERY",
+        "V07-OBS-007-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-008",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-008-UNIT",
+        "V07-OBS-008-INTEGRATION",
+        "V07-OBS-008-BACKPRESSURE",
+        "V07-OBS-008-RECONNECT",
+        "V07-OBS-008-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-009",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": [
+        "V07-OBS-009-SEMANTIC-GOLDEN",
+        "V07-OBS-009-BROWSER",
+        "V07-OBS-009-ACCESSIBILITY",
+        "V07-OBS-009-FAULT-RECOVERY",
+        "V07-OBS-009-LOAD-SECURITY"
+      ]
+    }
+  ],
+  "reviewed_surface_delta": {
+    "review_status": "PENDING_CANDIDATE_BINDING_AND_QUALIFICATION",
+    "internal_ir": {
+      "accepted_persisted_versions_preserved": [
+        "0.3",
+        "0.6"
+      ],
+      "accepted_ir_bindings": {
+        "backend/ir_v03.py": {
+          "blob": "87f202e9e3ff192e348c2aea9f7009ea7fc95841",
+          "sha256": "2726774ed5873e0c0c1eeaffa7b3713c708ac7f61a6fa93e544a8dbc8c79963c"
+        },
+        "backend/ir_v06.py": {
+          "blob": "6a03742e6ca4828c35dcb0908f0ffe2ad3cc3f53",
+          "sha256": "ce4228f7a29f45a0e18b5d78d431d664b33b7ad4374af3c6712c8f39cb234e73"
+        }
+      },
+      "new_internal_version": "0.7",
+      "new_internal_file": "backend/ir_v07.py",
+      "opt_in_constructs": [
+        "GET_TM",
+        "VERIFY",
+        "WAIT_FOR"
+      ],
+      "legacy_serialized_bytes_must_remain_unchanged": true,
+      "public_legacy_language_compatibility_claimed": false
+    },
+    "driver_contract": {
+      "protocol_file": "contracts/spell/driver/v1/driver.proto",
+      "accepted_protocol_blob": "deaab2ab77b3b66b2f24813174fde5739d2af8f2",
+      "accepted_protocol_sha256": "893005380ab1c51a2e5f35babe3fe5a58baf41fd9ce53cc56d0c220af7f84a80",
+      "legacy_service": "DriverInfrastructureService",
+      "legacy_unary_rpc_count": 9,
+      "additive_service": "DriverObservationService",
+      "additive_rpc_names": [
+        "GetTime",
+        "GetTM"
+      ],
+      "legacy_protocol_declarations_must_remain_byte_identical": true,
+      "legacy_handshake_bytes_must_remain_compatible": true,
+      "read_only": true
+    },
+    "observation_api": {
+      "api_version": "v1",
+      "classification": "ADDITIVE_LOCAL_READ_ONLY_OBSERVATION_ROUTES_AND_CURSOR_STREAM",
+      "route_families": [
+        "OBSERVATION_CATALOG_AND_TYPED_RESOURCE_LOOKUPS",
+        "TELEMETRY_SNAPSHOT_LIMIT_AND_ALARM_READS",
+        "CURSOR_STREAMS_AND_GAP_RESYNCHRONIZATION",
+        "DECLARATIVE_VERIFY_AND_WAITFOR",
+        "TELEMETRY_CONDITION_SCHEDULING",
+        "READ_ONLY_FRONTEND_OBSERVATION_PROJECTION"
+      ],
+      "service_boundary_files": [
+        "backend/observation_read_service.py",
+        "backend/condition_service.py"
+      ],
+      "read_only_observation_boundary": true,
+      "arbitrary_expression_evaluation": false,
+      "broad_public_api_compatibility_claimed": false
+    },
+    "database_schema": {
+      "migration_versions": [
+        "0005_observation_projection",
+        "0006_observation_conditions"
+      ],
+      "migration_files": [
+        "backend/migrations/versions/v0005_observation_projection.py",
+        "backend/migrations/versions/v0006_observation_conditions.py"
+      ],
+      "new_tables_by_migration": {
+        "0005_observation_projection": [
+          "observation_streams",
+          "observation_freshness_policies",
+          "driver_time_observations",
+          "driver_time_heads",
+          "telemetry_samples",
+          "telemetry_item_heads",
+          "telemetry_source_cursors",
+          "telemetry_gaps",
+          "telemetry_limit_sets",
+          "telemetry_limit_heads",
+          "telemetry_alarm_observations",
+          "telemetry_alarm_heads",
+          "observation_outbox"
+        ],
+        "0006_observation_conditions": [
+          "condition_plans",
+          "condition_evaluations",
+          "condition_evaluation_samples",
+          "verify_operations",
+          "waitfor_operations",
+          "telemetry_condition_schedules",
+          "telemetry_schedule_occurrences"
+        ]
+      },
+      "existing_tables_rewritten_by_migrations": [],
+      "sqlite_and_postgresql_required": true,
+      "rollback_and_upgrade_proof_required": true,
+      "broad_database_compatibility_claimed": false
+    },
+    "dependencies": {
+      "new_python_runtime_dependencies": [],
+      "new_frontend_runtime_dependencies": [],
+      "driver_implementation_version": "0.4.0",
+      "live_driver_or_external_effect_route_added": false
+    },
+    "compatibility_ledger": {
+      "claimed_construct_ids": [],
+      "claimed_artifact_ids": [],
+      "compatibility_ledger_rows_added": 0,
+      "v0_6_scope_rows_changed": 0,
+      "broad_compatibility_claimed": false
+    }
+  },
+  "release_closeout_authorization": {
+    "status": "PENDING_GATE_0B_PASS",
+    "release_version": "0.7.0",
+    "tag_name": "v0.7.0",
+    "tag_object_type": "annotated",
+    "permitted_actions_after_pass": [
+      "RECORD_V07_OBS_001_THROUGH_V07_OBS_009_IMPLEMENTED",
+      "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+      "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+      "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
+      "CREATE_DETERMINISTIC_V0_7_RELEASE_PACKAGE",
+      "COMMIT_RELEASE_CLOSEOUT",
+      "CREATE_ONE_ANNOTATED_V0_7_0_TAG"
+    ],
+    "additional_product_work_authorized": false
+  },
+  "activation_requirements": {
+    "required_rebindings": [
+      "/immutable_inputs/candidate/binding_status",
+      "/immutable_inputs/candidate/commit",
+      "/immutable_inputs/candidate/tree",
+      "/immutable_inputs/candidate/changed_paths",
+      "/qualification_contract/status",
+      "/qualification_contract/manifest_sha256",
+      "/qualification_contract/validator_success_shape/source_commit",
+      "/reviewed_surface_delta/review_status"
+    ],
+    "required_status_transitions": {
+      "/status": "PASS",
+      "/decision/authorization": "V07_OBS_001_THROUGH_V07_OBS_009_RELEASE_CLOSEOUT_ONLY",
+      "/immutable_inputs/candidate/binding_status": "BOUND",
+      "/qualification_contract/status": "PASS",
+      "/reviewed_surface_delta/review_status": "REVIEWED_AND_QUALIFIED",
+      "/release_closeout_authorization/status": "AUTHORIZED",
+      "/qualified_work_packages/*/status": "IMPLEMENTED_AND_QUALIFIED"
+    },
+    "candidate_validator_must_pass": true,
+    "all_45_mapped_test_ids_must_pass": true,
+    "mapped_test_id_skips_allowed": false,
+    "waivers_allowed": false
+  },
+  "claims": {
+    "v0_6_release_accepted": true,
+    "gate_0a_immutable_authorization_verified": true,
+    "v0_7_work_packages_implemented": false,
+    "v0_7_candidate_qualified": false,
+    "release_closeout_authorized": false,
+    "v0_7_release_accepted_by_gate": false,
+    "broad_language_or_compatibility_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "SCOPE_BEYOND_V07_OBS_001_THROUGH_V07_OBS_009",
+    "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+    "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_OR_EXTERNAL_EFFECT_ROUTE",
+    "HOST_CLOCK_REPRESENTED_AS_DRIVER_OR_GCS_TIME_OR_HIDDEN_TIME_UNCERTAINTY",
+    "TELEMETRY_RESOURCE_LOOKUP_LIMIT_OR_ALARM_MUTATION",
+    "ARBITRARY_CODE_SOURCE_EXPRESSION_FUNCTION_SHELL_OR_GENERIC_FILTER_EVALUATION",
+    "UNBOUNDED_QUERY_SUBSCRIPTION_BUFFER_CURSOR_RETRY_OR_CONDITION_GRAPH",
+    "CONTINUITY_ACROSS_UNACKNOWLEDGED_GAP_OR_SUCCESS_FROM_STALE_INVALID_MISSING_OR_UNCERTAIN_DATA",
+    "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
+    "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
+    "LIGHTWEIGHT_SECONDARY_OR_V0_7_ALIAS_TAG",
+    "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+  ]
+}

@@ -71,6 +71,7 @@ test.beforeEach(async ({ page }) => {
     else if (path === `/api/v1/executions/${executionId}/monitors/monitor-1` && request.method() === "DELETE") body = { monitor: { id: "monitor-1", execution_id: executionId, subject_id: "operator-a", session_id: "session-a", client_instance_key_id: "client-a", mode: "M", state: "CLOSED" } };
     else if (path === `/api/v1/executions/${executionId}/commands` && request.method() === "POST") body = { command: { id: "command-run-to-line", state: "ACCEPTED" } };
     else if (path === "/api/v1/schedules") body = { items: [{ id: "schedule-1", revision: 1, controller_execution_id: executionId, schedule_type: "ABSOLUTE", original_target: "2026-08-15T13:00:00Z", target_at_database_time: "2026-08-15T13:00:00Z", state: "PENDING", catalog_revision_id: "catalog-revision-1", context_id: "simulator", automatic: true, background_allowed: true }] };
+    else if (path === "/api/v1/telemetry-schedules") body = { items: [] };
     else if (path === `/api/v1/executions/${executionId}/actions`) body = { items: [namedAction] };
     else if (path === `/api/v1/executions/${executionId}/actions/action-1/mutations` && request.method() === "POST") {
       const operation = String(request.postDataJSON().operation);

@@ -32,6 +32,7 @@ from .driver_domain import (
     DriverRpcMethod,
     EffectCertainty,
     EffectClass,
+    GenerationTuple,
     GetOperationQuery,
     HandshakeResult,
     HealthResult,
@@ -50,6 +51,12 @@ from .driver_repository import (
     DriverNotFoundError,
     DriverRepository,
     DriverValidationError,
+)
+from .observation_domain import (
+    GetTMQuery,
+    GetTMResult,
+    GetTimeQuery,
+    GetTimeResult,
 )
 
 
@@ -199,6 +206,62 @@ class DriverGateway:
             if self._handshake is not None
             else None
         )
+
+    def observation_generations(self) -> dict[str, Any]:
+        """Return the currently admitted host and active context read tuples."""
+
+        if (
+            not self.connected
+            or self._handshake is None
+            or self._client is None
+        ):
+            raise DriverGatewayError("driver is not connected")
+        driver = self._handshake.driver
+        host = GenerationTuple(
+            server_profile_id=driver.server_profile_id,
+            driver_host_generation=driver.driver_host_generation,
+            host_profile_digest=driver.host_profile_digest,
+        )
+        page = self.repository.list_context_generations(limit=100)
+        contexts = tuple(
+            GenerationTuple(
+                server_profile_id=driver.server_profile_id,
+                driver_host_generation=driver.driver_host_generation,
+                host_profile_digest=driver.host_profile_digest,
+                context_id=item["context_id"],
+                context_generation=item["context_generation_id"],
+                context_binding_digest=item["configuration_digest"],
+            )
+            for item in page["items"]
+            if item["host_generation_id"] == driver.driver_host_generation
+            and item["state"] == "ACTIVE"
+            and item["ready"] is True
+        )
+        return {
+            "host": host,
+            "contexts": contexts,
+            "credential_epoch": driver.credential_epoch,
+        }
+
+    async def get_time(self, query: GetTimeQuery) -> GetTimeResult:
+        generations = self.observation_generations()
+        if (
+            query.generations != generations["host"]
+            or query.credential_epoch != generations["credential_epoch"]
+            or self._client is None
+        ):
+            raise DriverGatewayError("driver time query generation differs")
+        return await self._client.get_time(query)
+
+    async def get_tm(self, query: GetTMQuery) -> GetTMResult:
+        generations = self.observation_generations()
+        if (
+            query.generations not in generations["contexts"]
+            or query.credential_epoch != generations["credential_epoch"]
+            or self._client is None
+        ):
+            raise DriverGatewayError("driver telemetry query generation differs")
+        return await self._client.get_tm(query)
 
     async def start(self) -> None:
         if self._started:

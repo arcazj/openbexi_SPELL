@@ -14,6 +14,7 @@ from spell.driver.v1 import driver_pb2_grpc
 from .config import HostConfig
 from .journal import OperationJournal
 from .lifecycle import SimulatorLifecycleHost
+from .observation_service import DriverObservationService, MAX_ACTIVE_OBSERVATIONS
 from .security import DriverAuthorizationInterceptor
 from .service import DriverInfrastructureService
 from .wire import StrictDriverWireInterceptor
@@ -59,6 +60,7 @@ def build_server(
     """Construct an unbound server so tests can inject a loopback-only port."""
 
     service = DriverInfrastructureService(config, host)
+    observation_service = DriverObservationService(config, host)
     authorization = DriverAuthorizationInterceptor(config)
     wire = StrictDriverWireInterceptor()
     service.authorization_audit = authorization.audit_counts
@@ -73,9 +75,16 @@ def build_server(
             ("grpc.max_metadata_size", MAX_METADATA_BYTES),
             ("grpc.so_reuseport", 0),
         ),
-        maximum_concurrent_rpcs=config.capacity.max_lifecycle_operations_per_host + 2,
+        maximum_concurrent_rpcs=(
+            config.capacity.max_lifecycle_operations_per_host
+            + MAX_ACTIVE_OBSERVATIONS
+            + 2
+        ),
     )
     driver_pb2_grpc.add_DriverInfrastructureServiceServicer_to_server(service, server)
+    driver_pb2_grpc.add_DriverObservationServiceServicer_to_server(
+        observation_service, server
+    )
     return server, service
 
 
