@@ -6,6 +6,27 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-16 - v0.7 Candidate Qualified And Gate 0B Passed
+
+Canonical candidate qualification passed for commit
+`82b497227aff097db9d4c3ff56adf56d76d892ca`, directly over the v0.7 Gate 0A
+commit. The evidence at `artifacts/v0.7/work-package/qualification.json` has
+SHA-256
+`04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20`.
+All ten suites and all 45 mapped identities PASS. The 2,070-test aggregate
+contains 2,051 passes, 19 explicit suite-level platform skips, 36 subtests,
+and zero failures or errors; no mapped identity is skipped, failed, accepted as
+failed, or waived.
+
+All nine `V07-OBS-001` through `V07-OBS-009` packages are
+`IMPLEMENTED_AND_QUALIFIED`. Gate 0B passed with the exact marker
+`gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED`.
+This authorizes deterministic release closeout only. Final qualification,
+SBOMs, supply-chain evidence, the deterministic package and sidecar, release
+commit, and annotated `v0.7.0` tag remain pending. SPELL v0.6.0 remains the
+accepted baseline. The requested v0.8 and v0.9 follow-ons remain ungated and
+unimplemented.
+
 ## 2026-08-16 - Documentation Repair And v0.7-v0.9 Direction
 
 The owner request was recorded exactly as: `table are not correctly formated

@@ -7,12 +7,12 @@
 | --- | --- |
 | Version | SPELL v0.7.0 |
 | Release name | Read-Only Observation and Condition Engine |
-| Record state | `CONDITIONAL_PENDING`; this document is not an acceptance claim |
+| Record state | `CONDITIONAL_FINAL_CLOSEOUT`; this document is not yet an acceptance claim |
 | Scope | `V07-OBS-001` through `V07-OBS-009` only |
 | Accepted baseline | SPELL v0.6.0, annotated tag `v0.6.0` |
 | Gate 0A | `PASS` at commit `07c19437d28bc32a88d9970a4104d6c0fde53073` |
-| Gate 0B | `PENDING_CANDIDATE` |
-| Candidate source commit | Pending |
+| Gate 0B | `PASS` |
+| Candidate source commit | `82b497227aff097db9d4c3ff56adf56d76d892ca` |
 | Final qualified source commit | Pending |
 | Release commit | Pending |
 | Release tag | Pending annotated tag `v0.7.0` |
@@ -57,8 +57,8 @@ independent validators pass:
 
 | Evidence | Required canonical location | Current value |
 | --- | --- | --- |
-| Candidate qualification | `artifacts/v0.7/work-package/qualification.json` | Pending |
-| Gate 0B machine scope | `.../scopes/v0.7-gate-0b.json` | Pending activation |
+| Candidate qualification | `artifacts/v0.7/work-package/qualification.json` | `PASS`; SHA-256 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20` |
+| Gate 0B machine scope | `.../scopes/v0.7-gate-0b.json` | `PASS`; SHA-256 `8b8a6985bf4942d6554f9c10b0d2eaf0cab7cd84adcbea170f00eef87249f28f` |
 | Final qualification | `artifacts/v0.7/final/qualification.json` | Pending |
 | Release qualification manifest | `artifacts/v0.7/release-qualification.json` | Pending |
 | Backend SBOM | `artifacts/v0.7/sbom/backend.cdx.json` | Pending |
@@ -83,7 +83,5 @@ annotated tagging proceed. Gate 0B itself changes this record only to
 ## Current Finding
 
 <!-- V07_RELEASE_CURRENT_FINDING_BEGIN -->
-SPELL v0.7.0 is not yet accepted by this record. Gate 0B activation, final
-qualification, supply-chain evidence, deterministic packaging, the release
-commit, annotated tag, and strict post-tag verification remain pending.
+Gate 0B has passed for the exact nine-package v0.7 candidate, but SPELL v0.7.0 is not yet accepted by this record. Final qualification, supply-chain evidence, deterministic packaging, the release commit, annotated tag, and strict post-tag verification remain pending.
 <!-- V07_RELEASE_CURRENT_FINDING_END -->

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="62" failures="0" errors="0" time="5.8759203">
+    <testsuite name="src/api.driverProjection.test.ts" timestamp="2026-08-16T23:28:07.924Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0107653">
+        <testcase classname="src/api.driverProjection.test.ts" name="v0.4 driver projection API &gt; uses only the seven approved authenticated GET resources" time="0.0096661">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.observation.test.ts" timestamp="2026-08-16T23:28:07.928Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0068001">
+        <testcase classname="src/api.observation.test.ts" name="v0.7 observation API &gt; uses the exact authenticated read-only resources and cursor URL" time="0.0057095">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.telemetrySchedules.test.ts" timestamp="2026-08-16T23:28:07.930Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0130412">
+        <testcase classname="src/api.telemetrySchedules.test.ts" name="v0.7 telemetry schedule API &gt; binds list, read, create, and cancel to their authenticated durable resources" time="0.0118999">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.v06.test.ts" timestamp="2026-08-16T23:28:07.931Z" hostname="ARCAZJ" tests="7" failures="0" errors="0" skipped="0" time="0.0287799">
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; normalizes canonical LIST identities without flattening typed VALUE objects" time="0.0023605">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; binds every operator workbench control to its durable resource" time="0.017829">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; derives local lease ownership and preserves typed LIST values from a snapshot" time="0.002466">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; binds workspace search to the selected view, source digest, and cursor" time="0.0014815">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; pages authoritative workspace history with its digest and cursor" time="0.0007819">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; fails closed for expired leases and redacted other-holder projections" time="0.000649">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; uses the exact two-party handover and execution-settings request shapes" time="0.0018548">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/store.test.ts" timestamp="2026-08-16T23:28:07.932Z" hostname="ARCAZJ" tests="10" failures="0" errors="0" skipped="0" time="0.0178578">
+        <testcase classname="src/store.test.ts" name="console state &gt; tracks validation independently and ignores a superseded response" time="0.0044534">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; keeps validation request failures in the validation workflow" time="0.0044138">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; tracks explicit connection phases" time="0.0005649">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; applies ordered backend event aliases and ignores duplicates" time="0.0022489">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; latches and resolves a durable prompt" time="0.0013846">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; normalizes canonical typed prompt events without conflating prompt and execution revisions" time="0.0007645">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; retains an open prompt when a durable 202 attempt rejects its value" time="0.0008578">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; clears an interrupted prompt before recovery reopens it" time="0.0007174">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; does not let an older snapshot overwrite newer event state" time="0.0008193">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; accepts an older authoritative snapshot after a stream reset" time="0.0004637">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/telemetryConditions.test.ts" timestamp="2026-08-16T23:28:07.935Z" hostname="ARCAZJ" tests="2" failures="0" errors="0" skipped="0" time="0.004472">
+        <testcase classname="src/telemetryConditions.test.ts" name="v0.7 telemetry condition builder &gt; emits the frozen typed condition contract for bundled engineering telemetry" time="0.0021349">
+        </testcase>
+        <testcase classname="src/telemetryConditions.test.ts" name="v0.7 telemetry condition builder &gt; preserves boolean and string literal types and rejects unbounded input" time="0.001247">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useDriverProjectionStream.test.tsx" timestamp="2026-08-16T23:28:07.935Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="0.0294366">
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; refreshes from ordered committed notifications and deduplicates reconnects" time="0.0213931">
+        </testcase>
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; refreshes authority and reconnects from a 4409 resync cursor" time="0.0033524">
+        </testcase>
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; invalidates authentication on 4401 and never reconnects" time="0.003552">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useExecutionStream.test.tsx" timestamp="2026-08-16T23:28:07.936Z" hostname="ARCAZJ" tests="5" failures="0" errors="0" skipped="0" time="0.0377165">
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; closes an active socket when authentication ends" time="0.0234122">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears the session and does not reconnect after a 4401 close" time="0.0055547">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears the session at JWT expiry even when no close code is available" time="0.0041509">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears an expired session when no execution is selected" time="0.0029995">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream projection invalidation &gt; resyncs durable control, schedule, and StartProc projections but not ordinary telemetry" time="0.0004254">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useTelemetryObservationStream.test.tsx" timestamp="2026-08-16T23:28:07.937Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="0.0312333">
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; refreshes ordered projection events and ignores keepalives" time="0.0196181">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; resynchronizes a sequence gap from the committed snapshot cursor" time="0.0039765">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; backs off after a 4409 when the replacement snapshot is unavailable" time="0.0038266">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; invalidates authentication on 4401 without reconnecting" time="0.0027852">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/DriverProjection.test.tsx" timestamp="2026-08-16T23:28:07.938Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="0.2931361">
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; shows explicit simulator, health, generation, capacity, stage, and certainty state" time="0.2119225">
+        </testcase>
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; keeps an unavailable projection read-only and retryable" time="0.0287148">
+        </testcase>
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; distinguishes a failed host with no supported capabilities" time="0.0513974">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ExecutionWorkspace.test.tsx" timestamp="2026-08-16T23:28:07.939Z" hostname="ARCAZJ" tests="8" failures="0" errors="0" skipped="0" time="2.3154959">
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; releases to background through the fenced safe-point command" time="0.2165572">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; closes the exact active subscription on execution switch and unmount" time="0.2269628">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; expires local control at the deadline and enables authoritative reacquisition" time="0.0426385">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; bounds authoritative snapshot and Master refresh retries after lease expiry" time="0.0905689">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; submits bounded execution prompt settings through the lease-only control" time="0.622487">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; requires a named active monitor and responsibility acknowledgement for handover" time="0.4865712">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; lets the current holder approve a discovered handover with current lease proof" time="0.543722">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; discovers a completed requester handover and refreshes the successor lease" time="0.0776349">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/OperatorDock.test.tsx" timestamp="2026-08-16T23:28:07.941Z" hostname="ARCAZJ" tests="5" failures="0" errors="0" skipped="0" time="2.0034951">
+        <testcase classname="src/components/OperatorDock.test.tsx" name="named action controls &gt; uses durable disable and dismiss mutations and renders their authoritative state" time="0.2978421">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="bounded console controls &gt; exposes and sends all five canonical typed operations" time="0.8880896">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="bounded console controls &gt; sends canonical typed ARGS writes when the safe-state projection is editable" time="0.2021277">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="durable projection panels &gt; adopts schedule and relationship changes from an authoritative resync" time="0.0780979">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="durable projection panels &gt; creates and cancels a bounded typed telemetry-conditioned schedule" time="0.5360873">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ProcedureFlow.test.tsx" timestamp="2026-08-16T23:28:07.942Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0773178">
+        <testcase classname="src/components/ProcedureFlow.test.tsx" name="ProcedureFlow &gt; renders an accessible flow and marks the active step" time="0.0762501">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/PromptPanel.test.tsx" timestamp="2026-08-16T23:28:07.943Z" hostname="ARCAZJ" tests="7" failures="0" errors="0" skipped="0" time="0.7292698">
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; rejects a calendar rollover before sending a DATE settlement" time="0.2134676">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; commits the typed LIST value rather than its display label" time="0.1682307">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; commits the scalar identity projected by a canonical VALUE prompt event" time="0.098224">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; preserves an object LIST value and selects its typed default" time="0.123296">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; keeps monitor sessions read-only while allowing local draft reset" time="0.0490572">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; interlocks settlement after the controller lease expires" time="0.0158206">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; advances warning and deadline state from server timestamps and resynchronizes each boundary" time="0.0599028">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/TelemetryObservation.test.tsx" timestamp="2026-08-16T23:28:07.944Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="0.2771029">
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; renders exact typed values and keeps quality facts distinct" time="0.130843">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; shows stream gaps independently from stale sample state" time="0.0361903">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; keeps an unavailable projection retryable" time="0.0929464">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; renders an empty committed snapshot without requiring driver time" time="0.0160091">
+        </testcase>
+    </testsuite>
+</testsuites>

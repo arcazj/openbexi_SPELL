@@ -4,17 +4,17 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.6.0 baseline and committed v0.7 implementation candidate |
-| Update type | Accepted-baseline status, current candidate status, and requested v0.8/v0.9 follow-on |
+| Document revision | Accepted v0.6.0 baseline and qualified v0.7 candidate with Gate 0B PASS |
+| Update type | Accepted-baseline status, candidate qualification, release-closeout authorization, and requested v0.8/v0.9 follow-on |
 | Updated | 2026-08-16 |
 | Current accepted product baseline | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.6 status | Accepted at annotated tag `v0.6.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
-| v0.7 status | `V07-GATE-0A PASS`; the nine authorized simulator-only packages are committed as the latest implementation candidate; candidate qualification, Gate 0B, Final evidence, and acceptance remain pending |
+| v0.7 status | Candidate `82b497227aff097db9d4c3ff56adf56d76d892ca`; ten suites and 45 identities PASS; all nine packages `IMPLEMENTED_AND_QUALIFIED`; `V07-GATE-0B PASS`; Final evidence and acceptance pending |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.6 added internal opt-in IR 0.6, local operator API/UI, migration 0004, and the patched PostgreSQL package while preserving accepted IR 0.3 bytes; the latest v0.7 candidate adds only the nine authorized read-only observation packages, with canonical qualification and acceptance pending |
+| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.6 added internal opt-in IR 0.6, local operator API/UI, migration 0004, and the patched PostgreSQL package while preserving accepted IR 0.3 bytes; qualified v0.7 adds only the nine authorized read-only observation packages and preserves the bounded simulator-only boundary |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -39,9 +39,10 @@ activated the conditional owner acceptance without a post-tag documentation
 commit. This acceptance remains limited to `V06-OP-001` through
 `V06-OP-009` and provides no operational authorization. The later
 [`V07-GATE-0A`](SPELL_v0.7_Pre-Implementation.md) authorized only the nine
-bounded read-only simulator observation packages. Those packages now exist in
-the committed v0.7 implementation candidate, but no canonical candidate PASS,
-Gate 0B, Final evidence, release, or v0.7.0 acceptance is claimed.
+bounded read-only simulator observation packages. Candidate
+`82b497227aff097db9d4c3ff56adf56d76d892ca` now qualifies all nine packages,
+and `V07-GATE-0B PASS` authorizes release closeout. Final evidence, a release
+commit, and v0.7.0 acceptance are not yet claimed.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -221,11 +222,13 @@ baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
 is a planning label until its applicable gate is approved. Annotated tag
 `v0.6.0` fixes the current accepted baseline. v0.7 has passed its bounded Gate
-0A for nine exact work packages and 45 planned proof identities, and those
-packages are the latest committed implementation candidate. Canonical
-candidate qualification, Gate 0B, Final evidence, and acceptance remain
-unclaimed. The owner has requested v0.8 and v0.9 after v0.7 completion; neither
-follow-on version has a completed gate or implementation yet.
+0A for nine exact work packages and 45 planned proof identities. Candidate
+`82b497227aff097db9d4c3ff56adf56d76d892ca` and canonical evidence SHA-256
+`04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20`
+pass all 45 identities, and Gate 0B authorizes release closeout. Final evidence
+and acceptance remain unclaimed. The owner has requested v0.8 and v0.9 after
+v0.7 completion; neither follow-on version has a completed gate or
+implementation yet.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -237,7 +240,7 @@ follow-on version has a completed gate or implementation yet.
 | v0.4 | Typed Simulator Driver and Context Foundation | Product | Accepted | Delivered the typed, authenticated, out-of-process simulator lifecycle boundary without TM/TC service. | Final 74/74 tests and 209/209 assertions passed; accepted release commit `4546d313a2d8f50504b2bc602d56b3b459ca7597` and annotated tag `v0.4.0`. |
 | v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
-| v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Latest implemented candidate; Gate 0A PASS; nine packages implemented; canonical qualification, Gate 0B, Final evidence, and acceptance pending | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Completed entry gate: accepted v0.6.0 baseline plus seven hash-bound planning-contract files for telemetry identity, quality, time, condition, resource, lookup, limits/alarm, and streams. |
+| v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Qualified candidate; Gate 0B PASS; all nine packages `IMPLEMENTED_AND_QUALIFIED`; Final evidence and acceptance pending | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Candidate `82b497227aff097db9d4c3ff56adf56d76d892ca`; canonical qualification PASS covers ten suites, 45 identities, and 2,070 tests; release closeout authorized. |
 | v0.8 | Data and Local Service Compatibility | Product | Requested follow-on after v0.7; Gate 0A and implementation pending | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted language/runtime semantics and approved typed storage, URI, transaction, quota, and recovery rules. |
 | v0.9 | SPELL Development Environment | Product | Requested follow-on after v0.8; Gate 0A and implementation pending | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Stable compatibility grammar/catalog schemas, approved non-executing language-service design, and authoring acceptance plan. |
 | v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
@@ -700,12 +703,18 @@ the bundled deterministic simulator.
 Current disposition: [`V07-GATE-0A PASS`](SPELL_v0.7_Pre-Implementation.md)
 authorizes implementation of exactly `V07-OBS-001` through `V07-OBS-009` and
 their 45 planned proof identities. The manifest and six planning matrices under
-`contracts/v07` are hash-bound authorization inputs. Those nine packages are
-implemented in the committed candidate, including the additive read-only
-driver service, durable observation and condition state, procedure broker,
-APIs, frontend, and qualification tooling. No canonical candidate PASS, Gate
-0B authorization, Final evidence, release, deployment, operational use, or
-compliance result is claimed yet.
+`contracts/v07` are hash-bound authorization inputs. Candidate
+`82b497227aff097db9d4c3ff56adf56d76d892ca` implements those nine packages,
+including the additive read-only driver service, durable observation and
+condition state, procedure broker, APIs, frontend, and qualification tooling.
+Canonical evidence SHA-256
+`04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20`
+passes ten suites, all 45 mapped identities, and 2,070 tests. The aggregate is
+2,051 passes, 19 explicit suite-level platform skips, 36 subtests, and zero
+failures or errors; mapped identity skips are zero. All nine packages are
+`IMPLEMENTED_AND_QUALIFIED`, and `V07-GATE-0B PASS` authorizes release
+closeout. Final evidence, release, deployment, operational use, and compliance
+results remain unclaimed.
 
 | Planned identity | Bounded requirement and acceptance focus |
 | --- | --- |

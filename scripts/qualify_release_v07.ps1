@@ -17,6 +17,9 @@ Set-StrictMode -Version 3.0
 
 $root = Split-Path -Parent $PSScriptRoot
 $gate0aCommit = "07c19437d28bc32a88d9970a4104d6c0fde53073"
+$v05ArchiveSha256 = "cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241"
+$v05SidecarSha256 = "215ee4e79fd53fccd04e6ff7d854d9a8d03f074f507d6fbf233926be9e817279"
+$v05SidecarText = "$v05ArchiveSha256  openbexi-spell-v0.5.0.tar.gz`n"
 $v06ArchiveSha256 = "b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c"
 $v06SidecarSha256 = "7240872d3058796e7496eb9f0a44b44295a1246c6c991545aae4fb9b2ec23520"
 $v06SidecarText = "$v06ArchiveSha256  openbexi-spell-v0.6.0.tar.gz`n"
@@ -44,6 +47,7 @@ $finalSuiteIds = @(
   "frontend_unit", "frontend_build", "browser_mocked", "browser_real"
 )
 $sqliteAllowedSkips = @(
+  "backend/tests/test_condition_service_v07.py::test_postgresql_database_clock_advances_inside_one_transaction",
   "backend/tests/test_driver_isolation.py::test_created_compose_driver_has_runtime_isolation_controls",
   "backend/tests/test_driver_isolation.py::test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
   "backend/tests/test_migrations.py::test_migrations_create_fresh_postgresql_schema_and_are_idempotent",
@@ -733,6 +737,11 @@ if (-not $tempFull.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase
 $sourceRoot = Join-Path $tempRoot "source"
 $captureRoot = Join-Path $tempRoot "captures"
 $archivePath = Join-Path $tempRoot "source.zip"
+$v05Worktree = Join-Path $env:TEMP "sv5-$($runId.Substring(0, 12))"
+$v05WorktreeFull = [IO.Path]::GetFullPath($v05Worktree)
+if (-not $v05WorktreeFull.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "refusing an accepted-v0.5 tooling export outside the temporary root"
+}
 $v06Worktree = Join-Path $env:TEMP "sv6-$($runId.Substring(0, 12))"
 $v06WorktreeFull = [IO.Path]::GetFullPath($v06Worktree)
 if (-not $v06WorktreeFull.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) {
@@ -762,6 +771,7 @@ $browserDbPassword = $null
 $browserJwtSecret = $null
 $browserProxyPort = $null
 $browserToken = $null
+$v05WorktreeOwned = $false
 $v06WorktreeOwned = $false
 
 New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
@@ -1141,6 +1151,12 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   )
   if ($hostToolingNodes.Count -ne 18) { throw "host-only tooling node inventory differs" }
   $rootExternalToolingNodes = @(
+    "scripts/tests/test_accepted_v05_release_v06.py::test_accepted_v05_external_archive_sidecar_and_tag_claim_are_exact",
+    "scripts/tests/test_accepted_v05_release_v06.py::test_accepted_v05_external_pair_rejects_byte_mutation[artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz-archive SHA-256 differs]",
+    "scripts/tests/test_accepted_v05_release_v06.py::test_accepted_v05_external_pair_rejects_byte_mutation[artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz.sha256-sidecar bytes differ]",
+    "scripts/tests/test_accepted_v05_release_v06.py::test_accepted_v05_tag_claim_rejects_raw_object_mutation",
+    "scripts/tests/test_validate_release_evidence_v06.py::test_v06_inherited_v05_binding_includes_external_archive_sidecar_and_tag",
+    "scripts/tests/test_validate_candidate_evidence_v06.py::test_candidate_schema_and_runner_are_version_scoped_and_atomic",
     "scripts/tests/test_validate_release_evidence_v07.py::test_v07_inherited_v06_binding_includes_external_archive_sidecar_and_tag",
     "scripts/tests/test_accepted_v06_release_v07.py::test_accepted_v06_tag_blobs_archive_and_sidecar_are_exact",
     "scripts/tests/test_accepted_v06_release_v07.py::test_accepted_v06_external_pair_rejects_byte_mutation[artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz-workspace archive SHA-256 differs]",
@@ -1153,6 +1169,14 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   foreach ($node in $rootExternalToolingNodes) {
     if ($node -notin $toolingNodes) { throw "external accepted-v0.6 tooling node is absent: $node" }
   }
+  if ($rootExternalToolingNodes.Count -ne 14) { throw "current-root external tooling node inventory differs" }
+  $v05ExportToolingNodes = @(
+    "scripts/tests/test_release_v05.py::test_current_v05_product_package_fingerprint_is_constructible",
+    "scripts/tests/test_validate_release_evidence_v05.py::test_repository_release_validation_is_positive_or_fails_closed_before_publication"
+  )
+  foreach ($node in $v05ExportToolingNodes) {
+    if ($node -notin $toolingNodes) { throw "accepted-v0.5 tooling node is absent: $node" }
+  }
   $v06ExportToolingNodes = @(
     "scripts/tests/test_release_v06.py::test_current_v06_product_package_fingerprint_is_constructible",
     "scripts/tests/test_validate_release_evidence_v06.py::test_repository_release_validation_is_positive_or_fails_closed_before_publication"
@@ -1162,7 +1186,7 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   }
   $toolingBaseXml = Join-Path $captureRoot "tooling-base.xml"
   $toolingArguments = @("scripts/tests", "-q")
-  foreach ($node in @($hostToolingNodes) + @($rootExternalToolingNodes) + @($v06ExportToolingNodes)) {
+  foreach ($node in @($hostToolingNodes) + @($rootExternalToolingNodes) + @($v05ExportToolingNodes) + @($v06ExportToolingNodes)) {
     $toolingArguments += "--deselect=$node"
   }
   $toolingArguments += "--junitxml=/qualification-output/result.xml"
@@ -1183,6 +1207,28 @@ raise SystemExit(pytest.main(sys.argv[3:]))
     Assert-NativeSuccess "locked-host accepted-v0.6 external release tests failed"
   }
   finally { Pop-Location }
+  & git -C $root worktree add --detach $v05Worktree v0.5.0 | Out-Null
+  Assert-NativeSuccess "cannot create accepted-v0.5 tooling export"
+  $v05WorktreeOwned = $true
+  $v05Head = (@(& git -C $v05Worktree rev-parse --verify HEAD) -join "`n").Trim()
+  Assert-NativeSuccess "cannot inspect accepted-v0.5 tooling export"
+  if ($v05Head -cne "e7b6bb9428833437e0160040541eb840deee7cca") {
+    throw "accepted-v0.5 tooling export identity differs"
+  }
+
+  $v05ManualDestination = Join-Path $v05Worktree "SPELL-DOCUMENTATION"
+  if (Test-Path -LiteralPath $v05ManualDestination) {
+    throw "accepted-v0.5 tooling export unexpectedly contains external manuals"
+  }
+  Copy-Item -LiteralPath $stagedManualRoot -Destination $v05ManualDestination -Recurse
+  foreach ($entry in $manualLedger.GetEnumerator()) {
+    $v05Manual = Join-Path $v05ManualDestination $entry.Key
+    if (
+      -not (Test-Path -LiteralPath $v05Manual -PathType Leaf) -or
+      ((Get-Item -LiteralPath $v05Manual -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+      (Get-LowerSha256 $v05Manual) -cne $entry.Value
+    ) { throw "accepted-v0.5 staged external manual differs: $($entry.Key)" }
+  }
   & git -C $root worktree add --detach $v06Worktree v0.6.0 | Out-Null
   Assert-NativeSuccess "cannot create accepted-v0.6 tooling export"
   $v06WorktreeOwned = $true
@@ -1209,6 +1255,32 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   & (Join-Path $PSScriptRoot "assert_accepted_v06_release_v07.ps1") -Root $v06Worktree | Out-Null
   Assert-NativeSuccess "accepted-v0.6 tracked release binding differs in detached worktree"
 
+  foreach ($releaseName in @("openbexi-spell-v0.5.0.tar.gz", "openbexi-spell-v0.5.0.tar.gz.sha256")) {
+    $releaseSource = Join-Path $root "artifacts/v0.5/$releaseName"
+    if (
+      -not (Test-Path -LiteralPath $releaseSource -PathType Leaf) -or
+      ((Get-Item -LiteralPath $releaseSource -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)
+    ) { throw "accepted-v0.5 canonical release input is missing or unsafe: $releaseName" }
+    $expectedReleaseSha = if ($releaseName.EndsWith(".sha256", [StringComparison]::Ordinal)) {
+      $v05SidecarSha256
+    } else { $v05ArchiveSha256 }
+    if ((Get-LowerSha256 $releaseSource) -cne $expectedReleaseSha) {
+      throw "accepted-v0.5 canonical release input hash differs: $releaseName"
+    }
+    foreach ($releaseRoot in @($v05Worktree, $v06Worktree)) {
+      $releaseDestination = Join-Path $releaseRoot "artifacts/v0.5/$releaseName"
+      Copy-Item -LiteralPath $releaseSource -Destination $releaseDestination
+      if ((Get-LowerSha256 $releaseDestination) -cne $expectedReleaseSha) {
+        throw "accepted-v0.5 staged release input hash differs: $releaseName"
+      }
+    }
+  }
+  foreach ($releaseRoot in @($v05Worktree, $v06Worktree)) {
+    if ([IO.File]::ReadAllText((Join-Path $releaseRoot "artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz.sha256"), [Text.Encoding]::ASCII) -cne $v05SidecarText) {
+      throw "accepted-v0.5 staged release sidecar bytes differ"
+    }
+  }
+
   $v06InheritedRelative = (
     "artifacts/v0.4/.qualification/runtime-captures/" +
     "46949e783e85b72e68f70d1607c6d44bb5234586c248888b2bd4a3d2cf06f17d/regression"
@@ -1228,6 +1300,19 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   New-Item -ItemType Directory -Path (Split-Path -Parent $v06InheritedDestination) -Force | Out-Null
   Copy-Item -LiteralPath $v06InheritedSource -Destination $v06InheritedDestination -Recurse
 
+  $v05InheritedDestination = Join-Path $v05Worktree $v06InheritedRelative
+  New-Item -ItemType Directory -Path (Split-Path -Parent $v05InheritedDestination) -Force | Out-Null
+  Copy-Item -LiteralPath $v06InheritedSource -Destination $v05InheritedDestination -Recurse
+
+  $toolingV05Xml = Join-Path $captureRoot "tooling-v05-export.xml"
+  Push-Location $v05Worktree
+  try {
+    & $lockedPython -I -c $pytestCode $sitePackages $v05Worktree `
+      @v05ExportToolingNodes -q "--junitxml=$toolingV05Xml"
+    Assert-NativeSuccess "accepted-v0.5 export tooling tests failed"
+  }
+  finally { Pop-Location }
+
   $toolingV06Xml = Join-Path $captureRoot "tooling-v06-export.xml"
   Push-Location $v06Worktree
   try {
@@ -1237,7 +1322,7 @@ raise SystemExit(pytest.main(sys.argv[3:]))
   }
   finally { Pop-Location }
   $toolingXml = Join-Path $captureRoot "tooling.xml"
-  Merge-JUnit @($toolingBaseXml, $toolingHostXml, $toolingRootXml, $toolingV06Xml) $toolingXml
+  Merge-JUnit @($toolingBaseXml, $toolingHostXml, $toolingRootXml, $toolingV05Xml, $toolingV06Xml) $toolingXml
 
   $nodeVersion = @(& node --version) -join "`n"
   Assert-NativeSuccess "cannot inspect Node.js"
@@ -1463,6 +1548,11 @@ raise SystemExit(pytest.main(sys.argv[3:]))
 }
 catch { $failure = $_ }
 finally {
+  if ($v05WorktreeOwned) {
+    & git -C $root worktree remove --force $v05Worktree | Out-Null
+    if ($LASTEXITCODE -ne 0) { $cleanupFailures.Add("accepted-v0.5 tooling export teardown failed") }
+    $v05WorktreeOwned = $false
+  }
   if ($v06WorktreeOwned) {
     & git -C $root worktree remove --force $v06Worktree | Out-Null
     if ($LASTEXITCODE -ne 0) { $cleanupFailures.Add("accepted-v0.6 tooling export teardown failed") }
