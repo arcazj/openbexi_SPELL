@@ -7,21 +7,21 @@
 | --- | --- |
 | Version target | SPELL v0.7.0 |
 | Gate | `V07-GATE-0B` |
-| Gate status | `PENDING_CANDIDATE`; no release closeout authorization yet |
+| Gate status | `PASS`; exact v0.7 release closeout authorized |
 | Record date | 2026-08-16 |
 | Accepted product baseline | Annotated tag `v0.6.0`; release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
 | Gate 0A authorization | Commit `07c19437d28bc32a88d9970a4104d6c0fde53073`; `V07-OBS-001` through `V07-OBS-009` |
-| Candidate source | Pending source freeze |
-| Canonical candidate evidence | Pending at `artifacts/v0.7/work-package/qualification.json` |
+| Candidate source | Commit `82b497227aff097db9d4c3ff56adf56d76d892ca`; tree `2f553c152ce103c7ded70af811f2f84257f7c1b5`; sole parent `07c19437d28bc32a88d9970a4104d6c0fde53073` |
+| Canonical candidate evidence | `artifacts/v0.7/work-package/qualification.json`; SHA-256 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20` |
 | Required result inventory | Nine work packages; 45 exact test identities; zero mapped skips, failures, accepted failures, or waivers |
 | Release tag requested | One annotated semantic-version tag: `v0.7.0` |
 | Project owner | JC Arcaz |
 
 Owner request: `resume and finish up asap v0.6 asap and move forward to finis up v0.7 asap. you have all aprrovals.`
 
-Gate 0B decision: `PENDING_CANONICAL_V07_CANDIDATE_QUALIFICATION`
+Gate 0B decision: `V07_OBS_001_THROUGH_V07_OBS_009_RELEASE_CLOSEOUT_ONLY`
 
-Release closeout authorization: `NOT_YET_AUTHORIZED`
+Release closeout authorization: `AUTHORIZED`
 
 Release acceptance by Gate 0B: No
 
@@ -69,9 +69,7 @@ release commit. It binds four governance records plus the seven exact
 ## Exact Work-Package Results
 
 <!-- V07_GATE_0B_PACKAGE_DISPOSITIONS_BEGIN -->
-Each package remains `PENDING_QUALIFICATION`. On Gate 0B activation, every row
-must change to `IMPLEMENTED_AND_QUALIFIED` and every listed identity must have
-one or more concrete passing proof nodes.
+All nine exact work packages are `IMPLEMENTED_AND_QUALIFIED`. Every listed identity has one or more concrete passing proof nodes; no mapped identity is skipped, failed, accepted as failed, or waived.
 <!-- V07_GATE_0B_PACKAGE_DISPOSITIONS_END -->
 
 | Work package | Exact required identities |
@@ -151,7 +149,5 @@ gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 
 ## Current Finding
 
 <!-- V07_GATE_0B_CURRENT_FINDING_BEGIN -->
-`V07-GATE-0B PENDING_CANDIDATE` records the exact release-closeout contract but
-does not authorize closeout. Candidate freeze, canonical evidence, independent
-validation, 45 passing identities, and reviewed delta binding remain required.
+`V07-GATE-0B PASS` authorizes release closeout for exactly `V07-OBS-001` through `V07-OBS-009`. It does not itself accept the release, authorize deployment or operational use, or make a compliance or cryptographic-signature claim.
 <!-- V07_GATE_0B_CURRENT_FINDING_END -->

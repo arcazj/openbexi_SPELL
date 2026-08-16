@@ -291,6 +291,51 @@ def test_tooling_suite_requires_the_exact_secret_canary_nodes(tmp_path: Path) ->
         release._validate_suite_manifest("tooling", suite, tmp_path, "a" * 64)
 
 
+def test_mocked_browser_requires_the_inherited_v06_operator_workflow(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "artifacts/v0.7/final/tests/browser-mocked.xml"
+    cases = [
+        (
+            "browser_chromium.operator-workspace.spec.ts",
+            "operates the dense v0.6 workspace on desktop and mobile",
+            "passed",
+        ),
+        (
+            "browser_mobile.operator-workspace.spec.ts",
+            "operates the dense v0.6 workspace on desktop and mobile",
+            "passed",
+        ),
+    ]
+    _write_junit(path, cases)
+    suite = {
+        "kind": "junit",
+        "capture": "artifacts/v0.7/final/tests/browser-mocked.xml",
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "test_count": len(cases),
+        "subtest_count": 0,
+        "passed_count": len(cases),
+        "skipped_count": 0,
+        "failure_count": 0,
+        "error_count": 0,
+        "allowed_skipped_nodes": [],
+    }
+
+    result, count = release._validate_suite_manifest(
+        "browser_mocked", suite, tmp_path, "a" * 64
+    )
+    assert result is not None and count == len(cases)
+
+    renamed = [
+        (classname, name.replace("v0.6", "v0.7"), status)
+        for classname, name, status in cases
+    ]
+    _write_junit(path, renamed)
+    suite["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    with pytest.raises(release.ReleaseEvidenceError, match="acceptance workflow"):
+        release._validate_suite_manifest("browser_mocked", suite, tmp_path, "a" * 64)
+
+
 def test_junit_rejects_dtd_entity_duplicate_and_false_aggregate(
     tmp_path: Path,
 ) -> None:
@@ -1334,7 +1379,11 @@ def test_release_manifest_shape_rejects_exceptions_claims_and_unknown_fields() -
 
 
 def test_sqlite_skip_contract_is_exact_and_other_suites_have_no_allowlist() -> None:
-    assert len(release.SQLITE_ALLOWED_SKIPS) == 6
+    assert len(release.SQLITE_ALLOWED_SKIPS) == 7
+    assert sum(
+        "test_postgresql_database_clock_advances_inside_one_transaction" in node
+        for node in release.SQLITE_ALLOWED_SKIPS
+    ) == 1
     assert sum("test_migrations.py" in node for node in release.SQLITE_ALLOWED_SKIPS) == 4
     assert sum("test_driver_isolation.py" in node for node in release.SQLITE_ALLOWED_SKIPS) == 2
     assert "backend_postgresql" in release.ZERO_SKIP_SUITE_IDS

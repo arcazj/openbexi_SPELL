@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.6.0 baseline and committed v0.7 implementation candidate |
-| Update type | Accepted-baseline status, current candidate status, and requested v0.8/v0.9 follow-on |
+| Document revision | Accepted v0.6.0 baseline and qualified v0.7 candidate with Gate 0B PASS |
+| Update type | Accepted-baseline status, candidate qualification, release-closeout authorization, and requested v0.8/v0.9 follow-on |
 | Updated | 2026-08-16 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
 | Current accepted product baseline | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
@@ -13,7 +13,7 @@
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
 | v0.6 status | Accepted 2026-08-16 at annotated tag `v0.6.0`; nine work packages implemented and qualified; no accepted exceptions |
-| v0.7 status | `V07-GATE-0A PASS` on 2026-08-16; nine exact packages committed as the latest implementation candidate; canonical qualification, Gate 0B, Final evidence, and acceptance pending |
+| v0.7 status | Candidate `82b497227aff097db9d4c3ff56adf56d76d892ca`; ten suites and 45 identities PASS; all nine packages `IMPLEMENTED_AND_QUALIFIED`; `V07-GATE-0B PASS`; Final evidence and acceptance pending |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -44,6 +44,7 @@ where possible and says `unknown` where the evidence cannot support a total.
 Conventions:
 
 - Git author and commit timestamps are identical for the three retained commits.
+- The v0.7 candidate interval uses its Git committer timestamp.
 - Annotated tag creator times are used for tag endpoints.
 - UTC qualification timestamps are converted to EDT by subtracting four hours.
 - Earlier entries remain unchanged except for factual corrections or stronger
@@ -66,7 +67,7 @@ Conventions:
 | v0.6 Gate 0A | Durable Operator Workspace and Procedure Composition | Owner request recorded 2026-08-15; exact time not retained | Explicit owner approval and Gate 0A PASS recorded 2026-08-15; exact time not retained | Same calendar day; exact elapsed time and active effort unknown | `V06-OP-001` through `V06-OP-009` authorized; no implementation or executed product evidence claimed |
 | v0.6 | Nine bounded operator work packages and version-scoped qualification/release tooling | Gate 0A commit `f6eba8b` at 2026-08-15 07:28:35 EDT | Annotated tag `v0.6.0` at 2026-08-16 13:50:02 EDT | 1d 6h 21m 27s exact Gate-commit-to-tag interval; total active engineering effort unknown | Exact Git interval; Final qualification, SBOMs, supply chain, deterministic package, release commit, and tag passed with no accepted exceptions |
 | v0.7 Gate 0A | Simulator Read-Only Observation and Condition Engine planning authorization | Owner request recorded 2026-08-16; exact time not retained | Explicit owner approval, exact contract binding, Gate validator PASS, 22 Gate tests, and eight contract tests recorded 2026-08-16 | Same calendar day; exact elapsed time and active effort unknown | `V07-OBS-001` through `V07-OBS-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
-| v0.7 candidate | Nine bounded read-only observation packages and version-scoped qualification/release tooling | Gate 0A commit on 2026-08-16 | Committed implementation candidate present on 2026-08-16; canonical candidate identity and qualification pending | Total implementation duration not reported until the canonical candidate identity is evidence-bound | Current repository state proves a committed candidate exists; it is not Gate 0B, Final, release, or acceptance evidence |
+| v0.7 candidate | Nine bounded read-only observation packages and version-scoped qualification/release tooling | Gate 0A commit `07c1943` at 2026-08-16 14:33:34 EDT | Qualified candidate commit `82b4972` at 2026-08-16 19:18:43 EDT; Gate 0B PASS recorded 2026-08-16 | 4h 45m 09s exact Gate-commit-to-candidate interval; total active engineering effort unknown | Exact Git interval through candidate freeze; canonical ten-suite/45-ID evidence and Gate 0B pass; Final, release, and acceptance pending |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
@@ -74,23 +75,26 @@ Conventions:
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
 
-## 2026-08-16 - v0.7 Candidate And Subsequent Version Direction
+## 2026-08-16 - v0.7 Candidate Qualification And Gate 0B
 
 | Field | Value |
 | --- | --- |
 | Accepted baseline | SPELL v0.6.0, annotated tag `v0.6.0`, unchanged |
-| Latest implemented version | SPELL v0.7 candidate implementing `V07-OBS-001` through `V07-OBS-009` |
-| Candidate state | Committed implementation exists; exact canonical candidate identity and work-package evidence pending |
-| Noncanonical checkpoint | 655 backend/driver tests passed with seven exact environment skips; 62 frontend unit tests and the production build passed; focused observation, condition, PostgreSQL clock, and browser checks passed |
-| Pending v0.7 endpoints | Canonical candidate qualification, Gate 0B, Final qualification, SBOM and supply-chain evidence, deterministic package, release commit, and annotated `v0.7.0` tag |
+| Latest implemented version | Qualified SPELL v0.7 candidate implementing `V07-OBS-001` through `V07-OBS-009` |
+| Candidate source | `82b497227aff097db9d4c3ff56adf56d76d892ca`; tree `2f553c152ce103c7ded70af811f2f84257f7c1b5`; sole parent `07c19437d28bc32a88d9970a4104d6c0fde53073` |
+| Canonical work-package evidence | `artifacts/v0.7/work-package/qualification.json`; SHA-256 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20` |
+| Candidate qualification | PASS; ten suites, 45 mapped identities, 2,070 concrete tests, 2,051 passes, 19 explicit suite-level platform skips, 36 subtests, zero failures/errors |
+| Identity and package disposition | Zero mapped skips, failures, accepted failures, or waivers; all nine packages `IMPLEMENTED_AND_QUALIFIED` |
+| Gate 0B result | PASS; `gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED` |
+| Pending v0.7 endpoints | Final qualification, SBOM and supply-chain evidence, deterministic package and sidecar, release commit, and annotated `v0.7.0` tag |
 | Subsequent owner direction | Finish v0.7, then v0.8, then v0.9; Markdown table repair and living-document synchronization also requested |
 | v0.8/v0.9 status | Requested follow-on only; no completed Gate 0A, implementation, qualification, release, or acceptance claimed |
 | Operational authorization or compliance determination | None |
 
-This checkpoint distinguishes implemented source from accepted product status.
-The current v0.7 candidate is the latest implementation, while v0.6.0 remains
-the accepted baseline until every v0.7 release condition and tag validation
-passes.
+Gate 0B authorizes release closeout only and does not accept or release v0.7.
+The qualified v0.7 candidate is the latest implementation, while v0.6.0
+remains the accepted baseline until every v0.7 release condition and tag
+validation passes.
 
 ## 2026-08-16 - v0.6.0 Accepted And v0.7 Gate 0A
 

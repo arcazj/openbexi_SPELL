@@ -199,6 +199,10 @@ def test_v07_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     assert "real browser" in runner
     assert runner.count("backend/tests/test_migrations.py::") >= 4
     assert runner.count("backend/tests/test_driver_isolation.py::") >= 4
+    assert (
+        "backend/tests/test_condition_service_v07.py::"
+        "test_postgresql_database_clock_advances_inside_one_transaction"
+    ) in runner
     assert "host-only tooling node inventory differs" in runner
     assert "$hostToolingNodes.Count -ne 18" in runner
     assert (
@@ -230,10 +234,11 @@ def test_v07_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     assert "$dockerHostXml = $postgresRuntimeXml" in runner
     assert (
         "foreach ($node in @($hostToolingNodes) + @($rootExternalToolingNodes) + "
-        "@($v06ExportToolingNodes))"
+        "@($v05ExportToolingNodes) + @($v06ExportToolingNodes))"
     ) in runner
     assert (
-        "Merge-JUnit @($toolingBaseXml, $toolingHostXml, $toolingRootXml, $toolingV06Xml)"
+        "Merge-JUnit @($toolingBaseXml, $toolingHostXml, $toolingRootXml, "
+        "$toolingV05Xml, $toolingV06Xml)"
         in runner
     )
     assert "$rootExternalToolingNodes = @(" in runner
@@ -243,6 +248,45 @@ def test_v07_final_runner_enforces_full_bijections_and_skip_contracts() -> None:
     ) in runner
     assert "@rootExternalToolingNodes -q" in runner
     assert "locked-host accepted-v0.6 external release tests failed" in runner
+    inherited_v05_current_root = (
+        "scripts/tests/test_accepted_v05_release_v06.py::"
+        "test_accepted_v05_external_archive_sidecar_and_tag_claim_are_exact",
+        "scripts/tests/test_accepted_v05_release_v06.py::"
+        "test_accepted_v05_external_pair_rejects_byte_mutation[artifacts/v0.5/"
+        "openbexi-spell-v0.5.0.tar.gz-archive SHA-256 differs]",
+        "scripts/tests/test_accepted_v05_release_v06.py::"
+        "test_accepted_v05_external_pair_rejects_byte_mutation[artifacts/v0.5/"
+        "openbexi-spell-v0.5.0.tar.gz.sha256-sidecar bytes differ]",
+        "scripts/tests/test_accepted_v05_release_v06.py::"
+        "test_accepted_v05_tag_claim_rejects_raw_object_mutation",
+        "scripts/tests/test_validate_release_evidence_v06.py::"
+        "test_v06_inherited_v05_binding_includes_external_archive_sidecar_and_tag",
+        "scripts/tests/test_validate_candidate_evidence_v06.py::"
+        "test_candidate_schema_and_runner_are_version_scoped_and_atomic",
+    )
+    v05_export = (
+        "scripts/tests/test_release_v05.py::"
+        "test_current_v05_product_package_fingerprint_is_constructible",
+        "scripts/tests/test_validate_release_evidence_v05.py::"
+        "test_repository_release_validation_is_positive_or_fails_closed_before_publication",
+    )
+    for node in inherited_v05_current_root + v05_export:
+        assert runner.count(f'"{node}"') == 1
+    assert "$rootExternalToolingNodes.Count -ne 14" in runner
+    assert "$v05ExportToolingNodes = @(" in runner
+    assert "@v05ExportToolingNodes -q" in runner
+    assert "accepted-v0.5 export tooling tests failed" in runner
+    assert '--deselect=scripts/tests"' not in runner
+    assert '--deselect=scripts/tests/test_' not in runner
+    assert 'Join-Path $env:TEMP "sv5-$($runId.Substring(0, 12))"' in runner
+    assert "refusing an accepted-v0.5 tooling export outside the temporary root" in runner
+    assert "git -C $root worktree add --detach $v05Worktree v0.5.0" in runner
+    assert 'if ($v05Head -cne "e7b6bb9428833437e0160040541eb840deee7cca")' in runner
+    assert runner.count("foreach ($releaseRoot in @($v05Worktree, $v06Worktree))") == 2
+    assert 'Join-Path $releaseRoot "artifacts/v0.5/$releaseName"' in runner
+    assert 'Join-Path $releaseRoot "artifacts/v0.5/openbexi-spell-v0.5.0.tar.gz.sha256"' in runner
+    assert "accepted-v0.5 staged release sidecar bytes differ" in runner
+    assert "accepted-v0.5 tooling export teardown failed" in runner
     assert 'Join-Path $env:TEMP "sv6-$($runId.Substring(0, 12))"' in runner
     assert "refusing an accepted-v0.6 tooling export outside the temporary root" in runner
     assert "git -C $root worktree add --detach $v06Worktree v0.6.0" in runner

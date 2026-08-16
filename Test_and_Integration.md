@@ -6,8 +6,8 @@
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
-| Latest implemented candidate | SPELL v0.7 Simulator Read-Only Observation and Condition Engine |
-| Status | v0.6.0 accepted with no exceptions; the nine Gate 0A-authorized v0.7 packages are committed as the current candidate, with canonical candidate qualification, Gate 0B, Final evidence, and acceptance still pending |
+| Latest qualified candidate | SPELL v0.7 Simulator Read-Only Observation and Condition Engine; commit `82b497227aff097db9d4c3ff56adf56d76d892ca` |
+| Status | v0.6.0 accepted with no exceptions; all nine v0.7 packages are `IMPLEMENTED_AND_QUALIFIED`; `V07-GATE-0B PASS` authorizes release closeout; Final evidence and acceptance remain pending |
 | Requested follow-on | v0.8 after v0.7 completion, then v0.9; neither follow-on has Gate 0A or implementation evidence yet |
 | Date | Updated 2026-08-16 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
@@ -32,22 +32,29 @@ driver behavior, runtime artifact, candidate commit, release, live/legacy
 route, deployment, operational authorization, or compliance result was
 claimed. The later committed candidate is recorded separately below.
 
-### Candidate Implementation Verification
+### Candidate Qualification And Gate 0B Result
 
-The bounded v0.7 implementation is committed as the latest candidate and has
-passed noncanonical prequalification regression runs: 655 backend and driver
-tests passed with seven exact
-environment skips, 62 frontend unit tests passed, the production frontend build
-passed, and focused observation, condition, PostgreSQL clock, and browser
-checks passed. These runs guide the source freeze but do not replace canonical
-candidate evidence. All 45 identities, Gate 0B, Final evidence, SBOMs,
-supply-chain audit, package reproducibility, and tag validation remain pending.
+| Field | Canonical result |
+| --- | --- |
+| Candidate source | `82b497227aff097db9d4c3ff56adf56d76d892ca`; tree `2f553c152ce103c7ded70af811f2f84257f7c1b5`; sole parent Gate 0A commit `07c19437d28bc32a88d9970a4104d6c0fde53073` |
+| Candidate evidence | `artifacts/v0.7/work-package/qualification.json`; SHA-256 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20` |
+| Qualification inventory | PASS; ten exact suites, 45 exact mapped identities, and 2,070 concrete tests |
+| Aggregate results | 2,051 passes, 19 explicit suite-level platform skips, 36 subtests, zero failures or errors |
+| Identity disposition | All 45 PASS; zero mapped skips, failures, accepted failures, or waivers |
+| Work-package disposition | All nine `V07-OBS-001` through `V07-OBS-009` packages are `IMPLEMENTED_AND_QUALIFIED` |
+| Gate 0B result | PASS; `gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 claimed_artifacts=0 release_closeout=AUTHORIZED` |
+| Pending release endpoints | Final qualification, SBOMs, supply-chain evidence, deterministic package and sidecar, release commit, and annotated `v0.7.0` tag |
+
+The 19 suite-level skips are explicit platform/environment exclusions with
+their required coverage executed in the applicable PostgreSQL, Docker-host, or
+Windows-host source. They are not mapped identity skips. Gate 0B authorizes
+release closeout only and does not accept or release v0.7.
 
 ### Gate 0A Planned Requirements And Tests
 
 The status column preserves the Gate 0A authorization-time disposition. The
-current implementation status is the committed-candidate result above; no row
-is canonically qualified until the work-package evidence and Gate 0B pass.
+current disposition is the later qualified-candidate and Gate 0B result above;
+the historical rows are not rewritten.
 
 | Work package | Requirement and expected result | Planned test identities | Status |
 | --- | --- | --- | --- |
@@ -61,12 +68,11 @@ is canonically qualified until the work-package evidence and Gate 0B pass.
 | `V07-OBS-008` | Observation snapshots and cursors preserve authorization scope, contiguous sequence, explicit gaps/resynchronization, bounded backpressure, cancellation, disconnect, and restart | `V07-OBS-008-UNIT`, `V07-OBS-008-INTEGRATION`, `V07-OBS-008-BACKPRESSURE`, `V07-OBS-008-RECONNECT`, `V07-OBS-008-SECURITY` | Implementation authorized; not executed |
 | `V07-OBS-009` | Integrated semantic, desktop/mobile browser, accessibility, load, fault/recovery, and security evidence covers the entire read-only observation surface | `V07-OBS-009-SEMANTIC-GOLDEN`, `V07-OBS-009-BROWSER`, `V07-OBS-009-ACCESSIBILITY`, `V07-OBS-009-FAULT-RECOVERY`, `V07-OBS-009-LOAD-SECURITY` | Implementation authorized; not executed |
 
-Candidate evidence must map all 45 identities to concrete source-bound nodes
-with no missing, duplicated, silently skipped, accepted-failure, or waiver
-mapping. Release acceptance additionally requires complete SQLite/PostgreSQL,
-driver, recovery, security, browser, accessibility, load, supply-chain, SBOM,
-and reproducible-package evidence against fixed candidate and qualified-source
-commits.
+Canonical candidate evidence now maps all 45 identities to concrete
+source-bound passing nodes with no missing, duplicated, silently skipped,
+accepted-failure, or waiver mapping. Release acceptance additionally requires
+complete Final, supply-chain, SBOM, and reproducible-package evidence against
+fixed candidate and qualified-source commits.
 
 ## Version 0.6 Gate 0A Test Plan
 
