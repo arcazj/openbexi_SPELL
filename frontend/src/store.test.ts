@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it } from "vitest";
 import {
+  answerPrompt,
   consoleSlice,
   forceResyncExecution,
   ingestEvent,
@@ -170,6 +171,87 @@ describe("console state", () => {
       }),
     );
     expect(store.getState().console.execution?.active_prompt).toBeNull();
+  });
+
+  it("normalizes canonical typed prompt events without conflating prompt and execution revisions", () => {
+    const store = testStore();
+    store.dispatch(startExecution.fulfilled(snapshot, "request", { procedureId: "checkout", contextId: "simulator" }));
+    store.dispatch(ingestEvent({
+      event_id: "event-typed-prompt",
+      event_type: "prompt.opened",
+      execution_id: "exec-1",
+      sequence: 2,
+      server_time: "2026-07-12T20:00:00Z",
+      payload: {
+        prompt_id: "prompt-list",
+        type: "LIST",
+        input_kind: "LIST",
+        list_mode: "KEY",
+        question: "Select route",
+        options: [{ key: "primary", label: "Primary" }, { key: "backup", label: "Backup" }],
+        default: "backup",
+        prompt_revision: 7,
+        execution_revision: 3,
+        warning_at: "2026-07-12T20:00:10Z",
+        response_deadline: "2026-07-12T20:01:00Z",
+        warning_emitted_at: "2026-07-12T20:00:11Z",
+      },
+    }));
+
+    expect(store.getState().console.execution).toMatchObject({
+      revision: 3,
+      active_prompt: {
+        id: "prompt-list",
+        type: "list",
+        prompt_type: "LIST",
+        list_mode: "KEY",
+        options: ["Primary", "Backup"],
+        option_values: ["primary", "backup"],
+        default_value: "backup",
+        revision: 7,
+        deadline: "2026-07-12T20:01:00Z",
+        warning_at: "2026-07-12T20:00:10Z",
+        warning_active: true,
+      },
+    });
+  });
+
+  it("retains an open prompt when a durable 202 attempt rejects its value", () => {
+    const store = testStore();
+    store.dispatch(startExecution.fulfilled(snapshot, "request", { procedureId: "checkout", contextId: "simulator" }));
+    store.dispatch(ingestEvent({
+      event_id: "event-invalid-prompt",
+      event_type: "prompt.opened",
+      execution_id: "exec-1",
+      sequence: 2,
+      server_time: "2026-07-12T20:00:00Z",
+      payload: {
+        prompt_id: "prompt-invalid",
+        type: "LIST",
+        input_kind: "LIST",
+        list_mode: "VALUE",
+        question: "Continue?",
+        options: [{ value: "yes", label: "Yes" }],
+        prompt_revision: 3,
+        execution_revision: 2,
+      },
+    }));
+    const args = { promptId: "prompt-invalid", action: "COMMIT" as const, value: { value: "yes", label: "Yes" }, revision: 3 };
+
+    store.dispatch(answerPrompt.fulfilled({
+      prompt: { id: "prompt-invalid", state: "OPEN" },
+      attempt: { id: "attempt-invalid", outcome: "INVALID_VALUE" },
+    }, "attempt-invalid", args));
+
+    expect(store.getState().console.execution?.active_prompt?.id).toBe("prompt-invalid");
+    expect(store.getState().console.error).toBe("Prompt response does not match a declared option.");
+
+    store.dispatch(answerPrompt.fulfilled({
+      prompt: { id: "prompt-invalid", state: "SETTLED" },
+      attempt: { id: "attempt-accepted", outcome: "ACCEPTED_SETTLEMENT" },
+    }, "attempt-accepted", { ...args, value: "yes" }));
+    expect(store.getState().console.execution?.active_prompt).toBeNull();
+    expect(store.getState().console.error).toBeNull();
   });
 
   it("clears an interrupted prompt before recovery reopens it", () => {

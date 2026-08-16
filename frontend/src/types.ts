@@ -5,18 +5,123 @@ export type ConnectionPhase =
   | "STALE";
 
 export type ExecutionState =
+  | "REQUESTED"
+  | "VALIDATING"
+  | "ADMISSION_PENDING"
+  | "LOADING"
   | "CREATED"
   | "READY"
   | "RUNNING"
   | "PAUSED"
   | "WAITING"
+  | "PROMPT"
   | "PROMPTING"
+  | "INTERRUPTED"
+  | "SUSPENDED"
   | "RECOVERING"
   | "RECOVERY_REQUIRED"
+  | "STOPPING"
   | "ABORTING"
   | "ABORTED"
+  | "ERROR"
+  | "FINISHED"
   | "FAILED"
   | "COMPLETED";
+
+export type OwnershipMode = "C" | "M" | "B" | "CONTROL_LOST";
+
+export interface ControllerLease {
+  id: string;
+  revision: number;
+  fencing_token: number;
+  execution_id: string;
+  holder_subject_id: string;
+  holder_session_id?: string;
+  client_instance_key_id?: string;
+  issued_at: string;
+  expires_at: string;
+  state: "ACTIVE" | "RELEASED" | "EXPIRED" | "REVOKED" | "TRANSFERRED";
+  reason?: string;
+  held_by_current_session?: boolean;
+}
+
+export interface MonitorSubscription {
+  id: string;
+  execution_id: string;
+  subject_id: string;
+  session_id: string;
+  client_instance_key_id: string;
+  mode: "M";
+  state: "ACTIVE" | "CLOSED";
+  created_at?: string;
+  closed_at?: string | null;
+}
+
+export interface ControllerHandover {
+  id: string;
+  execution_id: string;
+  revision: number;
+  state: "REQUESTED" | "COMPLETED" | "CANCELLED" | "EXPIRED";
+  requester_subject_id: string;
+  requester_session_id: string;
+  requester_client_instance_key_id: string;
+  requester_monitor_id: string;
+  expected_execution_revision: number;
+  requested_at: string;
+  expires_at: string;
+  approved_by?: string | null;
+  predecessor_lease_id?: string | null;
+  successor_lease_id?: string | null;
+  successor_control_lease?: ControllerLease | null;
+  updated_at: string;
+  settled_at?: string | null;
+}
+
+export interface PromptSettings {
+  PROMPT_WARNING_DELAY?: number | null;
+  PROMPT_RESPONSE_TIMEOUT?: number | null;
+  NO_CONTROLLER_GRACE?: number | null;
+}
+
+export interface ExecutionSummary {
+  id: string;
+  procedure_id: string;
+  procedure_name: string;
+  context_id: string;
+  state: ExecutionState;
+  revision: number;
+  last_sequence: number;
+  ownership_mode: OwnershipMode;
+  hold_reason?: string | null;
+  controller_lease?: ControllerLease | null;
+  effect_certainty?: "NO_EFFECT" | "EFFECT_CONFIRMED" | "EFFECT_POSSIBLE" | "EFFECT_UNKNOWN";
+  parent_execution_id?: string | null;
+  child_count?: number;
+  monitor_count?: number;
+  depth?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ContextSummary {
+  id: string;
+  name: string;
+  description?: string;
+  attached: boolean;
+  catalog_revision: string;
+  procedure_count?: number;
+  active_execution_count?: number;
+}
+
+export interface ProcedureRevision {
+  id: string;
+  catalog_id: string;
+  revision: number;
+  source_digest: string;
+  bundle_digest: string;
+  created_at?: string;
+  current: boolean;
+}
 
 export interface ProcedureStep {
   id: string;
@@ -78,6 +183,55 @@ export interface LogEntry {
   sequence?: number;
 }
 
+export interface ExecutionViewEntry {
+  id: string;
+  sequence: number;
+  time: string;
+  scope: string;
+  kind: string;
+  message: string;
+  correlation_id?: string;
+  line?: number;
+  outcome?: string;
+}
+
+export type WorkspaceSearchView = "SOURCE" | "TEXT" | "AS_RUN" | "SUPPORT";
+
+export interface WorkspaceSearchMatch {
+  id: string;
+  sequence?: number;
+  time?: string;
+  scope?: string;
+  kind?: string;
+  message?: string;
+  correlation_id?: string;
+  line?: number;
+  column?: number;
+  text?: string;
+  source_digest?: string;
+  outcome?: string;
+}
+
+export interface WorkspaceSearchResult {
+  view: WorkspaceSearchView;
+  query: string;
+  source_digest?: string;
+  items: WorkspaceSearchMatch[];
+  next_cursor: number;
+}
+
+export type WorkspaceHistoryView = Exclude<WorkspaceSearchView, "SOURCE">;
+
+export interface WorkspaceHistoryResult {
+  view: WorkspaceHistoryView;
+  source_digest: string;
+  items: ExecutionViewEntry[];
+  after_sequence: number;
+  next_cursor?: number;
+  has_more: boolean;
+  through_sequence: number;
+}
+
 export interface ExecutionEvent {
   event_id: string;
   event_type: string;
@@ -93,11 +247,82 @@ export interface ExecutionEvent {
 export interface ActivePrompt {
   id: string;
   message: string;
-  type: "text" | "number" | "choice" | "confirm";
+  type: "text" | "number" | "choice" | "confirm" | "date" | "list";
+  prompt_type?: "OK" | "CANCEL" | "OK_CANCEL" | "YES" | "NO" | "YES_NO" | "ALPHA" | "NUM" | "DATE" | "LIST";
   options?: string[];
-  default_value?: string;
+  option_values?: unknown[];
+  list_mode?: "KEY" | "INDEX" | "VALUE";
+  default_value?: unknown;
   deadline?: string;
+  warning_at?: string;
+  warning_active?: boolean;
+  state?: "CREATED" | "OPEN" | "SETTLED";
   revision: number;
+}
+
+export interface ExecutionOutlineItem {
+  id: string;
+  label: string;
+  line: number;
+  depth: number;
+  kind: "procedure" | "step" | "branch" | "call";
+}
+
+export interface ExecutionSchedule {
+  id: string;
+  revision: number;
+  controller_execution_id: string;
+  schedule_type: "RELATIVE" | "ABSOLUTE";
+  original_target: string;
+  target_at_database_time: string;
+  state: "PENDING" | "CLAIMED" | "FIRED" | "CANCELLED" | "MISSED" | "ERROR";
+  catalog_revision_id: string;
+  context_id: string;
+  automatic: boolean;
+  background_allowed: boolean;
+  created_by?: string;
+  created_at?: string;
+  execution_id?: string | null;
+}
+
+export interface InspectionValue {
+  path: string;
+  scope: "LOCAL_VARIABLE" | "GLOBAL_VARIABLE" | "ARGS" | "IVARS" | "SHARED_DATA";
+  name?: string;
+  type: "STRING" | "INTEGER" | "FINITE_DECIMAL" | "BOOLEAN" | "NULL" | "LIST" | "MAP";
+  value: unknown;
+  value_revision: number;
+  execution_revision: number;
+  freshness: string;
+  editable: boolean;
+  redacted?: boolean;
+}
+
+export interface NamedUserAction {
+  id: string;
+  revision: number;
+  execution_id: string;
+  name: string;
+  label: string;
+  severity: "INFO" | "WARNING" | "ERROR";
+  handler_id: string;
+  enabled: boolean;
+  dismissed?: boolean;
+  source_digest: string;
+  last_settlement?: "EXECUTED" | "REJECTED" | "CANCELLED" | "SUPERSEDED";
+}
+
+export interface ParentChildLink {
+  id: string;
+  startproc_id: string;
+  parent_execution_id: string;
+  child_execution_id: string;
+  child_catalog_revision_id: string;
+  arguments_digest: string;
+  blocking: boolean;
+  visible: boolean;
+  automatic: boolean;
+  created_at?: string;
 }
 
 export interface ExecutionSnapshot {
@@ -113,11 +338,36 @@ export interface ExecutionSnapshot {
   finished_at?: string;
   last_sequence: number;
   source?: string;
+  source_digest?: string;
   steps: ProcedureStep[];
   telemetry: TelemetryPoint[];
   events: ExecutionEvent[];
   logs: LogEntry[];
   active_prompt?: ActivePrompt | null;
+  ownership_mode?: OwnershipMode;
+  hold_reason?: string | null;
+  controller_lease?: ControllerLease | null;
+  effect_certainty?: ExecutionSummary["effect_certainty"];
+  automatic?: boolean;
+  background_allowed?: boolean;
+  visible?: boolean;
+  text?: string;
+  as_run_source?: string;
+  text_entries?: ExecutionViewEntry[];
+  as_run_entries?: ExecutionViewEntry[];
+  executed_lines?: number[];
+  view_cursor?: number;
+  support_logs?: LogEntry[];
+  outline?: ExecutionOutlineItem[];
+  breakpoints?: number[];
+  schedules?: ExecutionSchedule[];
+  inspection?: InspectionValue[];
+  actions?: NamedUserAction[];
+  relationships?: ParentChildLink[];
+  parent_execution_id?: string | null;
+  child_execution_ids?: string[];
+  depth?: number;
+  settings?: PromptSettings;
 }
 
 export interface CommandReceipt {

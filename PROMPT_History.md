@@ -36,9 +36,13 @@ state/command/prompt/inspection matrices, and recovery/security acceptance
 rules. The exact owner marker is `V06-GATE-0A OWNER-APPROVAL: APPROVED`.
 
 Gate 0A is implementation authorization, not an implementation or release
-result. No v0.6 runtime, API, schema, migration, frontend, dependency, driver,
-package, release, tag, deployment, operational, or compliance result is yet
-claimed.
+result. Subsequent work prepared the bounded candidate implementation, exact
+ten-suite/45-ID qualification contract, version-scoped release tooling, and
+pending Gate 0B/release records. The latest owner instruction reaffirmed the
+exact `V06-OP-001` through `V06-OP-009` approval and requested prompt v0.6
+completion. Canonical candidate evidence, Gate 0B PASS, Final qualification,
+the release commit, and annotated tag remain pending; no release, deployment,
+operational, broad compatibility, or compliance result is claimed.
 
 ## 2026-08-13 - v0.5 Candidate Evidence Integrated And Release Closeout Continued
 

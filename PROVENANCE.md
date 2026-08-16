@@ -1,9 +1,10 @@
-# SPELL v0.5 Release Provenance and Dependency Review
+# SPELL Release Provenance and Dependency Review
 
 ## Record Status
 
-This record applies to the bounded SPELL v0.5.0 release. SPELL v0.5.0 is the
-accepted local-only, synthetic, non-CUI simulator engineering baseline at
+This record retains the bounded SPELL v0.5.0 release provenance and records the
+pending v0.6 candidate closeout boundary. SPELL v0.5.0 remains the accepted
+local-only, synthetic, non-CUI simulator engineering baseline at
 annotated tag `v0.5.0`, tag object
 `a1b277d74d2fb19062ca3e4388e9104d45c50ec4`, and release commit
 `e7b6bb9428833437e0160040541eb840deee7cca`. `V05-GATE-0B PASS` limited the
@@ -204,5 +205,12 @@ recorded in the release commit; no post-tag documentation commit was required.
 
 The approved v0.6 Gate 0A scope inherits this clean-room boundary.
 `V06-GATE-0A PASS` authorizes only `V06-OP-001` through `V06-OP-009`; it does
-not claim that any v0.6 dependency, source, image, package, or release evidence
-exists. Every such result still requires version-scoped provenance evidence.
+not itself qualify or accept an implementation. The current candidate adds
+internal opt-in IR 0.6, the local operator API/UI, and migration 0004 while
+pinning accepted IR 0.3 bytes, adding no runtime dependency, and retaining the
+bundled simulator driver implementation/default at `0.4.0`. The exact
+ten-suite/45-ID candidate evidence, Final evidence, four v0.6 SBOMs,
+supply-chain result, and deterministic package must be generated and validated
+under `artifacts/v0.6`; none may reuse or rewrite canonical v0.5 evidence.
+`V06-GATE-0B` remains pending until canonical candidate evidence passes with
+zero mapped skips, failures, accepted failures, or waivers.

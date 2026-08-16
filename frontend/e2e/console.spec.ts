@@ -30,6 +30,15 @@ test.beforeEach(async ({ page }) => {
       }),
     }),
   );
+  await page.route("**/api/v1/contexts", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ items: [{ id: "simulator", name: "Simulator", description: "Local synthetic context", attached: true, catalog_revision: "library-1", procedure_count: 1, active_execution_count: 0 }] }),
+    }),
+  );
+  await page.route("**/api/v1/master", (route) =>
+    route.fulfill({ contentType: "application/json", body: JSON.stringify({ items: [] }) }),
+  );
   await page.route("**/api/v1/procedures/validate", async (route) => {
     expect(route.request().method()).toBe("POST");
     expect(route.request().postDataJSON()).toEqual({ source: "Log('Starting')" });

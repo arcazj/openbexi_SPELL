@@ -1,9 +1,10 @@
 import type { ECharts } from "echarts/core";
-import { Download, FileText, RadioTower, ScrollText, TerminalSquare } from "lucide-react";
+import { Braces, CalendarClock, Download, FileText, ListChecks, Network, RadioTower, ScrollText, TerminalSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setDockTab, type DockTab } from "../store";
 import type { ExecutionEvent } from "../types";
+import { ActionsPanel, InspectionPanel, RelationshipsPanel, SchedulesPanel } from "./OperatorDock";
 
 function formatTime(value?: string): string {
   if (!value) return "-";
@@ -134,6 +135,10 @@ export function DataDock() {
     { id: "events", label: "Events", count: execution.events.length, icon: <ScrollText size={15} /> },
     { id: "logs", label: "Logs", count: execution.logs.length, icon: <TerminalSquare size={15} /> },
     { id: "report", label: "As-run", icon: <FileText size={15} /> },
+    { id: "inspection", label: "Inspect", count: execution.inspection?.length, icon: <Braces size={15} /> },
+    { id: "schedules", label: "Schedules", count: execution.schedules?.length, icon: <CalendarClock size={15} /> },
+    { id: "actions", label: "Actions", count: execution.actions?.length, icon: <ListChecks size={15} /> },
+    { id: "relationships", label: "Relations", count: execution.relationships?.length, icon: <Network size={15} /> },
   ];
 
   const moveTab = (event: React.KeyboardEvent, index: number) => {
@@ -174,7 +179,7 @@ export function DataDock() {
         ))}
       </div>
 
-      <div className="dock-content" id={`dock-${dockTab}`} role="tabpanel">
+      <div className="dock-content" id={`dock-${dockTab}`} role="tabpanel" aria-labelledby={`dock-tab-${dockTab}`}>
         {dockTab === "telemetry" && (
           <div className="telemetry-layout">
             <TelemetryChart />
@@ -226,6 +231,10 @@ export function DataDock() {
           </div>
         )}
         {dockTab === "report" && <ReportView />}
+        {dockTab === "inspection" && <InspectionPanel key={execution.id} />}
+        {dockTab === "schedules" && <SchedulesPanel key={execution.id} />}
+        {dockTab === "actions" && <ActionsPanel key={execution.id} />}
+        {dockTab === "relationships" && <RelationshipsPanel key={execution.id} />}
       </div>
     </section>
   );

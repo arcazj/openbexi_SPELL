@@ -7,7 +7,7 @@
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
 | Planning target | SPELL v0.6 Durable Operator Workspace and Procedure Composition |
-| Status | v0.5.0 accepted for `V05-IR-001`; `V06-GATE-0A PASS` authorizes nine exact work packages; no v0.6 implementation or tag claim |
+| Status | v0.5.0 accepted for `V05-IR-001`; v0.6 candidate and ten-suite/45-ID contract prepared; `V06-GATE-0B PENDING_CANDIDATE`; no release or tag claim |
 | Date | Updated 2026-08-15 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
@@ -19,9 +19,10 @@
 The owner requested completion of v0.6 and explicitly approved the exact scope
 in [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
 `V06-GATE-0A PASS` makes the requirements and planned test identities below
-the bounded implementation contract. None is represented as implemented,
-executed, passed, accepted, or released by the gate. No arbitrary Python,
-expression/function evaluation, procedure-scope shell execution, implicit
+the bounded implementation contract. Candidate code and qualification tooling
+now exist, but the gate-time table is preserved and no identity is represented
+as canonically passed, accepted, or released before work-package evidence. No
+arbitrary Python, expression/function evaluation, procedure-scope shell execution, implicit
 external-success claim, operational capability, or spacecraft connection is
 permitted.
 
@@ -45,6 +46,24 @@ product edits. Final release acceptance will additionally require
 current-source qualification, dependency and image audit, distinct SBOMs,
 deterministic packaging, release evidence validation, a fixed release commit,
 and the one authorized annotated semantic-version tag.
+
+### Candidate Qualification And Gate 0B Contract
+
+Candidate qualification is fixed at ten exact suites: SQLite backend,
+isolated PostgreSQL backend, host Docker controls, bounded v0.6 replay soak,
+driver host, tooling, frontend Vitest, frontend build, mocked desktop/mobile
+Playwright, and live-backend Playwright. The canonical manifest must map every
+one of the 45 IDs above to concrete passing nodes. Mapped skips, accepted
+failures, and waivers are all forbidden.
+
+The pending Gate 0B scope explicitly reviews internal IR 0.6, the additive
+local operator API and strict mutation schemas, and migration
+`0004_operator_workspace` with 20 new tables. Accepted `backend/ir_v03.py`
+bytes remain pinned; no broad legacy/API/database compatibility, new runtime
+dependency, driver-contract change, live route, deployment, operational, or
+compliance result is claimed. Gate 0B remains denied until the frozen candidate
+commit and canonical manifest digest are bound and the independent candidate
+validator passes.
 
 ## Version 0.5 Final Release Result
 

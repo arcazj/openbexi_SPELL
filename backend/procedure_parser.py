@@ -4,11 +4,23 @@ import ast
 import hashlib
 import json
 import math
+import os
+import re
+import stat
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .ir_v03 import IR_VERSION, IRValidationError, validate_ir_v03
+from .ir_v06 import (
+    IR_VERSION as V06_IR_VERSION,
+    V06ValidationError,
+    validate_ir_v06,
+    validate_prompt_declaration,
+    validate_startproc_declaration,
+    validate_user_action,
+    validate_user_action_block,
+)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
@@ -21,6 +33,10 @@ MAX_LOOP_ITERATIONS = 1_000
 MAX_IR_STEPS = 10_000
 MAX_IR_SERIALIZED_BYTES = 8_000_000
 MAX_PROMPT_CHOICE_LENGTH = 200
+MAX_USER_ACTIONS = 16
+_LABEL_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,127}\Z")
+_CATALOG_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\Z")
+MAX_CATALOG_DEPTH = 16
 
 
 @dataclass(frozen=True)
@@ -54,6 +70,7 @@ class Procedure:
     sha256: str
     steps: tuple[dict[str, Any], ...]
     ir_version: str = IR_VERSION
+    user_actions: tuple[dict[str, Any], ...] = ()
 
     def summary(self) -> dict[str, Any]:
         return {
@@ -63,13 +80,14 @@ class Procedure:
             "sha256": self.sha256,
             "step_count": len(self.steps),
             "ir_version": self.ir_version,
+            "action_count": len(self.user_actions),
         }
 
 
 class ProcedureCatalog:
-    """Compile the v0.3 safe language to data-only, checkpointable IR."""
+    """Compile the safe language to versioned, data-only checkpointable IR."""
 
-    _step_calls = {"Log", "Telemetry", "Wait", "Prompt"}
+    _step_calls = {"Log", "Telemetry", "Wait", "Prompt", "StartProc"}
 
     def __init__(self, directory: Path):
         self.directory = directory
@@ -77,15 +95,36 @@ class ProcedureCatalog:
     def list(self) -> list[Procedure]:
         if not self.directory.exists():
             return []
-        return [self.parse(path) for path in sorted(self.directory.glob("*.spell.py"))]
+        root = self._catalog_root()
+        paths: list[Path] = []
+        for directory, child_directories, filenames in os.walk(root, followlinks=False):
+            parent = Path(directory)
+            for child in child_directories:
+                self._reject_reparse_path(parent / child, expect_directory=True)
+            for filename in filenames:
+                path = parent / filename
+                if filename.endswith(".spell.py"):
+                    paths.append(self._validated_catalog_path(path))
+        procedures = [self.parse(path) for path in sorted(paths)]
+        seen: dict[str, str] = {}
+        for procedure in procedures:
+            identity = procedure.id.casefold()
+            if identity in seen:
+                raise self._catalog_path_error("catalog contains colliding virtual identities")
+            seen[identity] = procedure.id
+        return procedures
 
     def get(self, procedure_id: str) -> Procedure:
+        procedure_id = self._normalize_procedure_id(procedure_id)
         for procedure in self.list():
             if procedure.id == procedure_id:
                 return procedure
         raise KeyError(procedure_id)
 
     def parse(self, path: Path) -> Procedure:
+        path = self._validated_catalog_path(path)
+        relative = path.relative_to(self._catalog_root()).as_posix()
+        source_name = relative.removesuffix(".spell.py") + ".spell.py"
         if path.stat().st_size > MAX_SOURCE_BYTES:
             raise ProcedureValidationError(
                 path.name,
@@ -126,7 +165,92 @@ class ProcedureCatalog:
                     )
                 ],
             ) from exc
-        return self.validate_source(source, path.name, path=path)
+        return self.validate_source(source, source_name, path=path)
+
+    def _catalog_root(self) -> Path:
+        try:
+            self._reject_reparse_path(self.directory, expect_directory=True)
+            root = self.directory.resolve(strict=True)
+        except (OSError, RuntimeError) as exc:
+            raise self._catalog_path_error("procedure library root is unavailable") from exc
+        if not root.is_dir():
+            raise self._catalog_path_error("procedure library root is invalid")
+        return root
+
+    @staticmethod
+    def _is_reparse(stat_result: os.stat_result) -> bool:
+        return bool(getattr(stat_result, "st_file_attributes", 0) & 0x400)
+
+    def _reject_reparse_path(self, path: Path, *, expect_directory: bool) -> None:
+        try:
+            metadata = path.lstat()
+        except OSError as exc:
+            raise self._catalog_path_error("procedure library path is unavailable") from exc
+        mode_matches = (
+            stat.S_ISDIR(metadata.st_mode)
+            if expect_directory
+            else stat.S_ISREG(metadata.st_mode)
+        )
+        if path.is_symlink() or self._is_reparse(metadata) or not mode_matches:
+            raise self._catalog_path_error("procedure library path is not an approved real path")
+
+    def _validated_catalog_path(self, path: Path) -> Path:
+        root = self._catalog_root()
+        candidate = Path(path)
+        try:
+            lexical = candidate.absolute()
+            relative = lexical.relative_to(self.directory.absolute())
+        except (OSError, ValueError) as exc:
+            raise self._catalog_path_error("procedure path escapes the library root") from exc
+        if (
+            not relative.parts
+            or len(relative.parts) > MAX_CATALOG_DEPTH
+            or relative.as_posix().startswith("../")
+            or not relative.as_posix().endswith(".spell.py")
+        ):
+            raise self._catalog_path_error("procedure path is outside the virtual library")
+        current = root
+        for index, part in enumerate(relative.parts):
+            current = current / part
+            self._reject_reparse_path(
+                current, expect_directory=index < len(relative.parts) - 1
+            )
+        try:
+            resolved = current.resolve(strict=True)
+            resolved.relative_to(root)
+        except (OSError, RuntimeError, ValueError) as exc:
+            raise self._catalog_path_error("procedure path escapes the library root") from exc
+        return resolved
+
+    @staticmethod
+    def _normalize_procedure_id(value: str) -> str:
+        if type(value) is not str or not value or len(value) > 200 or "\\" in value:
+            raise KeyError(value)
+        path = PurePosixPath(value)
+        if (
+            path.is_absolute()
+            or len(path.parts) > MAX_CATALOG_DEPTH
+            or any(
+                part in {"", ".", ".."} or _CATALOG_SEGMENT.fullmatch(part) is None
+                for part in path.parts
+            )
+        ):
+            raise KeyError(value)
+        return path.as_posix()
+
+    @staticmethod
+    def _catalog_path_error(message: str) -> ProcedureValidationError:
+        return ProcedureValidationError(
+            "procedure-library",
+            [
+                ProcedureDiagnostic(
+                    code="SPELL006",
+                    message=message,
+                    line=None,
+                    column=None,
+                )
+            ],
+        )
 
     def validate_source(
         self,
@@ -191,9 +315,14 @@ class ProcedureCatalog:
                 column=None,
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
+        ir_version = V06_IR_VERSION if compiler.uses_v06 else IR_VERSION
         try:
-            validated_ir = validate_ir_v03(IR_VERSION, steps)
-        except IRValidationError as exc:
+            validated_ir = (
+                validate_ir_v06(ir_version, steps)
+                if compiler.uses_v06
+                else validate_ir_v03(ir_version, steps)
+            )
+        except (IRValidationError, V06ValidationError) as exc:
             diagnostic = ProcedureDiagnostic(
                 code="SPELL105",
                 message=f"compiled IR failed independent validation at {exc.path}",
@@ -211,6 +340,11 @@ class ProcedureCatalog:
             source=source,
             sha256=digest,
             steps=tuple(validated_ir.steps),
+            ir_version=ir_version,
+            user_actions=tuple(
+                {**definition, "source_digest": digest}
+                for definition in compiler.user_actions
+            ),
         )
 
     @staticmethod
@@ -248,7 +382,8 @@ class ProcedureCatalog:
 
 
 class _Compiler:
-    _step_calls = {"Log", "Telemetry", "Wait", "Prompt"}
+    _step_calls = {"Log", "Telemetry", "Wait", "Prompt", "StartProc"}
+    _reserved_calls = {*_step_calls, "UserAction", "Label"}
 
     def __init__(self, source_name: str):
         self.source_name = source_name
@@ -258,6 +393,15 @@ class _Compiler:
         self.serialized_ir_bytes = 2
         self.branch_counter = 0
         self.called_functions: set[str] = set()
+        self.user_actions: list[dict[str, Any]] = []
+        self.uses_v06 = False
+        self.current_frame_path: list[str] = ["root"]
+        self.step_frame_paths: list[tuple[str, ...]] = []
+        self.frame_boundaries: dict[str, tuple[int, int]] = {}
+        self.frame_counter = 0
+        self.pending_labels: dict[str, list[tuple[str, ast.AST]]] = {}
+        self.step_labels: list[list[dict[str, str]]] = []
+        self.frame_label_names: dict[str, set[str]] = {}
 
     def compile(self, tree: ast.Module) -> tuple[str, list[dict[str, Any]]]:
         statements = list(tree.body)
@@ -273,10 +417,14 @@ class _Compiler:
         for statement in statements:
             if isinstance(statement, ast.FunctionDef):
                 self._register_function(statement)
+            elif self._is_user_action_declaration(statement):
+                self._compile_user_action_declaration(statement)
             else:
                 executable.append(statement)
 
         self._compile_block(executable, guard=None, call_stack=(), top_level=True)
+        self._reject_unbound_labels("root")
+        self._validate_user_action_targets()
         unused_functions = set(self.functions) - self.called_functions
         if unused_functions:
             function_name = sorted(unused_functions)[0]
@@ -285,7 +433,10 @@ class _Compiler:
                 "SPELL203",
                 f"local function {function_name} is never called",
             )
-        if not any(step["type"] in {"log", "telemetry", "wait", "prompt"} for step in self.steps):
+        if not any(
+            step["type"] in {"log", "telemetry", "wait", "prompt", "startproc"}
+            for step in self.steps
+        ):
             self._reject(tree, "SPELL101", "procedure contains no executable steps")
         if len(self.steps) > MAX_IR_STEPS:
             self._reject(
@@ -295,6 +446,8 @@ class _Compiler:
             )
         for index, step in enumerate(self.steps):
             step["index"] = index
+        if self.uses_v06:
+            self._attach_v06_target_metadata(tree)
         return description, self.steps
 
     @staticmethod
@@ -306,9 +459,17 @@ class _Compiler:
         )
 
     def _register_function(self, node: ast.FunctionDef) -> None:
-        if node.name.startswith("__") or node.name in {"Call", "range", *self._step_calls}:
+        if node.name.startswith("__") or node.name in {
+            "Call",
+            "range",
+            *self._reserved_calls,
+        }:
             self._reject(node, "SPELL201", f"reserved function name {node.name}")
-        if node.name in self.functions or node.name in self._step_calls or node.name == "Call":
+        if (
+            node.name in self.functions
+            or node.name in self._reserved_calls
+            or node.name == "Call"
+        ):
             self._reject(node, "SPELL201", f"duplicate or reserved function name {node.name}")
         if (
             node.decorator_list
@@ -321,6 +482,101 @@ class _Compiler:
         ):
             self._reject(node, "SPELL202", "local functions must be undecorated and zero-argument")
         self.functions[node.name] = node
+
+    @staticmethod
+    def _is_user_action_declaration(statement: ast.stmt) -> bool:
+        return (
+            isinstance(statement, ast.Expr)
+            and isinstance(statement.value, ast.Call)
+            and isinstance(statement.value.func, ast.Name)
+            and statement.value.func.id == "UserAction"
+        )
+
+    def _compile_user_action_declaration(self, node: ast.Expr) -> None:
+        call = node.value
+        assert isinstance(call, ast.Call)
+        if len(self.user_actions) >= MAX_USER_ACTIONS:
+            self._reject(
+                node,
+                "SPELL803",
+                f"procedure declares more than {MAX_USER_ACTIONS} user actions",
+            )
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        allowed = {"name", "label", "severity", "handler", "enabled"}
+        positional = ("name", "label", "handler")
+        if len(call.args) > len(positional):
+            self._reject(call, "SPELL408", "too many positional arguments for UserAction")
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        if set(values) - allowed:
+            self._reject(call, "SPELL409", "unsupported keyword for UserAction")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+        missing = {"name", "label", "handler"} - set(values)
+        if missing:
+            self._reject(
+                call,
+                "SPELL411",
+                f"missing UserAction argument {sorted(missing)[0]}",
+            )
+        name = self._literal_required_string(values["name"], "UserAction name")
+        label = self._literal_required_string(values["label"], "UserAction label")
+        severity = self._literal_required_string(
+            values.get("severity", ast.Constant(value="INFO")),
+            "UserAction severity",
+        )
+        enabled = self._literal_value(
+            values.get("enabled"), True, "UserAction enabled"
+        )
+        handler = self._literal_value(values["handler"], None, "UserAction handler")
+        handler_id = f"bundle.{name}"
+        if any(item["name"] == name for item in self.user_actions):
+            self._reject(call, "SPELL803", f"duplicate UserAction name {name}")
+        try:
+            spec = validate_user_action(
+                action_id=name,
+                action_revision=1,
+                name=name,
+                label=label,
+                severity=severity,
+                handler_id=handler_id,
+                enabled=enabled,
+                source_digest="0" * 64,
+                allowlisted_handlers={handler_id},
+            )
+            operations = validate_user_action_block(handler)
+        except V06ValidationError as exc:
+            self._reject(call, "SPELL803", exc.message)
+        self.user_actions.append(
+            {
+                "name": spec.name,
+                "label": spec.label,
+                "severity": spec.severity,
+                "handler_id": spec.handler_id,
+                "handler": [
+                    {"op": operation.operation, **operation.payload}
+                    for operation in operations
+                ],
+                "enabled": spec.enabled,
+                "revision": spec.action_revision,
+            }
+        )
+        self.uses_v06 = True
+
+    def _validate_user_action_targets(self) -> None:
+        for definition in self.user_actions:
+            for operation in definition["handler"]:
+                if operation["op"] != "SET_LITERAL":
+                    continue
+                name = operation["name"]
+                if self.types.get(name) != operation["declared_type"]:
+                    self._reject(
+                        self.functions.get(name, ast.Constant(value=None)),
+                        "SPELL803",
+                        "UserAction SET_LITERAL target must name an exact typed variable",
+                    )
 
     def _compile_block(
         self,
@@ -438,6 +694,9 @@ class _Compiler:
         if name in self._step_calls:
             self._compile_step(node, name, call, guard)
             return
+        if name == "Label":
+            self._compile_label(node, call)
+            return
         if name == "Call":
             function_name = self._local_call_target(call)
             self._expand_local_call(node, function_name, guard, call_stack)
@@ -474,11 +733,83 @@ class _Compiler:
         if len(call_stack) >= MAX_CALL_DEPTH:
             self._reject(node, "SPELL406", f"local call depth exceeds {MAX_CALL_DEPTH}")
         self.called_functions.add(function_name)
-        self._compile_block(
-            function.body,
-            guard=guard,
-            call_stack=(*call_stack, function_name),
+        self.frame_counter += 1
+        frame_id = (
+            f"frame:{self.frame_counter}:{function_name}:"
+            f"{getattr(node, 'lineno', 1)}:{getattr(node, 'col_offset', 0) + 1}"
         )
+        start = len(self.steps)
+        self.current_frame_path.append(frame_id)
+        try:
+            self._compile_block(
+                function.body,
+                guard=guard,
+                call_stack=(*call_stack, function_name),
+            )
+            self._reject_unbound_labels(frame_id)
+        finally:
+            self.current_frame_path.pop()
+        self.frame_boundaries[frame_id] = (start, len(self.steps))
+
+    def _compile_label(self, node: ast.AST, call: ast.Call) -> None:
+        if call.keywords or len(call.args) != 1:
+            self._reject(call, "SPELL804", "Label requires exactly one literal name")
+        label = self._literal_required_string(call.args[0], "Label name")
+        if _LABEL_NAME.fullmatch(label) is None:
+            self._reject(call.args[0], "SPELL804", "Label name is invalid")
+        frame_id = self.current_frame_path[-1]
+        names = self.frame_label_names.setdefault(frame_id, set())
+        if label in names:
+            self._reject(call.args[0], "SPELL805", "Label name is duplicated in its frame")
+        names.add(label)
+        self.pending_labels.setdefault(frame_id, []).append((label, node))
+        self.uses_v06 = True
+
+    def _reject_unbound_labels(self, frame_id: str) -> None:
+        pending = self.pending_labels.get(frame_id) or []
+        if pending:
+            self._reject(
+                pending[0][1],
+                "SPELL806",
+                "Label must precede an executable statement in the same frame",
+            )
+
+    def _attach_v06_target_metadata(self, tree: ast.AST) -> None:
+        for index, step in enumerate(self.steps):
+            path = self.step_frame_paths[index]
+            starting_frames = [
+                frame_id
+                for frame_id in path[1:]
+                if self.frame_boundaries.get(frame_id, (-1, -1))[0] == index
+                and self.frame_boundaries[frame_id][1] > index
+            ]
+            boundary_id = starting_frames[0] if starting_frames else None
+            step_over_target = (
+                max(self.frame_boundaries[frame_id][1] for frame_id in starting_frames)
+                if starting_frames
+                else index + 1
+            )
+            step.update(
+                lexical_frame_id=path[-1],
+                lexical_frame_path=list(path),
+                reachability_id=f"{path[-1]}:step:{index}",
+                step_over_target=step_over_target,
+                call_boundary_id=boundary_id,
+                labels=self.step_labels[index],
+            )
+        try:
+            encoded = json.dumps(
+                self.steps, sort_keys=True, separators=(",", ":"), allow_nan=False
+            ).encode("utf-8")
+        except (TypeError, UnicodeError, ValueError) as exc:
+            self._reject(tree, "SPELL105", "v0.6 target metadata is not canonical")
+            raise AssertionError("unreachable") from exc
+        if len(encoded) > MAX_IR_SERIALIZED_BYTES:
+            self._reject(
+                tree,
+                "SPELL104",
+                f"compiled procedure exceeds the {MAX_IR_SERIALIZED_BYTES}-byte serialized IR limit",
+            )
 
     def _compile_step(
         self,
@@ -493,13 +824,24 @@ class _Compiler:
             "Log": {"message", "level"},
             "Telemetry": {"channel", "value", "unit"},
             "Wait": {"seconds"},
-            "Prompt": {"question", "choices", "default"},
+            "Prompt": {
+                "question",
+                "choices",
+                "default",
+                "type",
+                "list_mode",
+                "warning_delay",
+                "response_timeout",
+                "no_controller_grace",
+            },
+            "StartProc": {"procedure", "args", "blocking", "visible", "automatic"},
         }
         positional = {
             "Log": ["message"],
             "Telemetry": ["channel"],
             "Wait": ["seconds"],
             "Prompt": ["question"],
+            "StartProc": ["procedure"],
         }[name]
         if len(call.args) > len(positional):
             self._reject(call, "SPELL408", f"too many positional arguments for {name}")
@@ -543,37 +885,111 @@ class _Compiler:
             if isinstance(step["seconds"], (int, float)) and not isinstance(step["seconds"], bool):
                 if step["seconds"] < 0 or step["seconds"] > 3600:
                     self._reject(values["seconds"], "SPELL412", "Wait seconds must be 0 through 3600")
-        else:
+        elif name == "Prompt":
             step["question"] = self._typed_argument(
                 values["question"], {"str"}, "Prompt question"
             )
             self._require_non_empty_literal(
                 values["question"], step["question"], "Prompt question"
             )
-            choices = self._literal_string_list(values.get("choices"), ["continue"], "Prompt choices")
-            default = self._literal_optional_string(values.get("default"), None, "Prompt default")
-            if any(len(choice) > MAX_PROMPT_CHOICE_LENGTH for choice in choices):
-                self._reject(
-                    values.get("choices", node),
-                    "SPELL715",
-                    f"Prompt choices must be at most {MAX_PROMPT_CHOICE_LENGTH} characters",
+            v06_keywords = {
+                "type",
+                "list_mode",
+                "warning_delay",
+                "response_timeout",
+                "no_controller_grace",
+            }
+            if not (set(values) & v06_keywords):
+                choices = self._literal_string_list(
+                    values.get("choices"), ["continue"], "Prompt choices"
                 )
-            if len(set(choices)) != len(choices):
-                self._reject(
-                    values.get("choices", node),
-                    "SPELL708",
-                    "Prompt choices must be unique",
+                default = self._literal_optional_string(
+                    values.get("default"), None, "Prompt default"
                 )
-            if default is not None and len(default) > MAX_PROMPT_CHOICE_LENGTH:
-                self._reject(
-                    values["default"],
-                    "SPELL715",
-                    f"Prompt default must be at most {MAX_PROMPT_CHOICE_LENGTH} characters",
+                if any(len(choice) > MAX_PROMPT_CHOICE_LENGTH for choice in choices):
+                    self._reject(
+                        values.get("choices", node),
+                        "SPELL715",
+                        f"Prompt choices must be at most {MAX_PROMPT_CHOICE_LENGTH} characters",
+                    )
+                if len(set(choices)) != len(choices):
+                    self._reject(
+                        values.get("choices", node),
+                        "SPELL708",
+                        "Prompt choices must be unique",
+                    )
+                if default is not None and len(default) > MAX_PROMPT_CHOICE_LENGTH:
+                    self._reject(
+                        values["default"],
+                        "SPELL715",
+                        f"Prompt default must be at most {MAX_PROMPT_CHOICE_LENGTH} characters",
+                    )
+                if default is not None and default not in choices:
+                    self._reject(
+                        values["default"],
+                        "SPELL413",
+                        "Prompt default must be one of its choices",
+                    )
+                step["choices"] = choices
+                step["default"] = default
+                self._append(node, name.lower(), guard=guard, **step)
+                return
+
+            prompt_type = self._literal_required_string(
+                values.get("type", ast.Constant(value="OK")), "Prompt type"
+            )
+            choices = self._literal_value(values.get("choices"), None, "Prompt choices")
+            default = self._literal_value(values.get("default"), None, "Prompt default")
+            list_mode = self._literal_optional_string(
+                values.get("list_mode"), None, "Prompt list mode"
+            )
+            warning_delay = self._literal_value(
+                values.get("warning_delay"), None, "Prompt warning delay"
+            )
+            response_timeout = self._literal_value(
+                values.get("response_timeout"), None, "Prompt response timeout"
+            )
+            no_controller_grace = self._literal_value(
+                values.get("no_controller_grace"), None, "Prompt no-controller grace"
+            )
+            try:
+                spec = validate_prompt_declaration(
+                    "dynamic question",
+                    prompt_type=prompt_type,
+                    choices=choices,
+                    default=default,
+                    list_mode=list_mode,
+                    warning_delay_seconds=warning_delay,
+                    response_timeout_seconds=response_timeout,
+                    no_controller_grace_seconds=no_controller_grace,
                 )
-            if default is not None and default not in choices:
-                self._reject(values["default"], "SPELL413", "Prompt default must be one of its choices")
-            step["choices"] = choices
-            step["default"] = default
+            except V06ValidationError as exc:
+                self._reject(call, "SPELL801", exc.message)
+            step.update(spec.as_ir_fields())
+            step["question"] = self._typed_argument(
+                values["question"], {"str"}, "Prompt question"
+            )
+            self.uses_v06 = True
+        else:
+            child_reference = self._literal_required_string(
+                values["procedure"], "StartProc procedure"
+            )
+            arguments = self._literal_value(values.get("args"), {}, "StartProc args")
+            blocking = self._literal_value(values.get("blocking"), True, "StartProc blocking")
+            visible = self._literal_value(values.get("visible"), True, "StartProc visible")
+            automatic = self._literal_value(values.get("automatic"), True, "StartProc automatic")
+            try:
+                spec = validate_startproc_declaration(
+                    child_reference,
+                    arguments=arguments,
+                    blocking=blocking,
+                    visible=visible,
+                    automatic=automatic,
+                )
+            except V06ValidationError as exc:
+                self._reject(call, "SPELL802", exc.message)
+            step.update(spec.as_ir_fields())
+            self.uses_v06 = True
         self._append(node, name.lower(), guard=guard, **step)
 
     def _compile_if(
@@ -764,6 +1180,32 @@ class _Compiler:
             self._reject(node, "SPELL707", f"invalid {label}")
         return value
 
+    def _literal_required_string(self, node: ast.AST, label: str) -> str:
+        value = self._literal_value(node, None, label)
+        if type(value) is not str or not value:
+            self._reject(node, "SPELL707", f"{label} must be a non-empty literal string")
+        self._validate_persistable_string(node, value, label)
+        return value
+
+    def _literal_value(self, node: ast.AST | None, default: Any, label: str) -> Any:
+        if node is None:
+            return default
+        try:
+            value = ast.literal_eval(node)
+        except (ValueError, TypeError):
+            self._reject(node, "SPELL717", f"{label} must be literal data")
+        try:
+            json.dumps(
+                value,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+                allow_nan=False,
+            )
+        except (RecursionError, TypeError, UnicodeError, ValueError):
+            self._reject(node, "SPELL717", f"{label} must be finite JSON-compatible data")
+        return value
+
     def _require_non_empty_literal(self, node: ast.AST, value: Any, label: str) -> None:
         if isinstance(value, str) and not value:
             self._reject(node, "SPELL713", f"{label} must be a non-empty string")
@@ -829,7 +1271,12 @@ class _Compiler:
         return declared_type
 
     def _validate_variable_name(self, node: ast.AST, name: str) -> None:
-        if name.startswith("__") or name in self._step_calls or name in {"Call", "range"}:
+        if name.startswith("__") or name in self._step_calls or name in {
+            "ARGS",
+            "IVARS",
+            "Call",
+            "range",
+        }:
             self._reject(node, "SPELL309", f"reserved variable name {name}")
 
     def _require_assignable(self, node: ast.AST, target: str, actual: str) -> None:
@@ -913,6 +1360,14 @@ class _Compiler:
             )
         self.serialized_ir_bytes = projected_size
         self.steps.append(step)
+        self.step_frame_paths.append(tuple(self.current_frame_path))
+        labels: list[dict[str, str]] = []
+        for frame_id in self.current_frame_path:
+            pending = self.pending_labels.pop(frame_id, [])
+            labels.extend(
+                {"name": label, "frame_id": frame_id} for label, _node in pending
+            )
+        self.step_labels.append(labels)
 
     def _reject(self, node: ast.AST, code: str, message: str) -> None:
         raise ProcedureValidationError(

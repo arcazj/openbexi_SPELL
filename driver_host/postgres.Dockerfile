@@ -1,6 +1,6 @@
 FROM alpine:3.23@sha256:fd791d74b68913cbb027c6546007b3f0d3bc45125f797758156952bc2d6daf40
 
-RUN apk add --no-cache "postgresql18=18.4-r0" \
+RUN apk add --no-cache "postgresql18=18.6-r0" \
     && mkdir -p /var/lib/postgresql/18/docker /var/run/postgresql \
     && chown -R postgres:postgres /var/lib/postgresql /var/run/postgresql
 

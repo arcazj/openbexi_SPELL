@@ -188,7 +188,8 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
         for node in ast.walk(worker_tree)
         if isinstance(node, ast.FunctionDef) and node.name == "worker_main"
     )
-    assert [argument.arg for argument in worker_main.args.args] == [
+    worker_arguments = [argument.arg for argument in worker_main.args.args]
+    assert worker_arguments[:10] == [
         "execution_id",
         "generation",
         "ir_version",
@@ -200,6 +201,18 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
         "control",
         "output",
     ]
+    assert set(worker_arguments[10:]) <= {
+        "resume_prompt_settlement",
+        "resume_startproc_result",
+        "registered_user_action_invocations",
+        "durable_arguments",
+        "safe_point_ack_required",
+    }
+    assert not any(
+        marker in argument.lower()
+        for argument in worker_arguments
+        for marker in ("credential", "password", "secret", "token", "driver")
+    )
 
     supervisor_tree = ast.parse(
         (ROOT / "backend/supervisor.py").read_text(encoding="utf-8")
@@ -216,7 +229,10 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
     assert isinstance(keywords["target"], ast.Name)
     assert keywords["target"].id == "worker_main"
     assert isinstance(keywords["args"], ast.Tuple)
-    assert [item.id for item in keywords["args"].elts if isinstance(item, ast.Name)] == [
+    process_arguments = [
+        item.id for item in keywords["args"].elts if isinstance(item, ast.Name)
+    ]
+    assert process_arguments[:10] == [
         "execution_id",
         "generation",
         "ir_version",
@@ -228,6 +244,13 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
         "control",
         "output",
     ]
+    assert set(process_arguments[10:]) <= {
+        "resume_prompt_settlement",
+        "resume_startproc_result",
+        "registered_user_action_invocations",
+        "durable_arguments",
+        "safe_point_ack_required",
+    }
 
 
 def test_spawned_worker_starts_without_service_secrets_or_inherited_files(

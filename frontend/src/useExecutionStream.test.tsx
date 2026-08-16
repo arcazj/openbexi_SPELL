@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider } from "react-redux";
 import { consoleSlice, startExecution } from "./store";
 import type { ExecutionSnapshot } from "./types";
-import { useExecutionStream } from "./useExecutionStream";
+import { eventRequiresProjectionResync, useExecutionStream } from "./useExecutionStream";
 
 const snapshot: ExecutionSnapshot = {
   id: "execution-1",
@@ -180,5 +180,16 @@ describe("execution stream authentication lifecycle", () => {
 
     expect(window.sessionStorage.getItem("openbexi.spell.access-token")).toBeNull();
     expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+});
+
+describe("execution stream projection invalidation", () => {
+  it("resyncs durable control, schedule, and StartProc projections but not ordinary telemetry", () => {
+    expect(eventRequiresProjectionResync("control.lease_expired")).toBe(true);
+    expect(eventRequiresProjectionResync("schedule.fired")).toBe(true);
+    expect(eventRequiresProjectionResync("startproc.result_applied")).toBe(true);
+    expect(eventRequiresProjectionResync("relationship.created")).toBe(true);
+    expect(eventRequiresProjectionResync("operator.control_loss_requested")).toBe(true);
+    expect(eventRequiresProjectionResync("telemetry.sample")).toBe(false);
   });
 });

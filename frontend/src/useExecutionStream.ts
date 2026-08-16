@@ -18,6 +18,12 @@ import type { ExecutionEvent } from "./types";
 const STALE_AFTER_MS = 8_000;
 const MAX_RECONNECT_MS = 10_000;
 
+export function eventRequiresProjectionResync(eventType: string): boolean {
+  return ["control.", "schedule.", "startproc.", "relationship."].some((prefix) => eventType.startsWith(prefix))
+    || eventType === "execution.child_created"
+    || eventType === "operator.control_loss_requested";
+}
+
 export function useExecutionStream(authenticated: boolean): void {
   const dispatch = useAppDispatch();
   const executionId = useAppSelector((state) => state.console.execution?.id ?? null);
@@ -193,6 +199,7 @@ export function useExecutionStream(authenticated: boolean): void {
           }
           sequenceRef.current = Math.max(sequenceRef.current, event.sequence);
           dispatch(ingestEvent(event));
+          if (eventRequiresProjectionResync(event.event_type)) void performResync();
           dispatch(setConnectionPhase("CONNECTED"));
         } catch {
           dispatch(setConnectionPhase("STALE"));

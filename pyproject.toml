@@ -1,7 +1,7 @@
 [project]
 name = "openbexi-spell"
-version = "0.5.0"
-description = "Local synthetic simulator with fail-closed SPELL IR validation"
+version = "0.6.0"
+description = "Local synthetic simulator with a durable SPELL operator workspace"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "OpenBEXI SPELL contributors" }]
@@ -34,5 +34,5 @@ python_hash_locks = [
 protobuf_generator_lock = "contracts/generator-requirements.hashes.lock"
 driver_package_profile = "scripts/driver-package-v04.json"
 declared_platform_profiles = ["oci-compose-linux-amd64"]
-release_artifact_root = "artifacts/v0.5"
+release_artifact_root = "artifacts/v0.6"
 release_toolchain_lock = "scripts/release-toolchain-v04.json"
