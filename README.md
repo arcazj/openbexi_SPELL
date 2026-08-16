@@ -1,12 +1,13 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL v0.5.0 is the current accepted clean-room, simulator-only
+OpenBEXI SPELL v0.6.0 is the current accepted clean-room, simulator-only
 engineering release. It combines a Python execution service, isolated workers,
 durable state and event storage, a restricted typed procedure language, a
-typed simulator-driver lifecycle foundation, and a real-time 2D web console.
-Annotated tag `v0.5.0` peels to release commit
-`e7b6bb9428833437e0160040541eb840deee7cca` and activated the conditional
-acceptance recorded in that commit.
+typed simulator-driver lifecycle foundation, durable operator workspace and
+procedure-composition workflows, and a real-time 2D web console. Annotated tag
+object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919` for `v0.6.0` peels to
+release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` and activated the
+conditional acceptance recorded in that commit.
 
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
@@ -37,7 +38,7 @@ supply-chain audit passed with zero High or Critical findings. The deterministic
 archive SHA-256 is
 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241`.
 
-## Version 0.6 Gate 0B Closeout
+## Version 0.6 Release
 
 The owner has requested completion of v0.6, Durable Operator Workspace and
 Procedure Composition. Its nine bounded operator work packages are
@@ -51,13 +52,33 @@ the exact bounded gate in
 `0ea26105e72d7830de4a265989ed7d9074ffbe09` is now bound to canonical
 work-package evidence SHA-256
 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
-All ten suites and all 45 mapped identities PASS, all nine work packages are
-`IMPLEMENTED_AND_QUALIFIED`, and
-[`V06-GATE-0B PASS`](SPELL_v0.6_Gate_0B.md) authorizes release closeout.
-Final qualification, four v0.6 SBOMs, supply-chain evidence, the deterministic
-package and committed sidecar, the release commit, and annotated `v0.6.0` tag
-remain pending. No v0.6 release, deployment, operational authorization, broad
-compatibility, or compliance result is claimed.
+All ten candidate suites and all 45 mapped identities PASS, all nine work
+packages are `IMPLEMENTED_AND_QUALIFIED`, and
+[`V06-GATE-0B PASS`](SPELL_v0.6_Gate_0B.md) authorized release closeout. Final
+qualification passed nine suite captures with 1,626 concrete tests, 1,620
+passes, six exact SQLite environment skips, 36 subtests, and zero failures or
+errors. Four image-bound SBOMs and the supply-chain audit passed with zero High
+or Critical findings and zero unlocked inputs. The deterministic archive
+SHA-256 is
+`b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`.
+Release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` and annotated tag
+`v0.6.0` completed acceptance with no accepted exceptions. This release grants
+no deployment, operational authorization, broad compatibility, or compliance
+result.
+
+## Version 0.7 Gate 0A
+
+The owner explicitly authorized the bounded simulator read-only observation
+and condition-engine increment in
+[`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md).
+`V07-GATE-0A PASS` authorizes exactly `V07-OBS-001` through `V07-OBS-009` and
+their 45 planned proof identities. The seven hash-bound planning contracts
+cover driver time and sample identity, `GetTM`, declarative `Verify`, telemetry
+`WaitFor` and scheduling, resource and lookup reads, limits and alarm state,
+and cursor streams. Product implementation and qualification have not started
+and v0.7.0 is not accepted. The gate creates no live GCS, spacecraft,
+mission-network, telecommand, external-effect, deployment, operational, or
+compliance authority.
 
 ## Version 0.3 Foundation
 
@@ -199,9 +220,10 @@ The canonical v0.6 candidate record at
 `0ea26105e72d7830de4a265989ed7d9074ffbe09` with SHA-256
 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`.
 Its ten suites prove all 45 required identities without a mapped skip, failure,
-accepted failure, or waiver. Gate 0B authorizes closeout only; the v0.5.0
-accepted baseline remains unchanged until every v0.6 Final and tag condition
-passes.
+accepted failure, or waiver. Final qualification and release closeout later
+passed, and annotated tag `v0.6.0` now fixes the accepted release. The v0.7
+Gate 0A contracts are planning authorization only and are not v0.7 product or
+qualification evidence.
 
 ## Project Documents
 
@@ -222,15 +244,16 @@ passes.
 | [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) | v0.5.0 conditional closeout record and post-tag acceptance verification |
 | [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md) | Approved Gate 0A scope for the nine bounded operator work packages; not implementation or release acceptance |
 | [`SPELL_v0.6_Gate_0B.md`](SPELL_v0.6_Gate_0B.md) | Evidence-bound Gate 0B PASS and authorized deterministic release-closeout sequence |
-| [`SPELL_v0.6_Release.md`](SPELL_v0.6_Release.md) | Conditional v0.6.0 release record; Final evidence, release commit, and annotated tag pending |
+| [`SPELL_v0.6_Release.md`](SPELL_v0.6_Release.md) | Conditional v0.6.0 release record activated by the verified annotated tag |
+| [`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine read-only simulator observation work packages; not implementation or release acceptance |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-SPELL v0.5.0 is the accepted product baseline at annotated tag `v0.5.0` and
-release commit `e7b6bb9428833437e0160040541eb840deee7cca`. Its acceptance is
-limited to `V05-IR-001`; it does not accept the broader candidate v0.5 language
-roadmap or authorize deployment, operational use, or a compliance claim.
+SPELL v0.6.0 is the accepted product baseline at annotated tag `v0.6.0` and
+release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`. Its acceptance is
+limited to the nine `V06-OP-001` through `V06-OP-009` work packages and creates
+no deployment, operational-use, broad-compatibility, or compliance authority.
 
 The Development Environment manual was absent from the original v0.1 evidence
 but was supplied separately on 2026-07-17. All seven PDFs now under
@@ -244,11 +267,10 @@ Deferred/`EXCLUDE`; each row has a unique planned test identity. Deferred rows
 are static source and negative-scope evidence, not implementations or executed
 semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
-The accepted v0.4 Gate 1-5 evidence remains immutable. The accepted v0.5
-release evidence is likewise fixed by its annotated tag. v0.6 Gate 0A
-authorized the nine exact work packages, and Gate 0B now records all nine as
-implemented and qualified for closeout without claiming Final release
-acceptance.
+The accepted v0.4 and v0.5 release evidence remains immutable. The accepted
+v0.6 release evidence is likewise fixed by its annotated tag. v0.7 Gate 0A now
+authorizes nine exact read-only simulator observation packages without claiming
+that any v0.7 implementation or qualification evidence exists.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4

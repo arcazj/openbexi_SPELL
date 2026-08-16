@@ -1,0 +1,183 @@
+{
+  "schema_version": "spell.v07.waitfor-scheduling/1",
+  "contract_id": "V07-WAITFOR-SCHEDULING",
+  "release": "v0.7.0",
+  "status": "gate_0a_accepted",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V07-OBS-004",
+  "additional_work_package_ids": [
+    "V07-OBS-005"
+  ],
+  "cross_feature_work_package_id": "V07-OBS-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v07-simulator-read-only-observation-and-condition-engine",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=55-59",
+    "contracts/v06/schedule_behavior.json",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index"
+  ],
+  "work_package_test_ids": {
+    "V07-OBS-004": [
+      "V07-OBS-004-UNIT",
+      "V07-OBS-004-INTEGRATION",
+      "V07-OBS-004-CLOCK",
+      "V07-OBS-004-RACE",
+      "V07-OBS-004-RECOVERY"
+    ],
+    "V07-OBS-005": [
+      "V07-OBS-005-UNIT",
+      "V07-OBS-005-INTEGRATION",
+      "V07-OBS-005-CLOCK",
+      "V07-OBS-005-RACE",
+      "V07-OBS-005-RECOVERY"
+    ]
+  },
+  "waitfor": {
+    "types": [
+      {
+        "id": "RELATIVE",
+        "target": "created-at database time plus a bounded nonnegative duration",
+        "clock": "authoritative backend deadline correlated to recorded database UTC time"
+      },
+      {
+        "id": "ABSOLUTE",
+        "target": "RFC 3339 timestamp with explicit UTC offset normalized once to UTC database time",
+        "clock": "database UTC time with recorded quality"
+      },
+      {
+        "id": "TELEMETRY_CONDITION",
+        "target": "immutable ConditionPlanId and QualityFreshnessPolicyId",
+        "clock": "condition timeout uses the original authoritative deadline"
+      }
+    ],
+    "states": [
+      "CREATED",
+      "WAITING",
+      "INTERRUPTED",
+      "SATISFIED",
+      "TIMED_OUT",
+      "CANCELLED",
+      "FAILED"
+    ],
+    "terminal_states": [
+      "SATISFIED",
+      "TIMED_OUT",
+      "CANCELLED",
+      "FAILED"
+    ],
+    "required_identity": [
+      "WaitId",
+      "WaitRevision",
+      "ExecutionId",
+      "StatementId",
+      "WaitType",
+      "OriginalTarget",
+      "CanonicalTarget",
+      "CreatedAtDatabaseTime",
+      "DeadlineAtDatabaseTime",
+      "ConditionPlanDigest",
+      "QualityFreshnessPolicyId",
+      "StartSnapshotCursor"
+    ],
+    "settlement_rule": "Exactly one terminal outcome wins by durable compare-and-set and resumes or fails the procedure once.",
+    "telemetry_rule": "Only a complete condition evaluation at a contiguous committed cursor may satisfy the wait; INDETERMINATE never means satisfied.",
+    "gap_rule": "A telemetry gap blocks satisfaction, records the gap, and requires resynchronization or a typed terminal failure under the pinned policy.",
+    "interrupt_rule": "INTERRUPT preserves the original target, deadline, cursor, result evidence, and retry budget.",
+    "resume_rule": "Resume returns to WAITING for the same WaitId without resetting the target or deadline.",
+    "cancel_rule": "Cancellation is idempotent and cannot rewrite an already committed terminal result.",
+    "restart_rule": "Recover the same WaitId, original target, deadline, cursor, and settled condition attempts; downtime never extends a relative or telemetry timeout.",
+    "race_rule": "Condition satisfaction, timeout, cancellation, execution abort, and process restart reconcile by WaitId and first durable terminal revision."
+  },
+  "telemetry_schedule": {
+    "extends_v06_schedule": true,
+    "v06_relative_absolute_semantics_changed": false,
+    "schedule_type": "TELEMETRY_CONDITION",
+    "states": [
+      "PENDING",
+      "CLAIMED",
+      "FIRED",
+      "CANCELLED",
+      "MISSED",
+      "ERROR"
+    ],
+    "terminal_states": [
+      "FIRED",
+      "CANCELLED",
+      "MISSED",
+      "ERROR"
+    ],
+    "required_identity": [
+      "ScheduleId",
+      "ScheduleRevision",
+      "IdempotencyKey",
+      "ConditionPlanId",
+      "ConditionPlanDigest",
+      "QualityFreshnessPolicyId",
+      "StartSnapshotCursor",
+      "CreatedAtDatabaseTime",
+      "DeadlineAtDatabaseTime",
+      "ProcedureCatalogId",
+      "ProcedureRevision",
+      "BundleDigest",
+      "ContextId",
+      "CanonicalArgumentsDigest",
+      "Automatic",
+      "BackgroundAllowed"
+    ],
+    "condition_rule": "The schedule is eligible only when its pinned condition evaluates TRUE against one complete contiguous snapshot and acceptable clock, quality, validity, and freshness evidence.",
+    "claim_rule": "PENDING to CLAIMED is one compare-and-set that atomically pins the winning evaluation result and consumed sample identities.",
+    "occurrence_identity": "stable digest of ScheduleId and the winning condition-result identity",
+    "fire_rule": "Create or find at most one occurrence-bound ExecutionId from the pinned catalog, bundle, context, arguments, and Automatic setting.",
+    "one_outcome_rule": "Exactly one of FIRED with one ExecutionId, CANCELLED, MISSED, or ERROR is durable.",
+    "clock_rule": "An uncertain clock or expired original deadline cannot fire; browser and restart clocks never move the target.",
+    "gap_rule": "A stream gap cannot satisfy or claim a schedule and is retained as evaluation evidence.",
+    "restart_cases": [
+      {
+        "phase": "PENDING",
+        "rule": "Resume from the committed observation cursor and original deadline; never reinterpret old evidence under a new policy."
+      },
+      {
+        "phase": "TRUE_EVALUATION_COMMITTED_BEFORE_CLAIM",
+        "rule": "Claim only that evaluation identity or observe a winning cancellation or terminal state."
+      },
+      {
+        "phase": "CLAIMED_BEFORE_EXECUTION_COMMIT",
+        "rule": "Find the occurrence-bound execution; create once only when durable evidence proves none exists."
+      },
+      {
+        "phase": "EXECUTION_COMMITTED_BEFORE_SETTLEMENT",
+        "rule": "Settle FIRED with the existing ExecutionId and never create another."
+      },
+      {
+        "phase": "TERMINAL",
+        "rule": "Return the immutable terminal outcome and original condition evidence."
+      }
+    ],
+    "races": [
+      {
+        "id": "CONDITION_TRUE_VS_CANCEL",
+        "winner": "first durable ScheduleRevision compare-and-set",
+        "loser": "returns the winning state without compensation"
+      },
+      {
+        "id": "CLAIM_VS_FRESHNESS_LOSS",
+        "winner": "claim only if acceptable evidence and schedule revision commit atomically",
+        "loser": "remain PENDING or settle by the pinned deadline policy"
+      },
+      {
+        "id": "FIRE_VS_RESTART",
+        "winner": "reconcile by occurrence identity",
+        "loser": "never creates a second ExecutionId"
+      }
+    ]
+  },
+  "evidence_rule": "Wait or schedule evidence that influences procedure progress or execution creation commits before that dependent transition settles.",
+  "forbidden": [
+    "polling from browser time",
+    "resetting timeout after restart",
+    "treating stale or missing telemetry as false success",
+    "firing from a partial or gapped snapshot",
+    "creating more than one execution for one schedule occurrence",
+    "rewriting the accepted v0.6 relative or absolute schedule target"
+  ]
+}

@@ -5,12 +5,51 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current accepted product release | SPELL v0.5.0, tag `v0.5.0`, release commit `e7b6bb9428833437e0160040541eb840deee7cca` |
-| Planning target | SPELL v0.6 Durable Operator Workspace and Procedure Composition |
-| Status | v0.5.0 accepted for `V05-IR-001` and unchanged; v0.6 candidate `0ea26105e72d7830de4a265989ed7d9074ffbe09` qualified across ten suites/45 identities; `V06-GATE-0B PASS`, closeout authorized; Final, SBOM, supply-chain, package, release commit, and tag pending |
+| Current accepted product release | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
+| Planning target | SPELL v0.7 Simulator Read-Only Observation and Condition Engine |
+| Status | v0.6.0 accepted with no exceptions; `V07-GATE-0A PASS` authorizes exactly nine packages and 45 planned identities, but no v0.7 product implementation or qualification is claimed |
 | Date | Updated 2026-08-16 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
+
+## Version 0.7 Gate 0A Test Plan
+
+### Current Disposition And Boundary
+
+The owner explicitly approved the bounded scope in
+[`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md).
+`V07-GATE-0A PASS` authorizes implementation of exactly `V07-OBS-001` through
+`V07-OBS-009`. The exact planning contract is the manifest and six matrices
+under `contracts/v07`, bound to the accepted annotated `v0.6.0` baseline by
+the scope and independently compiled validator.
+
+The Gate validator passed under locked Python 3.13.14, all 22 adversarial Gate
+tests passed, and all eight semantic planning-contract tests passed. Those are
+planning authorization checks, not v0.7 product or qualification evidence. No
+v0.7 implementation, API, schema, migration, dependency, driver behavior,
+runtime artifact, candidate commit, release, live/legacy route, deployment,
+operational authorization, or compliance result is claimed.
+
+### Planned Requirements And Tests
+
+| Work package | Requirement and expected result | Planned test identities | Status |
+| --- | --- | --- | --- |
+| `V07-OBS-001` | Driver time is typed and simulator-only with explicit source, provenance, uncertainty, skew handling, and non-GCS host fallback | `V07-OBS-001-UNIT`, `V07-OBS-001-CONTRACT`, `V07-OBS-001-CLOCK`, `V07-OBS-001-RECOVERY`, `V07-OBS-001-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-002` | `GetTM` current/next returns one atomic raw/engineering sample with immutable identity, metadata, acquisition/receive time, source, validity, quality, freshness, and sequence | `V07-OBS-002-UNIT`, `V07-OBS-002-INTEGRATION`, `V07-OBS-002-ATOMIC`, `V07-OBS-002-QUALITY`, `V07-OBS-002-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-003` | `Verify` uses bounded declarative nested conditions, typed comparisons, tolerance, retries/deadlines, composite results, and atomic TM-to-TM sampling without code evaluation or effect authorization | `V07-OBS-003-UNIT`, `V07-OBS-003-MATRIX`, `V07-OBS-003-CLOCK`, `V07-OBS-003-RECOVERY`, `V07-OBS-003-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-004` | Relative, absolute, and telemetry `WaitFor` preserve one durable identity, deadline, cancellation, disconnect/restart behavior, and terminal outcome | `V07-OBS-004-UNIT`, `V07-OBS-004-INTEGRATION`, `V07-OBS-004-CLOCK`, `V07-OBS-004-RACE`, `V07-OBS-004-RECOVERY` | Implementation authorized; not executed |
+| `V07-OBS-005` | Telemetry-conditioned schedules pin quality/freshness evidence and settle cancellation, restart races, and exactly one procedure-start outcome durably | `V07-OBS-005-UNIT`, `V07-OBS-005-INTEGRATION`, `V07-OBS-005-CLOCK`, `V07-OBS-005-RACE`, `V07-OBS-005-RECOVERY` | Implementation authorized; not executed |
+| `V07-OBS-006` | Simulator `GetResource`, `MemoryLookup`, and `TMTCLookup` reads are typed, finite, deterministic, authorization-scoped, and incapable of mutation or generic filtering | `V07-OBS-006-UNIT`, `V07-OBS-006-INTEGRATION`, `V07-OBS-006-BOUNDARY`, `V07-OBS-006-RECOVERY`, `V07-OBS-006-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-007` | `GetLimits` and `IsAlarmed` are read-only and bind sample, limit revision, validity, quality, freshness, gap state, sequence, and indeterminate outcomes | `V07-OBS-007-UNIT`, `V07-OBS-007-MATRIX`, `V07-OBS-007-QUALITY`, `V07-OBS-007-RECOVERY`, `V07-OBS-007-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-008` | Observation snapshots and cursors preserve authorization scope, contiguous sequence, explicit gaps/resynchronization, bounded backpressure, cancellation, disconnect, and restart | `V07-OBS-008-UNIT`, `V07-OBS-008-INTEGRATION`, `V07-OBS-008-BACKPRESSURE`, `V07-OBS-008-RECONNECT`, `V07-OBS-008-SECURITY` | Implementation authorized; not executed |
+| `V07-OBS-009` | Integrated semantic, desktop/mobile browser, accessibility, load, fault/recovery, and security evidence covers the entire read-only observation surface | `V07-OBS-009-SEMANTIC-GOLDEN`, `V07-OBS-009-BROWSER`, `V07-OBS-009-ACCESSIBILITY`, `V07-OBS-009-FAULT-RECOVERY`, `V07-OBS-009-LOAD-SECURITY` | Implementation authorized; not executed |
+
+Candidate evidence must map all 45 identities to concrete source-bound nodes
+with no missing, duplicated, silently skipped, accepted-failure, or waiver
+mapping. Release acceptance additionally requires complete SQLite/PostgreSQL,
+driver, recovery, security, browser, accessibility, load, supply-chain, SBOM,
+and reproducible-package evidence against fixed candidate and qualified-source
+commits.
 
 ## Version 0.6 Gate 0A Test Plan
 
@@ -75,10 +114,26 @@ local operator API and strict mutation schemas, and migration
 bytes remain pinned; no broad legacy/API/database compatibility, new runtime
 dependency, driver-contract change, live route, deployment, operational, or
 compliance result is claimed. Gate 0B authorizes release closeout only and does
-not accept v0.6. SPELL v0.5.0 remains the accepted baseline unchanged. Final
-qualification, four v0.6 SBOMs, supply-chain evidence, the deterministic
-package and committed sidecar, the release commit, and the annotated `v0.6.0`
-tag remain pending.
+not itself accept v0.6. Final qualification, four v0.6 SBOMs, supply-chain
+evidence, the deterministic package and committed sidecar, release-evidence
+validation, and annotated tagging later passed. The historical Gate 0A table
+above remains its authorization-time contract.
+
+## Version 0.6 Final Release Result
+
+Release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` fixed the complete
+evidence, and annotated tag `v0.6.0` activated the conditional acceptance with
+no accepted exceptions.
+
+| Evidence | Final result |
+| --- | --- |
+| Qualified source | `8d9db4b6acc443ca6309cdfb12b5d4f9b2fef213`; source fingerprint `3c0245d5f9716969ef04dcf114bb8448a883f18dc801d8ccbcee06396363d3e1` |
+| Candidate evidence | Candidate `0ea26105e72d7830de4a265989ed7d9074ffbe09`; ten suites and all 45 mapped identities PASS; work-package evidence SHA-256 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538` |
+| Final suites | PASS; nine suite captures, 1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, 36 subtests, zero failures/errors |
+| Supply chain and SBOM | PASS; four distinct image-bound SBOMs; zero High/Critical findings; zero unlocked inputs |
+| Package | `artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz`; SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c` |
+| Release evidence | `artifacts/v0.6/release-qualification.json`; overall PASS; evidence fingerprint `33e05aca329c5b3d66ebf1184327c1482294599ce7874b9d625de38365447376` |
+| Accepted identity | Annotated tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919` over release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`; no accepted exceptions |
 
 ## Version 0.5 Final Release Result
 
