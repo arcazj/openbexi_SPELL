@@ -37,7 +37,7 @@ supply-chain audit passed with zero High or Critical findings. The deterministic
 archive SHA-256 is
 `cec956dd89da4c978ad5036c2a7854ff31284123d6193838f26c4298c50f6241`.
 
-## Version 0.6 Gate 0A
+## Version 0.6 Candidate Closeout
 
 The owner has requested completion of v0.6, Durable Operator Workspace and
 Procedure Composition. Its nine planned operator work packages are
@@ -47,8 +47,13 @@ operator views and bounded inspection, safe named user actions, durable
 `StartProc`, and cross-feature recovery/security. The owner explicitly approved
 the exact bounded gate in
 [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md), so
-`V06-GATE-0A PASS` authorizes those nine work packages. The gate does not claim
-that v0.6 product implementation exists or that a release or tag is accepted.
+`V06-GATE-0A PASS` authorizes those nine work packages. A bounded candidate
+implementation, ten-suite/45-ID qualification contract, version-scoped release
+tooling, and pending Gate 0B/release records now exist. Canonical candidate
+evidence has not yet activated
+[`V06-GATE-0B`](SPELL_v0.6_Gate_0B.md), so no v0.6 release, tag, deployment,
+operational authorization, broad compatibility, or compliance result is
+claimed.
 
 ## Version 0.3 Foundation
 
@@ -203,6 +208,8 @@ Product PNG and other required visual assets remain included.
 | [`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) | Gate 0B release-closeout authorization; not final release acceptance |
 | [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) | v0.5.0 conditional closeout record and post-tag acceptance verification |
 | [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md) | Approved Gate 0A scope for the nine bounded operator work packages; not implementation or release acceptance |
+| [`SPELL_v0.6_Gate_0B.md`](SPELL_v0.6_Gate_0B.md) | Pending evidence-bound closeout contract and deterministic activation/freeze sequence |
+| [`SPELL_v0.6_Release.md`](SPELL_v0.6_Release.md) | Conditional v0.6.0 release record; Final evidence, release commit, and annotated tag pending |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |

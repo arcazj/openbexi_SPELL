@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from .conftest import wait_for_state
-from .test_api_execution import create_execution
+from .test_api_execution import create_execution, fenced_prompt_request
 
 
 def test_typed_variables_survive_prompt_crash_and_recovery(
@@ -58,15 +58,19 @@ def test_typed_variables_survive_prompt_crash_and_recovery(
     assert reopened["active_prompt"]["id"] == prompt_id
     assert reopened["execution"]["variables"] == {"count": 1}
 
+    response_headers, response_body = fenced_prompt_request(
+        client,
+        operator_headers,
+        execution_id,
+        reopened,
+        value="recover",
+        idempotency_key="typed-state-response",
+        reason="finish typed recovery",
+    )
     response = client.post(
         f"/api/v1/prompts/{prompt_id}/responses",
-        headers=operator_headers,
-        json={
-            "value": "recover",
-            "expected_revision": reopened["execution"]["revision"],
-            "reason": "finish typed recovery",
-            "idempotency_key": "typed-state-response",
-        },
+        headers=response_headers,
+        json=response_body,
     )
     assert response.status_code == 202, response.text
     completed = wait_for_state(client, execution_id, viewer_headers, {"completed"})

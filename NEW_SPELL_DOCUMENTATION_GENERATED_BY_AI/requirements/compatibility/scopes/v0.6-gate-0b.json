@@ -1,0 +1,319 @@
+{
+  "schema_version": "ng-spell-v06-gate-0b-scope/1",
+  "gate_id": "V06-GATE-0B",
+  "status": "PENDING_CANDIDATE",
+  "target_increment": "v0.6",
+  "target_release": "v0.6.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "decision_date": "2026-08-15",
+    "authorization": "PENDING_V06_OP_001_THROUGH_V06_OP_009_RELEASE_CLOSEOUT",
+    "owner_request": "you have the explicit owner approval for the exact V06-OP-001..009 gate, please finish up v0.6 asap",
+    "gate_0a_owner_approval_reaffirmed": true,
+    "tag_resolution": "REQUESTED_V0_6_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_6_0",
+    "precondition": "CANONICAL_V06_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
+  },
+  "immutable_inputs": {
+    "accepted_v0_5_0": {
+      "tag_ref": "refs/tags/v0.5.0",
+      "tag_object_type": "tag",
+      "tag_object_id": "a1b277d74d2fb19062ca3e4388e9104d45c50ec4",
+      "raw_tag_object_sha256": "6c642ec6f7461db9fdce2347ca6ab493686430d5bd36218a4c0306b1b70ba48f",
+      "peeled_release_commit": "e7b6bb9428833437e0160040541eb840deee7cca",
+      "qualified_source_commit": "2f31e6a011b8aad63b29bd55780c37c1b68712f1",
+      "tagged_files_sha256": {
+        "SPELL_v0.5_Release.md": "055da745f54da76da097741e84dc15725d0584f54a20b499e658fbcfd9f85a4e",
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0b.json": "f98d50498ef8caf7304ad2e027f0eb8f03c02b486d8ec871f6ca95cc28987248",
+        "artifacts/v0.5/release-qualification.json": "fe66fa5c232b063f8920f6087a49205754e6fa75fdefb1a105383b6f528e48ba"
+      }
+    },
+    "gate_0a": {
+      "commit": "f6eba8be0f7ca9e2f1d466aea66902152fb1bbc1",
+      "parent": "e7b6bb9428833437e0160040541eb840deee7cca",
+      "tree": "8a75227ad372a819159be7ac276b6d90f0d95c82",
+      "validator_output": "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+      "owner_marker": "V06-GATE-0A OWNER-APPROVAL: APPROVED",
+      "files": {
+        "SPELL_v0.6_Pre-Implementation.md": {
+          "blob": "4fa5daeca3e8a559d1d910b523cda0c835f834a2",
+          "sha256": "497be88039af17c13df5250a4300167a8b0c650d63cbc428a1d0132b1cc4d128"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.6-gate-0a.json": {
+          "blob": "85003defc614d3737d899adbd907f83890ed32ad",
+          "sha256": "e76c3100de505cb2768bc0c6e424c54d04576ce4064d4444e0423c2c717b0b6c"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v06_gate_0a.py": {
+          "blob": "70f63e45bfc63d48c0339dac922fe613b031ec4c",
+          "sha256": "a0e5486ccdb48e4f7891808ac079a82ade4088d5b57ac86c6ae183106b266996"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v06_gate_0a.py": {
+          "blob": "fb8cade9725c953f3bb5131cb02dae0622a71683",
+          "sha256": "8c13bda16f2d77b4713049f3a55e5b11a2281a0d50c02e3cd5a3a9e08575b649"
+        }
+      },
+      "contracts": {
+        "contracts/v06/manifest.json": {
+          "blob": "a183253143632b0ed87adec0bcf1e2af74ebd22f",
+          "sha256": "40ba27d85797fbc84a90f98a7878521d1092dcd618aaae991b059b027ecc5ac6"
+        },
+        "contracts/v06/command_state.json": {
+          "blob": "d4661fca083fe016de3ffa6a3bbf98676b6f76c5",
+          "sha256": "9f3a461a8893ba23bf9a7cb7fc3c6c6b8d6799069156af83b0b9d0ce25a78225"
+        },
+        "contracts/v06/prompt_behavior.json": {
+          "blob": "3cbb5b85b2547cfb626647c0d256709bc34f695a",
+          "sha256": "118c32f13fa7155f45614a9e3fc71056dd97ec5aa6de1c2a200fb87523bdf381"
+        },
+        "contracts/v06/schedule_behavior.json": {
+          "blob": "497c6ab138314fa1845af2351d56c521870db775",
+          "sha256": "3388f0c802ec36b68c759de133a12ea10b5b83fd20ccf5d5f89e48a04b15129a"
+        },
+        "contracts/v06/inspection_and_actions.json": {
+          "blob": "5bc866aa6ae18e4e01f48a061d761b93bcf6462a",
+          "sha256": "71a0ca90c3aa8e581f49895982099d3aa4315dff09c0cb8e27f5eccda4cf3966"
+        },
+        "contracts/v06/startproc_behavior.json": {
+          "blob": "cfbdd2005f8bfc04cf836736e45ba5e52cd2b8f5",
+          "sha256": "c78fbee4def5860f04a74c37c6800d1f9ad9a58f0980550bef0ae00b9722a81f"
+        },
+        "contracts/v06/lease_modes.json": {
+          "blob": "780eeaab53ed784eaed7fa3da953005e01eef331",
+          "sha256": "10411be382239c1c480c9f331d988f45aad2ecd40be49135bf9f96259ec9b586"
+        }
+      }
+    },
+    "candidate": {
+      "binding_status": "PENDING_SOURCE_FREEZE",
+      "commit": null,
+      "parent": "f6eba8be0f7ca9e2f1d466aea66902152fb1bbc1",
+      "tree": null,
+      "changed_paths": []
+    }
+  },
+  "qualification_contract": {
+    "status": "PENDING_CANONICAL_EVIDENCE",
+    "manifest_path": "artifacts/v0.6/work-package/qualification.json",
+    "manifest_schema": "spell.v06.candidate-qualification/1",
+    "manifest_sha256": null,
+    "validator_path": "scripts/validate_candidate_evidence_v06.py",
+    "validator_success_shape": {
+      "gate": "PASS",
+      "schema_version": "spell.v06.candidate-qualification/1",
+      "source_commit": null,
+      "suites": 10,
+      "test_ids": 45,
+      "tests_minimum": 1
+    },
+    "python_version": "3.13.14",
+    "suite_ids": [
+      "backend_sqlite",
+      "backend_postgresql",
+      "backend_docker_host",
+      "backend_v06_soak",
+      "driver_host",
+      "tooling",
+      "frontend_vitest",
+      "frontend_build",
+      "frontend_playwright_mocked",
+      "frontend_playwright_live"
+    ],
+    "postgresql_environment_variables": [
+      "SPELL_TEST_DATABASE_URL",
+      "SPELL_MIGRATION_TEST_DATABASE_URL"
+    ],
+    "mapped_test_ids_skipped": [],
+    "accepted_failures": [],
+    "waivers": [],
+    "waivers_allowed": false
+  },
+  "qualified_work_packages": [
+    {
+      "work_package_id": "V06-OP-001",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-001-UNIT", "V06-OP-001-INTEGRATION", "V06-OP-001-RECOVERY", "V06-OP-001-UI", "V06-OP-001-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-002",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-002-UNIT", "V06-OP-002-INTEGRATION", "V06-OP-002-RACE", "V06-OP-002-RECOVERY", "V06-OP-002-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-003",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-003-UNIT", "V06-OP-003-MATRIX", "V06-OP-003-RACE", "V06-OP-003-RECOVERY", "V06-OP-003-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-004",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-004-UNIT", "V06-OP-004-INTEGRATION", "V06-OP-004-RACE", "V06-OP-004-RECOVERY", "V06-OP-004-UI"]
+    },
+    {
+      "work_package_id": "V06-OP-005",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-005-UNIT", "V06-OP-005-INTEGRATION", "V06-OP-005-CLOCK", "V06-OP-005-RACE", "V06-OP-005-RECOVERY"]
+    },
+    {
+      "work_package_id": "V06-OP-006",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-006-UNIT", "V06-OP-006-INTEGRATION", "V06-OP-006-UI", "V06-OP-006-RECOVERY", "V06-OP-006-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-007",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-007-UNIT", "V06-OP-007-INTEGRATION", "V06-OP-007-RACE", "V06-OP-007-RECOVERY", "V06-OP-007-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-008",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-008-UNIT", "V06-OP-008-INTEGRATION", "V06-OP-008-GRAPH", "V06-OP-008-RECOVERY", "V06-OP-008-SECURITY"]
+    },
+    {
+      "work_package_id": "V06-OP-009",
+      "status": "PENDING_QUALIFICATION",
+      "test_ids": ["V06-OP-009-DESKTOP", "V06-OP-009-MOBILE", "V06-OP-009-ACCESSIBILITY", "V06-OP-009-FAULT-RECOVERY", "V06-OP-009-SECURITY"]
+    }
+  ],
+  "reviewed_surface_delta": {
+    "review_status": "PENDING_CANDIDATE_BINDING_AND_QUALIFICATION",
+    "internal_ir": {
+      "accepted_persisted_version_preserved": "0.3",
+      "accepted_v0_5_ir_blob": "87f202e9e3ff192e348c2aea9f7009ea7fc95841",
+      "accepted_v0_5_ir_sha256": "2726774ed5873e0c0c1eeaffa7b3713c708ac7f61a6fa93e544a8dbc8c79963c",
+      "new_internal_version": "0.6",
+      "new_internal_file": "backend/ir_v06.py",
+      "opt_in_constructs": ["TYPED_PROMPT", "STATIC_USER_ACTION", "STARTPROC", "OPERATOR_SAFE_POINT_METADATA"],
+      "v0_3_serialized_bytes_must_remain_unchanged": true,
+      "public_legacy_language_compatibility_claimed": false
+    },
+    "operator_api": {
+      "api_version": "v1",
+      "classification": "ADDITIVE_LOCAL_OPERATOR_WORKSPACE_ROUTES_WITH_STRICT_MUTATION_SCHEMAS",
+      "route_families": [
+        "CONTEXTS_AND_SETTINGS",
+        "CATALOG_HISTORY_AND_MASTER",
+        "EXECUTION_OPERATOR_SNAPSHOT_AND_CONTROL",
+        "MONITORS_AND_HANDOVERS",
+        "DURABLE_COMMANDS_AND_TYPED_PROMPTS",
+        "SCHEDULES",
+        "WORKSPACE_VIEWS_SEARCH_INSPECTION_EDITS_AND_CONSOLE",
+        "USER_ACTIONS",
+        "RELATIONSHIPS_STARTPROC_AND_BREAKPOINTS",
+        "REDACTED_AS_RUN_REPORT"
+      ],
+      "strict_request_schema_file": "backend/schemas.py",
+      "service_boundary_file": "backend/operator_service.py",
+      "broad_public_api_compatibility_claimed": false
+    },
+    "database_schema": {
+      "migration_version": "0004_operator_workspace",
+      "migration_file": "backend/migrations/versions/v0004_operator_workspace.py",
+      "new_tables": [
+        "operator_contexts",
+        "procedure_catalog_entries",
+        "procedure_catalog_revisions",
+        "execution_operator_states",
+        "controller_leases",
+        "monitor_subscriptions",
+        "controller_handovers",
+        "operator_requests",
+        "operator_audit_events",
+        "operator_commands",
+        "operator_prompts",
+        "operator_prompt_attempts",
+        "inspection_edit_operations",
+        "operator_breakpoints",
+        "operator_user_actions",
+        "operator_user_action_invocations",
+        "procedure_schedules",
+        "schedule_occurrences",
+        "startproc_operations",
+        "parent_child_links"
+      ],
+      "existing_tables_rewritten_by_migration": [],
+      "sqlite_and_postgresql_required": true,
+      "rollback_and_upgrade_proof_required": true,
+      "broad_database_compatibility_claimed": false
+    },
+    "dependencies_and_driver": {
+      "new_runtime_dependencies": [],
+      "driver_implementation_version": "0.4.0",
+      "live_driver_or_external_effect_route_added": false,
+      "driver_contract_change_claimed": false
+    },
+    "compatibility_ledger": {
+      "claimed_construct_ids": [],
+      "claimed_artifact_ids": [],
+      "compatibility_ledger_rows_added": 0,
+      "v0_5_scope_rows_changed": 0,
+      "broad_compatibility_claimed": false
+    }
+  },
+  "release_closeout_authorization": {
+    "status": "PENDING_GATE_0B_PASS",
+    "release_version": "0.6.0",
+    "tag_name": "v0.6.0",
+    "tag_object_type": "annotated",
+    "permitted_actions_after_pass": [
+      "RECORD_V06_OP_001_THROUGH_V06_OP_009_IMPLEMENTED",
+      "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+      "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+      "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
+      "CREATE_DETERMINISTIC_V0_6_RELEASE_PACKAGE",
+      "COMMIT_RELEASE_CLOSEOUT",
+      "CREATE_ONE_ANNOTATED_V0_6_0_TAG"
+    ],
+    "additional_product_work_authorized": false
+  },
+  "activation_requirements": {
+    "required_rebindings": [
+      "/immutable_inputs/candidate/binding_status",
+      "/immutable_inputs/candidate/commit",
+      "/immutable_inputs/candidate/tree",
+      "/immutable_inputs/candidate/changed_paths",
+      "/qualification_contract/status",
+      "/qualification_contract/manifest_sha256",
+      "/qualification_contract/validator_success_shape/source_commit",
+      "/reviewed_surface_delta/review_status"
+    ],
+    "required_status_transitions": {
+      "/status": "PASS",
+      "/decision/authorization": "V06_OP_001_THROUGH_V06_OP_009_RELEASE_CLOSEOUT_ONLY",
+      "/immutable_inputs/candidate/binding_status": "BOUND",
+      "/qualification_contract/status": "PASS",
+      "/reviewed_surface_delta/review_status": "REVIEWED_AND_QUALIFIED",
+      "/release_closeout_authorization/status": "AUTHORIZED",
+      "/qualified_work_packages/*/status": "IMPLEMENTED_AND_QUALIFIED"
+    },
+    "candidate_validator_must_pass": true,
+    "all_45_mapped_test_ids_must_pass": true,
+    "mapped_test_id_skips_allowed": false,
+    "waivers_allowed": false
+  },
+  "claims": {
+    "v0_5_release_accepted": true,
+    "gate_0a_immutable_authorization_verified": true,
+    "v0_6_work_packages_implemented": false,
+    "v0_6_candidate_qualified": false,
+    "release_closeout_authorized": false,
+    "v0_6_release_accepted_by_gate": false,
+    "broad_language_or_compatibility_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "SCOPE_BEYOND_V06_OP_001_THROUGH_V06_OP_009",
+    "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+    "LIVE_DRIVER_GCS_SPACECRAFT_TELEMETRY_TELECOMMAND_OR_EXTERNAL_EFFECT_ROUTING",
+    "ARBITRARY_PYTHON_SOURCE_EXPRESSION_FUNCTION_OR_SHELL_EXECUTION",
+    "UNBOUNDED_CONSOLE_OR_UNSAFE_SHARED_DATA_EDIT",
+    "ARBITRARY_ASYNCHRONOUS_OR_NON_ALLOWLISTED_USER_ACTIONS",
+    "HARD_KILL_OR_CLEAN_EXTERNAL_STATE_INFERENCE",
+    "MUTABLE_LIBRARY_RESOLUTION_OR_UNBOUNDED_PARENT_CHILD_GRAPH",
+    "BROAD_LEGACY_LANGUAGE_API_DATABASE_DRIVER_OR_OPERATIONAL_COMPATIBILITY_CLAIM",
+    "LIGHTWEIGHT_SECONDARY_OR_V0_6_ALIAS_TAG",
+    "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+  ]
+}

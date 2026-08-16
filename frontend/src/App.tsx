@@ -6,6 +6,7 @@ import { ConsoleHeader } from "./components/ConsoleHeader";
 import { DataDock } from "./components/DataDock";
 import { DriverProjection } from "./components/DriverProjection";
 import { ExecutionWorkspace } from "./components/ExecutionWorkspace";
+import { InstanceMaster } from "./components/InstanceMaster";
 import { ProcedureCatalog } from "./components/ProcedureCatalog";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { bootstrap, dismissError } from "./store";
@@ -98,6 +99,7 @@ export default function App() {
         >
           <ProcedureCatalog />
           <div className="work-region">
+            <InstanceMaster />
             <ExecutionWorkspace />
             <DataDock />
           </div>

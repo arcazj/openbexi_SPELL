@@ -1,10 +1,10 @@
-# SPELL v0.5 Operations Console
+# SPELL v0.6 Operations Console Candidate
 
-React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
-v0.5 local-only, synthetic non-CUI simulator release. The v0.5 increment does
-not change frontend behavior: it retains the accepted v0.4 console, v0.3
-execution and restricted-IR contracts, and authenticated read-only projection
-of the bundled simulator driver foundation. Browser driver mutations and direct
+React and strict TypeScript real-time 2D console candidate for the bounded
+OpenBEXI SPELL v0.6 local-only, synthetic non-CUI simulator. The accepted
+product baseline remains v0.5.0 until closeout. The candidate preserves the
+authenticated simulator-driver projection and adds the exact operator-workspace
+surface authorized by v0.6 Gate 0A. Browser driver mutations and direct
 browser-to-driver access remain outside scope.
 
 The canonical `V05-IR-001` work package and live Gate 0B validator passed for
@@ -16,8 +16,11 @@ tag `v0.5.0` over release commit
 `e7b6bb9428833437e0160040541eb840deee7cca` activated the bounded acceptance.
 
 The owner explicitly approved the bounded v0.6 Gate 0A for `V06-OP-001`
-through `V06-OP-009`. The gate authorizes implementation but does not claim
-that any v0.6 frontend behavior exists or that a release or tag is accepted.
+through `V06-OP-009`. The candidate console now implements the corresponding
+Master, catalog, control, prompt, schedule, workspace, inspection, action, and
+parent-child workflows for desktop and mobile qualification. Canonical
+ten-suite/45-ID candidate evidence and Gate 0B remain pending; no v0.6 release
+or tag is accepted by this candidate state.
 
 The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide

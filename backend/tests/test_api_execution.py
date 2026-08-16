@@ -39,6 +39,55 @@ def create_execution(client: TestClient, headers: dict[str, str], procedure_id: 
     return response.json()["execution"]["id"]
 
 
+def fenced_prompt_request(
+    client: TestClient,
+    operator_headers: dict[str, str],
+    execution_id: str,
+    snapshot: dict,
+    *,
+    value,
+    idempotency_key: str,
+    reason: str,
+    action: str = "COMMIT",
+) -> tuple[dict[str, str], dict]:
+    session_id = f"prompt-session-{idempotency_key}"[:128]
+    client_id = f"prompt-client-{idempotency_key}"[:128]
+    headers = {
+        **operator_headers,
+        "X-Spell-Session-Id": session_id,
+        "X-Spell-Client-Instance-Key-Id": client_id,
+    }
+    acquired = client.post(
+        f"/api/v1/executions/{execution_id}/control",
+        headers=headers,
+        json={
+            "action": "ACQUIRE",
+            "session_id": session_id,
+            "client_instance_key_id": client_id,
+            "expected_execution_revision": snapshot["execution"]["revision"],
+            "lease_seconds": 60,
+            "acknowledgement": "I accept responsibility for the open prompt",
+            "idempotency_key": f"lease-{idempotency_key}",
+            "reason": reason,
+        },
+    )
+    assert acquired.status_code == 200, acquired.text
+    lease = acquired.json()["control_lease"]
+    prompt = snapshot["active_prompt"]
+    return headers, {
+        "action": action,
+        "value": value,
+        "expected_prompt_revision": prompt["revision"],
+        "lease_id": lease["id"],
+        "expected_lease_revision": lease["revision"],
+        "control_fencing_token": lease["control_fencing_token"],
+        "session_id": session_id,
+        "client_instance_key_id": client_id,
+        "idempotency_key": idempotency_key,
+        "reason": reason,
+    }
+
+
 def test_auth_catalog_and_complete_as_run(
     client: TestClient, viewer_headers: dict[str, str], operator_headers: dict[str, str]
 ) -> None:
@@ -54,53 +103,44 @@ def test_auth_catalog_and_complete_as_run(
     execution_id = create_execution(client, operator_headers, "integration")
     snapshot = wait_for_state(client, execution_id, viewer_headers, {"prompting"})
     prompt = snapshot["active_prompt"]
+    prompt_headers, prompt_body = fenced_prompt_request(
+        client,
+        operator_headers,
+        execution_id,
+        snapshot,
+        value="yes",
+        idempotency_key="prompt-once",
+        reason="pytest acknowledgement",
+    )
     response = client.post(
         f"/api/v1/prompts/{prompt['id']}/responses",
-        headers=operator_headers,
-        json={
-            "value": "yes",
-            "expected_revision": snapshot["execution"]["revision"],
-            "reason": "pytest acknowledgement",
-            "idempotency_key": "prompt-once",
-        },
+        headers=prompt_headers,
+        json=prompt_body,
     )
     assert response.status_code == 202, response.text
     same_response = client.post(
         f"/api/v1/prompts/{prompt['id']}/responses",
-        headers=operator_headers,
-        json={
-            "value": "yes",
-            "expected_revision": snapshot["execution"]["revision"],
-            "reason": "pytest acknowledgement",
-            "idempotency_key": "prompt-once",
-        },
+        headers=prompt_headers,
+        json=prompt_body,
     )
     assert same_response.status_code == 202
     conflicting_response = client.post(
         f"/api/v1/prompts/{prompt['id']}/responses",
-        headers=operator_headers,
-        json={
-            "value": "yes",
-            "expected_revision": snapshot["execution"]["revision"],
-            "reason": "changed reason",
-            "idempotency_key": "prompt-once",
-        },
+        headers=prompt_headers,
+        json={**prompt_body, "reason": "changed reason"},
     )
     assert conflicting_response.status_code == 409
-    current = client.get(
-        f"/api/v1/executions/{execution_id}/snapshot", headers=viewer_headers
-    ).json()
     competing_response = client.post(
         f"/api/v1/prompts/{prompt['id']}/responses",
-        headers=operator_headers,
+        headers=prompt_headers,
         json={
-            "value": "yes",
-            "expected_revision": current["execution"]["revision"],
-            "reason": "competing response after reservation",
+            **prompt_body,
+            "reason": "competing response after settlement",
             "idempotency_key": "prompt-competing",
         },
     )
-    assert competing_response.status_code == 409
+    assert competing_response.status_code == 202
+    assert competing_response.json()["attempt"]["outcome"] == "LOST_SETTLEMENT_RACE"
     completed = wait_for_state(client, execution_id, viewer_headers, {"completed"})
     assert completed["execution"]["current_step"] == completed["execution"]["total_steps"]
     assert completed["telemetry"][0]["payload"]["quality"] == "simulated"
@@ -117,11 +157,12 @@ def test_auth_catalog_and_complete_as_run(
     assert report.json()["state"] == "completed"
     assert report.json()["summary"]["completed_steps"] == 5
     assert len(report.json()["integrity"]["digest"]) == 64
-    prompt_commands = [
+    assert not [
         command for command in completed["commands"] if command["type"] == "prompt_response"
     ]
-    assert len(prompt_commands) == 1
-    assert prompt_commands[0]["status"] == "completed"
+    typed_prompt = report.json()["typed_prompts"][0]
+    assert typed_prompt["settlement"]["outcome"] == "ANSWERED"
+    assert typed_prompt["settlement_delivered_at"] is not None
 
 
 def test_unsigned_identity_headers_cannot_elevate_a_viewer(
@@ -319,18 +360,23 @@ def test_prompt_crash_interrupts_then_recovers_from_checkpoint(
     assert recover.status_code == 202, recover.text
     replayed = wait_for_state(client, execution_id, viewer_headers, {"prompting"})
     assert replayed["active_prompt"]["id"] == first_prompt_id
-    assert replayed["execution"]["worker_generation"] == 2
+    # Abnormal retirement advances the durable epoch before recovery starts.
+    assert replayed["execution"]["worker_generation"] == 3
     assert replayed["execution"]["current_step"] == 1
 
+    answer_headers, answer_body = fenced_prompt_request(
+        client,
+        operator_headers,
+        execution_id,
+        replayed,
+        value="recover",
+        idempotency_key="answer-recovered",
+        reason="complete recovered prompt",
+    )
     answer = client.post(
         f"/api/v1/prompts/{replayed['active_prompt']['id']}/responses",
-        headers=operator_headers,
-        json={
-            "value": "recover",
-            "expected_revision": replayed["execution"]["revision"],
-            "reason": "complete recovered prompt",
-            "idempotency_key": "answer-recovered",
-        },
+        headers=answer_headers,
+        json=answer_body,
     )
     assert answer.status_code == 202, answer.text
     wait_for_state(client, execution_id, viewer_headers, {"completed"})
@@ -659,7 +705,7 @@ def test_control_plane_restart_requires_explicit_recovery(
                 "idempotency_key": "premature-response",
             },
         )
-        assert rejected_response.status_code == 409
+        assert rejected_response.status_code == 403
         recover = restarted_client.post(
             f"/api/v1/executions/{execution_id}/commands",
             headers=operator_headers,
@@ -673,15 +719,19 @@ def test_control_plane_restart_requires_explicit_recovery(
         assert recover.status_code == 202, recover.text
         reopened = wait_for_state(restarted_client, execution_id, viewer_headers, {"prompting"})
         assert reopened["active_prompt"]["id"] == prompt_id
+        answer_headers, answer_body = fenced_prompt_request(
+            restarted_client,
+            operator_headers,
+            execution_id,
+            reopened,
+            value="recover",
+            idempotency_key="durable-prompt-response",
+            reason="complete durable prompt",
+        )
         answer = restarted_client.post(
             f"/api/v1/prompts/{prompt_id}/responses",
-            headers=operator_headers,
-            json={
-                "value": "recover",
-                "expected_revision": reopened["execution"]["revision"],
-                "reason": "complete durable prompt",
-                "idempotency_key": "durable-prompt-response",
-            },
+            headers=answer_headers,
+            json=answer_body,
         )
         assert answer.status_code == 202, answer.text
         wait_for_state(restarted_client, execution_id, viewer_headers, {"completed"})
@@ -853,7 +903,7 @@ def test_dispatch_failure_retries_atomic_command_settlement(
             procedure_source='Wait(1)\n',
             steps=[{"index": 0, "type": "wait", "line": 1, "seconds": 1}],
             context_id="simulator",
-            created_by="pytest",
+            created_by="pytest-operator",
             creation_idempotency_key="dispatch-retry-create",
             total_steps=1,
             state="running",
@@ -927,7 +977,7 @@ def test_live_nonconsuming_worker_triggers_command_ack_watchdog(
             procedure_source='Wait(1)\n',
             steps=[{"index": 0, "type": "wait", "line": 1, "seconds": 1}],
             context_id="simulator",
-            created_by="pytest",
+            created_by="pytest-operator",
             creation_idempotency_key="ack-timeout-create",
             total_steps=1,
             state="running",

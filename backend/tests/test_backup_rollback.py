@@ -15,11 +15,12 @@ from backend.driver_repository import (
     CapabilitySpec,
     DriverRepository,
 )
-from backend.migrations import database_version, run_migrations
+from backend.migrations import database_version, run_migrations, schema_migrations
 from backend.migrations.rollback import (
     UnsafeDriverRollbackError,
     rollback_driver_foundation,
 )
+from backend.migrations.versions import v0003_driver_foundation
 from backend.tests.test_migrations import (
     V03_TABLES,
     canonical_v03_snapshot,
@@ -255,7 +256,14 @@ def test_safe_rollback_restores_exact_populated_v03_records_and_revision(
     engine = create_engine(f"sqlite:///{path.as_posix()}")
     seed_populated_v03_schema(engine)
     expected = canonical_v03_snapshot(engine)
-    assert run_migrations(engine) == ("0003_driver_foundation",)
+    with engine.begin() as connection:
+        v0003_driver_foundation.upgrade(connection)
+        connection.execute(
+            schema_migrations.insert().values(
+                version=v0003_driver_foundation.VERSION,
+                applied_at=datetime.now(timezone.utc),
+            )
+        )
 
     dropped = rollback_driver_foundation(engine)
 
@@ -264,3 +272,13 @@ def test_safe_rollback_restores_exact_populated_v03_records_and_revision(
     assert canonical_v03_snapshot(engine) == expected
     assert not set(dropped).intersection(V03_TABLES)
     assert not set(dropped).intersection(inspect(engine).get_table_names())
+
+
+def test_driver_rollback_rejects_a_later_applied_migration(tmp_path: Path) -> None:
+    engine = create_engine(f"sqlite:///{(tmp_path / 'dependent.sqlite').as_posix()}")
+    run_migrations(engine)
+
+    with pytest.raises(UnsafeDriverRollbackError, match="later migrations"):
+        rollback_driver_foundation(engine)
+
+    assert database_version(engine) == "0004_operator_workspace"

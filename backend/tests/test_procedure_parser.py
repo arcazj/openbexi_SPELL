@@ -24,6 +24,58 @@ def test_parser_creates_ir_without_executing_source(tmp_path: Path) -> None:
     assert not marker.exists()
 
 
+def test_catalog_uses_bounded_recursive_virtual_root_ids(tmp_path: Path) -> None:
+    (tmp_path / "root.spell.py").write_text('Log("root")\n', encoding="utf-8")
+    nested = tmp_path / "ops" / "library"
+    nested.mkdir(parents=True)
+    (nested / "child.spell.py").write_text('Log("child")\n', encoding="utf-8")
+
+    catalog = ProcedureCatalog(tmp_path)
+    assert [item.id for item in catalog.list()] == ["ops/library/child", "root"]
+    child = catalog.get("ops/library/child")
+    assert child.path == (nested / "child.spell.py").resolve()
+    with pytest.raises(KeyError):
+        catalog.get("../outside")
+    with pytest.raises(KeyError):
+        catalog.get("ops\\library\\child")
+
+
+def test_catalog_rejects_symlinks_and_paths_outside_virtual_root(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "library"
+    root.mkdir()
+    outside = tmp_path / "outside.spell.py"
+    outside.write_text('Log("outside")\n', encoding="utf-8")
+    link = root / "linked.spell.py"
+    try:
+        link.symlink_to(outside)
+    except (NotImplementedError, OSError):
+        pytest.skip("this environment cannot create a file symlink")
+
+    catalog = ProcedureCatalog(root)
+    with pytest.raises(ProcedureValidationError, match="SPELL006"):
+        catalog.list()
+    with pytest.raises(ProcedureValidationError, match="SPELL006"):
+        catalog.parse(outside)
+
+
+def test_catalog_rejects_casefolded_virtual_identity_collisions(
+    tmp_path: Path,
+) -> None:
+    upper = tmp_path / "Ops"
+    lower = tmp_path / "ops"
+    upper.mkdir()
+    try:
+        lower.mkdir()
+    except FileExistsError:
+        pytest.skip("filesystem is case-insensitive")
+    (upper / "Child.spell.py").write_text('Log("one")\n', encoding="utf-8")
+    (lower / "child.spell.py").write_text('Log("two")\n', encoding="utf-8")
+    with pytest.raises(ProcedureValidationError, match="SPELL006"):
+        ProcedureCatalog(tmp_path).list()
+
+
 def test_v03_compiles_typed_control_flow_and_local_calls_to_flat_ir(tmp_path: Path) -> None:
     source = '''"""Typed procedure."""
 value: float = 2

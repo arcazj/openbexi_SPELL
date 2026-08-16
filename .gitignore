@@ -26,6 +26,7 @@ frontend/test-results/
 artifacts/*.tar.gz
 artifacts/*.tar.gz.sha256
 artifacts/v04-plan.json
+artifacts/v0.3/session-access.png
 artifacts/v0.4/.qualification/
 artifacts/v0.4/*.tar.gz
 artifacts/v0.4/*.tar.gz.sha256
@@ -34,6 +35,7 @@ artifacts/v0.4/performance-*.json
 artifacts/v0.5/.qualification/
 artifacts/v0.5/*.tar.gz
 artifacts/v0.5/*.tar.gz.sha256
+artifacts/v0.6/.qualification/
 
 *.log
 

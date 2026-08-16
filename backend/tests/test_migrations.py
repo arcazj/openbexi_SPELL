@@ -25,17 +25,23 @@ from backend.migrations.versions import (
     v0001_initial,
     v0002_execution_variables,
     v0003_driver_foundation,
+    v0004_operator_workspace,
 )
 
 
 DRIVER_TABLES = tuple(
     table.name for table in v0003_driver_foundation.metadata.sorted_tables
 )
+OPERATOR_TABLES = tuple(
+    table.name for table in v0004_operator_workspace.NEW_TABLES
+)
 V03_TABLES = ("executions", "events", "commands", "prompts")
 
 
 def reset_migration_database(engine) -> None:
     with engine.begin() as connection:
+        for table in reversed(OPERATOR_TABLES):
+            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in reversed(DRIVER_TABLES):
             connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in (
@@ -161,6 +167,61 @@ def assert_driver_schema_contract(engine) -> None:
         "journal_max_bytes": 16_777_216,
         "revision": 0,
     }
+
+
+def assert_operator_schema_contract(engine) -> None:
+    inspector = inspect(engine)
+    actual_tables = set(inspector.get_table_names())
+    assert set(OPERATOR_TABLES) <= actual_tables
+    for expected in v0004_operator_workspace.NEW_TABLES:
+        table_name = expected.name
+        actual_columns = {item["name"]: item for item in inspector.get_columns(table_name)}
+        assert set(actual_columns) == set(expected.columns.keys())
+        assert {
+            name for name, column in actual_columns.items() if not column["nullable"]
+        } == {
+            column.name for column in expected.columns if not column.nullable
+        }
+        assert set(inspector.get_pk_constraint(table_name)["constrained_columns"]) == {
+            column.name for column in expected.primary_key.columns
+        }
+        expected_foreign_keys = {
+            (
+                tuple(column.name for column in constraint.columns),
+                constraint.referred_table.name,
+                tuple(element.column.name for element in constraint.elements),
+            )
+            for constraint in expected.foreign_key_constraints
+        }
+        actual_foreign_keys = {
+            (
+                tuple(constraint["constrained_columns"]),
+                constraint["referred_table"],
+                tuple(constraint["referred_columns"]),
+            )
+            for constraint in inspector.get_foreign_keys(table_name)
+        }
+        assert expected_foreign_keys == actual_foreign_keys
+        expected_checks = {
+            constraint.name
+            for constraint in expected.constraints
+            if isinstance(constraint, CheckConstraint)
+        }
+        actual_checks = {
+            constraint["name"]
+            for constraint in inspector.get_check_constraints(table_name)
+        }
+        assert expected_checks <= actual_checks
+    with engine.connect() as connection:
+        context = connection.execute(
+            text(
+                "SELECT id, name, settings, revision "
+                "FROM operator_contexts WHERE id='simulator'"
+            )
+        ).mappings().one()
+    assert context["id"] == "simulator"
+    assert context["name"] == "Local Synthetic Simulator"
+    assert context["revision"] == 0
 
 
 def seed_populated_v02_schema(engine) -> None:
@@ -353,10 +414,14 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
     seed_populated_v03_schema(engine)
     before = canonical_v03_snapshot(engine)
 
-    assert run_migrations(engine) == ("0003_driver_foundation",)
+    assert run_migrations(engine) == (
+        "0003_driver_foundation",
+        "0004_operator_workspace",
+    )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0003_driver_foundation"
+    assert database_version(engine) == "0004_operator_workspace"
     assert_driver_schema_contract(engine)
+    assert_operator_schema_contract(engine)
     with engine.connect() as connection:
         assert connection.scalar(
             text("SELECT COUNT(*) FROM driver_profiles WHERE enabled")
@@ -374,9 +439,10 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0001_initial",
         "0002_execution_variables",
         "0003_driver_foundation",
+        "0004_operator_workspace",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0003_driver_foundation"
+    assert database_version(engine) == "0004_operator_workspace"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -393,6 +459,7 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "driver_outbox",
     } <= tables
     assert_driver_schema_contract(engine)
+    assert_operator_schema_contract(engine)
 
 
 def test_migrations_upgrade_populated_v02_sqlite_database(tmp_path) -> None:
@@ -404,6 +471,7 @@ def test_migrations_upgrade_populated_v02_sqlite_database(tmp_path) -> None:
     columns = {column["name"] for column in inspect(engine).get_columns("executions")}
     assert {"variables", "ir_version"} <= columns
     assert_v02_records_preserved(engine)
+    assert_operator_schema_contract(engine)
 
 
 def test_migrations_upgrade_populated_v03_sqlite_database_without_record_drift(
@@ -490,10 +558,12 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0001_initial",
         "0002_execution_variables",
         "0003_driver_foundation",
+        "0004_operator_workspace",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0003_driver_foundation"
+    assert database_version(engine) == "0004_operator_workspace"
     assert_driver_schema_contract(engine)
+    assert_operator_schema_contract(engine)
 
 
 @pytest.mark.skipif(
@@ -511,6 +581,7 @@ def test_migrations_upgrade_populated_v02_postgresql_database() -> None:
     assert {"variables", "ir_version"} <= columns
     assert_v02_records_preserved(engine)
     assert_driver_schema_contract(engine)
+    assert_operator_schema_contract(engine)
 
 
 @pytest.mark.skipif(

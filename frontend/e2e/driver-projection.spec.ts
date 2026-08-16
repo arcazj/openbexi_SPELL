@@ -155,6 +155,10 @@ test("distinguishes every bounded driver fault state without a mutation route", 
       body = { status: "ok", version: "0.4.0", mode: "simulator-only" };
     } else if (path === "/api/v1/procedures") {
       body = { items: [] };
+    } else if (path === "/api/v1/contexts") {
+      body = { items: [{ id: "simulator", name: "Simulator", attached: true, catalog_revision: "library-1", procedure_count: 0, active_execution_count: 0 }] };
+    } else if (path === "/api/v1/master") {
+      body = { items: [] };
     } else if (path === "/api/v1/drivers") {
       if (scenario === "disconnected") {
         await route.fulfill({

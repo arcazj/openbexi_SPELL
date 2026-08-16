@@ -1,10 +1,13 @@
 import { configureStore, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { accessTokenSubject, api } from "./api";
+import { accessTokenSubject, api, currentControlProof, normalizeActivePrompt } from "./api";
+import type { ControlProof } from "./api";
 import type {
   AsRunReport,
   ConnectionPhase,
+  ContextSummary,
   ExecutionEvent,
   ExecutionSnapshot,
+  ExecutionSummary,
   HealthStatus,
   LogEntry,
   ProcedureSummary,
@@ -12,7 +15,7 @@ import type {
   TelemetryPoint,
 } from "./types";
 
-export type DockTab = "telemetry" | "events" | "logs" | "report";
+export type DockTab = "telemetry" | "events" | "logs" | "report" | "inspection" | "schedules" | "actions" | "relationships";
 
 interface ConsoleState {
   connection: {
@@ -22,8 +25,11 @@ interface ConsoleState {
     reconnectAttempt: number;
   };
   contextId: string;
+  contexts: ContextSummary[];
   userName: string;
   procedures: ProcedureSummary[];
+  executions: ExecutionSummary[];
+  selectedExecutionId: string | null;
   selectedProcedureId: string | null;
   validation: {
     procedureId: string | null;
@@ -48,8 +54,11 @@ const initialState: ConsoleState = {
     reconnectAttempt: 0,
   },
   contextId: "simulator",
+  contexts: [],
   userName: accessTokenSubject(),
   procedures: [],
+  executions: [],
+  selectedExecutionId: null,
   selectedProcedureId: null,
   validation: {
     procedureId: null,
@@ -77,15 +86,45 @@ function normalizeSnapshot(snapshot: ExecutionSnapshot): ExecutionSnapshot {
   };
 }
 
+const PROMPT_REJECTION_MESSAGES: Readonly<Record<string, string>> = {
+  INVALID_VALUE: "Prompt response does not match a declared option.",
+  STALE_PROMPT_REVISION: "Prompt response used a stale revision. Refresh and try again.",
+  CONTROL_LEASE_REQUIRED: "Prompt response requires an active control lease.",
+  CONTROL_LEASE_STALE: "Prompt response used a stale control lease. Acquire control and try again.",
+  PROMPT_NOT_OPEN: "Prompt is no longer open.",
+  LOST_SETTLEMENT_RACE: "Prompt was settled by another response.",
+};
+
+function promptRejectionMessage(outcome: unknown): string {
+  return typeof outcome === "string" && PROMPT_REJECTION_MESSAGES[outcome]
+    ? PROMPT_REJECTION_MESSAGES[outcome]
+    : "Prompt response was rejected by the server.";
+}
+
 export const bootstrap = createAsyncThunk("console/bootstrap", async () => {
-  const [server, procedures] = await Promise.all([api.health(), api.procedures()]);
-  return { server, procedures };
+  const [server, procedures, contexts, executions] = await Promise.all([
+    api.health(),
+    api.procedures(),
+    api.contexts(),
+    api.executions(),
+  ]);
+  return { server, procedures, contexts, executions };
 });
+
+export const refreshMaster = createAsyncThunk("console/refreshMaster", async () => api.executions());
+
+export const openExecution = createAsyncThunk(
+  "console/openExecution",
+  async (executionId: string) => api.snapshot(executionId),
+);
 
 export const startExecution = createAsyncThunk(
   "console/startExecution",
-  async ({ procedureId, contextId }: { procedureId: string; contextId: string }) =>
-    api.startExecution(procedureId, contextId),
+  async ({ procedureId, contextId }: { procedureId: string; contextId: string }) => {
+    const created = await api.startExecution(procedureId, contextId);
+    await api.control(created.id, "ACQUIRE", created.revision, currentControlProof(null));
+    return api.snapshot(created.id);
+  },
 );
 
 export const validateProcedure = createAsyncThunk(
@@ -111,19 +150,23 @@ export const sendExecutionCommand = createAsyncThunk(
       command,
       revision,
       reason,
+      proof,
+      target,
     }: {
       executionId: string;
       command: string;
       revision: number;
       reason: string;
+      proof?: ControlProof;
+      target?: Record<string, unknown>;
     },
-  ) => api.command(executionId, command, revision, reason),
+  ) => api.command(executionId, command, revision, reason, proof, target),
 );
 
 export const answerPrompt = createAsyncThunk(
   "console/answerPrompt",
-  async ({ promptId, value, revision }: { promptId: string; value: string; revision: number }) =>
-    api.respondToPrompt(promptId, value, revision),
+  async ({ promptId, action, value, revision, proof }: { promptId: string; action: "COMMIT" | "ABORT"; value?: unknown; revision: number; proof?: ControlProof }) =>
+    api.respondToPrompt(promptId, action, value, revision, proof),
 );
 
 export const loadReport = createAsyncThunk(
@@ -169,6 +212,9 @@ const consoleSlice = createSlice({
     },
     setContext(state, action: { payload: string }) {
       state.contextId = action.payload;
+    },
+    setSelectedExecution(state, action: { payload: string }) {
+      state.selectedExecutionId = action.payload;
     },
     setDockTab(state, action: { payload: DockTab }) {
       state.dockTab = action.payload;
@@ -241,26 +287,13 @@ const consoleSlice = createSlice({
         execution.logs = execution.logs.slice(-500);
       } else if (event.event_type === "prompt.opened" || event.event_type === "prompt.reopened") {
         const prompt = (event.payload.prompt ?? event.payload) as Record<string, unknown>;
-        execution.revision = Number(prompt.revision ?? execution.revision);
-        execution.active_prompt = {
-          id: String(prompt.id ?? prompt.prompt_id ?? event.event_id),
-          message: String(prompt.message ?? prompt.question ?? "Operator response required"),
-          type: String(prompt.type ?? (Array.isArray(prompt.choices) ? "choice" : "text")) as NonNullable<
-            ExecutionSnapshot["active_prompt"]
-          >["type"],
-          options: Array.isArray(prompt.options)
-            ? prompt.options.map(String)
-            : Array.isArray(prompt.choices)
-              ? prompt.choices.map(String)
-              : undefined,
-          default_value: prompt.default_value
-            ? String(prompt.default_value)
-            : prompt.default
-              ? String(prompt.default)
-              : undefined,
-          deadline: prompt.deadline ? String(prompt.deadline) : undefined,
-          revision: Number(prompt.revision ?? execution.revision),
-        };
+        const eventExecutionRevision = prompt.execution_revision
+          ?? (prompt.prompt_revision == null ? prompt.revision : execution.revision);
+        execution.revision = Number(eventExecutionRevision ?? execution.revision);
+        execution.active_prompt = normalizeActivePrompt(
+          { ...prompt, id: prompt.id ?? prompt.prompt_id ?? event.event_id },
+          execution.revision,
+        );
         execution.state = "PROMPTING";
       } else if (
         event.event_type === "prompt.resolved" ||
@@ -283,6 +316,8 @@ const consoleSlice = createSlice({
         state.connection.server = action.payload.server;
         state.connection.phase = "CONNECTED";
         state.procedures = action.payload.procedures;
+        state.contexts = action.payload.contexts;
+        state.executions = action.payload.executions;
         state.selectedProcedureId ??= action.payload.procedures[0]?.id ?? null;
       })
       .addCase(bootstrap.rejected, (state, action) => {
@@ -297,6 +332,7 @@ const consoleSlice = createSlice({
       .addCase(startExecution.fulfilled, (state, action) => {
         state.pendingAction = null;
         state.execution = normalizeSnapshot(action.payload);
+        state.selectedExecutionId = action.payload.id;
         state.report = null;
       })
       .addCase(startExecution.rejected, (state, action) => {
@@ -335,6 +371,26 @@ const consoleSlice = createSlice({
         if (!olderThanCurrent) state.execution = incoming;
         state.connection.lastMessageAt = new Date().toISOString();
       })
+      .addCase(refreshMaster.fulfilled, (state, action) => {
+        state.executions = action.payload;
+      })
+      .addCase(refreshMaster.rejected, (state, action) => {
+        state.error = action.error.message ?? "Unable to refresh the Master workspace";
+      })
+      .addCase(openExecution.pending, (state, action) => {
+        state.pendingAction = "OPEN_EXECUTION";
+        state.selectedExecutionId = action.meta.arg;
+      })
+      .addCase(openExecution.fulfilled, (state, action) => {
+        state.pendingAction = null;
+        state.execution = normalizeSnapshot(action.payload);
+        state.selectedExecutionId = action.payload.id;
+        state.report = null;
+      })
+      .addCase(openExecution.rejected, (state, action) => {
+        state.pendingAction = null;
+        state.error = action.error.message ?? "Unable to open the execution";
+      })
       .addCase(resyncExecution.rejected, (state, action) => {
         state.connection.phase = "STALE";
         state.error = action.error.message ?? "Execution resynchronization failed";
@@ -362,9 +418,16 @@ const consoleSlice = createSlice({
         state.pendingAction = "PROMPT_RESPONSE";
         state.error = null;
       })
-      .addCase(answerPrompt.fulfilled, (state) => {
+      .addCase(answerPrompt.fulfilled, (state, action) => {
         state.pendingAction = null;
-        if (state.execution) state.execution.active_prompt = null;
+        const promptState = String(action.payload.prompt?.state ?? "").toUpperCase();
+        const attemptOutcome = String(action.payload.attempt?.outcome ?? "").toUpperCase();
+        if (promptState === "SETTLED" || attemptOutcome === "ACCEPTED_SETTLEMENT") {
+          if (state.execution) state.execution.active_prompt = null;
+          state.error = null;
+        } else {
+          state.error = promptRejectionMessage(attemptOutcome);
+        }
       })
       .addCase(answerPrompt.rejected, (state, action) => {
         state.pendingAction = null;
@@ -393,6 +456,7 @@ export const {
   setConnectionPhase,
   setContext,
   setDockTab,
+  setSelectedExecution,
   setSelectedProcedure,
 } = consoleSlice.actions;
 

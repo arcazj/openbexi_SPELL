@@ -38,12 +38,34 @@ from .driver_gateway import DriverGateway
 from .events import EventHub
 from .migrations import run_migrations
 from .models import Command, Event, Execution, Prompt
+from .operator_service import (
+    OperatorAuthorizationError,
+    OperatorConflictError,
+    OperatorNotFoundError,
+    OperatorService,
+    OperatorValidationError,
+)
 from .procedure_parser import IR_VERSION, ProcedureCatalog, ProcedureValidationError
 from .schemas import (
     CommandCreate,
+    BreakpointMutationCreate,
+    ConsoleOperationCreate,
+    ContextSettingsUpdate,
+    ControlMutationCreate,
     ExecutionCreate,
+    ExecutionSettingsUpdate,
+    HandoverApproveCreate,
+    HandoverRequestCreate,
+    InspectionEditCreate,
+    MonitorSubscriptionCreate,
+    OperatorCommandCreate,
+    OperatorPromptResponseCreate,
     ProcedureValidationRequest,
     PromptResponseCreate,
+    ScheduleCancelCreate,
+    ScheduleCreate,
+    UserActionInvokeCreate,
+    UserActionMutationCreate,
 )
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
 from .supervisor import AuthorizationError, ConflictError, NotFoundError, Supervisor
@@ -54,6 +76,12 @@ from .version import PRODUCT_VERSION, REPORT_VERSION
 class Identity:
     actor: str
     role: str
+
+
+@dataclass(frozen=True)
+class SessionBinding:
+    session_id: str | None
+    client_instance_key_id: str | None
 
 
 def create_app(
@@ -70,6 +98,87 @@ def create_app(
         hub,
         command_ack_timeout_seconds=settings.command_ack_timeout_seconds,
     )
+
+    def start_operator_execution(
+        *,
+        procedure,
+        schedule: dict[str, Any] | None = None,
+        startproc: dict[str, Any] | None = None,
+    ) -> Execution:
+        resource = schedule or startproc or {}
+        if schedule is not None:
+            idempotency_key = f"schedule:{schedule['occurrence_id']}"
+            actor = "schedule-service"
+            reason = f"Fire durable schedule {schedule['id']}"
+        else:
+            idempotency_key = f"startproc:{resource['id']}"
+            actor = "startproc-service"
+            reason = f"Admit durable StartProc {resource['id']}"
+        automatic = bool(resource.get("automatic", True))
+        background_allowed = bool(
+            resource.get(
+                "background_allowed",
+                automatic if startproc is not None else False,
+            )
+        )
+        context_id = str(resource.get("context_id", "simulator"))
+        predecessor_execution_id = None
+        depth = 0
+        operator_settings: dict[str, Any] = {}
+        catalog_revision_id = resource.get("catalog_revision_id")
+        if startproc is not None:
+            predecessor_execution_id = str(resource["parent_execution_id"])
+            parent_projection = operator_service.get_execution_projection(
+                predecessor_execution_id
+            )
+            context_id = str(parent_projection["context_id"])
+            depth = int(resource["depth"])
+            operator_settings = dict(parent_projection.get("settings") or {})
+            catalog_revision_id = resource.get(
+                "resolved_child_catalog_revision_id"
+            )
+        elif schedule is not None:
+            context = next(
+                (
+                    item
+                    for item in operator_service.list_contexts()
+                    if item["id"] == context_id
+                ),
+                None,
+            )
+            operator_settings = dict((context or {}).get("settings") or {})
+        kwargs = {
+            "procedure": procedure,
+            "actor": actor,
+            "role": "operator",
+            "reason": reason,
+            "idempotency_key": idempotency_key,
+            "context_id": context_id,
+            "automatic": automatic,
+            "initial_variables": dict(resource.get("arguments") or {}),
+            "background_allowed": background_allowed,
+            "visible": bool(resource.get("visible", True)),
+            "catalog_revision_id": (
+                str(catalog_revision_id)
+                if catalog_revision_id is not None
+                else None
+            ),
+            "predecessor_execution_id": predecessor_execution_id,
+            "depth": depth,
+            "ownership_mode": (
+                "B" if automatic and background_allowed else "CONTROL_LOST"
+            ),
+            "operator_settings": operator_settings,
+        }
+        return supervisor.create_execution(**kwargs)
+
+    operator_service = OperatorService(
+        session_factory,
+        catalog,
+        execution_starter=start_operator_execution,
+        prompt_settlement_sink=supervisor.dispatch_prompt_settlement,
+    )
+    supervisor.attach_operator_service(operator_service)
     driver_repository = DriverRepository(session_factory)
     driver_gateway = DriverGateway(
         driver_repository,
@@ -92,12 +201,16 @@ def create_app(
         try:
             app.state.auth_config = get_auth_config()
             run_migrations(engine)
+            operator_service.bootstrap()
             await driver_gateway.start()
             gateway_started = True
             supervisor.reconcile_orphaned_executions()
+            operator_service.replay_prompt_deliveries()
+            operator_service.start()
             yield
         finally:
             try:
+                operator_service.close()
                 if gateway_started:
                     await driver_gateway.close()
             finally:
@@ -116,8 +229,14 @@ def create_app(
         CORSMiddleware,
         allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
-        allow_headers=["Authorization", "Content-Type", "X-Idempotency-Key"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Idempotency-Key",
+            "X-Spell-Session-Id",
+            "X-Spell-Client-Instance-Key-Id",
+        ],
     )
     app.add_middleware(
         TrustedHostMiddleware,
@@ -128,10 +247,97 @@ def create_app(
     app.state.session_factory = session_factory
     app.state.catalog = catalog
     app.state.supervisor = supervisor
+    app.state.operator_service = operator_service
     app.state.driver_repository = driver_repository
     app.state.driver_gateway = driver_gateway
     app.state.hub = hub
     app.state.auth_config = auth_config
+
+    @app.middleware("http")
+    async def reject_ambiguous_json(request: Request, call_next):
+        media_type = (
+            request.headers.get("content-type", "")
+            .split(";", 1)[0]
+            .strip()
+            .lower()
+        )
+        structured_json = media_type == "application/json" or (
+            media_type.startswith("application/") and media_type.endswith("+json")
+        )
+        if (
+            request.method in {"POST", "PUT", "DELETE"}
+            and request.url.path.startswith("/api/v1/")
+            and request.url.path != "/api/v1/procedures/validate"
+            and structured_json
+        ):
+            maximum_body_bytes = 1_000_000
+            declared_length = request.headers.get("content-length")
+            if declared_length is not None:
+                try:
+                    if int(declared_length) > maximum_body_bytes:
+                        return JSONResponse(
+                            status_code=413,
+                            content={"detail": "structured request body is too large"},
+                        )
+                except ValueError:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"detail": "invalid Content-Length header"},
+                    )
+            body = bytearray()
+            async for chunk in request.stream():
+                body.extend(chunk)
+                if len(body) > maximum_body_bytes:
+                    return JSONResponse(
+                        status_code=413,
+                        content={"detail": "structured request body is too large"},
+                    )
+            raw = bytes(body)
+            request._body = raw
+
+            def object_pairs(pairs):
+                result: dict[str, Any] = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise ValueError("duplicate JSON object key")
+                    result[key] = value
+                return result
+
+            def reject_constant(_: str):
+                raise ValueError("non-finite JSON number")
+
+            def validate_utf8(value: Any) -> None:
+                if isinstance(value, str):
+                    value.encode("utf-8")
+                elif isinstance(value, list):
+                    for child in value:
+                        validate_utf8(child)
+                elif isinstance(value, dict):
+                    for key, child in value.items():
+                        key.encode("utf-8")
+                        validate_utf8(child)
+
+            try:
+                parsed = json.loads(
+                    raw.decode("utf-8"),
+                    object_pairs_hook=object_pairs,
+                    parse_constant=reject_constant,
+                )
+                validate_utf8(parsed)
+            except (UnicodeError, ValueError):
+                return JSONResponse(
+                    status_code=422,
+                    content={
+                        "detail": [
+                            {
+                                "type": "json_invalid",
+                                "loc": ["body"],
+                                "msg": "request body must be unambiguous finite UTF-8 JSON",
+                            }
+                        ]
+                    },
+                )
+        return await call_next(request)
 
     @app.exception_handler(RequestValidationError)
     async def safe_request_validation_error(
@@ -164,7 +370,87 @@ def create_app(
 
     IdentityDep = Annotated[Identity, Depends(identity)]
 
+    def session_binding(
+        x_spell_session_id: Annotated[
+            Optional[str], Header(max_length=128)
+        ] = None,
+        x_spell_client_instance_key_id: Annotated[
+            Optional[str], Header(max_length=128)
+        ] = None,
+    ) -> SessionBinding:
+        return SessionBinding(
+            session_id=x_spell_session_id,
+            client_instance_key_id=x_spell_client_instance_key_id,
+        )
+
+    SessionBindingDep = Annotated[SessionBinding, Depends(session_binding)]
+
+    def require_session_binding(
+        binding: SessionBinding,
+        *,
+        session_id: str | None = None,
+        client_instance_key_id: str | None = None,
+    ) -> None:
+        if not binding.session_id or not binding.client_instance_key_id:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "SESSION_BINDING_REQUIRED",
+                    "message": "v0.6 requests require bound session headers",
+                    "current": None,
+                },
+            )
+        if (
+            session_id is not None
+            and binding.session_id != session_id
+        ) or (
+            client_instance_key_id is not None
+            and binding.client_instance_key_id != client_instance_key_id
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "SESSION_BINDING_MISMATCH",
+                    "message": "request session proof does not match its headers",
+                    "current": None,
+                },
+            )
+
+    def mutation_identity(caller: IdentityDep) -> Identity:
+        if caller.role not in {"operator", "admin"}:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "FORBIDDEN",
+                    "message": "operator role required for durable mutations",
+                    "current": None,
+                },
+            )
+        return caller
+
+    MutationIdentityDep = Annotated[Identity, Depends(mutation_identity)]
+
     def translate_error(exc: Exception) -> HTTPException:
+        if isinstance(exc, OperatorNotFoundError):
+            return HTTPException(
+                status_code=404,
+                detail={"code": exc.code, "message": str(exc), "current": exc.current},
+            )
+        if isinstance(exc, OperatorAuthorizationError):
+            return HTTPException(
+                status_code=403,
+                detail={"code": exc.code, "message": str(exc), "current": exc.current},
+            )
+        if isinstance(exc, OperatorConflictError):
+            return HTTPException(
+                status_code=409,
+                detail={"code": exc.code, "message": str(exc), "current": exc.current},
+            )
+        if isinstance(exc, OperatorValidationError):
+            return HTTPException(
+                status_code=422,
+                detail={"code": exc.code, "message": str(exc), "current": exc.current},
+            )
         if isinstance(exc, NotFoundError):
             return HTTPException(status_code=404, detail=str(exc))
         if isinstance(exc, AuthorizationError):
@@ -172,6 +458,15 @@ def create_app(
         if isinstance(exc, ConflictError):
             return HTTPException(status_code=409, detail=str(exc))
         return HTTPException(status_code=500, detail="internal server error")
+
+    def operator_control_kwargs(request: Any) -> dict[str, Any]:
+        return {
+            "lease_id": request.lease_id,
+            "expected_lease_revision": request.expected_lease_revision,
+            "control_fencing_token": request.control_fencing_token,
+            "holder_session_id": request.session_id,
+            "client_instance_key_id": request.client_instance_key_id,
+        }
 
     @app.get("/api/v1/health")
     def health() -> dict[str, Any]:
@@ -250,14 +545,79 @@ def create_app(
         )
         return result
 
+    @app.get("/api/v1/contexts")
+    def list_operator_contexts(_: IdentityDep) -> dict[str, Any]:
+        return {"items": operator_service.list_contexts()}
+
+    @app.put("/api/v1/contexts/{context_id}/settings")
+    def update_context_settings(
+        context_id: str,
+        request: ContextSettingsUpdate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(binding)
+        if caller.role != "admin":
+            raise HTTPException(status_code=403, detail="admin role required")
+        try:
+            return {
+                "context": operator_service.update_context_settings(
+                    context_id,
+                    settings=request.settings,
+                    expected_revision=request.expected_revision,
+                    actor=caller.actor,
+                    idempotency_key=request.idempotency_key,
+                    reason=request.reason,
+                )
+            }
+        except (
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/procedures/{procedure_id}/history")
+    def procedure_history(procedure_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return operator_service.catalog_history(procedure_id)
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/master")
+    def operator_master(
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+        limit: int = Query(100, ge=1, le=500),
+    ) -> dict[str, Any]:
+        return {
+            "items": operator_service.master(
+                limit=limit,
+                actor=caller.actor,
+                session_id=binding.session_id,
+                client_instance_key_id=binding.client_instance_key_id,
+            )
+        }
+
     @app.get("/api/v1/executions")
-    def list_executions(_: IdentityDep, limit: int = Query(100, ge=1, le=500)) -> dict[str, Any]:
-        return {"items": [execution_dict(item) for item in supervisor.list_executions(limit)]}
+    def list_executions(
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+        limit: int = Query(100, ge=1, le=500),
+    ) -> dict[str, Any]:
+        return {
+            "items": operator_service.master(
+                limit=limit,
+                actor=caller.actor,
+                session_id=binding.session_id,
+                client_instance_key_id=binding.client_instance_key_id,
+            )
+        }
 
     @app.post("/api/v1/executions", status_code=202)
     def create_execution(
         request: ExecutionCreate,
-        caller: IdentityDep,
+        caller: MutationIdentityDep,
         x_idempotency_key: Annotated[
             Optional[str], Header(min_length=1, max_length=200)
         ] = None,
@@ -279,18 +639,409 @@ def create_app(
                 request.reason,
                 key,
                 request.context_id,
+                automatic=procedure.ir_version != "0.6",
             )
-            return {"execution": execution_dict(execution)}
+            projection = operator_service.ensure_execution_projection(
+                execution, actor=caller.actor
+            )
+            projection["operator_state"] = projection.pop("state")
+            projection["operator_revision"] = projection.pop("revision")
+            projection.pop("current_step", None)
+            return {"execution": {**execution_dict(execution), **projection}}
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="procedure not found") from exc
         except (AuthorizationError, ConflictError, NotFoundError) as exc:
             raise translate_error(exc) from exc
 
     @app.get("/api/v1/executions/{execution_id}/snapshot")
-    def snapshot(execution_id: str, _: IdentityDep) -> dict[str, Any]:
+    def snapshot(
+        execution_id: str,
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
         try:
-            return supervisor.snapshot(execution_id)
-        except NotFoundError as exc:
+            result = supervisor.snapshot(execution_id)
+            projection = operator_service.get_execution_projection(
+                execution_id,
+                actor=caller.actor,
+                session_id=binding.session_id,
+                client_instance_key_id=binding.client_instance_key_id,
+            )
+            relationships = operator_service.relationships(execution_id)
+            projection["operator_state"] = projection.pop("state")
+            projection["operator_revision"] = projection.pop("revision")
+            projection.pop("current_step", None)
+            result["execution"].update(projection)
+            result["execution"]["variables"] = operator_service.redact_for_report(
+                result["execution"].get("variables", {})
+            )
+            for collection in ("events", "logs", "telemetry"):
+                if collection in result:
+                    result[collection] = operator_service.redact_for_report(
+                        result[collection]
+                    )
+            result["execution"]["breakpoints"] = [
+                item["line"] for item in operator_service.list_breakpoints(execution_id)
+            ]
+            result["execution"]["parent_execution_id"] = (
+                relationships["parents"][0]["parent_execution_id"]
+                if relationships["parents"]
+                else None
+            )
+            result["execution"]["child_execution_ids"] = [
+                item["child_execution_id"] for item in relationships["children"]
+            ]
+            result["execution"]["monitor_count"] = (
+                operator_service.active_monitor_count(execution_id)
+            )
+            pinned_source = result["execution"].get("source", "")
+            result["execution"]["as_run_source"] = None
+            result["execution"]["text"] = "\n".join(
+                str((item.get("payload") or {}).get("message", ""))
+                for item in result.get("logs", [])
+                if (item.get("payload") or {}).get("message") is not None
+            )
+            result["execution"]["outline"] = [
+                {
+                    "id": f"step:{index}",
+                    "label": (
+                        str((step.get("labels") or [{}])[0].get("name"))
+                        if step.get("labels")
+                        else str(step.get("type", "step"))
+                        .replace("_", " ")
+                        .title()
+                    ),
+                    "line": step.get("line", index + 1),
+                    "depth": max(
+                        0, len(step.get("lexical_frame_path") or []) - 1
+                    ),
+                    "kind": step.get("type", "step"),
+                    "lexical_frame_id": step.get("lexical_frame_id"),
+                    "reachability_id": step.get("reachability_id"),
+                    "labels": step.get("labels") or [],
+                    "child_reference": step.get("child_reference"),
+                }
+                for index, step in enumerate(result["execution"].get("steps", []))
+            ]
+            result["execution"]["support_logs"] = [
+                item
+                for item in result.get("events", [])
+                if str(item.get("severity", "info")).lower()
+                in {"warning", "error", "critical"}
+            ]
+            steps = result["execution"].get("steps", [])
+
+            def event_line(item: dict[str, Any]) -> int | None:
+                payload = item.get("payload") or {}
+                line = payload.get("line")
+                if type(line) is int:
+                    return line
+                step_index = payload.get("step_index")
+                if type(step_index) is not int:
+                    next_step = payload.get("next_step")
+                    step_index = next_step - 1 if type(next_step) is int else None
+                if (
+                    type(step_index) is int
+                    and 0 <= step_index < len(steps)
+                    and type(steps[step_index].get("line")) is int
+                ):
+                    return steps[step_index]["line"]
+                return None
+
+            def view_entry(item: dict[str, Any]) -> dict[str, Any]:
+                payload = item.get("payload") or {}
+                return {
+                    "id": item.get("event_id"),
+                    "sequence": item.get("sequence"),
+                    "time": item.get("server_time"),
+                    "scope": item.get("source"),
+                    "kind": item.get("event_type"),
+                    "message": str(
+                        payload.get("message", item.get("event_type", "event"))
+                    )[:2000],
+                    "correlation_id": item.get("correlation_id"),
+                    "line": event_line(item),
+                    "outcome": payload.get("outcome") or payload.get("state"),
+                }
+
+            committed_events = result.get("events", [])
+            result["execution"]["text_entries"] = [
+                view_entry(item)
+                for item in committed_events
+                if item.get("event_type")
+                in {"procedure.log", "procedure.user_action_log"}
+            ]
+            result["execution"]["as_run_entries"] = [
+                view_entry(item) for item in committed_events
+            ]
+            executed_lines = sorted(
+                {
+                    line
+                    for item in committed_events
+                    for line in [event_line(item)]
+                    if type(line) is int
+                }
+            )
+            result["execution"]["executed_lines"] = executed_lines
+            result["execution"]["executed_line_coverage"] = {
+                "source_digest": result["execution"].get("source_digest")
+                or result["execution"].get("procedure_hash"),
+                "lines": executed_lines,
+                "through_sequence": result.get("last_sequence", 0),
+            }
+            result["execution"]["workspace_cursor"] = result.get(
+                "last_sequence", 0
+            )
+            typed_prompt = operator_service.active_typed_prompt(execution_id)
+            # Legacy Prompt rows are staged before their fenced OperatorPrompt
+            # projection, which is itself staged before the execution enters
+            # prompting. Never expose either transient shape to a v0.6 client.
+            if result["execution"]["state"] == "running":
+                typed_prompt = None
+            result["active_prompt"] = typed_prompt
+            result["typed_prompt"] = typed_prompt
+            result["inspection"] = operator_service.inspection(execution_id)["items"]
+            result["schedules"] = operator_service.list_schedules(
+                controller_execution_id=execution_id
+            )
+            result["actions"] = operator_service.list_user_actions(execution_id)
+            result["relationships"] = [
+                *relationships["parents"],
+                *relationships["children"],
+            ]
+            return result
+        except (NotFoundError, OperatorNotFoundError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/control")
+    def mutate_control(
+        execution_id: str,
+        request: ControlMutationCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            if request.action == "ACQUIRE":
+                return operator_service.acquire_control(
+                    execution_id,
+                    expected_execution_revision=request.expected_execution_revision,
+                    actor=caller.actor,
+                    holder_session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                    lease_seconds=request.lease_seconds,
+                    idempotency_key=request.idempotency_key,
+                    reason=request.reason,
+                    acknowledgement=request.acknowledgement,
+                )
+            if (
+                request.lease_id is None
+                or request.expected_lease_revision is None
+                or request.control_fencing_token is None
+            ):
+                raise OperatorValidationError(
+                    "renew and release require a complete controller lease proof"
+                )
+            proof = {
+                "lease_id": request.lease_id,
+                "expected_lease_revision": request.expected_lease_revision,
+                "control_fencing_token": request.control_fencing_token,
+                "actor": caller.actor,
+                "holder_session_id": request.session_id,
+                "client_instance_key_id": request.client_instance_key_id,
+                "idempotency_key": request.idempotency_key,
+                "reason": request.reason,
+            }
+            if request.action == "RENEW":
+                return operator_service.renew_control(
+                    execution_id, lease_seconds=request.lease_seconds, **proof
+                )
+            return operator_service.release_control_to_background(
+                execution_id,
+                expected_execution_revision=request.expected_execution_revision,
+                **proof,
+            )
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.put("/api/v1/executions/{execution_id}/settings")
+    def update_execution_settings(
+        execution_id: str,
+        request: ExecutionSettingsUpdate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return {
+                "execution": operator_service.update_execution_settings(
+                    execution_id,
+                    settings=request.settings,
+                    expected_execution_revision=request.expected_execution_revision,
+                    actor=caller.actor,
+                    idempotency_key=request.idempotency_key,
+                    reason=request.reason,
+                    **operator_control_kwargs(request),
+                )
+            }
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/monitors", status_code=201)
+    def start_monitor(
+        execution_id: str,
+        request: MonitorSubscriptionCreate,
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return {
+                "monitor": operator_service.start_monitor(
+                    execution_id,
+                    actor=caller.actor,
+                    session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                )
+            }
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.delete("/api/v1/executions/{execution_id}/monitors/{monitor_id}")
+    def stop_monitor(
+        execution_id: str,
+        monitor_id: str,
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(binding)
+        try:
+            monitor = operator_service.stop_monitor(
+                execution_id,
+                monitor_id,
+                actor=caller.actor,
+                session_id=str(binding.session_id),
+                client_instance_key_id=str(binding.client_instance_key_id),
+            )
+            return {"monitor": monitor}
+        except (
+            OperatorAuthorizationError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/handovers", status_code=201)
+    def request_handover(
+        execution_id: str,
+        request: HandoverRequestCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return {
+                "handover": operator_service.request_control_handover(
+                    execution_id,
+                    requester_monitor_id=request.requester_monitor_id,
+                    expected_execution_revision=request.expected_execution_revision,
+                    actor=caller.actor,
+                    requester_session_id=request.session_id,
+                    requester_client_instance_key_id=request.client_instance_key_id,
+                    responsibility_acknowledgement=request.responsibility_acknowledgement,
+                    expires_seconds=request.expires_seconds,
+                    idempotency_key=request.idempotency_key,
+                    reason=request.reason,
+                )
+            }
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/handovers")
+    def list_handovers(
+        execution_id: str,
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+        include_terminal: bool = False,
+    ) -> dict[str, Any]:
+        require_session_binding(binding)
+        try:
+            return {
+                "items": operator_service.list_control_handovers(
+                    execution_id,
+                    actor=caller.actor,
+                    session_id=str(binding.session_id),
+                    client_instance_key_id=str(binding.client_instance_key_id),
+                    include_terminal=include_terminal,
+                )
+            }
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post(
+        "/api/v1/executions/{execution_id}/handovers/{handover_id}/approve"
+    )
+    def approve_handover(
+        execution_id: str,
+        handover_id: str,
+        request: HandoverApproveCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return operator_service.approve_control_handover(
+                execution_id,
+                handover_id,
+                expected_handover_revision=request.expected_handover_revision,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                lease_seconds=request.lease_seconds,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
             raise translate_error(exc) from exc
 
     @app.get("/api/v1/executions/{execution_id}/events")
@@ -309,8 +1060,9 @@ def create_app(
     @app.post("/api/v1/executions/{execution_id}/commands", status_code=202)
     def command(
         execution_id: str,
-        request: CommandCreate,
-        caller: IdentityDep,
+        request: CommandCreate | OperatorCommandCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
         x_idempotency_key: Annotated[
             Optional[str], Header(min_length=1, max_length=200)
         ] = None,
@@ -319,26 +1071,74 @@ def create_app(
         if not key:
             raise HTTPException(status_code=422, detail="idempotency_key is required")
         try:
-            result = supervisor.issue_command(
-                execution_id=execution_id,
-                command_type=request.type,
-                expected_revision=request.expected_revision,
-                idempotency_key=key,
+            if isinstance(request, OperatorCommandCreate):
+                require_session_binding(
+                    binding,
+                    session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                )
+                result = operator_service.accept_operator_command(
+                    execution_id=execution_id,
+                    command_type=request.type,
+                    expected_execution_revision=request.expected_execution_revision,
+                    idempotency_key=key,
+                    actor=caller.actor,
+                    role=caller.role,
+                    reason=request.reason,
+                    controller_lease_id=request.lease_id,
+                    expected_lease_revision=request.expected_lease_revision,
+                    control_fencing_token=request.control_fencing_token,
+                    holder_session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                    payload=request.payload,
+                    target=request.target,
+                    correlation_id=(
+                        str(request.correlation_id)
+                        if request.correlation_id is not None
+                        else None
+                    ),
+                )
+                if result["state"] == "ACCEPTED":
+                    result = supervisor.dispatch_operator_command(result)
+                return {"command": result}
+            result = operator_service.execute_legacy_command_compatibility(
+                execution_id,
                 actor=caller.actor,
                 role=caller.role,
-                reason=request.reason,
-                correlation_id=str(request.correlation_id) if request.correlation_id else None,
-                payload={},
+                operation=lambda: supervisor.issue_command(
+                    execution_id=execution_id,
+                    command_type=request.type,
+                    expected_revision=request.expected_revision,
+                    idempotency_key=key,
+                    actor=caller.actor,
+                    role=caller.role,
+                    reason=request.reason,
+                    correlation_id=(
+                        str(request.correlation_id)
+                        if request.correlation_id
+                        else None
+                    ),
+                    payload={},
+                ),
             )
             return {"command": command_dict(result)}
-        except (AuthorizationError, ConflictError, NotFoundError) as exc:
+        except (
+            AuthorizationError,
+            ConflictError,
+            NotFoundError,
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
             raise translate_error(exc) from exc
 
     @app.post("/api/v1/prompts/{prompt_id}/responses", status_code=202)
     def prompt_response(
         prompt_id: str,
-        request: PromptResponseCreate,
-        caller: IdentityDep,
+        request: PromptResponseCreate | OperatorPromptResponseCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
         x_idempotency_key: Annotated[
             Optional[str], Header(min_length=1, max_length=200)
         ] = None,
@@ -347,18 +1147,531 @@ def create_app(
         if not key:
             raise HTTPException(status_code=422, detail="idempotency_key is required")
         try:
-            result = supervisor.respond_to_prompt(
-                prompt_id=prompt_id,
-                response=request.value,
-                expected_revision=request.expected_revision,
-                idempotency_key=key,
+            if isinstance(request, OperatorPromptResponseCreate):
+                require_session_binding(
+                    binding,
+                    session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                )
+                operator_service.ensure_legacy_prompt_projection(prompt_id)
+                return operator_service.settle_prompt(
+                    prompt_id=prompt_id,
+                    expected_prompt_revision=request.expected_prompt_revision,
+                    action=request.action,
+                    value=request.value,
+                    actor=caller.actor,
+                    controller_lease_id=request.lease_id,
+                    expected_lease_revision=request.expected_lease_revision,
+                    control_fencing_token=request.control_fencing_token,
+                    holder_session_id=request.session_id,
+                    client_instance_key_id=request.client_instance_key_id,
+                    idempotency_key=key,
+                    reason=request.reason,
+                )
+            result = operator_service.execute_legacy_prompt_compatibility(
+                prompt_id,
                 actor=caller.actor,
                 role=caller.role,
-                reason=request.reason,
-                correlation_id=str(request.correlation_id) if request.correlation_id else None,
+                operation=lambda: supervisor.respond_to_prompt(
+                    prompt_id=prompt_id,
+                    response=request.value,
+                    expected_revision=request.expected_revision,
+                    idempotency_key=key,
+                    actor=caller.actor,
+                    role=caller.role,
+                    reason=request.reason,
+                    correlation_id=(
+                        str(request.correlation_id)
+                        if request.correlation_id
+                        else None
+                    ),
+                ),
             )
             return {"command": command_dict(result)}
-        except (AuthorizationError, ConflictError, NotFoundError) as exc:
+        except (
+            AuthorizationError,
+            ConflictError,
+            NotFoundError,
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/schedules")
+    def list_schedules(
+        _: IdentityDep,
+        controller_execution_id: str | None = Query(default=None),
+        limit: int = Query(default=100, ge=1, le=500),
+    ) -> dict[str, Any]:
+        try:
+            return {
+                "items": operator_service.list_schedules(
+                    controller_execution_id=controller_execution_id, limit=limit
+                )
+            }
+        except OperatorValidationError as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/schedules", status_code=201)
+    def create_schedule(
+        request: ScheduleCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            schedule = operator_service.create_schedule(
+                controller_execution_id=request.controller_execution_id,
+                schedule_type=request.schedule_type,
+                target=request.target,
+                procedure_catalog_id=request.procedure_catalog_id,
+                procedure_revision=request.procedure_revision,
+                context_id=request.context_id,
+                arguments=request.arguments,
+                automatic=request.automatic,
+                background_allowed=request.background_allowed,
+                visible=request.visible,
+                misfire_policy=request.misfire_policy,
+                maximum_lateness_seconds=request.maximum_lateness_seconds,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            return {"schedule": schedule}
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    def cancel_schedule_resource(
+        schedule_id: str, request: ScheduleCancelCreate, caller: Identity
+    ) -> dict[str, Any]:
+        try:
+            schedule = operator_service.cancel_schedule(
+                schedule_id,
+                expected_schedule_revision=request.expected_schedule_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            return {"schedule": schedule}
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/schedules/{schedule_id}/cancel")
+    def cancel_schedule_post(
+        schedule_id: str,
+        request: ScheduleCancelCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        return cancel_schedule_resource(schedule_id, request, caller)
+
+    @app.delete("/api/v1/schedules/{schedule_id}")
+    def cancel_schedule_delete(
+        schedule_id: str,
+        request: ScheduleCancelCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        return cancel_schedule_resource(schedule_id, request, caller)
+
+    @app.get("/api/v1/executions/{execution_id}/inspection")
+    def inspect_execution(execution_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return operator_service.inspection(execution_id)
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/workspace-search")
+    def search_execution_workspace(
+        execution_id: str,
+        _: IdentityDep,
+        query: str = Query(min_length=1, max_length=200),
+        view: str = Query(default="SOURCE", min_length=1, max_length=20),
+        source_digest: str | None = Query(default=None, min_length=64, max_length=64),
+        after_sequence: int = Query(default=0, ge=0),
+        limit: int = Query(default=100, ge=1, le=200),
+    ) -> dict[str, Any]:
+        try:
+            return operator_service.search_workspace(
+                execution_id,
+                query=query,
+                view=view,
+                source_digest=source_digest,
+                after_sequence=after_sequence,
+                limit=limit,
+            )
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/workspace-view")
+    def get_execution_workspace_view(
+        execution_id: str,
+        _: IdentityDep,
+        view: str = Query(default="AS_RUN", min_length=1, max_length=20),
+        source_digest: str | None = Query(default=None, min_length=64, max_length=64),
+        after_sequence: int = Query(default=0, ge=0),
+        limit: int = Query(default=100, ge=1, le=200),
+    ) -> dict[str, Any]:
+        try:
+            return operator_service.workspace_view(
+                execution_id,
+                view=view,
+                source_digest=source_digest,
+                after_sequence=after_sequence,
+                limit=limit,
+            )
+        except (
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/inspection/edits")
+    def edit_inspection_value(
+        execution_id: str,
+        request: InspectionEditCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            value = operator_service.edit_inspection(
+                execution_id,
+                path=request.path,
+                scope=request.scope,
+                declared_type=request.type,
+                value=request.value,
+                expected_value_revision=request.expected_value_revision,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            try:
+                supervisor.dispatch_inspection_edit(value)
+            except ConflictError:
+                pass
+            return {
+                "value": {key: item for key, item in value.items() if key != "variables"}
+            }
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/console-operations")
+    def console_operation(
+        execution_id: str,
+        request: ConsoleOperationCreate,
+        caller: IdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        proof = None
+        if request.operation == "WRITE_TYPED_LITERAL":
+            mutation_identity(caller)
+            if any(
+                item is None
+                for item in (
+                    request.lease_id,
+                    request.expected_lease_revision,
+                    request.control_fencing_token,
+                    request.session_id,
+                    request.client_instance_key_id,
+                )
+            ):
+                raise translate_error(
+                    OperatorAuthorizationError(
+                        "write operation requires a complete controller lease proof"
+                    )
+                )
+            proof = operator_control_kwargs(request)
+        try:
+            result = operator_service.console_operation(
+                execution_id,
+                operation=request.operation,
+                path=request.path,
+                scope=request.scope,
+                query=request.query,
+                limit=request.limit,
+                actor=caller.actor,
+                expected_execution_revision=request.expected_execution_revision,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                declared_type=request.type,
+                value=request.value,
+                control_proof=proof,
+            )
+            if request.operation == "WRITE_TYPED_LITERAL":
+                edit = result.get("result")
+                if isinstance(edit, dict):
+                    try:
+                        supervisor.dispatch_inspection_edit(edit)
+                    except ConflictError:
+                        pass
+                    result["result"] = {
+                        key: item for key, item in edit.items() if key != "variables"
+                    }
+            return result
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/actions")
+    def list_user_actions(execution_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return {"items": operator_service.list_user_actions(execution_id)}
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/actions/{action_id}/mutations")
+    def mutate_user_action(
+        execution_id: str,
+        action_id: str,
+        request: UserActionMutationCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            action = operator_service.mutate_user_action(
+                execution_id,
+                action_id,
+                operation=request.operation,
+                expected_action_revision=request.expected_action_revision,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            return {"action": action}
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.post("/api/v1/executions/{execution_id}/actions/{action_id}/invoke")
+    def invoke_user_action(
+        execution_id: str,
+        action_id: str,
+        request: UserActionInvokeCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            invocation = operator_service.invoke_user_action(
+                execution_id,
+                action_id,
+                expected_action_revision=request.expected_action_revision,
+                expected_execution_revision=request.expected_execution_revision,
+                arguments=request.arguments,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            if invocation["state"] == "PENDING_SAFE_POINT":
+                dispatched = supervisor.dispatch_user_action(
+                    execution_id,
+                    invocation["id"],
+                    list(invocation.get("pinned_handler") or []),
+                )
+                if dispatched is not None:
+                    invocation = {
+                        key: value
+                        for key, value in dispatched.items()
+                        if key != "pinned_handler"
+                    }
+            return {"invocation": invocation}
+        except (
+            StopIteration,
+            ConflictError,
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            if isinstance(exc, StopIteration):
+                exc = OperatorNotFoundError("user action not found")
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/relationships")
+    def execution_relationships(execution_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            result = operator_service.relationships(execution_id)
+            return {
+                **result,
+                "items": [*result["parents"], *result["children"]],
+            }
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/executions/{execution_id}/startproc-operations")
+    def startproc_operations(execution_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return {
+                "items": operator_service.list_startproc_operations(
+                    parent_execution_id=execution_id
+                )
+            }
+        except (OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.put("/api/v1/executions/{execution_id}/breakpoints/{line}")
+    def put_breakpoint(
+        execution_id: str,
+        line: int,
+        request: BreakpointMutationCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            breakpoint = operator_service.put_breakpoint(
+                execution_id,
+                line,
+                one_shot=request.one_shot,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+            return {"breakpoint": breakpoint}
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.delete("/api/v1/executions/{execution_id}/breakpoints/{line}")
+    def delete_breakpoint(
+        execution_id: str,
+        line: int,
+        request: BreakpointMutationCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return operator_service.delete_breakpoint(
+                execution_id,
+                line,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
+            raise translate_error(exc) from exc
+
+    @app.delete("/api/v1/executions/{execution_id}/breakpoints")
+    def remove_all_breakpoints(
+        execution_id: str,
+        request: BreakpointMutationCreate,
+        caller: MutationIdentityDep,
+        binding: SessionBindingDep,
+    ) -> dict[str, Any]:
+        require_session_binding(
+            binding,
+            session_id=request.session_id,
+            client_instance_key_id=request.client_instance_key_id,
+        )
+        try:
+            return operator_service.remove_all_breakpoints(
+                execution_id,
+                expected_execution_revision=request.expected_execution_revision,
+                actor=caller.actor,
+                idempotency_key=request.idempotency_key,
+                reason=request.reason,
+                **operator_control_kwargs(request),
+            )
+        except (
+            OperatorAuthorizationError,
+            OperatorConflictError,
+            OperatorNotFoundError,
+            OperatorValidationError,
+        ) as exc:
             raise translate_error(exc) from exc
 
     @app.get("/api/v1/executions/{execution_id}/report")
@@ -383,8 +1696,17 @@ def create_app(
                 .where(Prompt.execution_id == execution_id)
                 .order_by(Prompt.created_at)
             ).all()
-        serialized_events = [event_dict(item) for item in events]
-        commands_data = [command_dict(item) for item in commands]
+        serialized_events = operator_service.redact_for_report(
+            [event_dict(item) for item in events]
+        )
+        commands_data = operator_service.redact_for_report(
+            [command_dict(item) for item in commands]
+        )
+        prompts_data = operator_service.redact_for_report(
+            [prompt_dict(item) for item in prompts]
+        )
+        report_variables = operator_service.redact_for_report(execution.variables)
+        operator_data = operator_service.report_projection(execution_id)
         integrity_input = {
             "execution_id": execution.id,
             "procedure_hash": execution.procedure_hash,
@@ -392,10 +1714,11 @@ def create_app(
             "configuration_hash": execution_dict(execution)["configuration_hash"],
             "context_id": execution.context_id,
             "state": execution.state,
-            "variables": execution.variables,
+            "variables": report_variables,
             "commands": commands_data,
-            "prompts": [prompt_dict(item) for item in prompts],
+            "prompts": prompts_data,
             "events": serialized_events,
+            "operator": operator_data,
         }
         digest = hashlib.sha256(
             json.dumps(integrity_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -409,7 +1732,7 @@ def create_app(
             "configuration_hash": execution_dict(execution)["configuration_hash"],
             "context_id": execution.context_id,
             "state": execution.state,
-            "variables": execution.variables,
+            "variables": report_variables,
             "started_at": execution.created_at.isoformat(),
             "finished_at": (
                 execution.updated_at.isoformat() if execution.state in {"completed", "aborted", "failed"} else None
@@ -424,8 +1747,9 @@ def create_app(
                 "variable_count": len(execution.variables),
             },
             "commands": commands_data,
-            "prompts": [prompt_dict(item) for item in prompts],
+            "prompts": prompts_data,
             "events": serialized_events,
+            **operator_data,
             "integrity": {
                 "algorithm": "sha256",
                 "canonicalization": "json-sort-keys-v1",
