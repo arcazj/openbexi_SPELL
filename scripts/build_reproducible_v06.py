@@ -155,6 +155,15 @@ TOOLING_EVIDENCE_PATHS = {
     "artifacts/v0.6/work-package/tests/tooling.xml",
     "artifacts/v0.6/final/tests/tooling.xml",
 }
+BACKEND_SECRET_EVIDENCE_PATHS = {
+    "artifacts/v0.6/work-package/tests/backend-postgresql.xml",
+    "artifacts/v0.6/work-package/tests/backend-sqlite.xml",
+    "artifacts/v0.6/final/tests/backend-postgresql.xml",
+    "artifacts/v0.6/final/tests/backend-sqlite.xml",
+}
+STRUCTURED_SECRET_EVIDENCE_PATHS = (
+    TOOLING_EVIDENCE_PATHS | BACKEND_SECRET_EVIDENCE_PATHS
+)
 
 
 def _git(root: Path, *arguments: str) -> bytes:
@@ -197,7 +206,7 @@ def _release_evidence_scanner_input(relative: str, data: bytes) -> bytes:
         # The candidate validator parses and scans this strict manifest and all
         # referenced captures before final packaging is admitted.
         return b""
-    if relative in TOOLING_EVIDENCE_PATHS:
+    if relative in STRUCTURED_SECRET_EVIDENCE_PATHS:
         from scripts.validate_release_evidence_v06 import _secret_scannable_evidence
 
         return _secret_scannable_evidence(relative, data)
