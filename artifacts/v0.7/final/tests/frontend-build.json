@@ -1,0 +1,1 @@
+{"schema_version":"spell.v07.frontend-build/1","product_version":"0.7.0","source_fingerprint_sha256":"a04e158843acf2da08696e647d16f8f72f6dd329dd807daeb381f85911b817fb","command":["npm","run","build"],"return_code":0,"passed":true,"dist_file_count":11,"dist_sha256":"1457565a5b58f58ff3980ebe6ebe594c67c306823cccd297bab1033fa6e3e45f"}
