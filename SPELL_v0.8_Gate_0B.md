@@ -7,21 +7,21 @@
 | --- | --- |
 | Version target | SPELL v0.8.0 |
 | Gate | `V08-GATE-0B` |
-| Gate status | `PENDING_CANDIDATE`; no release closeout authorization yet |
+| Gate status | `PASS`; exact v0.8 release closeout authorized |
 | Record date | 2026-08-17 |
 | Accepted product baseline | Annotated tag `v0.7.0`; release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
 | Gate 0A authorization | Commit `451c065740e7b6501f86094d9be79578b30b1591`; `V08-DATA-001` through `V08-DATA-009` |
-| Candidate source | Pending source freeze |
-| Canonical candidate evidence | Pending at `artifacts/v0.8/work-package/qualification.json` |
+| Candidate source | Commit `f9c90fe8d6fd593bd9db4ed55f35d56ee3165e8c`; tree `757f61a1d1a2c4277e014cc6358fe2f66a53fa14`; sole parent `451c065740e7b6501f86094d9be79578b30b1591` |
+| Canonical candidate evidence | `artifacts/v0.8/work-package/qualification.json`; SHA-256 `5fdfa848edf1bdfa8b3b2a161e4dc2c1a356a95cfc424e0e079e5719b1d046d7` |
 | Required result inventory | Nine work packages; 45 exact test identities; zero mapped skips, failures, accepted failures, or waivers |
 | Release tag requested | One annotated semantic-version tag: `v0.8.0` |
 | Project owner | JC Arcaz |
 
 Owner request: `table are not correctly formated for some md file like SPELL_v0.7_Release.md. fix that. make sure to update all docs as well regarding last version implemented. then resume and finish up V0.7 asap, asap. once done finish up V0.8 and v0.9 asap. You have all approvals.`
 
-Gate 0B decision: `PENDING_CANONICAL_V08_CANDIDATE_QUALIFICATION`
+Gate 0B decision: `V08_DATA_001_THROUGH_V08_DATA_009_RELEASE_CLOSEOUT_ONLY`
 
-Release closeout authorization: `NOT_YET_AUTHORIZED`
+Release closeout authorization: `AUTHORIZED`
 
 Release acceptance by Gate 0B: No
 
@@ -69,9 +69,7 @@ release commit. It binds four governance records plus the nine exact
 ## Exact Work-Package Results
 
 <!-- V08_GATE_0B_PACKAGE_DISPOSITIONS_BEGIN -->
-Each package remains `PENDING_QUALIFICATION`. On Gate 0B activation, every row
-must change to `IMPLEMENTED_AND_QUALIFIED` and every listed identity must have
-one or more concrete passing proof nodes.
+All nine exact work packages are `IMPLEMENTED_AND_QUALIFIED`. Every listed identity has one or more concrete passing proof nodes; no mapped identity is skipped, failed, accepted as failed, or waived.
 <!-- V08_GATE_0B_PACKAGE_DISPOSITIONS_END -->
 
 | Work package | Exact required identities |
@@ -160,7 +158,5 @@ gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 
 ## Current Finding
 
 <!-- V08_GATE_0B_CURRENT_FINDING_BEGIN -->
-`V08-GATE-0B PENDING_CANDIDATE` records the exact release-closeout contract but
-does not authorize closeout. Candidate freeze, canonical evidence, independent
-validation, 45 passing identities, and reviewed delta binding remain required.
+`V08-GATE-0B PASS` authorizes release closeout for exactly `V08-DATA-001` through `V08-DATA-009`. It does not itself accept the release, authorize deployment or operational use, or make a compliance or cryptographic-signature claim.
 <!-- V08_GATE_0B_CURRENT_FINDING_END -->

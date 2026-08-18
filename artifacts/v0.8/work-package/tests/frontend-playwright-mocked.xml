@@ -1,0 +1,26 @@
+<testsuites id="" name="" tests="6" failures="0" skipped="0" errors="0" time="7.269146000000001">
+<testsuite name="data-services.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.612" errors="0">
+<testcase name="operates the bounded data workspace with keyboard navigation" classname="data-services.spec.ts" time="1.612">
+</testcase>
+</testsuite>
+<testsuite name="driver-projection.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.071" errors="0">
+<testcase name="distinguishes every bounded driver fault state without a mutation route" classname="driver-projection.spec.ts" time="2.071">
+</testcase>
+</testsuite>
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.27" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="3.27">
+</testcase>
+</testsuite>
+<testsuite name="data-services.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.681" errors="0">
+<testcase name="operates the bounded data workspace with keyboard navigation" classname="data-services.spec.ts" time="1.681">
+</testcase>
+</testsuite>
+<testsuite name="driver-projection.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.96" errors="0">
+<testcase name="distinguishes every bounded driver fault state without a mutation route" classname="driver-projection.spec.ts" time="1.96">
+</testcase>
+</testsuite>
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-18T18:23:40.212Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.739" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="2.739">
+</testcase>
+</testsuite>
+</testsuites>
