@@ -5,13 +5,45 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current accepted product release | SPELL v0.6.0, tag `v0.6.0`, tag object `b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b` |
-| Latest qualified candidate | SPELL v0.7 Simulator Read-Only Observation and Condition Engine; commit `82b497227aff097db9d4c3ff56adf56d76d892ca` |
-| Status | v0.6.0 accepted with no exceptions; all nine v0.7 packages are `IMPLEMENTED_AND_QUALIFIED`; `V07-GATE-0B PASS` authorizes release closeout; Final evidence and acceptance remain pending |
-| Requested follow-on | v0.8 after v0.7 completion, then v0.9; neither follow-on has Gate 0A or implementation evidence yet |
-| Date | Updated 2026-08-16 |
+| Current accepted product release | SPELL v0.7.0, tag `v0.7.0`, tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
+| Latest implemented version | SPELL v0.7 Simulator Read-Only Observation and Condition Engine; accepted with no exceptions |
+| Status | v0.7.0 Final, SBOM, supply-chain, deterministic-package, release-evidence, and strict annotated-tag validation PASS; `V08-GATE-0A PASS` authorizes planning/implementation entry only, with no v0.8 product evidence |
+| Requested follow-on | v0.8 has Gate 0A authorization but is not implemented; v0.9 remains requested-only with no completed Gate 0A |
+| Date | Updated 2026-08-17 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
+
+## Version 0.8 Gate 0A Test Plan
+
+### Current Disposition And Boundary
+
+The owner approved the bounded Data and Local Service Compatibility scope in
+[`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md).
+`V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
+and their 45 planned proof identities under scope profile
+`LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The manifest and eight matrices under
+`contracts/v08` are hash-bound planning inputs. The exact gate marker is
+`gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
+
+This gate is planning and implementation-entry authorization only. It claims
+zero product constructs and zero runtime artifacts. No v0.8 source, API,
+schema, migration, dependency, runtime artifact, executed product test,
+qualification, release, deployment, operational authorization, compliance
+determination, or acceptance exists yet. v0.9 remains requested-only.
+
+### Gate 0A Planned Requirements And Tests
+
+| Work package | Requirement and expected result | Planned test identities | Status |
+| --- | --- | --- | --- |
+| `V08-DATA-001` | Canonical finite typed values use one versioned envelope with exact serialization, corruption rejection, and no evaluation | `V08-DATA-001-UNIT`, `V08-DATA-001-TYPE-MATRIX`, `V08-DATA-001-SERIALIZATION`, `V08-DATA-001-CORRUPTION`, `V08-DATA-001-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-002` | Versioned local `SCDB`, `GDB`, `PROC`, MMD, and user catalogs use safe URI resolution, explicit graph rules, recovery, and immutable dependency identity | `V08-DATA-002-UNIT`, `V08-DATA-002-CONTRACT`, `V08-DATA-002-GRAPH`, `V08-DATA-002-RECOVERY`, `V08-DATA-002-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-003` | DB/IMP dictionary exchange is non-executing, compatibility-bound, deterministic, corruption-safe, and import/export tested | `V08-DATA-003-UNIT`, `V08-DATA-003-COMPATIBILITY-GOLDEN`, `V08-DATA-003-IMPORT-EXPORT`, `V08-DATA-003-CORRUPTION-RECOVERY`, `V08-DATA-003-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-004` | `DataContainer`, `Var`, `ARGS`, and `IVARS` preserve declared types, ownership, restart behavior, integration boundaries, and security | `V08-DATA-004-UNIT`, `V08-DATA-004-MATRIX`, `V08-DATA-004-INTEGRATION`, `V08-DATA-004-RECOVERY`, `V08-DATA-004-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-005` | Durable shared data uses authorized namespaces, revisioned compare-and-set, deterministic races, recovery, enumeration, and clear semantics | `V08-DATA-005-UNIT`, `V08-DATA-005-INTEGRATION`, `V08-DATA-005-RACE`, `V08-DATA-005-RECOVERY`, `V08-DATA-005-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-006` | Virtual-root procedure files enforce traversal/symlink protection, quotas, encoding, atomic writes, recovery, and bounded integration | `V08-DATA-006-UNIT`, `V08-DATA-006-INTEGRATION`, `V08-DATA-006-PATH-SECURITY`, `V08-DATA-006-QUOTA-ATOMICITY`, `V08-DATA-006-RECOVERY` | Implementation authorized; not executed |
+| `V08-DATA-007` | The local data API is authorization-scoped, idempotent under races, and durably audit/outbox bound without generic mutation authority | `V08-DATA-007-CONTRACT`, `V08-DATA-007-AUTHORIZATION`, `V08-DATA-007-IDEMPOTENCY-RACE`, `V08-DATA-007-AUDIT-OUTBOX`, `V08-DATA-007-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-008` | Data migration, SQLite/PostgreSQL parity, backup/restore, and rollback are versioned, deterministic, and corruption-safe | `V08-DATA-008-SCHEMA`, `V08-DATA-008-SQLITE`, `V08-DATA-008-POSTGRES`, `V08-DATA-008-BACKUP-RESTORE`, `V08-DATA-008-MIGRATION-ROLLBACK` | Implementation authorized; not executed |
+| `V08-DATA-009` | Cross-feature semantic, integration, fault/recovery, load, and security evidence covers the complete bounded local data-service surface | `V08-DATA-009-SEMANTIC-GOLDEN`, `V08-DATA-009-INTEGRATION`, `V08-DATA-009-FAULT-RECOVERY`, `V08-DATA-009-LOAD`, `V08-DATA-009-SECURITY` | Implementation authorized; not executed |
 
 ## Version 0.7 Gate 0A Test Plan
 
@@ -73,6 +105,22 @@ source-bound passing nodes with no missing, duplicated, silently skipped,
 accepted-failure, or waiver mapping. Release acceptance additionally requires
 complete Final, supply-chain, SBOM, and reproducible-package evidence against
 fixed candidate and qualified-source commits.
+
+## Version 0.7 Final Release Result
+
+Release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` fixed the complete
+evidence, and annotated tag `v0.7.0` activated the conditional acceptance with
+no accepted exceptions.
+
+| Evidence | Final result |
+| --- | --- |
+| Qualified source | `6ac43c5be7670ead09de821578cc6c6a680af109`; source fingerprint `a04e158843acf2da08696e647d16f8f72f6dd329dd807daeb381f85911b817fb`; product fingerprint `fc9fb26fcb5cea7518f43064beb3ebb40a298c5ec31b93663fd27b0cabcc6633` |
+| Candidate evidence | Candidate `82b497227aff097db9d4c3ff56adf56d76d892ca`; ten suites and all 45 mapped identities PASS; work-package evidence SHA-256 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20` |
+| Final suites | PASS; nine suite captures, 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, 36 subtests, zero failures/errors |
+| Supply chain and SBOM | PASS; four distinct image-bound SBOMs; zero High/Critical findings; zero unlocked inputs |
+| Package | `artifacts/v0.7/openbexi-spell-v0.7.0.tar.gz`; SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2` |
+| Release evidence | `artifacts/v0.7/release-qualification.json`; SHA-256 `e32e6fd025a8bb22af6a0e93151110f934b29df0a86004eae168e19fde42a70a`; evidence fingerprint `7fe2a643ed335c4057aaac0976de6f1ef944543aae6ca53e9e71b7a5cffcb718` |
+| Accepted identity | Annotated tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, raw tag-object SHA-256 `dfa9c0c68cd3c9f3a64768392c001a66b1641e31dcae1ffd5bf2c40197838cae`, over release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`; no accepted exceptions |
 
 ## Version 0.6 Gate 0A Test Plan
 

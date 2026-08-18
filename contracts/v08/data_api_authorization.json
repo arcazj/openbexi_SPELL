@@ -1,0 +1,256 @@
+{
+  "schema_version": "spell.v08.data-api-authorization/1",
+  "contract_id": "V08-DATA-API-AUTHORIZATION",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-007",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/security/SECURITY_ARCHITECTURE.md#authorization"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-007-CONTRACT",
+    "V08-DATA-007-AUTHORIZATION",
+    "V08-DATA-007-IDEMPOTENCY-RACE",
+    "V08-DATA-007-AUDIT-OUTBOX",
+    "V08-DATA-007-SECURITY"
+  ],
+  "api_boundary": {
+    "base_path": "/api/v1/data",
+    "transport": "authenticated local REST JSON",
+    "request_encoding": "strict UTF-8 JSON with duplicate keys, nonfinite numbers, and unknown fields rejected",
+    "response_encoding": "canonical bounded UTF-8 JSON",
+    "authentication": "signed local JWT authenticates only the subject and one existing lowercase role under the accepted identity policy",
+    "authorization": "server evaluated for every request and never accepted from caller-supplied identity or role headers",
+    "browser_to_driver_route": false,
+    "browser_to_database_route": false,
+    "generic_query_or_expression_endpoint": false
+  },
+  "transport_limits": {
+    "default_json_request_bytes": 1048576,
+    "default_json_response_bytes": 1048576,
+    "dictionary_import_media_types": [
+      "application/vnd.openbexi.spell.dictionary-db+json",
+      "application/vnd.openbexi.spell.dictionary-imp+json"
+    ],
+    "dictionary_import_request_bytes": 16777216,
+    "dictionary_import_rule": "authenticate and authorize, require a bounded Content-Length, stream exact bytes into a non-executable server quarantine, verify length and digest, then apply the strict dictionary parser; the generic JSON middleware is not bypassed for any other route",
+    "virtual_file_write_media_type": "application/octet-stream",
+    "virtual_file_write_request_bytes": 16777216,
+    "virtual_file_write_rule": "authenticate and authorize, validate virtual path and expected revision metadata, require bounded Content-Length and SHA-256, stream into the same-root non-executable staging file, then execute the atomic-write contract",
+    "chunked_or_unknown_length_body": "REJECTED",
+    "content_encoding": "identity only; compressed request bodies are rejected"
+  },
+  "resource_families": [
+    {
+      "id": "CATALOGS",
+      "path": "/api/v1/data/catalogs",
+      "operations": [
+        "LIST",
+        "READ",
+        "PUBLISH"
+      ],
+      "mutation_authority": "admin for local catalog revision publication only"
+    },
+    {
+      "id": "DICTIONARIES",
+      "path": "/api/v1/data/dictionaries",
+      "operations": [
+        "LIST",
+        "READ",
+        "IMPORT",
+        "EXPORT"
+      ],
+      "mutation_authority": "operator or admin plus namespace WRITE"
+    },
+    {
+      "id": "CONTAINERS",
+      "path": "/api/v1/data/containers",
+      "operations": [
+        "CREATE",
+        "READ",
+        "ENUMERATE",
+        "SET",
+        "DELETE"
+      ],
+      "mutation_authority": "procedure service principal for LOCAL, ARGS, and IVARS; operator or admin plus namespace WRITE for DATA_CONTAINER"
+    },
+    {
+      "id": "SHARED",
+      "path": "/api/v1/data/shared",
+      "operations": [
+        "CREATE_NAMESPACE",
+        "LIST_NAMESPACES",
+        "GET",
+        "ENUMERATE",
+        "PUT",
+        "DELETE",
+        "CLEAR",
+        "DELETE_NAMESPACE"
+      ],
+      "mutation_authority": "operator or admin plus the exact namespace operation permission"
+    },
+    {
+      "id": "FILES",
+      "path": "/api/v1/data/files",
+      "operations": [
+        "READ",
+        "LIST",
+        "CREATE_DIRECTORY",
+        "WRITE",
+        "DELETE"
+      ],
+      "mutation_authority": "operator or admin plus the exact virtual-root operation permission",
+      "root_provisioning": "virtual roots are provisioned only by the trusted server from an allowlisted owner identity; the public API cannot create, bind, retarget, or expose a host root"
+    }
+  ],
+  "role_floor": [
+    {
+      "role": "viewer",
+      "permitted": [
+        "authorized bounded reads"
+      ],
+      "mutations": false
+    },
+    {
+      "role": "operator",
+      "permitted": [
+        "authorized bounded reads",
+        "explicit namespace, container, dictionary, and virtual-file mutations"
+      ],
+      "mutations": true
+    },
+    {
+      "role": "admin",
+      "permitted": [
+        "authorized bounded reads",
+        "explicit local catalog publication and ACL administration",
+        "explicit data mutations"
+      ],
+      "mutations": true
+    }
+  ],
+  "authorization_dimensions": [
+    "authenticated subject",
+    "role",
+    "service principal when applicable",
+    "resource family",
+    "operation",
+    "owner identity",
+    "namespace or virtual-root identity",
+    "ACL revision",
+    "local synthetic scope profile"
+  ],
+  "mutation_contract": {
+    "required_headers": [
+      "Authorization",
+      "Idempotency-Key",
+      "Content-Type",
+      "X-Spell-Session-Id",
+      "X-Spell-Client-Instance-Key-Id"
+    ],
+    "idempotency_key_maximum_bytes": 128,
+    "expected_revision_required": true,
+    "strict_schema_required": true,
+    "database_transaction_required": true,
+    "audit_outbox_required": true,
+    "blind_retry": false,
+    "last_writer_wins": false,
+    "authorization_rechecked_inside_transaction": true
+  },
+  "request_binding_contract": {
+    "X-Spell-Session-Id": "opaque ASCII request-binding value of 16 through 128 bytes",
+    "X-Spell-Client-Instance-Key-Id": "opaque ASCII request-binding value of 16 through 128 bytes",
+    "identity_or_role_authority": false,
+    "registry_lookup_required": false,
+    "binding_rule": "store and compare the exact two values with the authenticated subject, request digest, and idempotency settlement; neither header establishes a session, client identity, role, or permission"
+  },
+  "procedure_service_boundary": {
+    "transport": "internal repository command rather than the browser HTTP mutation route",
+    "required_binding": [
+      "authorized service_principal_id",
+      "execution_id",
+      "worker_generation",
+      "deterministic_request_id"
+    ],
+    "http_jwt_or_request_binding_headers_required": false,
+    "applies_to": [
+      "procedure-runtime LoadDictionary",
+      "procedure-runtime File and FileHandle operations"
+    ],
+    "binding_rule": "the complete binding is authorized, stored, and compared for idempotency; no synthetic browser subject, session, or client-instance binding is accepted"
+  },
+  "idempotency": {
+    "identity": "authenticated subject, exact bounded request session binding, exact bounded client-instance key binding, operation, resource identity, and bounded idempotency key",
+    "request_digest": "SHA-256 over canonical method, resource identity, expected revision, and body",
+    "same_identity_same_digest": "return the original authoritative status and result",
+    "same_identity_different_digest": "IDEMPOTENCY_CONFLICT",
+    "states": [
+      "PENDING",
+      "COMMITTED"
+    ],
+    "concurrent_attempts": "one transaction inserts PENDING and owns settlement; concurrent duplicates lock that row and can observe only the final COMMITTED result",
+    "pending_rule": "PENDING exists only inside the mutation transaction and is never returned as success; rollback removes the row and every effect",
+    "committed_rule": "COMMITTED, mutation result, audit record, and outbox event become visible atomically",
+    "maximum_client_retry_window_seconds": 3600,
+    "maximum_settlement_records": 100000,
+    "settlement_eviction_or_key_reuse": false,
+    "retention_rule": "retain every committed settlement for the lifetime of the authoritative data store; never expire, evict, or reinterpret an existing key as a new mutation",
+    "cap_outcome": "at the hard record cap, disable all data mutations and return SERVICE_CAPACITY_EXHAUSTED until an explicitly authorized database replacement or release migration increases the bound"
+  },
+  "authorization_order": [
+    "validate the signed JWT subject and lowercase role",
+    "validate X-Spell-Session-Id as a bounded non-authoritative request binding",
+    "validate X-Spell-Client-Instance-Key-Id as a bounded non-authoritative request binding",
+    "authorize role, service principal, owner, resource family, operation, namespace or root, and ACL revision",
+    "validate request bounds, media type, path or URI, strict schema, expected revisions, and request digest",
+    "only then read, insert, wait on, or replay an idempotency settlement"
+  ],
+  "audit_outbox": {
+    "commit_rule": "mutation, result, idempotency settlement, immutable audit record, and outbox event commit atomically",
+    "required_fields": [
+      "operation_id",
+      "actor_subject",
+      "request_session_binding",
+      "client_instance_key_binding",
+      "resource_family",
+      "resource_identity_digest",
+      "operation",
+      "request_digest",
+      "prior_revision",
+      "new_revision",
+      "outcome",
+      "database_time"
+    ],
+    "secret_payload_recorded": false,
+    "maximum_audit_records": 1000000,
+    "maximum_outbox_records": 1000000,
+    "record_eviction": false,
+    "cap_outcome": "disable all data mutations and return SERVICE_CAPACITY_EXHAUSTED before accepting another mutation when either hard record cap is reached",
+    "audit_failure_outcome": "TRANSACTION_ROLLBACK",
+    "outbox_failure_outcome": "TRANSACTION_ROLLBACK"
+  },
+  "security_rules": [
+    "viewer mutation, spoofed identity headers, stale ACL revisions, stale expected revisions, and unauthorized enumeration are rejected before effect.",
+    "Error responses do not reveal existence, current revision, key names, paths, values, digests, or ACL details without matching read authority.",
+    "Pagination and filters are typed, allowlisted, cursor-bound, and finite; no generic string query is accepted.",
+    "All path and URI values are parsed by their dedicated closed-world contracts before repository access.",
+    "Data values, dictionary content, and file bytes are never evaluated or dispatched as code or external effects."
+  ],
+  "nonclaims": {
+    "live_gcs_route": false,
+    "spacecraft_route": false,
+    "mission_network_route": false,
+    "legacy_adapter_route": false,
+    "external_network_route": false,
+    "telecommand_or_driver_mutation": false,
+    "operational_authorization": false,
+    "compliance_determination": false
+  }
+}

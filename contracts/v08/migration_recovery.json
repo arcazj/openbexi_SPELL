@@ -1,0 +1,161 @@
+{
+  "schema_version": "spell.v08.migration-recovery/1",
+  "contract_id": "V08-MIGRATION-RECOVERY",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-008",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/DATA_ARCHITECTURE.md",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/security/SECURE_SDLC_AND_SUPPLY_CHAIN.md#import-and-export-security"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-008-SCHEMA",
+    "V08-DATA-008-SQLITE",
+    "V08-DATA-008-POSTGRES",
+    "V08-DATA-008-BACKUP-RESTORE",
+    "V08-DATA-008-MIGRATION-ROLLBACK"
+  ],
+  "migration": {
+    "id": "0007_data_local_service",
+    "requires": "0006_observation_conditions",
+    "additive": true,
+    "sqlite_supported": true,
+    "postgresql_supported": true,
+    "existing_v07_table_mutation": false,
+    "existing_record_rewrite": false,
+    "runtime_dependency_change_claimed": false
+  },
+  "tables": [
+    "data_catalogs",
+    "data_schema_fingerprints",
+    "data_catalog_revisions",
+    "data_catalog_entries",
+    "data_dependencies",
+    "data_dictionaries",
+    "data_dictionary_revisions",
+    "data_containers",
+    "data_container_revisions",
+    "shared_namespaces",
+    "shared_entries",
+    "virtual_file_roots",
+    "virtual_files",
+    "data_mutation_idempotency",
+    "data_audit_outbox"
+  ],
+  "schema_invariants": [
+    "Every durable identity is a bounded nonempty string with an explicit uniqueness scope.",
+    "Every mutable resource has a positive monotonic revision and immutable prior revisions or tombstones.",
+    "Every canonical typed value, catalog, dictionary, container, namespace, and file record carries a SHA-256 content digest.",
+    "Every foreign key is explicit and deletion is restricted or tombstoned rather than implicitly cascading authoritative history.",
+    "Every enum and Boolean domain is constrained equivalently in SQLite and PostgreSQL.",
+    "Every timestamp is authoritative database UTC time and never supplied by a browser.",
+    "Idempotency and audit-outbox uniqueness prevents duplicate settlement under concurrent retries."
+  ],
+  "schema_fingerprint_record": {
+    "table": "data_schema_fingerprints",
+    "required_fields": [
+      "migration_id",
+      "backend_kind",
+      "canonical_schema_sha256",
+      "created_at_database_time",
+      "activated"
+    ],
+    "canonicalization": "ordered table, column, type, nullability, default, primary-key, foreign-key, unique, check, and index definitions with backend-equivalent domains normalized by the migration code",
+    "persistence_rule": "0007 writes its own immutable fingerprint row and does not add, remove, or alter any column or accepted row in the v0.7 schema_migrations table",
+    "startup_rule": "data-service mutations remain disabled unless the recomputed backend schema fingerprint exactly matches the persisted 0007 record"
+  },
+  "backend_parity": {
+    "canonical_semantics": "identical schema constraints, transaction outcomes, ordering, digest bytes, revisions, and error classifications",
+    "sqlite": "foreign keys enabled, bounded busy timeout, WAL concurrency policy, and explicit immediate write transactions",
+    "postgresql": "serializable or row-locked compare-and-set for conflicting mutations with bounded retry classification",
+    "database_specific_skip_as_proof": false,
+    "cross_backend_golden_required": true
+  },
+  "migration_transaction": {
+    "preflight": "verify predecessor, schema fingerprint, absence of unexpected objects, and backup destination before DDL",
+    "application": "one transactional migration where supported; SQLite rebuild steps use an explicit rollback-safe transaction",
+    "postflight": "verify exact object inventory, constraints, indexes, schema fingerprint, and predecessor record digests",
+    "failure": "roll back all new objects and leave 0007 pending",
+    "idempotency": "reapplying a recorded migration verifies the same schema fingerprint and performs no mutation"
+  },
+  "backup_restore": {
+    "backup_contents": [
+      "database schema and migration ledger",
+      "catalog and dependency revisions",
+      "dictionary and container revisions",
+      "shared namespace entries and tombstones",
+      "virtual-file metadata and exact content bytes",
+      "idempotency settlements",
+      "audit-outbox records"
+    ],
+    "manifest_fields": [
+      "schema_version",
+      "migration_head",
+      "database_backend",
+      "created_at_database_time",
+      "file_inventory",
+      "file_sha256",
+      "aggregate_sha256"
+    ],
+    "consistency": "database snapshot and virtual-file content are captured at one quiesced revision boundary",
+    "restore_rule": "restore into an empty isolated target and verify every digest and schema invariant before a separate explicit activation decision",
+    "sqlite_activation": "while the service is stopped, manually replace the configured database file only after exact isolated-target verification and retain the prior file for rollback",
+    "postgresql_activation": "reconstruct and verify a separately named isolated database; this contract does not authorize database rename, connection swap, replication, online cutover, or automatic activation",
+    "postgresql_manual_activation_required": true,
+    "overwrite_live_target": false,
+    "partial_restore": false,
+    "backup_as_export": false
+  },
+  "corruption_matrix": [
+    {
+      "target": "migration ledger or schema fingerprint",
+      "outcome": "SCHEMA_CORRUPT"
+    },
+    {
+      "target": "typed value, catalog, dictionary, container, or namespace digest",
+      "outcome": "DATA_CORRUPT"
+    },
+    {
+      "target": "virtual-file content or metadata digest",
+      "outcome": "FILE_CORRUPT"
+    },
+    {
+      "target": "backup manifest, member inventory, or aggregate digest",
+      "outcome": "BACKUP_CORRUPT"
+    },
+    {
+      "target": "idempotency settlement or audit-outbox sequence",
+      "outcome": "EVIDENCE_CORRUPT"
+    }
+  ],
+  "rollback_policy": {
+    "empty_unactivated_v08_schema": "may remove exactly the fifteen v0.8 tables only when data_schema_fingerprints contains exactly the matching 0007 record with activated false; every other v0.8 table has zero rows; no v0.8 virtual-file content, idempotency settlement, audit-outbox event, unknown object, or later migration exists; and the live schema fingerprint exactly matches 0007",
+    "populated_schema": "restore the verified pre-migration backup; destructive down-migration is forbidden",
+    "later_migration_present": "REJECTED",
+    "unknown_object_present": "REJECTED",
+    "record_drift": "REJECTED",
+    "rollback_success_claim": "requires restored schema and record digests equal to the pre-migration manifest"
+  },
+  "restart_recovery": [
+    "A crash before migration commit leaves 0007 pending and no visible partial schema.",
+    "A crash after commit resumes from the recorded schema fingerprint without replaying DDL.",
+    "A crash during backup leaves an uncommitted temporary backup that is never eligible for restore.",
+    "A crash during restore leaves the active target unchanged until full validation and activation complete.",
+    "Data services remain mutation-disabled whenever schema, record, content, or evidence verification fails."
+  ],
+  "nonclaims": {
+    "production_migration": false,
+    "high_availability": false,
+    "online_zero_downtime_migration": false,
+    "external_backup_service": false,
+    "cloud_or_network_storage": false,
+    "encryption_or_key_management_acceptance": false,
+    "operational_recovery_authorization": false
+  }
+}

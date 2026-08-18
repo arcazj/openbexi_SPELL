@@ -6,6 +6,49 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-17 - v0.7.0 Accepted And v0.8 Gate 0A Approved
+
+### v0.7.0 Accepted Release
+
+The conditional v0.7.0 acceptance recorded in release commit
+`cf18e9d887ba0476cbcc3d8194e321332a3ae864` became effective when the project
+owner created and strictly verified annotated tag `v0.7.0` on 2026-08-17. Tag
+object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, raw tag-object SHA-256
+`dfa9c0c68cd3c9f3a64768392c001a66b1641e31dcae1ffd5bf2c40197838cae`, peels
+to that release commit and binds qualified source
+`6ac43c5be7670ead09de821578cc6c6a680af109`, candidate
+`82b497227aff097db9d4c3ff56adf56d76d892ca`, source fingerprint
+`a04e158843acf2da08696e647d16f8f72f6dd329dd807daeb381f85911b817fb`,
+product fingerprint
+`fc9fb26fcb5cea7518f43064beb3ebb40a298c5ec31b93663fd27b0cabcc6633`, and
+evidence fingerprint
+`7fe2a643ed335c4057aaac0976de6f1ef944543aae6ca53e9e71b7a5cffcb718`.
+
+Final qualification passed nine suite captures with 2,041 concrete tests,
+2,034 passes, seven exact SQLite environment skips, 36 subtests, and zero
+failures or errors. Four distinct image-bound SBOMs, the supply-chain audit,
+and deterministic packaging passed with zero High or Critical findings and
+zero unlocked inputs. Release-manifest SHA-256 is
+`e32e6fd025a8bb22af6a0e93151110f934b29df0a86004eae168e19fde42a70a`, and
+final archive SHA-256 is
+`90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`.
+Strict release and annotated-tag validation passed with no accepted exceptions.
+
+### v0.8 Owner Direction And Gate 0A Approval
+
+Following accepted v0.7.0, the owner direction to proceed to v0.8 authorized
+the bounded Data and Local Service Compatibility gate recorded in
+[`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md).
+`V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
+and their 45 planned proof identities under
+`LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The exact marker is
+`gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
+This is planning and implementation-entry authorization only: it claims no
+v0.8 source, API, schema, migration, dependency, runtime artifact, executed
+product test, qualification, release, operational authorization, compliance
+determination, or acceptance. v0.9 remains requested-only with no completed
+Gate 0A or implementation claim.
+
 ## 2026-08-16 - v0.7 Candidate Qualified And Gate 0B Passed
 
 Canonical candidate qualification passed for commit
