@@ -1,0 +1,118 @@
+{
+  "schema_version": "spell.v09.language-services/1",
+  "contract_id": "V09-LANGUAGE-SERVICES",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-002",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#non-executing-language-services",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/SYSTEM_REQUIREMENTS.md#procedure-authoring-git-and-promotion",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-002-PARSER-GOLDEN",
+    "V09-DEV-002-EDITOR",
+    "V09-DEV-002-COMPLETION",
+    "V09-DEV-002-NON-EXECUTION",
+    "V09-DEV-002-DETERMINISM"
+  ],
+  "editor": {
+    "document_kinds": ["PROCEDURE", "LIBRARY", "PROJECT_METADATA"],
+    "features": [
+      "syntax_highlighting",
+      "folding",
+      "outline",
+      "symbol_navigation",
+      "completion",
+      "find_replace",
+      "column_selection",
+      "deterministic_formatting"
+    ],
+    "save_requires_workspace_revision": true,
+    "source_is_text_only": true,
+    "editor_buffer_is_executable": false
+  },
+  "service_boundary": {
+    "engine": "bounded parser and static compiler only",
+    "module_isolation": "pure capability-isolated parser module inside the existing backend and qualification image",
+    "new_process_or_container_required": false,
+    "worker_supervisor_driver_or_gcs_imports_allowed": false,
+    "network_enabled": false,
+    "driver_or_gcs_client_available": false,
+    "procedure_imports_executed": false,
+    "source_eval_or_exec": false,
+    "expression_evaluation": false,
+    "host_process_launch": false,
+    "host_environment_discovery": false,
+    "python_interpreter_configuration": false
+  },
+  "diagnostic_contract": {
+    "required_fields": [
+      "diagnostic_id",
+      "code",
+      "severity",
+      "source_path",
+      "start_line",
+      "start_column",
+      "end_line",
+      "end_column",
+      "language_profile",
+      "message",
+      "remediation_ref",
+      "tool_version"
+    ],
+    "stable_identity_inputs": [
+      "workspace_revision",
+      "source_digest",
+      "diagnostic_code",
+      "exact_source_span",
+      "tool_version"
+    ],
+    "same_inputs_same_order_and_bytes": true,
+    "runtime_values_inferred": false
+  },
+  "outline_symbols": [
+    "HEADER",
+    "ARGUMENT",
+    "STEP",
+    "GOTO_LABEL",
+    "FUNCTION",
+    "LOCAL_VARIABLE",
+    "SPELL_CALL",
+    "DICTIONARY_REFERENCE",
+    "TM_REFERENCE",
+    "TC_REFERENCE"
+  ],
+  "templates_and_snippets": {
+    "built_in": true,
+    "custom": true,
+    "catalog_driven": true,
+    "output": "text inserted into the editor buffer",
+    "template_language_execution": false,
+    "shell_or_process_hooks": false,
+    "automatic_runtime_submission": false,
+    "maximum_output_bytes": 262144
+  },
+  "limits": {
+    "maximum_source_bytes": 100000,
+    "maximum_ast_nodes": 20000,
+    "maximum_ast_depth": 64,
+    "maximum_completion_items": 500,
+    "maximum_outline_items": 5000,
+    "maximum_diagnostics_per_file": 1000
+  },
+  "nonclaims": {
+    "arbitrary_python_support": false,
+    "interpreter_or_pythonpath_management": false,
+    "runtime_execution": false,
+    "live_gcs_resolution": false,
+    "network_dependency_resolution": false,
+    "cryptographic_signature": false
+  }
+}

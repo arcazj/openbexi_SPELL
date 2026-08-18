@@ -1,0 +1,122 @@
+{
+  "schema_version": "spell.v09.collaboration-history/1",
+  "contract_id": "V09-COLLABORATION-HISTORY",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-006",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#branch-and-change-workflow",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/decisions/ADR-005-git-promotion-and-immutable-bundles.md",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-006-HISTORY",
+    "V09-DEV-006-DIFF",
+    "V09-DEV-006-CONFLICT",
+    "V09-DEV-006-COLLABORATION-RACE",
+    "V09-DEV-006-SECURITY"
+  ],
+  "provider_boundary": {
+    "model": "provider-neutral server-managed local history",
+    "git_remote": false,
+    "svn_or_cvs_remote": false,
+    "network_access": false,
+    "browser_repository_credentials": false,
+    "server_remote_credentials": false,
+    "provider_plugin_api": false,
+    "future_remote_provider_requires_new_gate": true
+  },
+  "history_revision": {
+    "required_fields": [
+      "history_revision_id",
+      "project_id",
+      "parent_revision_ids",
+      "tree_digest",
+      "author_subject",
+      "message",
+      "database_time",
+      "validation_summary_digest"
+    ],
+    "digest_algorithm": "SHA-256",
+    "immutable_after_commit": true,
+    "force_rewrite": false,
+    "delete_history": false,
+    "generated_bundle_bytes_in_history": false
+  },
+  "operations": [
+    "STATUS",
+    "DIFF_WORKSPACE_TO_BASE",
+    "DIFF_REVISIONS",
+    "COMMIT_SELECTED_CHANGES",
+    "SHOW_HISTORY",
+    "REVERT_AS_NEW_CHANGE",
+    "REFRESH_BASE",
+    "RESOLVE_CONFLICT"
+  ],
+  "diff_contract": {
+    "text_diff": true,
+    "metadata_diff": true,
+    "rename_detection": true,
+    "case_change_detection": true,
+    "dependency_impact": true,
+    "validation_delta": true,
+    "bounded_context_lines": 20,
+    "binary_diff": false
+  },
+  "conflict_kinds": [
+    "TEXT",
+    "DELETE_MODIFY",
+    "RENAME_RENAME",
+    "RENAME_DELETE",
+    "CASE_COLLISION",
+    "METADATA",
+    "DEPENDENCY"
+  ],
+  "conflict_rules": {
+    "three_way_base_required": true,
+    "explicit_resolution_required": true,
+    "mark_resolved_requires_digest": true,
+    "validation_after_resolution_required": true,
+    "silent_automerge": false,
+    "lost_update": false
+  },
+  "collaboration": {
+    "presence_is_advisory": true,
+    "file_lock_is_advisory": true,
+    "stale_lock_blocks_recovery": false,
+    "workspace_revision_remains_authoritative": true,
+    "author_role": "operator",
+    "review_role": "admin",
+    "review_subject_must_differ_from_author_subject": true,
+    "broad_team_action": false
+  },
+  "limits": {
+    "maximum_revisions_per_project": 100000,
+    "maximum_parents": 2,
+    "maximum_commit_message_bytes": 4096,
+    "maximum_diff_files": 10000,
+    "maximum_diff_bytes": 16777216,
+    "maximum_presence_records": 1000
+  },
+  "strengthened_legacy_equivalents": {
+    "import": "bounded browser upload under the import contract, never repository checkout",
+    "history": "immutable local history revisions, never CVS, SVN, or remote Git",
+    "diff": "bounded server-computed text and metadata diff",
+    "conflict": "explicit revision-bound three-way resolution with revalidation",
+    "lock": "advisory presence only, never mandatory provider lock semantics"
+  },
+  "nonclaims": {
+    "git_implementation": false,
+    "remote_provider_integration": false,
+    "commit_signature": false,
+    "code_owner_service": false,
+    "runtime_source_loading": false,
+    "operational_authorization": false
+  }
+}

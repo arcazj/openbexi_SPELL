@@ -22,10 +22,10 @@ as operational qualification.
 
 ## Current Baseline And Candidate
 
-At the v0.8 source-freeze boundary, SPELL v0.7.0 is the accepted local
-synthetic non-CUI simulator engineering baseline. Annotated tag object
-`70e4d46a46d158dee3c63ec37a5d1922b3b61668` peels to release commit
-`cf18e9d887ba0476cbcc3d8194e321332a3ae864`. The cumulative accepted product is
+SPELL v0.8.0 is the accepted local synthetic non-CUI simulator engineering
+baseline. Annotated tag object
+`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` peels to release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`. The cumulative accepted product is
 built from new first-party code and provides:
 
 - Python 3.13 FastAPI control plane and isolated procedure workers.
@@ -38,6 +38,10 @@ built from new first-party code and provides:
 - A separately isolated, authenticated simulator driver lifecycle, durable
   operator workspace and procedure composition, and simulator-only read-only
   observations, conditions, scheduling, resource reads, limits, and cursors.
+- Canonical typed values, revisioned catalogs and dictionaries, non-executing
+  DB/IMP exchange, typed `ARGS`/`IVARS`, durable shared data, virtual-root
+  files, authenticated data APIs, transactional audit/outbox settlement,
+  migration and recovery, and the Data Service console workspace.
 - SQLite development storage and PostgreSQL 18 target storage with ordered,
   versioned migrations.
 - Versioned REST mutations and snapshots plus authenticated, downstream-only,
@@ -50,19 +54,14 @@ built from new first-party code and provides:
   packages, version-scoped backend/driver/frontend/proxy CycloneDX SBOMs, and
   dependency audit gates.
 
-`V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
-and their 45 proof identities under `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`.
-The bounded v0.8 implementation adds typed values, revisioned catalogs and
-dictionaries, non-executing DB/IMP exchange, typed `ARGS`/`IVARS`, shared data,
-virtual-root files, authenticated data APIs, durable mutation/audit/outbox
-records, migration and recovery, and the Data Service console workspace.
-
-Treat v0.8 as pending unless its candidate and Final evidence both validate,
-Gate 0B is `PASS`, the deterministic package and four SBOMs validate, and the
-annotated `v0.8.0` tag passes strict post-tag verification. Once all conditions
-hold, the tag and `SPELL_v0.8_Release.md` supersede this source-freeze snapshot
-as the accepted baseline record. v0.9 remains requested-only until its own
-explicit Gate 0A passes. No current release provides a legacy or live Ground
+The owner request `start and complete asap V0.9` is recorded on 2026-08-18.
+`V09-GATE-0A PASS` authorizes exactly `V09-DEV-001` through `V09-DEV-009` and
+their 45 planned proof identities under
+`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. This is planning and
+implementation-entry authorization only. It claims zero implemented product
+constructs, runtime artifacts, candidate evidence, qualification results,
+release, deployment, compliance, cryptographic signatures, or operational
+authority. No current release provides a legacy or live Ground
 Control System client, spacecraft or mission-network connection, externally
 effective command, production identity, high availability, deployment
 approval, compliance determination, mission authority, or operational
@@ -218,21 +217,27 @@ version series.
   artifact root. Never use one version's retained evidence to satisfy, replace,
   or package another version.
 - Use only the active version's hash-pinned toolchain and canonical producers.
-  Initialize v0.8 commands with `scripts/assert_release_toolchain_v04.ps1` and
-  invoke Python tools with the resulting `SPELL_RELEASE_PYTHON_EXE` and `-I`;
-  never substitute an ambient interpreter. The v0.8 scope profile is
-  `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`, while qualification requires the
-  distinct exact confirmation `LOCAL_SYNTHETIC_NON_CUI_ONLY`. The canonical
-  producers and validators are `scripts/qualify_candidate_v08.ps1`,
-  `scripts/validate_candidate_evidence_v08.py`,
-  `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v08_gate_0b.py`,
-  `scripts/qualify_release_v08.ps1`, `scripts/generate_sbom_v08.ps1`,
-  `scripts/audit_supply_chain_v08.ps1`,
-  `scripts/create_release_qualification_v08.py`, and
-  `scripts/package_release_v08.ps1`, followed by
-  `scripts/validate_release_evidence_v08.py`. Inspect source, package bytes, and
-  all four images for secrets, excluded manuals or archives, generated journals,
-  and runtime generator tooling.
+  Initialize v0.9 commands with `scripts/assert_release_toolchain_v04.ps1`,
+  validate the accepted baseline with
+  `scripts/assert_accepted_v08_release_v09.ps1`, and invoke Python tools with
+  the resulting `SPELL_RELEASE_PYTHON_EXE` and `-I`; never substitute an
+  ambient interpreter. The v0.9 scope profile is
+  `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`, while qualification
+  requires the distinct exact confirmation `LOCAL_SYNTHETIC_NON_CUI_ONLY`.
+  The Gate 0A validator is
+  `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0a.py`.
+  Before candidate work, implement and bind version-scoped canonical producers
+  and validators named `scripts/qualify_candidate_v09.ps1`,
+  `scripts/validate_candidate_evidence_v09.py`,
+  `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0b.py`,
+  `scripts/qualify_release_v09.ps1`, `scripts/generate_sbom_v09.ps1`,
+  `scripts/audit_supply_chain_v09.ps1`,
+  `scripts/create_release_qualification_v09.py`,
+  `scripts/package_release_v09.ps1`, and
+  `scripts/validate_release_evidence_v09.py`. These reserved names describe
+  the required flow; their mention is not an implementation or evidence claim.
+  Inspect source, package bytes, and all four images for secrets, excluded
+  manuals or archives, generated journals, and runtime generator tooling.
 - Preserve unrelated user changes. Do not rewrite or discard them to obtain a
   clean working tree.
 
@@ -266,7 +271,7 @@ version series.
    object is eligible as the release commit. Never tag, publish, or describe the
    transient object as a release.
 8. On the clean complete release commit, run
-   `scripts/validate_release_evidence_v08.py` before tagging, create the
+   `scripts/validate_release_evidence_v09.py` before tagging, create the
    requested annotated semantic-version tag, then rerun that validator with
    `--require-tag`. Keep prior history and accepted evidence immutable.
 9. When the release includes a web application, start the verified local stack

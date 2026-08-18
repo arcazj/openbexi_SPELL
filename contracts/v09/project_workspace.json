@@ -1,0 +1,121 @@
+{
+  "schema_version": "spell.v09.project-workspace/1",
+  "contract_id": "V09-PROJECT-WORKSPACE",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-001",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v09-spell-development-environment",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#repository-contract",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-001-CONTRACT",
+    "V09-DEV-001-PROJECT-LIFECYCLE",
+    "V09-DEV-001-WORKSPACE-RACE",
+    "V09-DEV-001-BROWSER",
+    "V09-DEV-001-SECURITY"
+  ],
+  "web_surface": {
+    "entry_path": "/development.html",
+    "operator_entry_path": "/index.html",
+    "separate_document_entry": true,
+    "operator_console_tab": false,
+    "runtime_control_components_imported": false,
+    "shared_mutable_frontend_store": false,
+    "authentication": "existing signed local JWT subject and role",
+    "browser_git_credentials": false,
+    "browser_database_credentials": false
+  },
+  "project_manifest": {
+    "path": "spell-project.yaml",
+    "format": "bounded YAML subset parsed as data without constructors, tags, aliases, merge keys, or duplicate keys",
+    "required_fields": [
+      "schema_version",
+      "project_id",
+      "display_name",
+      "language_profile",
+      "source_roots",
+      "case_policy",
+      "catalog_dependencies",
+      "owners",
+      "policy_labels"
+    ],
+    "stable_procedure_id_required": true,
+    "unknown_field_outcome": "REJECTED",
+    "maximum_bytes": 262144
+  },
+  "workspace_identity": [
+    "project_id",
+    "base_bundle_digest",
+    "author_subject",
+    "workspace_id",
+    "workspace_revision"
+  ],
+  "workspace_rules": {
+    "server_managed": true,
+    "single_author_subject": true,
+    "optimistic_concurrency_required": true,
+    "expected_workspace_revision_required": true,
+    "last_writer_wins": false,
+    "host_path_disclosed": false,
+    "absolute_path_accepted": false,
+    "symlink_or_reparse_traversal": false,
+    "casefold_collision_outcome": "CASE_CONFLICT",
+    "stale_revision_outcome": "WORKSPACE_REVISION_CONFLICT"
+  },
+  "resource_kinds": [
+    "PROJECT",
+    "SOURCE_FOLDER",
+    "FOLDER",
+    "PROCEDURE",
+    "DICTIONARY",
+    "PROJECT_METADATA"
+  ],
+  "operations": [
+    "CREATE_PROJECT",
+    "OPEN_PROJECT",
+    "CLOSE_PROJECT",
+    "LIST_TREE",
+    "READ_RESOURCE",
+    "CREATE_RESOURCE",
+    "UPDATE_RESOURCE",
+    "COPY_RESOURCE",
+    "MOVE_RESOURCE",
+    "RENAME_RESOURCE",
+    "DELETE_RESOURCE",
+    "READ_PROPERTIES"
+  ],
+  "mutation_contract": {
+    "actor_role": "operator",
+    "actor_duty": "author",
+    "expected_workspace_revision_required": true,
+    "idempotency_key_required": true,
+    "strict_request_schema": true,
+    "audit_record_required": true,
+    "runtime_catalog_mutation": false,
+    "execution_or_schedule_mutation": false
+  },
+  "limits": {
+    "maximum_projects_per_subject": 32,
+    "maximum_open_workspaces_per_subject": 8,
+    "maximum_resources_per_project": 10000,
+    "maximum_tree_depth": 32,
+    "maximum_resource_bytes": 16777216,
+    "maximum_project_bytes": 67108864
+  },
+  "nonclaims": {
+    "desktop_launcher": false,
+    "python_interpreter_selection": false,
+    "arbitrary_host_filesystem_access": false,
+    "remote_repository_access": false,
+    "runtime_source_loading": false,
+    "operational_authorization": false
+  }
+}

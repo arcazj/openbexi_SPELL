@@ -1,0 +1,118 @@
+{
+  "schema_version": "spell.v09.promotion-registry/1",
+  "contract_id": "V09-PROMOTION-REGISTRY",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-008",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#promotion",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#rollback-and-withdrawal",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/decisions/ADR-005-git-promotion-and-immutable-bundles.md"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-008-STATE-MACHINE",
+    "V09-DEV-008-AUTHORIZATION",
+    "V09-DEV-008-TRANSACTION-AUDIT",
+    "V09-DEV-008-ROLLBACK-WITHDRAWAL",
+    "V09-DEV-008-PINNING"
+  ],
+  "scope": {
+    "environment": "local-simulator",
+    "additional_environment": false,
+    "live_gcs": false,
+    "spacecraft": false,
+    "mission_network": false,
+    "telecommand_or_driver_mutation": false
+  },
+  "states": ["CANDIDATE", "APPROVED", "PROMOTED", "SUPERSEDED", "WITHDRAWN"],
+  "allowed_transitions": [
+    {"from": "CANDIDATE", "operation": "APPROVE", "to": "APPROVED"},
+    {"from": "APPROVED", "operation": "PROMOTE", "to": "PROMOTED"},
+    {"from": "PROMOTED", "operation": "SUPERSEDE", "to": "SUPERSEDED"},
+    {"from": "APPROVED", "operation": "WITHDRAW", "to": "WITHDRAWN"},
+    {"from": "PROMOTED", "operation": "WITHDRAW", "to": "WITHDRAWN"},
+    {"from": "SUPERSEDED", "operation": "ROLLBACK_PROMOTE", "to": "PROMOTED"}
+  ],
+  "separation_of_duties": {
+    "author_role": "operator",
+    "administrative_decision_role": "admin",
+    "review_approve_promote_role": "admin",
+    "author_subject_must_differ_from_administrative_decision_subject": true,
+    "admin_may_edit_author_workspace": false,
+    "operator_may_review_approve_or_promote": false,
+    "self_review_or_self_promotion": false,
+    "browser_asserted_role_or_subject": false
+  },
+  "admission": {
+    "existing_bundle_required": true,
+    "bundle_digest_recomputed": true,
+    "manifest_schema_verified": true,
+    "validation_evidence_verified": true,
+    "review_record_verified": true,
+    "compatibility_profile_verified": true,
+    "target_environment_verified": true,
+    "cryptographic_signature_required": false,
+    "promotion_rebuilds_bundle": false,
+    "mutable_workspace_or_history_head_accepted": false
+  },
+  "transaction": {
+    "database_backed": true,
+    "expected_registry_revision_required": true,
+    "idempotency_key_required": true,
+    "decision_registry_audit_and_outbox_atomic": true,
+    "previous_and_new_digest_recorded": true,
+    "actor_reason_and_correlation_recorded": true,
+    "partial_success": false,
+    "last_writer_wins": false
+  },
+  "runtime_admission": {
+    "applies_to": "v0.9_authoring_managed_procedures",
+    "v0_9_authoring_managed_new_start_resolves_promoted_digest_only": true,
+    "v0_9_authoring_managed_raw_procedure_directory_source": false,
+    "workspace_source": false,
+    "history_revision_source": false,
+    "unpromoted_v0_9_authored_procedure_available_to_runtime": false,
+    "workspace_or_history_change_alters_runtime": false,
+    "bundle_bytes_and_digest_verified_before_load": true,
+    "data_only_ir_required": true,
+    "inherited_v0_8_bundled_simulator_fixtures": "remain on the accepted v0.8 admission path until a separately gated migration",
+    "inherited_v0_8_fixture_behavior_changed_by_v0_9_gate": false
+  },
+  "pinning": {
+    "execution_pins_bundle_digest_at_create": true,
+    "schedule_pins_bundle_digest_at_create": true,
+    "later_promotion_retargets_execution": false,
+    "later_promotion_retargets_schedule": false,
+    "withdrawal_stops_running_execution_implicitly": false,
+    "withdrawal_allows_new_start": false
+  },
+  "rollback": {
+    "operation": "new audited promotion of a previously approved immutable digest",
+    "rewrite_history": false,
+    "overwrite_bundle": false,
+    "silent_runtime_reload": false,
+    "compatibility_check_required": true,
+    "reason_required": true
+  },
+  "limits": {
+    "maximum_catalog_entries": 10000,
+    "maximum_history_per_entry": 100000,
+    "maximum_reason_bytes": 4096,
+    "maximum_idempotency_records": 100000,
+    "record_eviction": false
+  },
+  "nonclaims": {
+    "cryptographic_signature": false,
+    "remote_or_operational_promotion": false,
+    "production_environment": false,
+    "live_gcs_route": false,
+    "automatic_active_execution_migration": false,
+    "compliance_determination": false
+  }
+}

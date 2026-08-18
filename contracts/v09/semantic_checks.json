@@ -1,0 +1,96 @@
+{
+  "schema_version": "spell.v09.semantic-checks/1",
+  "contract_id": "V09-SEMANTIC-CHECKS",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-004",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#validation-pipeline",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/SYSTEM_REQUIREMENTS.md#procedure-authoring-git-and-promotion",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-004-UNIT",
+    "V09-DEV-004-PROJECT-CHECK",
+    "V09-DEV-004-CANCELLATION",
+    "V09-DEV-004-PROBLEMS",
+    "V09-DEV-004-RECOVERY"
+  ],
+  "check_scopes": ["FILE", "FOLDER", "PROJECT", "CHANGED_SET"],
+  "ordered_checks": [
+    "manifest_and_path_integrity",
+    "parse_and_schema",
+    "headers_arguments_steps_gotos_and_functions",
+    "SPELL_calls_and_modifiers",
+    "types_and_scopes",
+    "dictionary_and_catalog_references",
+    "dependency_graph_cycles_and_versions",
+    "compatibility_and_policy"
+  ],
+  "job_contract": {
+    "server_managed": true,
+    "job_identity_inputs": ["project_id", "workspace_revision", "scope", "tool_version"],
+    "states": ["QUEUED", "RUNNING", "CANCEL_REQUESTED", "CANCELLED", "COMPLETED", "FAILED"],
+    "cancellation_cooperative_and_bounded": true,
+    "maximum_cancel_settlement_seconds": 5,
+    "progress_monotonic": true,
+    "partial_results_authoritative": false,
+    "stale_workspace_result_published": false,
+    "restart_outcome": "FAILED_RETRYABLE"
+  },
+  "problems_projection": {
+    "durable_for_workspace_revision": true,
+    "stable_diagnostic_ids": true,
+    "sort_order": ["source_path", "start_line", "start_column", "severity", "code", "diagnostic_id"],
+    "navigate_to_exact_span": true,
+    "copy_bounded_selection": true,
+    "marker_tooltip": true,
+    "clean_results_requires_revision": true,
+    "check_on_save_debounced": true,
+    "check_on_save_cancellable": true
+  },
+  "library_cache": {
+    "key": "library content digest, language profile, tool version",
+    "reparse_explicitly_supported": true,
+    "digest_verified_before_reuse": true,
+    "cross_project_untrusted_reuse": false,
+    "cache_is_authoritative": false
+  },
+  "report": {
+    "format": "canonical bounded UTF-8 JSON",
+    "required_fields": [
+      "project_id",
+      "workspace_revision",
+      "scope",
+      "started_at",
+      "completed_at",
+      "tool_version",
+      "input_digests",
+      "diagnostics",
+      "outcome"
+    ],
+    "host_report_folder_parameter": false,
+    "download_only": true
+  },
+  "non_execution": {
+    "procedure_source_executed": false,
+    "procedure_imports_loaded": false,
+    "expressions_evaluated": false,
+    "driver_or_gcs_contacted": false,
+    "network_enabled": false,
+    "runtime_worker_used": false
+  },
+  "limits": {
+    "maximum_project_files": 10000,
+    "maximum_project_bytes": 67108864,
+    "maximum_dependency_nodes": 1024,
+    "maximum_diagnostics": 100000,
+    "maximum_concurrent_jobs_per_subject": 2
+  }
+}

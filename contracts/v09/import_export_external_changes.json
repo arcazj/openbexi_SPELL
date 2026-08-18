@@ -1,0 +1,110 @@
+{
+  "schema_version": "spell.v09.import-export-external-changes/1",
+  "contract_id": "V09-IMPORT-EXPORT-EXTERNAL-CHANGES",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-005",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#branch-and-change-workflow",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/SYSTEM_REQUIREMENTS.md#procedure-authoring-git-and-promotion",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-005-IMPORT-EXPORT",
+    "V09-DEV-005-EXTERNAL-CHANGE",
+    "V09-DEV-005-CASE-CONFLICT",
+    "V09-DEV-005-PATH-SECURITY",
+    "V09-DEV-005-PROVENANCE"
+  ],
+  "transport": {
+    "import": "authenticated bounded browser upload to server quarantine",
+    "export": "authenticated bounded browser download",
+    "host_path_parameter": false,
+    "remote_url_parameter": false,
+    "network_fetch": false,
+    "browser_filesystem_handle_persisted": false,
+    "content_sha256_required": true
+  },
+  "archive_contract": {
+    "media_type": "application/vnd.openbexi.spell.project+zip",
+    "compression_methods": ["STORE", "DEFLATE"],
+    "manifest_required": true,
+    "relative_forward_slash_paths_only": true,
+    "duplicate_paths": "REJECTED",
+    "casefold_collisions": "REJECTED",
+    "absolute_or_parent_paths": "REJECTED",
+    "symlink_hardlink_reparse_or_device_entries": "REJECTED",
+    "encrypted_entries": "REJECTED",
+    "nested_archives": "REJECTED",
+    "executable_bits": "CLEARED",
+    "unknown_entry_type": "REJECTED"
+  },
+  "provenance": {
+    "required_fields": [
+      "operation_id",
+      "actor_subject",
+      "original_filename",
+      "original_media_type",
+      "original_byte_length",
+      "original_bytes_sha256",
+      "canonical_tree_sha256",
+      "base_workspace_revision",
+      "database_time"
+    ],
+    "original_bytes_retained": true,
+    "source_executed": false,
+    "promotable_before_blockers_resolved": false
+  },
+  "import_transaction": {
+    "parse_and_validate_before_mutation": true,
+    "expected_workspace_revision_required": true,
+    "all_or_nothing": true,
+    "partial_import": false,
+    "conflicts_returned_before_commit": true,
+    "audit_record_required": true
+  },
+  "external_change_detection": {
+    "server_workspace_revision_is_authoritative": true,
+    "client_base_revision_required": true,
+    "changed_resource_digests_compared": true,
+    "silent_refresh_or_overwrite": false,
+    "outcome": "EXTERNAL_CHANGE_CONFLICT",
+    "resolution_choices": ["RELOAD", "KEEP_AS_NEW_CHANGE", "THREE_WAY_MERGE"]
+  },
+  "case_and_rename_conflicts": {
+    "normalized_unicode": "NFC",
+    "path_separator": "/",
+    "case_policy_from_project_manifest": true,
+    "case_only_rename_uses_two_phase_server_operation": true,
+    "rename_delete_collision": "RENAME_CONFLICT",
+    "dependency_references_revalidated": true,
+    "lost_update": false
+  },
+  "limits": {
+    "maximum_archive_bytes": 67108864,
+    "maximum_uncompressed_bytes": 67108864,
+    "maximum_entries": 10000,
+    "maximum_path_utf8_bytes": 512,
+    "maximum_compression_ratio": 100,
+    "maximum_import_seconds": 30
+  },
+  "negative_only_legacy_actions": [
+    "delete arbitrary project contents on the host filesystem",
+    "checkout from SVN, CVS, Git, or another remote provider",
+    "import from or export to a caller-supplied host path"
+  ],
+  "nonclaims": {
+    "arbitrary_host_deletion": false,
+    "remote_repository_checkout": false,
+    "network_import": false,
+    "source_execution": false,
+    "runtime_catalog_mutation": false,
+    "operational_authorization": false
+  }
+}
