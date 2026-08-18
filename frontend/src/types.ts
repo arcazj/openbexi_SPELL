@@ -749,3 +749,186 @@ export interface PageResult<T> {
   items: T[];
   next_cursor?: string | null;
 }
+
+export type DataRevision = string;
+export type DataRole = "viewer" | "operator" | "admin" | "unknown";
+
+export type TypedDataValue = {
+  schema_version: "spell.data.value/1";
+  type:
+    | "NULL"
+    | "BOOLEAN"
+    | "INT64"
+    | "UINT64"
+    | "DECIMAL"
+    | "FINITE_DOUBLE"
+    | "STRING"
+    | "BYTES"
+    | "UTC_DATETIME"
+    | "REL_DURATION"
+    | "LIST"
+    | "MAP";
+  value: unknown;
+};
+
+export interface DataMutationResult {
+  new_revision: DataRevision;
+  operation_id: string;
+  outcome: string;
+  prior_revision: DataRevision;
+  replayed: boolean;
+}
+
+export interface DataCatalogSummary {
+  acl_revision: DataRevision;
+  catalog_id: string;
+  content_digest: string;
+  kind: "SCDB" | "GDB" | "PROC" | "MMD" | "USER_DICTIONARY";
+  revision: DataRevision;
+  schema_version: string;
+}
+
+export interface DataCatalogPage {
+  catalogs: DataCatalogSummary[];
+  next_cursor: string | null;
+  owner_revision: DataRevision;
+}
+
+export interface DataCatalogRevision extends DataCatalogSummary {
+  closure_digest: string;
+  content: Record<string, unknown>;
+}
+
+export interface DataCatalogPublishInput {
+  owner_id: string;
+  catalog_id: string;
+  acl_revision: DataRevision;
+  expected_revision: DataRevision;
+  idempotency_key: string;
+  kind: DataCatalogSummary["kind"];
+  schema_version: string;
+  entries: Array<{
+    entry_id: string;
+    qualified_name: string;
+    content: Record<string, unknown>;
+  }>;
+  dependencies?: Array<{
+    dependency_id: string;
+    target_catalog_id: string;
+    target_revision: DataRevision;
+    target_content_digest: string;
+    relationship: "IMPORTS" | "REFERENCES" | "MAPS_TO";
+  }>;
+}
+
+export interface DataDictionarySummary {
+  acl_revision: DataRevision;
+  content_digest: string;
+  dictionary_id: string;
+  revision: DataRevision;
+}
+
+export interface DataDictionaryPage {
+  dictionaries: DataDictionarySummary[];
+  next_cursor: string | null;
+  owner_revision: DataRevision;
+}
+
+export interface DataContainerSummary {
+  acl_revision: DataRevision;
+  container_id: string;
+  content_digest: string;
+  kind: "ARGS" | "IVARS" | "DATA_CONTAINER";
+  revision: DataRevision;
+  schema_revision: DataRevision;
+}
+
+export interface DataContainerPage {
+  containers: DataContainerSummary[];
+  next_cursor: string | null;
+  owner_revision: DataRevision;
+}
+
+export interface DataContainerVariable {
+  declared_type: "BOOLEAN" | "LONG" | "FLOAT" | "STRING" | "DATETIME" | "RELTIME";
+  name: string;
+  revision: DataRevision;
+  value: TypedDataValue;
+  value_digest: string;
+  variable_id: string;
+}
+
+export interface DataContainerDetail extends DataContainerSummary {
+  mutable: boolean;
+  owner_id: string;
+  variable_count: number;
+  variables?: DataContainerVariable[];
+}
+
+export interface DataContainerVariablePage {
+  container_id: string;
+  next_cursor: string | null;
+  revision: DataRevision;
+  variables: DataContainerVariable[];
+}
+
+export interface SharedNamespaceSummary {
+  acl_revision: DataRevision;
+  content_digest: string;
+  namespace_id: string;
+  revision: DataRevision;
+  scope: "PROJECT" | "CONTEXT" | "EXECUTION";
+}
+
+export interface SharedNamespacePage {
+  namespaces: SharedNamespaceSummary[];
+  next_cursor: string | null;
+  owner_revision: DataRevision;
+}
+
+export interface SharedNamespaceDetail extends SharedNamespaceSummary {
+  entry_count: number;
+  owner_id: string;
+}
+
+export interface SharedDataEntry {
+  entry_id: string;
+  key: string;
+  revision: DataRevision;
+  value: TypedDataValue;
+  value_digest: string;
+}
+
+export interface SharedDataEntryPage {
+  entries: SharedDataEntry[];
+  namespace_id: string;
+  next_cursor: string | null;
+  revision: DataRevision;
+}
+
+export type VirtualFileRoot = "PROCEDURE_DATA" | "PROJECT_DATA";
+export type VirtualFileEncoding = "UTF8_TEXT" | "BINARY";
+
+export interface VirtualFileNode {
+  content_sha256: string | null;
+  kind: "DIRECTORY" | "FILE";
+  name: string;
+  revision: DataRevision;
+  size: number;
+  virtual_path: string;
+}
+
+export interface VirtualDirectoryPage {
+  items: VirtualFileNode[];
+  next_cursor: string | null;
+  revision: DataRevision;
+  root_id: VirtualFileRoot;
+  virtual_path: string;
+}
+
+export interface VirtualFileContent {
+  blob: Blob;
+  content_sha256: string;
+  encoding: VirtualFileEncoding;
+  revision: DataRevision;
+}

@@ -22,7 +22,7 @@ from backend.driver_repository import (
     CapabilitySpec,
     DriverRepository,
 )
-from backend.migrations import run_migrations
+from backend.tests.migration_support import run_migrations
 
 
 NOW = datetime(2026, 7, 19, 12, 0, tzinfo=timezone.utc)

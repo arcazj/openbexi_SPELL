@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import multiprocessing
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -20,7 +22,7 @@ from sqlalchemy.engine import make_url
 
 import backend.migrations as migration_runner
 from backend.database import Base
-from backend.migrations import database_version, run_migrations, schema_migrations
+from backend.migrations import database_version, schema_migrations
 from backend.migrations.versions import (
     v0001_initial,
     v0002_execution_variables,
@@ -28,7 +30,9 @@ from backend.migrations.versions import (
     v0004_operator_workspace,
     v0005_observation_projection,
     v0006_observation_conditions,
+    v0007_data_local_service,
 )
+from backend.tests.migration_support import run_migrations
 
 
 DRIVER_TABLES = tuple(
@@ -43,11 +47,34 @@ OBSERVATION_TABLES = tuple(
 CONDITION_TABLES = tuple(
     table.name for table in v0006_observation_conditions.NEW_TABLES
 )
+DATA_TABLES = tuple(table.name for table in v0007_data_local_service.NEW_TABLES)
 V03_TABLES = ("executions", "events", "commands", "prompts")
+V0007_CRASH_EXIT_CODE = 87
+
+
+def crash_after_first_v0007_sqlite_ddl(
+    database_path: str, backup_directory: str
+) -> None:
+    original_create = Table.create
+
+    def create_then_crash(table, bind, *args, **kwargs):
+        result = original_create(table, bind, *args, **kwargs)
+        if table.name == DATA_TABLES[0]:
+            os._exit(V0007_CRASH_EXIT_CODE)
+        return result
+
+    Table.create = create_then_crash
+    engine = create_engine(f"sqlite:///{Path(database_path).as_posix()}")
+    migration_runner.run_migrations(
+        engine,
+        v0007_backup_directory=Path(backup_directory),
+    )
 
 
 def reset_migration_database(engine) -> None:
     with engine.begin() as connection:
+        for table in reversed(DATA_TABLES):
+            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in reversed(CONDITION_TABLES):
             connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
         for table in reversed(OBSERVATION_TABLES):
@@ -309,7 +336,10 @@ def assert_observation_schema_contract(engine) -> None:
 
 
 def seed_populated_v02_schema(engine) -> None:
-    Base.metadata.create_all(engine)
+    legacy_metadata = MetaData()
+    for table_name in V03_TABLES:
+        Base.metadata.tables[table_name].to_metadata(legacy_metadata)
+    legacy_metadata.create_all(engine)
     with engine.begin() as connection:
         connection.exec_driver_sql(
             "INSERT INTO executions "
@@ -494,6 +524,24 @@ def canonical_v03_snapshot(engine) -> dict[str, list[dict[str, object]]]:
     return snapshot
 
 
+def migrate_to_v0007_predecessor(engine, monkeypatch) -> None:
+    with monkeypatch.context() as migration_scope:
+        migration_scope.setattr(
+            migration_runner,
+            "MIGRATIONS",
+            migration_runner.MIGRATIONS[:-1],
+        )
+        assert migration_runner.run_migrations(engine) == tuple(
+            migration.VERSION for migration in migration_runner.MIGRATIONS
+        )
+    assert database_version(engine) == "0006_observation_conditions"
+
+
+def assert_v0007_remains_pending(engine) -> None:
+    assert database_version(engine) == "0006_observation_conditions"
+    assert not set(DATA_TABLES).intersection(inspect(engine).get_table_names())
+
+
 def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
     seed_populated_v03_schema(engine)
     before = canonical_v03_snapshot(engine)
@@ -503,9 +551,10 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
         "0004_operator_workspace",
         "0005_observation_projection",
         "0006_observation_conditions",
+        "0007_data_local_service",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0006_observation_conditions"
+    assert database_version(engine) == "0007_data_local_service"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -529,9 +578,10 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0004_operator_workspace",
         "0005_observation_projection",
         "0006_observation_conditions",
+        "0007_data_local_service",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0006_observation_conditions"
+    assert database_version(engine) == "0007_data_local_service"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -550,6 +600,132 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
+
+
+def test_v0007_preflight_requires_safe_backup_directory_before_ddl(
+    tmp_path: Path, monkeypatch
+) -> None:
+    engine = create_engine(f"sqlite:///{(tmp_path / 'preflight.sqlite').as_posix()}")
+    migrate_to_v0007_predecessor(engine, monkeypatch)
+
+    with pytest.raises(RuntimeError, match="explicit backup directory"):
+        migration_runner.run_migrations(engine)
+    assert_v0007_remains_pending(engine)
+
+    with pytest.raises(RuntimeError, match="existing, safely writable non-link"):
+        migration_runner.run_migrations(
+            engine,
+            v0007_backup_directory=tmp_path / "missing-backup-directory",
+        )
+    assert_v0007_remains_pending(engine)
+
+    regular_file = tmp_path / "not-a-directory"
+    regular_file.write_bytes(b"not a migration backup directory")
+    with pytest.raises(RuntimeError, match="existing, safely writable non-link"):
+        migration_runner.run_migrations(
+            engine,
+            v0007_backup_directory=regular_file,
+        )
+    assert_v0007_remains_pending(engine)
+
+    backup_directory = tmp_path / "migration-backups"
+    backup_directory.mkdir()
+    link = tmp_path / "migration-backup-link"
+    try:
+        link.symlink_to(backup_directory, target_is_directory=True)
+    except OSError:
+        pass
+    else:
+        with pytest.raises(RuntimeError, match="existing, safely writable non-link"):
+            migration_runner.run_migrations(
+                engine,
+                v0007_backup_directory=link,
+            )
+        assert_v0007_remains_pending(engine)
+
+    assert migration_runner.run_migrations(
+        engine,
+        v0007_backup_directory=backup_directory,
+    ) == ("0007_data_local_service",)
+    assert list(backup_directory.iterdir()) == []
+
+
+def test_v0007_preflight_rejects_unknown_table_before_ddl(
+    tmp_path: Path, monkeypatch
+) -> None:
+    engine = create_engine(f"sqlite:///{(tmp_path / 'unknown.sqlite').as_posix()}")
+    migrate_to_v0007_predecessor(engine, monkeypatch)
+    backup_directory = tmp_path / "unknown-backups"
+    backup_directory.mkdir()
+    with engine.begin() as connection:
+        connection.exec_driver_sql("CREATE TABLE arbitrary_unknown_object (id INTEGER)")
+
+    with pytest.raises(RuntimeError, match="object inventory differs"):
+        migration_runner.run_migrations(
+            engine,
+            v0007_backup_directory=backup_directory,
+        )
+    assert_v0007_remains_pending(engine)
+
+
+def test_v0007_preflight_rejects_fingerprint_drift_before_ddl(
+    tmp_path: Path, monkeypatch
+) -> None:
+    engine = create_engine(f"sqlite:///{(tmp_path / 'drifted.sqlite').as_posix()}")
+    migrate_to_v0007_predecessor(engine, monkeypatch)
+    backup_directory = tmp_path / "drifted-backups"
+    backup_directory.mkdir()
+    with engine.begin() as connection:
+        connection.exec_driver_sql(
+            "ALTER TABLE executions ADD COLUMN arbitrary_drift INTEGER"
+        )
+
+    with pytest.raises(RuntimeError, match="schema fingerprint differs"):
+        migration_runner.run_migrations(
+            engine,
+            v0007_backup_directory=backup_directory,
+        )
+    assert_v0007_remains_pending(engine)
+
+
+def test_v0007_sqlite_hard_exit_rolls_back_first_ddl(
+    tmp_path: Path, monkeypatch
+) -> None:
+    database_path = tmp_path / "hard-exit.sqlite"
+    engine = create_engine(f"sqlite:///{database_path.as_posix()}")
+    migrate_to_v0007_predecessor(engine, monkeypatch)
+    engine.dispose()
+    backup_directory = tmp_path / "hard-exit-backups"
+    backup_directory.mkdir()
+
+    process = multiprocessing.get_context("spawn").Process(
+        target=crash_after_first_v0007_sqlite_ddl,
+        args=(str(database_path), str(backup_directory)),
+    )
+    process.start()
+    process.join(timeout=30)
+    if process.is_alive():
+        process.kill()
+        process.join(timeout=5)
+        pytest.fail("v0007 hard-exit subprocess did not terminate")
+    assert process.exitcode == V0007_CRASH_EXIT_CODE
+
+    reopened = create_engine(f"sqlite:///{database_path.as_posix()}")
+    try:
+        assert_v0007_remains_pending(reopened)
+        with reopened.connect() as connection:
+            assert connection.scalar(
+                text(
+                    "SELECT COUNT(*) FROM schema_migrations "
+                    "WHERE version = '0007_data_local_service'"
+                )
+            ) == 0
+        assert migration_runner.run_migrations(
+            reopened,
+            v0007_backup_directory=backup_directory,
+        ) == ("0007_data_local_service",)
+    finally:
+        reopened.dispose()
 
 
 def test_migrations_upgrade_populated_v02_sqlite_database(tmp_path) -> None:
@@ -651,9 +827,10 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0004_operator_workspace",
         "0005_observation_projection",
         "0006_observation_conditions",
+        "0007_data_local_service",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0006_observation_conditions"
+    assert database_version(engine) == "0007_data_local_service"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -736,3 +913,59 @@ def test_failed_postgresql_migration_rolls_back_and_remains_pending(
                 "WHERE id = 'local-synthetic-simulator'"
             )
         ) is False
+
+
+@pytest.mark.skipif(
+    not os.getenv("SPELL_MIGRATION_TEST_DATABASE_URL"),
+    reason="dedicated PostgreSQL migration database not configured",
+)
+def test_v0007_postgresql_preflight_fails_closed_before_ddl(
+    tmp_path: Path, monkeypatch
+) -> None:
+    engine = postgresql_migration_engine()
+    reset_migration_database(engine)
+    try:
+        migrate_to_v0007_predecessor(engine, monkeypatch)
+
+        with pytest.raises(RuntimeError, match="explicit backup directory"):
+            migration_runner.run_migrations(engine)
+        assert_v0007_remains_pending(engine)
+
+        regular_file = tmp_path / "postgresql-not-a-directory"
+        regular_file.write_bytes(b"not a migration backup directory")
+        with pytest.raises(RuntimeError, match="existing, safely writable non-link"):
+            migration_runner.run_migrations(
+                engine,
+                v0007_backup_directory=regular_file,
+            )
+        assert_v0007_remains_pending(engine)
+
+        backup_directory = tmp_path / "postgresql-migration-backups"
+        backup_directory.mkdir()
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "CREATE TABLE arbitrary_unknown_object (id INTEGER)"
+            )
+        with pytest.raises(RuntimeError, match="object inventory differs"):
+            migration_runner.run_migrations(
+                engine,
+                v0007_backup_directory=backup_directory,
+            )
+        assert_v0007_remains_pending(engine)
+
+        with engine.begin() as connection:
+            connection.exec_driver_sql("DROP TABLE arbitrary_unknown_object")
+            connection.exec_driver_sql(
+                "ALTER TABLE executions ADD COLUMN arbitrary_drift INTEGER"
+            )
+        with pytest.raises(RuntimeError, match="schema fingerprint differs"):
+            migration_runner.run_migrations(
+                engine,
+                v0007_backup_directory=backup_directory,
+            )
+        assert_v0007_remains_pending(engine)
+        assert list(backup_directory.iterdir()) == []
+    finally:
+        reset_migration_database(engine)
+        run_migrations(engine)
+        engine.dispose()

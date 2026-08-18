@@ -27,6 +27,16 @@ from .ir_v07 import (
     validate_ir_v07,
     validate_observation_result,
 )
+from .ir_v08 import (
+    IR_VERSION as V08_IR_VERSION,
+    V08ValidationError,
+    closed_file_handle_reference,
+    data_request_for_step,
+    file_handle_reference,
+    is_file_handle_reference,
+    validate_data_result,
+    validate_ir_v08,
+)
 
 
 MAX_INTEGER_BITS = 4_096
@@ -328,10 +338,13 @@ def worker_main(
         output.put({"kind": kind, "generation": generation, **fields})
 
     try:
+        v08_preflight = ir_version == V08_IR_VERSION
         v07_preflight = ir_version == V07_IR_VERSION
-        v06_preflight = ir_version in {V06_IR_VERSION, V07_IR_VERSION}
+        v06_preflight = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
         validator = (
-            validate_ir_v07
+            validate_ir_v08
+            if v08_preflight
+            else validate_ir_v07
             if v07_preflight
             else validate_ir_v06
             if v06_preflight
@@ -440,7 +453,12 @@ def worker_main(
                 **resume_prompt_settlement,
                 "response": bounded_response,
             }
-    except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
+    except (
+        IRValidationError,
+        V06ValidationError,
+        V07ValidationError,
+        V08ValidationError,
+    ) as exc:
         send(
             "event",
             event_type="worker.ir_rejected",
@@ -457,7 +475,14 @@ def worker_main(
     variables.update(runtime_checkpoint)
     if durable_arguments is not None:
         variables["ARGS"] = durable_arguments
-    v06_runtime = ir_version in {V06_IR_VERSION, V07_IR_VERSION}
+    v06_runtime = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    file_handle_variables = {
+        step["target"]
+        for step in steps
+        if step.get("type") == "data_operation"
+        and step.get("operation") == "OPEN_FILE"
+        and type(step.get("target")) is str
+    }
     send(
         "event",
         event_type="worker.started",
@@ -471,6 +496,7 @@ def worker_main(
     completed_prompt_settlement_ids: set[str] = set()
     completed_startproc_ids: set[str] = set()
     completed_observation_ids: set[str] = set()
+    completed_data_ids: set[str] = set()
     applied_user_actions: dict[str, dict[str, Any]] = {}
     applied_inspection_edits: dict[str, dict[str, Any]] = {}
     applied_control_losses: set[str] = set()
@@ -592,6 +618,12 @@ def worker_main(
                     continue
                 name = operation.payload["name"]
                 declared_type = operation.payload["declared_type"]
+                if name in file_handle_variables:
+                    raise V06ValidationError(
+                        "USER_ACTION_TARGET_INVALID",
+                        "$.handler.name",
+                        "FileHandle variables are not user-action targets",
+                    )
                 if name not in validated_ir.variable_types or name not in variables:
                     raise V06ValidationError(
                         "USER_ACTION_TARGET_INVALID", "$.handler.name", "target does not exist"
@@ -675,6 +707,18 @@ def worker_main(
             target_container, target_name = _inspection_target(
                 message.get("scope"), message.get("path")
             )
+            if target_container is None and target_name in file_handle_variables:
+                raise V06ValidationError(
+                    "INSPECTION_EDIT_INVALID",
+                    "$.path",
+                    "FileHandle variables are not inspection-edit targets",
+                )
+            if ir_version == V08_IR_VERSION and target_container == "ARGS":
+                raise V06ValidationError(
+                    "INSPECTION_EDIT_INVALID",
+                    "$.scope",
+                    "v0.8 ARGS is immutable after admission",
+                )
             declared_edit_type = message.get("declared_type")
             if type(declared_edit_type) is not str:
                 raise V06ValidationError(
@@ -684,6 +728,14 @@ def worker_main(
                 )
             for name, value in incoming.items():
                 if name in RUNTIME_CONTAINER_NAMES:
+                    continue
+                if name in file_handle_variables and is_file_handle_reference(value):
+                    if value != variables.get(name):
+                        raise V06ValidationError(
+                            "INSPECTION_EDIT_INVALID",
+                            "$.variables",
+                            "FileHandle checkpoint reference changed",
+                        )
                     continue
                 declared_type = validated_ir.variable_types.get(name)
                 if (
@@ -835,6 +887,7 @@ def worker_main(
                 "prompt_settlement",
                 "startproc_result",
                 "observation_result",
+                "data_result",
             }:
                 deferred_controls.append(followup)
                 continue
@@ -968,6 +1021,11 @@ def worker_main(
             return None
         if command_type == "observation_result":
             if message.get("request_id") in completed_observation_ids:
+                return None
+            deferred_controls.append(message)
+            return None
+        if command_type == "data_result":
+            if message.get("request_id") in completed_data_ids:
                 return None
             deferred_controls.append(message)
             return None
@@ -1406,7 +1464,117 @@ def worker_main(
                     }
                 )
                 send("state", state="running")
-        except (ExpressionEvaluationError, V06ValidationError, V07ValidationError) as exc:
+            elif should_run and step["type"] == "data_operation":
+                request = data_request_for_step(
+                    execution_id,
+                    step,
+                    variables=variables,
+                    worker_generation=generation,
+                )
+                send("data_requested", **request)
+                send_safe_point("WAIT_BOUNDARY", step_index)
+                send("state", state="waiting")
+                data_result: dict[str, Any] | None = None
+                while data_result is None:
+                    message = wait_for_control(block=True, timeout=0.25)
+                    if message is None:
+                        continue
+                    message_type = message.get("type")
+                    if message_type == "safe_point_ack":
+                        continue
+                    if message_type in {"abort", "stop"}:
+                        send("state", state="aborted", command_id=message.get("command_id"))
+                        send("terminal", state="aborted")
+                        return
+                    if message_type == "kill":
+                        reject_control(message, "KILL_UNSUPPORTED", "hard kill is not supported")
+                        continue
+                    if message_type in {"pause", "control_loss"}:
+                        result = handle_control(message, step_index)
+                        if result is not None and result["disposition"] == "abort":
+                            return
+                        send("state", state="waiting")
+                        continue
+                    if message_type == "user_action":
+                        apply_user_action(message, step_index)
+                        continue
+                    if message_type == "inspection_edit":
+                        apply_inspection_edit(message, step_index)
+                        continue
+                    if message_type != "data_result":
+                        reject_control(
+                            message,
+                            "COMMAND_NOT_ALLOWED_IN_STATE",
+                            "only a data result is accepted at this boundary",
+                        )
+                        continue
+                    if message.get("request_id") != request["request_id"]:
+                        reject_control(
+                            message,
+                            "DATA_RESULT_INVALID",
+                            "data result identity does not match",
+                        )
+                        continue
+                    candidate = {
+                        key: value
+                        for key, value in message.items()
+                        if key not in {"type", "generation"}
+                    }
+                    try:
+                        data_result = validate_data_result(request, candidate)
+                    except V08ValidationError as exc:
+                        reject_control(message, exc.code, exc.message)
+                        continue
+
+                completed_data_ids.add(request["request_id"])
+                if data_result["outcome"] != "OK":
+                    raise ExpressionEvaluationError(
+                        f"{request['operation']} failed with {data_result['outcome']}"
+                    )
+                if "target" in step:
+                    if "value" not in data_result:
+                        raise ExpressionEvaluationError("data result omitted its target value")
+                    value = data_result["value"]
+                    if not _matches_type(value, step["target_type"]):
+                        raise ExpressionEvaluationError("data result type changed")
+                    if request["operation"] == "OPEN_FILE":
+                        variables[step["target"]] = file_handle_reference(
+                            value,
+                            execution_id=execution_id,
+                            worker_generation=generation,
+                            creator_request_id=request["request_id"],
+                        )
+                    else:
+                        variables[step["target"]] = (
+                            float(value)
+                            if step["target_type"] == "float" and type(value) is int
+                            else value
+                        )
+                if request["operation"] == "CLOSE_FILE":
+                    reference = step["parameters"]["handle"]
+                    variables[reference["name"]] = closed_file_handle_reference(
+                        variables.get(reference["name"])
+                    )
+                effects.append(
+                    {
+                        "event_type": "procedure.data_settled",
+                        "source": "worker",
+                        "severity": "info",
+                        "payload": {
+                            "request_id": request["request_id"],
+                            "operation": request["operation"],
+                            "outcome": data_result["outcome"],
+                            "step_index": step_index,
+                        },
+                    }
+                )
+                send("state", state="running")
+        except (
+            ExpressionEvaluationError,
+            V06ValidationError,
+            V07ValidationError,
+            V08ValidationError,
+        ) as exc:
             send(
                 "event",
                 event_type="procedure.error",

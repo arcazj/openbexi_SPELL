@@ -13,7 +13,7 @@ from backend.driver_repository import (
     CapabilitySpec,
     DriverRepository,
 )
-from backend.migrations import run_migrations
+from backend.tests.migration_support import run_migrations
 from scripts.seed_driver_projection_v04 import (
     BINDING_ID,
     CONTEXT_GENERATION_ID,

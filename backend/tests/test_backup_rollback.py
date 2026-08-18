@@ -15,12 +15,13 @@ from backend.driver_repository import (
     CapabilitySpec,
     DriverRepository,
 )
-from backend.migrations import database_version, run_migrations, schema_migrations
+from backend.migrations import database_version, schema_migrations
 from backend.migrations.rollback import (
     UnsafeDriverRollbackError,
     rollback_driver_foundation,
 )
 from backend.migrations.versions import v0003_driver_foundation
+from backend.tests.migration_support import run_migrations
 from backend.tests.test_migrations import (
     V03_TABLES,
     canonical_v03_snapshot,
@@ -281,4 +282,4 @@ def test_driver_rollback_rejects_a_later_applied_migration(tmp_path: Path) -> No
     with pytest.raises(UnsafeDriverRollbackError, match="later migrations"):
         rollback_driver_foundation(engine)
 
-    assert database_version(engine) == "0006_observation_conditions"
+    assert database_version(engine) == "0007_data_local_service"

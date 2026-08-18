@@ -58,7 +58,7 @@ from backend.driver_repository import (
     DriverNotFoundError,
     DriverRepository,
 )
-from backend.migrations import run_migrations
+from backend.tests.migration_support import run_migrations
 
 
 def uid(value: int) -> str:

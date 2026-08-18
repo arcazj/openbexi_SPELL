@@ -21,6 +21,9 @@ COPY scripts/issue_dev_token.py scripts/qualify_v03.py \
 RUN groupadd --gid 10001 spell \
     && useradd --uid 10001 --gid spell --no-create-home \
         --shell /usr/sbin/nologin spell \
+    && mkdir -p /var/lib/openbexi-spell/data \
+        /var/lib/openbexi-spell/migration-backups \
+    && chown -R spell:spell /var/lib/openbexi-spell \
     && chown -R spell:spell /app
 
 USER 10001:10001

@@ -678,12 +678,16 @@ def test_control_plane_restart_requires_explicit_recovery(
             schema_migrations.drop(connection, checkfirst=True)
             Base.metadata.drop_all(connection)
         engine.dispose()
+    migration_backups = tmp_path / "migration-backups"
+    migration_backups.mkdir(exist_ok=True)
     settings = Settings(
         database_url=database_url,
         procedures_dir=procedures_dir,
+        data_dir=tmp_path / "spell-data-restart",
         websocket_replay_limit=1000,
         websocket_queue_size=64,
         websocket_keepalive_seconds=0.1,
+        v0007_backup_directory=migration_backups,
     )
     with TestClient(create_app(settings, auth_config=auth_config)) as first_client:
         execution_id = create_execution(first_client, operator_headers, "recovery")

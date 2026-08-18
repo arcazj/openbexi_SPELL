@@ -47,6 +47,8 @@ services:
       SPELL_DRIVER_STALE_AFTER_SECONDS: ${SPELL_DRIVER_STALE_AFTER_SECONDS:-5}
       SPELL_OBSERVATION_POLL_SECONDS: ${SPELL_OBSERVATION_POLL_SECONDS:-0.2}
       SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS: ${SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS:-0.5}
+      SPELL_DATA_DIR: /var/lib/openbexi-spell/data
+      SPELL_V0007_BACKUP_DIR: /var/lib/openbexi-spell/migration-backups
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,6 +77,8 @@ services:
     pids_limit: 128
     volumes:
       - spell-driver-client-credentials:/run/spell-driver-client-source:ro
+      - spell-data:/var/lib/openbexi-spell/data
+      - spell-migration-backups:/var/lib/openbexi-spell/migration-backups
     networks:
       spell-internal:
         aliases:
@@ -186,6 +190,8 @@ volumes:
   spell-driver-client-credentials:
   spell-driver-server-credentials:
   spell-driver-journal:
+  spell-data:
+  spell-migration-backups:
 
 networks:
   spell-edge:

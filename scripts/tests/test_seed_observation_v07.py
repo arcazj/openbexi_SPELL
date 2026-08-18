@@ -17,14 +17,15 @@ DRIVER = {
 
 
 class FixtureRepository:
-    def __init__(self) -> None:
+    def __init__(self, context_id: str = seed.CONTEXT_ID) -> None:
+        self.context_id = context_id
         self.context = None
         self.created: dict[str, object] | None = None
 
     def get_context_generation(self, context_id: str, generation_id: str):
         if self.context is None:
             raise DriverNotFoundError("fixture context is absent")
-        assert context_id == seed.CONTEXT_ID
+        assert context_id == self.context_id
         assert generation_id == seed.CONTEXT_GENERATION_ID
         return {"context_generation": self.context}
 
@@ -58,6 +59,23 @@ def test_seed_builds_one_exact_real_driver_context_tuple() -> None:
     assert command.identity.generations.context_binding_digest == digest
     assert command.configuration.expected_digest == digest
 
+    v08_context_id = "v08-telemetry-synthetic-context"
+    v08_repository = FixtureRepository(v08_context_id)
+    v08_context, v08_digest = seed._ensure_context_projection(
+        v08_repository,
+        DRIVER,
+        context_id=v08_context_id,
+    )
+    v08_command = seed._open_command(
+        DRIVER,
+        v08_digest,
+        context_id=v08_context_id,
+    )
+    assert v08_context["state"] == "OPENING"
+    assert v08_repository.created is not None
+    assert v08_repository.created["context_id"] == v08_context_id
+    assert v08_command.identity.generations.context_id == v08_context_id
+
 
 def test_seed_rejects_a_conflicting_persisted_context() -> None:
     repository = FixtureRepository()
@@ -73,3 +91,12 @@ def test_seed_rejects_a_conflicting_persisted_context() -> None:
 def test_seed_cli_requires_exact_local_confirmation() -> None:
     with pytest.raises(ValueError, match="exact local synthetic confirmation"):
         seed.main(["--confirm", "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR"])
+    with pytest.raises(ValueError, match="supported telemetry context identity"):
+        seed.main(
+            [
+                "--confirm",
+                seed.CONFIRMATION,
+                "--context-id",
+                "telemetry-synthetic-context",
+            ]
+        )

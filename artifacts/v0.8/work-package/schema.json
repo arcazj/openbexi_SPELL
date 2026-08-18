@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openbexi.example/schemas/spell-v08-candidate-qualification-1.json",
+  "title": "OpenBEXI SPELL v0.8 candidate qualification evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product_version",
+    "scope_profile",
+    "source",
+    "gate_0a",
+    "contracts",
+    "toolchain",
+    "database",
+    "suites",
+    "work_packages",
+    "assurance",
+    "historical_platform_skips",
+    "v0_7_immutability",
+    "secret_scan",
+    "artifacts",
+    "teardown",
+    "overall_pass"
+  ],
+  "properties": {
+    "schema_version": {"const": "spell.v08.candidate-qualification/1"},
+    "product_version": {"const": "0.8.0-candidate"},
+    "scope_profile": {"const": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "parent", "source_fingerprint_sha256", "product_fingerprint_sha256"],
+      "properties": {
+        "commit": {"pattern": "^[0-9a-f]{40}$"},
+        "tree": {"pattern": "^[0-9a-f]{40}$"},
+        "parent": {"pattern": "^[0-9a-f]{40}$"},
+        "source_fingerprint_sha256": {"pattern": "^[0-9a-f]{64}$"},
+        "product_fingerprint_sha256": {"pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "gate_0a": {"type": "object"},
+    "contracts": {"type": "object"},
+    "toolchain": {"type": "object"},
+    "database": {"type": "object"},
+    "suites": {"type": "object", "minProperties": 10, "maxProperties": 10},
+    "work_packages": {
+      "type": "object",
+      "minProperties": 9,
+      "maxProperties": 9,
+      "patternProperties": {
+        "^V08-DATA-00[1-9]$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["test_ids"],
+          "properties": {
+            "test_ids": {
+              "type": "object",
+              "minProperties": 5,
+              "maxProperties": 5,
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["proofs", "passed_count", "skipped_count"],
+                "properties": {
+                  "proofs": {"type": "array", "minItems": 1, "uniqueItems": true},
+                  "passed_count": {"type": "integer", "minimum": 1},
+                  "skipped_count": {"const": 0}
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "assurance": {"type": "object"},
+    "historical_platform_skips": {"type": "object"},
+    "v0_7_immutability": {
+      "type": "object",
+      "required": [
+        "baseline_tag",
+        "baseline_tree_fingerprint_sha256",
+        "source_tree_fingerprint_sha256",
+        "git_diff_empty",
+        "accepted_archive_path",
+        "accepted_archive_sha256",
+        "accepted_sidecar_path",
+        "accepted_sidecar_sha256",
+        "accepted_tag_object",
+        "accepted_tag_archive_claim"
+      ],
+      "properties": {
+        "baseline_tag": {"const": "v0.7.0"},
+        "baseline_tree_fingerprint_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source_tree_fingerprint_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "git_diff_empty": {"const": true},
+        "accepted_archive_path": {"const": "artifacts/v0.7/openbexi-spell-v0.7.0.tar.gz"},
+        "accepted_archive_sha256": {"const": "90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2"},
+        "accepted_sidecar_path": {"const": "artifacts/v0.7/openbexi-spell-v0.7.0.tar.gz.sha256"},
+        "accepted_sidecar_sha256": {"const": "c35a6d2451e45f9a36fd9a90af47f5f02d5eb58608905e4c77f9cc0b6a95fe7b"},
+        "accepted_tag_object": {"const": "70e4d46a46d158dee3c63ec37a5d1922b3b61668"},
+        "accepted_tag_archive_claim": {"const": "Final archive SHA-256: 90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2"}
+      },
+      "additionalProperties": false
+    },
+    "secret_scan": {"type": "object"},
+    "artifacts": {"type": "object"},
+    "teardown": {"type": "object"},
+    "overall_pass": {"const": true}
+  }
+}

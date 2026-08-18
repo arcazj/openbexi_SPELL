@@ -28,8 +28,8 @@ from backend.condition_runtime import (
 from backend.condition_service import ConditionService
 from backend.database import create_database
 from backend.ir_v07 import REQUEST_SCHEMA_VERSION, bind_observation_anchor
-from backend.migrations import run_migrations
 from backend.migrations.versions import v0006_observation_conditions
+from backend.tests.migration_support import run_migrations
 from backend.models import Execution
 from driver_host.observation import CATALOG_DIGEST
 

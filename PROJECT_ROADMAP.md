@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.7.0 baseline and v0.8 Gate 0A authorized planning scope |
-| Update type | Accepted-release status, strict release bindings, v0.8 planning authorization, and requested-only v0.9 follow-on |
+| Document revision | Accepted v0.7.0 baseline and v0.8 candidate preparation |
+| Update type | Accepted-release status, strict release bindings, v0.8 worktree implementation and verification, and requested-only v0.9 follow-on |
 | Updated | 2026-08-17 |
 | Current accepted product baseline | SPELL v0.7.0, tag `v0.7.0`, tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
@@ -13,9 +13,9 @@
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.6 status | Accepted at annotated tag `v0.6.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.7 status | Accepted at annotated tag `v0.7.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
-| v0.8 status | `V08-GATE-0A PASS`; nine `V08-DATA-001` through `V08-DATA-009` packages and 45 proof identities authorized for planning/implementation entry; zero product constructs or runtime artifacts claimed |
+| v0.8 status | `V08-GATE-0A PASS`; all nine `V08-DATA-001` through `V08-DATA-009` packages are implemented in the worktree and pre-candidate backend/frontend verification passed; source freeze, canonical qualification, Gate 0B, Final, package, release commit, and tag remain pending |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.7 adds only the nine authorized read-only observation packages over accepted v0.6 and preserves the bounded simulator-only boundary; v0.8 Gate 0A adds no implementation or runtime change |
+| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.7 remains unchanged; the v0.8 worktree adds the bounded local data model, migrations, repository/mutation/runtime services, authenticated API, procedure data operations, Data Service frontend, release tooling, and patched PostgreSQL pin without adding a live GCS route |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -41,9 +41,11 @@ commit. This acceptance remains limited to `V07-OBS-001` through
 `V07-OBS-009` and provides no operational authorization. The subsequent
 [`V08-GATE-0A`](SPELL_v0.8_Pre-Implementation.md) authorizes only nine bounded
 local synthetic non-CUI data-service work packages and 45 planned proof
-identities. It claims no v0.8 source, API, schema, migration, dependency,
-runtime artifact, qualification, release, or acceptance. v0.9 remains
-requested-only.
+identities. The authorized backend and frontend implementation is now present
+and has passed pre-candidate working-tree verification. It has not yet been
+frozen as a candidate or subjected to canonical candidate qualification, Gate
+0B, Final qualification, packaging, release commit, or tag validation. v0.9
+remains requested-only.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -95,7 +97,7 @@ After the owner requested that development move forward on 2026-07-18,
 `NG-PROT-001` and its bounded continuation `NG-PROT-002` were prepared within
 the Draft baseline's prototype-planning allowance. They are an isolated RBAC
 startup evaluator and authenticated input-adaptation experiment under
-[`backend/experimental/`](backend/experimental/README.md). The product
+`backend/experimental/`. The product
 application imports neither module; no API route, product identity contract,
 persistence, controller authority, frontend integration, schema migration, or
 dependency changed. This activity does not start v0.4 product implementation,
@@ -225,9 +227,11 @@ is a planning label until its applicable gate is approved. Annotated tag
 `v0.7.0` fixes the current accepted baseline. Final qualification, four SBOMs,
 supply-chain validation, deterministic packaging, release-evidence validation,
 and strict annotated-tag validation passed. v0.8 has passed its bounded Gate
-0A for nine exact work packages and 45 planned proof identities, but has no
-implementation or executed product evidence. v0.9 is requested after v0.8 and
-has no completed gate or implementation.
+0A for nine exact work packages and 45 planned proof identities. Those packages
+are implemented in the worktree and pre-candidate backend/frontend verification
+passed; the immutable candidate and canonical qualification/release evidence
+chain is pending. v0.9 is requested after v0.8 and has no completed gate or
+implementation.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -240,7 +244,7 @@ has no completed gate or implementation.
 | v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Accepted at annotated tag `v0.7.0`; no accepted exceptions | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`, and annotated tag `v0.7.0` passed. |
-| v0.8 | Data and Local Service Compatibility | Product | Gate 0A PASS; nine packages and 45 proof identities authorized; not implemented | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted v0.7.0 baseline plus approved typed storage, URI, transaction, quota, recovery, migration, and security planning contracts. |
+| v0.8 | Data and Local Service Compatibility | Product | Candidate preparation; nine authorized packages implemented and pre-candidate verified; freeze and canonical qualification pending | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted v0.7.0 baseline plus approved typed storage, URI, transaction, quota, recovery, migration, and security contracts; Gate 0B, Final, package, release commit, and tag remain pending. |
 | v0.9 | SPELL Development Environment | Product | Requested follow-on after v0.8; Gate 0A and implementation pending | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Stable compatibility grammar/catalog schemas, approved non-executing language-service design, and authoring acceptance plan. |
 | v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
 | v0.11 | Simulator Telecommand Semantics | Product | Candidate | Implement `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, time/load intent, per-element stages, certainty, and reconciliation. | Accepted simulator services, explicit no-resend/confirmation model, command corpus, and exhaustive fault tests. |
@@ -759,8 +763,16 @@ Current disposition: [`V08-GATE-0A PASS`](SPELL_v0.8_Pre-Implementation.md)
 authorizes exactly `V08-DATA-001` through `V08-DATA-009` and their 45 planned
 proof identities under scope profile `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`.
 The manifest and eight planning matrices under `contracts/v08` are hash-bound
-authorization inputs. The gate claims zero product constructs and zero runtime
-artifacts; implementation, qualification, release, and acceptance are pending.
+authorization inputs. The gate itself claimed zero product constructs and zero
+runtime artifacts. Subsequent work implemented all nine bounded packages in
+the current worktree, including typed values and storage, scoped catalog and
+dictionary exchange, containers and procedure data operations, shared data,
+virtual files, authenticated API and durable mutation settlement, migration and
+backup/recovery, the Data Service workspace, and version-scoped release
+tooling. Backend and frontend pre-candidate verification passed. Candidate
+freeze and commit, canonical qualification, Gate 0B, Final qualification,
+SBOM/supply-chain evidence, deterministic packaging, release commit, and
+annotated tag `v0.8.0` remain pending.
 
 Required properties:
 

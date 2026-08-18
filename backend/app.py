@@ -50,6 +50,10 @@ from .condition_service import (
     ConditionServiceValidationError,
 )
 from .database import create_database
+from .data_api import LocalDataPermissionResolver, install_data_api
+from .data_domain import DataAuthorizationError, ProcedureCallerBinding
+from .data_models import activate_data_schema, verify_data_integrity
+from .data_repository import DataRepository
 from .driver_repository import (
     DriverNotFoundError,
     DriverRepository,
@@ -113,6 +117,7 @@ from .schemas import (
 )
 from .serialization import command_dict, event_dict, execution_dict, prompt_dict
 from .supervisor import AuthorizationError, ConflictError, NotFoundError, Supervisor
+from .virtual_file_service import ProcedureDataRuntime, VirtualFileService
 from .version import PRODUCT_VERSION, REPORT_VERSION
 
 
@@ -142,6 +147,21 @@ def create_app(
         hub,
         command_ack_timeout_seconds=settings.command_ack_timeout_seconds,
     )
+    virtual_files = VirtualFileService(settings.resolved_data_dir)
+    data_permission_resolver = LocalDataPermissionResolver()
+
+    def admitted_worker_generation(execution_id: str) -> int:
+        with session_factory() as session:
+            execution = session.get(Execution, execution_id)
+            if execution is None or execution.ir_version != "0.8":
+                raise DataAuthorizationError("v0.8 execution is not admitted")
+            return int(execution.worker_generation)
+
+    data_runtime = ProcedureDataRuntime(
+        virtual_files,
+        worker_generation=admitted_worker_generation,
+    )
+    supervisor.data_runtime = data_runtime
 
     def start_operator_execution(
         *,
@@ -329,9 +349,49 @@ def create_app(
         gateway_started = False
         observation_started = False
         condition_recovery_started = False
+        virtual_files_started = False
         try:
             app.state.auth_config = get_auth_config()
-            run_migrations(engine)
+            run_migrations(
+                engine,
+                v0007_backup_directory=settings.v0007_backup_directory,
+            )
+            activate_data_schema(engine)
+            virtual_files.start()
+            virtual_files_started = True
+
+            def authorize_procedure_binding(
+                session, binding: ProcedureCallerBinding
+            ) -> None:
+                if binding.service_principal_id != "procedure-runtime":
+                    raise DataAuthorizationError(
+                        "procedure service principal is not authorized"
+                    )
+                execution = session.get(Execution, binding.execution_id)
+                if (
+                    execution is None
+                    or execution.ir_version != "0.8"
+                    or execution.worker_generation != binding.worker_generation
+                ):
+                    raise DataAuthorizationError(
+                        "procedure worker generation is not admitted"
+                    )
+
+            data_repository = DataRepository(
+                session_factory,
+                cursor_secret=virtual_files.cursor_secret,
+                procedure_binding_check=authorize_procedure_binding,
+                virtual_file_reader=virtual_files.read_physical_content,
+            )
+            virtual_files.attach_repository(data_repository)
+            with engine.begin() as connection:
+                verify_data_integrity(
+                    connection,
+                    virtual_file_reader=virtual_files.read_physical_content,
+                )
+            data_runtime.attach_repository(data_repository)
+            supervisor.data_repository = data_repository
+            app.state.data_repository = data_repository
             operator_service.bootstrap()
             await driver_gateway.start()
             gateway_started = True
@@ -362,7 +422,11 @@ def create_app(
                             try:
                                 supervisor.close()
                             finally:
-                                engine.dispose()
+                                try:
+                                    if virtual_files_started:
+                                        virtual_files.close()
+                                finally:
+                                    engine.dispose()
 
     app = FastAPI(
         title="OpenBEXI SPELL Simulator API",
@@ -378,6 +442,9 @@ def create_app(
         allow_headers=[
             "Authorization",
             "Content-Type",
+            "Content-SHA256",
+            "Content-Encoding",
+            "Idempotency-Key",
             "X-Idempotency-Key",
             "X-Spell-Session-Id",
             "X-Spell-Client-Instance-Key-Id",
@@ -401,6 +468,9 @@ def create_app(
     app.state.condition_service = condition_service
     app.state.condition_runtime = condition_runtime
     app.state.condition_recovery = condition_recovery
+    app.state.virtual_files = virtual_files
+    app.state.data_runtime = data_runtime
+    app.state.data_repository = None
     app.state.hub = hub
     app.state.auth_config = auth_config
 
@@ -418,6 +488,7 @@ def create_app(
         if (
             request.method in {"POST", "PUT", "DELETE"}
             and request.url.path.startswith("/api/v1/")
+            and not request.url.path.startswith("/api/v1/data")
             and request.url.path != "/api/v1/procedures/validate"
             and structured_json
         ):
@@ -580,6 +651,14 @@ def create_app(
         return caller
 
     MutationIdentityDep = Annotated[Identity, Depends(mutation_identity)]
+
+    install_data_api(
+        app,
+        files=virtual_files,
+        repository=None,
+        identity_dependency=identity,
+        permission_resolver=data_permission_resolver,
+    )
 
     def translate_error(exc: Exception) -> HTTPException:
         if isinstance(exc, OperatorNotFoundError):
@@ -816,7 +895,7 @@ def create_app(
                 request.reason,
                 key,
                 request.context_id,
-                automatic=procedure.ir_version not in {"0.6", "0.7"},
+                automatic=procedure.ir_version not in {"0.6", "0.7", "0.8"},
             )
             projection = operator_service.ensure_execution_projection(
                 execution, actor=caller.actor

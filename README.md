@@ -10,11 +10,15 @@ conditions, and a real-time 2D web console. Annotated tag object
 commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` and activated the conditional
 acceptance recorded in that commit with no accepted exceptions.
 
-The next authorized work is the bounded v0.8 Data and Local Service
-Compatibility planning scope. `V08-GATE-0A PASS` authorizes only the nine
-`V08-DATA-001` through `V08-DATA-009` work packages and their 45 planned proof
-identities; it is not implementation, qualification, release, or acceptance.
-v0.9 remains requested-only and has no Gate 0A or implementation claim.
+The latest implemented worktree increment is v0.8 Data and Local Service
+Compatibility. `V08-GATE-0A PASS` authorizes only the nine `V08-DATA-001`
+through `V08-DATA-009` work packages and their 45 planned proof identities.
+Those bounded backend and frontend surfaces are implemented and have passed
+pre-candidate working-tree verification. Source freeze, the candidate commit,
+canonical qualification, Gate 0B, Final qualification, SBOM and supply-chain
+evidence, deterministic packaging, the release commit, and annotated tag
+`v0.8.0` remain pending. v0.9 remains requested-only and has no Gate 0A or
+implementation claim.
 
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
@@ -116,8 +120,25 @@ The raw tag-object SHA-256 is
 This release creates no live GCS, spacecraft, mission-network, telecommand,
 external-effect, deployment, operational, or compliance authority.
 
-`V08-GATE-0A PASS` now authorizes bounded v0.8 planning only. No v0.8 product
-construct or runtime artifact is claimed, and v0.9 remains requested-only.
+## Version 0.8 Candidate Preparation
+
+The bounded v0.8 implementation adds canonical finite typed values, owner- and
+revision-scoped catalogs and containers, deterministic non-executing DB/IMP
+dictionary exchange, durable shared data, virtual-root procedure files, an
+authorization-scoped local data API, ordered SQLite/PostgreSQL migration and
+recovery support, and the Data Service operator workspace. Procedure `ARGS`,
+`IVARS`, dictionary load/save, durable mutation settlement, path and symlink
+protection, quota enforcement, audit/outbox binding, backup/restore, and
+rollback are covered by the implementation test surface.
+
+Backend and frontend pre-candidate verification passed in the current
+worktree, including frontend unit tests and the production build. This is a
+candidate-in-preparation result, not canonical candidate evidence or release
+acceptance. The exact aggregate qualification inventory will be recorded only
+after source freeze. [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) remains
+`PENDING_CANDIDATE`, and
+[`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) remains
+`CONDITIONAL_PENDING`.
 
 ## Version 0.3 Foundation
 
@@ -265,7 +286,8 @@ The v0.7 candidate is bound to canonical ten-suite, 45-identity evidence and
 `V07-GATE-0B PASS`. Final qualification, SBOMs, supply-chain evidence,
 deterministic packaging, release-evidence validation, and strict annotated-tag
 validation then passed; annotated tag `v0.7.0` now fixes the accepted release.
-The v0.8 Gate 0A contracts are planning authorization, not product evidence.
+The v0.8 Gate 0A contracts authorize the bounded implementation now present in
+the worktree. Canonical candidate and release evidence remain pending.
 
 ## Project Documents
 
@@ -291,6 +313,8 @@ The v0.8 Gate 0A contracts are planning authorization, not product evidence.
 | [`SPELL_v0.7_Gate_0B.md`](SPELL_v0.7_Gate_0B.md) | Evidence-bound Gate 0B PASS for the qualified v0.7 candidate and authorized release closeout |
 | [`SPELL_v0.7_Release.md`](SPELL_v0.7_Release.md) | v0.7.0 conditional closeout record activated by the verified annotated tag |
 | [`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine bounded local data-service work packages; not implementation or release acceptance |
+| [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) | Pending Gate 0B record for the not-yet-frozen v0.8 candidate; no release-closeout authorization yet |
+| [`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) | Conditional pending v0.8.0 closeout record; not release acceptance |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
@@ -314,8 +338,10 @@ semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
 The accepted v0.4, v0.5, and v0.6 release evidence remains immutable. Accepted
 v0.7 evidence is likewise fixed by its annotated tag. v0.8 Gate 0A authorizes
-nine exact local synthetic non-CUI data-service planning packages and 45 proof
-identities, but no v0.8 source, runtime artifact, qualification, or release
+nine exact local synthetic non-CUI data-service packages and 45 proof
+identities. Their implementation and pre-candidate verification exist in the
+current worktree, but no frozen candidate commit, canonical qualification,
+Gate 0B PASS, Final result, release package, release commit, or accepted tag
 exists. v0.9 remains requested-only.
 
 The next-generation design specification was prepared on 2026-07-18 under
