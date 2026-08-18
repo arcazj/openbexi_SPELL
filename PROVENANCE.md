@@ -2,13 +2,12 @@
 
 ## Record Status
 
-This record retains the bounded SPELL v0.5.0 and v0.6.0 provenance, records the
-accepted v0.7.0 release, and binds the v0.8 Gate 0A authorization plus the
-subsequent candidate-in-preparation worktree provenance.
-SPELL v0.7.0 is the accepted local-only, synthetic, non-CUI simulator
-engineering baseline at annotated tag `v0.7.0`, tag object
-`70e4d46a46d158dee3c63ec37a5d1922b3b61668`, and release commit
-`cf18e9d887ba0476cbcc3d8194e321332a3ae864`.
+This record retains the bounded SPELL v0.5.0 through v0.7.0 provenance, records
+the accepted v0.8.0 release, and binds the v0.9 Gate 0A planning authorization.
+SPELL v0.8.0 is the accepted local-only, synthetic, non-CUI simulator
+engineering baseline at annotated tag `v0.8.0`, tag object
+`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, and release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`.
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256
@@ -59,16 +58,29 @@ constructs and zero runtime artifacts. Subsequent first-party work implemented
 the bounded data models, migrations, repositories and mutation coordinator,
 dictionary exchange, virtual-file runtime, authenticated API, procedure data
 operations, frontend Data Service workspace, and v0.8 qualification/release
-tooling. Backend and frontend pre-candidate verification passed in the current
-worktree. No immutable candidate source, canonical candidate evidence, Gate 0B
-PASS, Final result, package, release commit, or annotated `v0.8.0` tag is
-claimed. v0.9 remains requested-only. This document makes no compliance,
-deployment, mission, or operational authorization claim.
+tooling. Candidate `f9c90fe8d6fd593bd9db4ed55f35d56ee3165e8c` and all 45
+mapped identities passed; `V08-GATE-0B PASS` authorized closeout. Qualified
+source `d80c4d43969018633bc17650a23412b7274e58ea`, Final qualification, four
+SBOMs, supply-chain evidence, reproducible packaging, release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`, and strict annotated tag
+`v0.8.0` validation passed with no accepted exceptions. The release evidence
+fingerprint is
+`6a8f5446aeee9084ef58c9ec2323d6e1d2f8e957cb07e21f46ab9300fab5b1ae`, and
+the final archive SHA-256 is
+`87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`.
 
-Before this binding, Docker Scout identified 18 High findings in the pinned
-`postgresql18=18.4-r0` local image package. The candidate updates that exact
-pin to patched `18.6-r0` and re-runs the complete SQLite and isolated
-PostgreSQL inventories. No vulnerability waiver or accepted exception is used.
+The owner request `start and complete asap V0.9` and `V09-GATE-0A PASS`
+authorize only `V09-DEV-001` through `V09-DEV-009` and 45 planned proof
+identities under `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. That gate
+claims zero implementation or runtime artifacts. No candidate, qualification,
+Gate 0B, package, release, deployment, cryptographic-signature, compliance,
+mission, or operational provenance is claimed for v0.9.
+
+Before v0.8 qualification, Docker Scout identified 18 High findings in the
+pinned `postgresql18=18.4-r0` local image package. v0.8 updated that exact pin
+to patched `18.6-r0`; the complete supply-chain qualification then passed with
+zero High or Critical findings and no vulnerability waiver or accepted
+exception.
 
 ## AI Assistance Record
 
@@ -79,7 +91,7 @@ establish a compliance determination or operational authorization.
 
 ## Clean-Room Boundary
 
-The accepted v0.4, v0.5, v0.6, and v0.7 baselines and their bounded implementations
+The accepted v0.4, v0.5, v0.6, v0.7, and v0.8 baselines and their bounded implementations
 are new first-party work. The three legacy archives are read-only behavioral
 and historical references; no legacy implementation may be compiled,
 imported, linked, copied into generated sources, loaded at runtime, or shipped
@@ -95,9 +107,8 @@ The archives are explicitly ignored and excluded from the reproducible package:
 
 A v0.2 SHA-256 comparison found no exact match between a new first-party source
 file and an archive entry. That mechanical check supports but does not by itself
-prove clean-room authorship. The accepted v0.4, v0.5, v0.6, and v0.7 releases,
-the v0.8 planning contracts, and the v0.8 candidate-in-preparation worktree
-retain the same source boundary.
+prove clean-room authorship. The accepted v0.4 through v0.8 releases and the
+v0.9 planning contracts retain the same source boundary.
 
 ### Manual Evidence Boundary
 
@@ -309,9 +320,15 @@ and nine declarative planning-contract files under `contracts/v08`. It
 authorizes bounded implementation entry for `V08-DATA-001` through
 `V08-DATA-009`; at gate time it established no source, API, schema, migration,
 dependency, runtime artifact, qualification, or release provenance. The later
-candidate-in-preparation worktree implements only that bounded scope and uses
-new project-authored source, locked dependencies, synthetic local test data,
-and no legacy runtime content. Pre-candidate backend/frontend verification is a
-mutable working-tree result until source freeze. Canonical candidate,
-qualification, Gate 0B, Final, SBOM/supply-chain, package, release, and tag
-provenance remain pending. No v0.9 implementation provenance is claimed.
+accepted release implements only that bounded scope using new project-authored
+source, locked dependencies, synthetic local test data, and no legacy runtime
+content. Canonical candidate, Gate 0B, Final, SBOM/supply-chain, package,
+release, and tag provenance passed and is fixed by annotated tag `v0.8.0`.
+
+The approved v0.9 Gate 0A record independently binds accepted v0.8.0 through
+raw Git tag and tagged artifact bytes and binds nine declarative planning
+contracts under `contracts/v09`. It authorizes bounded implementation entry
+for `V09-DEV-001` through `V09-DEV-009` only. No v0.9 product source,
+dependency, migration, runtime artifact, executed product result, bundle,
+promotion, qualification, release, or cryptographic-signature provenance is
+claimed at Gate 0A.

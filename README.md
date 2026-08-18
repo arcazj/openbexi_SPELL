@@ -1,24 +1,21 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL v0.7.0 is the current accepted clean-room, simulator-only
+OpenBEXI SPELL v0.8.0 is the current accepted clean-room, simulator-only
 engineering release. It combines a Python execution service, isolated workers,
 durable state and event storage, a restricted typed procedure language, a
 typed simulator-driver lifecycle foundation, durable operator workspace and
 procedure-composition workflows, simulator-only read-only observations and
-conditions, and a real-time 2D web console. Annotated tag object
-`70e4d46a46d158dee3c63ec37a5d1922b3b61668` for `v0.7.0` peels to release
-commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` and activated the conditional
-acceptance recorded in that commit with no accepted exceptions.
+conditions, typed local data services, and a real-time 2D web console.
+Annotated tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` for `v0.8.0`
+peels to release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`
+and activated the conditional acceptance recorded in that commit with no
+accepted exceptions.
 
-The latest implemented worktree increment is v0.8 Data and Local Service
-Compatibility. `V08-GATE-0A PASS` authorizes only the nine `V08-DATA-001`
-through `V08-DATA-009` work packages and their 45 planned proof identities.
-Those bounded backend and frontend surfaces are implemented and have passed
-pre-candidate working-tree verification. Source freeze, the candidate commit,
-canonical qualification, Gate 0B, Final qualification, SBOM and supply-chain
-evidence, deterministic packaging, the release commit, and annotated tag
-`v0.8.0` remain pending. v0.9 remains requested-only and has no Gate 0A or
-implementation claim.
+`V09-GATE-0A PASS` now authorizes only `V09-DEV-001` through `V09-DEV-009`
+and their 45 planned proof identities under the bounded local synthetic
+non-CUI development-environment profile. It is an implementation-entry gate,
+not an implementation, candidate, qualification, release, deployment,
+compliance, cryptographic-signature, or operational claim.
 
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
@@ -120,7 +117,7 @@ The raw tag-object SHA-256 is
 This release creates no live GCS, spacecraft, mission-network, telecommand,
 external-effect, deployment, operational, or compliance authority.
 
-## Version 0.8 Candidate Preparation
+## Version 0.8 Release
 
 The bounded v0.8 implementation adds canonical finite typed values, owner- and
 revision-scoped catalogs and containers, deterministic non-executing DB/IMP
@@ -131,14 +128,33 @@ recovery support, and the Data Service operator workspace. Procedure `ARGS`,
 protection, quota enforcement, audit/outbox binding, backup/restore, and
 rollback are covered by the implementation test surface.
 
-Backend and frontend pre-candidate verification passed in the current
-worktree, including frontend unit tests and the production build. This is a
-candidate-in-preparation result, not canonical candidate evidence or release
-acceptance. The exact aggregate qualification inventory will be recorded only
-after source freeze. [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) remains
-`PENDING_CANDIDATE`, and
-[`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) remains
-`CONDITIONAL_PENDING`.
+Candidate `f9c90fe8d6fd593bd9db4ed55f35d56ee3165e8c` and all 45 mapped
+identities passed canonical qualification with no mapped skips, accepted
+failures, or waivers. `V08-GATE-0B PASS` authorized release closeout. Final
+qualification passed nine suite captures with 2,676 concrete tests, 2,661
+passes, 15 exact SQLite environment skips, 36 subtests, and zero failures or
+errors. Four image-bound SBOMs and the supply-chain audit passed with zero High
+or Critical findings and zero unlocked inputs. Qualified source is
+`d80c4d43969018633bc17650a23412b7274e58ea`; release-manifest SHA-256 is
+`82e90f0d3a9481423d948d83559bde56ff332833f14ab2d01a8089ebf6a5e50e`;
+the deterministic archive SHA-256 is
+`87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`.
+Release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` and annotated tag
+`v0.8.0`, object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, completed acceptance.
+
+## Version 0.9 Gate 0A
+
+The owner request `start and complete asap V0.9` authorized the bounded
+development-environment planning contract in
+[`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md).
+`V09-DEV-001` through `V09-DEV-009` cover the separate project workspace,
+non-executing procedure language services, dictionary/catalog authoring,
+semantic checks and Problems, safe import/export and external changes,
+provider-neutral local history/collaboration, immutable validated bundles,
+local simulator promotion/rollback, and cross-feature offline acceptance.
+Gate 0A claims zero implementation or runtime artifacts. Gate 0B, Final
+qualification, packaging, release, deployment, compliance, and operational
+authorization remain separate and unclaimed.
 
 ## Version 0.3 Foundation
 
@@ -286,8 +302,9 @@ The v0.7 candidate is bound to canonical ten-suite, 45-identity evidence and
 `V07-GATE-0B PASS`. Final qualification, SBOMs, supply-chain evidence,
 deterministic packaging, release-evidence validation, and strict annotated-tag
 validation then passed; annotated tag `v0.7.0` now fixes the accepted release.
-The v0.8 Gate 0A contracts authorize the bounded implementation now present in
-the worktree. Canonical candidate and release evidence remain pending.
+The v0.8 candidate, Gate 0B, Final, SBOM, supply-chain, deterministic package,
+release, and strict tag evidence passed; annotated tag `v0.8.0` fixes the
+accepted release. v0.9 Gate 0A authorizes bounded implementation entry only.
 
 ## Project Documents
 
@@ -313,15 +330,16 @@ the worktree. Canonical candidate and release evidence remain pending.
 | [`SPELL_v0.7_Gate_0B.md`](SPELL_v0.7_Gate_0B.md) | Evidence-bound Gate 0B PASS for the qualified v0.7 candidate and authorized release closeout |
 | [`SPELL_v0.7_Release.md`](SPELL_v0.7_Release.md) | v0.7.0 conditional closeout record activated by the verified annotated tag |
 | [`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine bounded local data-service work packages; not implementation or release acceptance |
-| [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) | Pending Gate 0B record for the not-yet-frozen v0.8 candidate; no release-closeout authorization yet |
-| [`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) | Conditional pending v0.8.0 closeout record; not release acceptance |
+| [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) | Evidence-bound Gate 0B PASS for the qualified v0.8 candidate and authorized release closeout |
+| [`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) | v0.8.0 conditional closeout record activated by the verified annotated tag |
+| [`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine bounded development-environment work packages; not implementation or release acceptance |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-SPELL v0.7.0 is the accepted product baseline at annotated tag `v0.7.0` and
-release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`. Its acceptance is
-limited to the nine `V07-OBS-001` through `V07-OBS-009` work packages and creates
+SPELL v0.8.0 is the accepted product baseline at annotated tag `v0.8.0` and
+release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`. Its acceptance is
+limited to the nine `V08-DATA-001` through `V08-DATA-009` work packages and creates
 no deployment, operational-use, broad-compatibility, or compliance authority.
 
 The Development Environment manual was absent from the original v0.1 evidence
@@ -336,23 +354,20 @@ Deferred/`EXCLUDE`; each row has a unique planned test identity. Deferred rows
 are static source and negative-scope evidence, not implementations or executed
 semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
-The accepted v0.4, v0.5, and v0.6 release evidence remains immutable. Accepted
-v0.7 evidence is likewise fixed by its annotated tag. v0.8 Gate 0A authorizes
-nine exact local synthetic non-CUI data-service packages and 45 proof
-identities. Their implementation and pre-candidate verification exist in the
-current worktree, but no frozen candidate commit, canonical qualification,
-Gate 0B PASS, Final result, release package, release commit, or accepted tag
-exists. v0.9 remains requested-only.
+The accepted v0.4 through v0.8 release evidence remains immutable. v0.9 Gate
+0A authorizes nine exact local synthetic non-CUI development-environment
+packages and 45 planned proof identities. No v0.9 implementation, candidate,
+qualification, Gate 0B, Final result, package, release commit, or tag exists.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4
 manuals as external hash-pinned authorities and provides a modern web, server,
 data, reliability, Git, security, and operations blueprint. It is the
-authoritative source for next-generation implementation scope, including the
-Draft GUI User Manual. Its status is `0.1.0-draft.1`: accountable human review,
-open-decision closure, detailed feature compatibility rows, and a signed
-approval baseline remain required before implementation starts or any
-operational use is authorized.
+authoritative broader design source, including the Draft GUI User Manual. Its
+status is `0.1.0-draft.1`: only the exact local synthetic v0.9 Gate 0A subset is
+authorized. Accountable multidisciplinary review, open-decision closure,
+detailed feature compatibility rows, and a signed approval baseline remain
+required for broader remote, signed, production, or operational use.
 
 ## License
 

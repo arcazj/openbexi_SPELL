@@ -6,6 +6,49 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-18 - v0.8.0 Accepted And v0.9 Gate 0A Approved
+
+### v0.8.0 Accepted Release
+
+The conditional v0.8.0 acceptance recorded in release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d` became effective when the project
+owner created and strictly verified annotated tag `v0.8.0` on 2026-08-18. Tag
+object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, raw tag-object SHA-256
+`c609c25cb8987222df0b143f71aa792140171acffd454e31a760c16fb263eede`, peels
+to that release commit and binds qualified source
+`d80c4d43969018633bc17650a23412b7274e58ea`, candidate
+`f9c90fe8d6fd593bd9db4ed55f35d56ee3165e8c`, source fingerprint
+`6eafe23737e266f0038930703656eb569b5e321d718dfef218a1448c3b2f5268`,
+product fingerprint
+`c6f835a5fcc6289408493e68d866493b882bf00139a83ea3709283745a1a4554`, and
+evidence fingerprint
+`6a8f5446aeee9084ef58c9ec2323d6e1d2f8e957cb07e21f46ab9300fab5b1ae`.
+
+Final qualification passed nine suite captures with 2,676 concrete tests,
+2,661 passes, 15 exact SQLite environment skips, 36 subtests, and zero
+failures or errors. Four distinct image-bound SBOMs, the supply-chain audit,
+and deterministic packaging passed with zero High or Critical findings and
+zero unlocked inputs. Release-manifest SHA-256 is
+`82e90f0d3a9481423d948d83559bde56ff332833f14ab2d01a8089ebf6a5e50e`, and
+final archive SHA-256 is
+`87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`.
+Strict release and annotated-tag validation passed with no accepted exceptions.
+
+### v0.9 Owner Direction And Gate 0A Approval
+
+The owner request was recorded exactly as: `start and complete asap V0.9`.
+The accepted v0.8.0 tag satisfies the baseline precondition, and
+[`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md) maps
+that direction to exactly `V09-DEV-001` through `V09-DEV-009` and 45 planned
+proof identities under
+`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. `V09-GATE-0A PASS` is
+planning and implementation-entry authorization only. Its exact marker is
+`gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
+At this event no v0.9 source, API, schema, migration, dependency, runtime
+artifact, executed product test, candidate evidence, Gate 0B, qualification,
+release, deployment, cryptographic-signature, compliance, or operational claim
+exists.
+
 ## 2026-08-17 - v0.8 Worktree Implementation And Candidate Preparation
 
 The owner direction to finish v0.8 after accepted v0.7.0 remains bounded by

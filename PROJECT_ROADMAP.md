@@ -4,18 +4,19 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.7.0 baseline and v0.8 candidate preparation |
-| Update type | Accepted-release status, strict release bindings, v0.8 worktree implementation and verification, and requested-only v0.9 follow-on |
-| Updated | 2026-08-17 |
-| Current accepted product baseline | SPELL v0.7.0, tag `v0.7.0`, tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
+| Document revision | Accepted v0.8.0 baseline and v0.9 Gate 0A authorization |
+| Update type | Accepted-release status, strict v0.8 bindings, and bounded v0.9 development-environment planning authorization |
+| Updated | 2026-08-18 |
+| Current accepted product baseline | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.6 status | Accepted at annotated tag `v0.6.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.7 status | Accepted at annotated tag `v0.7.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
-| v0.8 status | `V08-GATE-0A PASS`; all nine `V08-DATA-001` through `V08-DATA-009` packages are implemented in the worktree and pre-candidate backend/frontend verification passed; source freeze, canonical qualification, Gate 0B, Final, package, release commit, and tag remain pending |
+| v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
+| v0.9 status | `V09-GATE-0A PASS`; `V09-DEV-001` through `V09-DEV-009` and 45 planned proof identities authorized; no implementation, candidate, qualification, or release claim |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.7 remains unchanged; the v0.8 worktree adds the bounded local data model, migrations, repository/mutation/runtime services, authenticated API, procedure data operations, Data Service frontend, release tooling, and patched PostgreSQL pin without adding a live GCS route |
+| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.8 fixes the bounded local data model and Data Service surface; v0.9 Gate 0A itself changes no product behavior or dependency |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -31,21 +32,20 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.7.0 is now the accepted product baseline. Its annotated tag object
-`70e4d46a46d158dee3c63ec37a5d1922b3b61668` peels to release commit
-`cf18e9d887ba0476cbcc3d8194e321332a3ae864`. Final validation,
+SPELL v0.8.0 is now the accepted product baseline. Its annotated tag object
+`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` peels to release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`. Final validation,
 supply-chain/SBOM checks, deterministic packaging, release-evidence validation,
 and annotated tagging passed with no accepted exceptions. The verified tag
 activated the conditional owner acceptance without a post-tag documentation
-commit. This acceptance remains limited to `V07-OBS-001` through
-`V07-OBS-009` and provides no operational authorization. The subsequent
-[`V08-GATE-0A`](SPELL_v0.8_Pre-Implementation.md) authorizes only nine bounded
-local synthetic non-CUI data-service work packages and 45 planned proof
-identities. The authorized backend and frontend implementation is now present
-and has passed pre-candidate working-tree verification. It has not yet been
-frozen as a candidate or subjected to canonical candidate qualification, Gate
-0B, Final qualification, packaging, release commit, or tag validation. v0.9
-remains requested-only.
+commit. This acceptance remains limited to `V08-DATA-001` through
+`V08-DATA-009` and provides no operational authorization. The owner request
+`start and complete asap V0.9` and the subsequent
+[`V09-GATE-0A`](SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
+local synthetic non-CUI development-environment work packages and 45 planned
+proof identities. Gate 0A claims zero implemented constructs or runtime
+artifacts; implementation, qualification, Gate 0B, packaging, release, and tag
+validation remain pending.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -220,18 +220,15 @@ strengthens them:
 
 ## Release Outlook
 
-v0.2, v0.3, v0.4, v0.5, v0.6, and v0.7 are accepted product releases. v0.1 is a delivered planning
+v0.2, v0.3, v0.4, v0.5, v0.6, v0.7, and v0.8 are accepted product releases. v0.1 is a delivered planning
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
 is a planning label until its applicable gate is approved. Annotated tag
-`v0.7.0` fixes the current accepted baseline. Final qualification, four SBOMs,
+`v0.8.0` fixes the current accepted baseline. Final qualification, four SBOMs,
 supply-chain validation, deterministic packaging, release-evidence validation,
-and strict annotated-tag validation passed. v0.8 has passed its bounded Gate
-0A for nine exact work packages and 45 planned proof identities. Those packages
-are implemented in the worktree and pre-candidate backend/frontend verification
-passed; the immutable candidate and canonical qualification/release evidence
-chain is pending. v0.9 is requested after v0.8 and has no completed gate or
-implementation.
+and strict annotated-tag validation passed. v0.9 has passed its bounded Gate
+0A for nine exact work packages and 45 planned proof identities. It has no
+implementation, candidate, qualification, Gate 0B, or release claim.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -244,8 +241,8 @@ implementation.
 | v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Accepted at annotated tag `v0.7.0`; no accepted exceptions | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`, and annotated tag `v0.7.0` passed. |
-| v0.8 | Data and Local Service Compatibility | Product | Candidate preparation; nine authorized packages implemented and pre-candidate verified; freeze and canonical qualification pending | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Accepted v0.7.0 baseline plus approved typed storage, URI, transaction, quota, recovery, migration, and security contracts; Gate 0B, Final, package, release commit, and tag remain pending. |
-| v0.9 | SPELL Development Environment | Product | Requested follow-on after v0.8; Gate 0A and implementation pending | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Stable compatibility grammar/catalog schemas, approved non-executing language-service design, and authoring acceptance plan. |
+| v0.8 | Data and Local Service Compatibility | Product | Accepted at annotated tag `v0.8.0`; no accepted exceptions | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`, and annotated tag `v0.8.0` passed. |
+| v0.9 | SPELL Development Environment | Product | `V09-GATE-0A PASS`; nine work packages and 45 planned proof identities authorized; implementation pending | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Accepted v0.8.0 baseline plus hash-bound project, language-service, authoring, bundle, promotion, migration, security, and offline acceptance contracts. |
 | v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
 | v0.11 | Simulator Telecommand Semantics | Product | Candidate | Implement `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, time/load intent, per-element stages, certainty, and reconciliation. | Accepted simulator services, explicit no-resend/confirmation model, command corpus, and exhaustive fault tests. |
 | v0.12 | Read-Only Legacy Observation | Product | Candidate | Compare an isolated legacy test environment to the proven typed simulator APIs with structurally zero command authority. | Accepted read-only simulator contracts, version-specific evidence, golden traces, and a read-only enforcement plan. |
@@ -759,20 +756,13 @@ recovery tests pass without a legacy adapter.
 
 Goal: add the documented non-GCS data model needed by real procedures.
 
-Current disposition: [`V08-GATE-0A PASS`](SPELL_v0.8_Pre-Implementation.md)
-authorizes exactly `V08-DATA-001` through `V08-DATA-009` and their 45 planned
-proof identities under scope profile `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`.
-The manifest and eight planning matrices under `contracts/v08` are hash-bound
-authorization inputs. The gate itself claimed zero product constructs and zero
-runtime artifacts. Subsequent work implemented all nine bounded packages in
-the current worktree, including typed values and storage, scoped catalog and
-dictionary exchange, containers and procedure data operations, shared data,
-virtual files, authenticated API and durable mutation settlement, migration and
-backup/recovery, the Data Service workspace, and version-scoped release
-tooling. Backend and frontend pre-candidate verification passed. Candidate
-freeze and commit, canonical qualification, Gate 0B, Final qualification,
-SBOM/supply-chain evidence, deterministic packaging, release commit, and
-annotated tag `v0.8.0` remain pending.
+Current disposition: accepted at annotated tag `v0.8.0`, object
+`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, over release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`. All nine `V08-DATA-001`
+through `V08-DATA-009` packages and all 45 mapped identities are
+`IMPLEMENTED_AND_QUALIFIED`. Final qualification, four image-bound SBOMs,
+supply-chain validation, deterministic packaging, release-evidence validation,
+and strict annotated-tag validation passed with no accepted exceptions.
 
 Required properties:
 
@@ -794,8 +784,13 @@ backup/restore, and migration tests pass for the claimed APIs.
 Goal: deliver the documented offline development workflows as a separate web
 surface and controlled promotion pipeline.
 
-Current disposition: requested after v0.8. Its bounded Gate 0A scope,
-implementation, qualification, and acceptance are pending.
+Current disposition: [`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md)
+authorizes exactly `V09-DEV-001` through `V09-DEV-009` and their 45 planned
+proof identities under scope profile
+`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. The gate claims zero
+implemented constructs and zero runtime artifacts. Implementation, candidate
+qualification, Gate 0B, Final evidence, packaging, release, and acceptance are
+pending.
 
 Required properties:
 

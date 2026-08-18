@@ -1,0 +1,116 @@
+{
+  "schema_version": "spell.v09.immutable-bundles/1",
+  "contract_id": "V09-IMMUTABLE-BUNDLES",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-007",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#immutable-procedure-bundle",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/architecture/decisions/ADR-005-git-promotion-and-immutable-bundles.md",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/SYSTEM_REQUIREMENTS.md#procedure-authoring-git-and-promotion"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-007-CANONICALIZATION",
+    "V09-DEV-007-REPRODUCIBILITY",
+    "V09-DEV-007-TAMPER",
+    "V09-DEV-007-RETENTION",
+    "V09-DEV-007-SECURITY"
+  ],
+  "builder_boundary": {
+    "input": "exact immutable local history revision with completed validation and a distinct-subject admin history-revision review",
+    "environment": "pinned Linux container with network disabled",
+    "source_execution": false,
+    "procedure_import_execution": false,
+    "driver_or_gcs_access": false,
+    "dependency_fetch": false,
+    "runtime_worker": false,
+    "output_storage": "authoritative database blob and manifest rows",
+    "output_initial_state": "CANDIDATE",
+    "candidate_approval_and_promotion_are_separate_decisions": true
+  },
+  "canonical_archive": {
+    "format": "spell.bundle/1 canonical uncompressed entry stream",
+    "path_order": "ascending UTF-8 byte order",
+    "path_separator": "/",
+    "unicode_normalization": "NFC",
+    "file_mode": "fixed non-executable regular-file mode",
+    "line_endings": "preserved and declared by source digest",
+    "timestamps": "omitted",
+    "owners": "omitted",
+    "duplicate_or_casefold_path": "REJECTED",
+    "digest_algorithm": "SHA-256",
+    "digest_envelope": "bundle_digest is stored in the atomic database envelope and is not embedded in the bytes it hashes"
+  },
+  "bundle_contents": [
+    "canonical manifest",
+    "validated source",
+    "data-only IR",
+    "source maps",
+    "dictionary documents",
+    "pinned catalog snapshots",
+    "dependency closure",
+    "validation report references"
+  ],
+  "manifest_required_fields": [
+    "bundle_schema_version",
+    "project_id",
+    "procedure_ids",
+    "history_revision_id",
+    "source_tree_digest",
+    "language_profile",
+    "compatibility_profile",
+    "parser_version",
+    "validator_version",
+    "compiler_version",
+    "ir_schema_version",
+    "dependency_digests",
+    "catalog_digests",
+    "validation_report_digest",
+    "review_subject",
+    "builder_identity",
+    "toolchain_digest",
+    "created_at_database_time"
+  ],
+  "database_immutability": {
+    "primary_identity": "bundle_digest",
+    "digest_location": "external atomic database envelope",
+    "bytes_sha256_equals_identity": true,
+    "insert_if_absent_only": true,
+    "same_digest_same_bytes_is_idempotent": true,
+    "same_digest_different_bytes": "CORRUPT_BUNDLE_COLLISION",
+    "update_bytes": false,
+    "delete_before_retention_expiry": false,
+    "manifest_and_bytes_commit_atomically": true
+  },
+  "verification": {
+    "recompute_digest_on_read": true,
+    "strict_manifest_schema": true,
+    "data_only_ir_schema": true,
+    "all_dependency_digests_present": true,
+    "same_inputs_same_digest": true,
+    "independent_reproduction_required": true,
+    "cryptographic_signature_present": false,
+    "cryptographic_signature_verified": false
+  },
+  "limits": {
+    "maximum_bundle_bytes": 67108864,
+    "maximum_entries": 20000,
+    "maximum_manifest_bytes": 1048576,
+    "maximum_dependency_nodes": 1024,
+    "maximum_catalog_snapshots": 128
+  },
+  "nonclaims": {
+    "external_artifact_repository": false,
+    "cryptographic_signature": false,
+    "signed_git_commit_or_tag": false,
+    "remote_dependency_resolution": false,
+    "runtime_fetch": false,
+    "production_readiness": false
+  }
+}

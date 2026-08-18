@@ -1,24 +1,24 @@
-# SPELL v0.8 Operations Console Candidate Preparation
+# SPELL v0.8 Operations Console
 
 React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
-local synthetic non-CUI simulator. SPELL v0.7.0 is the accepted product
-baseline at annotated tag `v0.7.0`, tag object
-`70e4d46a46d158dee3c63ec37a5d1922b3b61668`, and release commit
-`cf18e9d887ba0476cbcc3d8194e321332a3ae864`.
+local synthetic non-CUI simulator. SPELL v0.8.0 is the accepted product
+baseline at annotated tag `v0.8.0`, tag object
+`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, and release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`.
 
-The latest implemented worktree increment is v0.8 Data and Local Service
-Compatibility. It preserves the authenticated simulator-driver projection,
+The accepted v0.8 Data and Local Service Compatibility increment preserves the
+authenticated simulator-driver projection,
 operator workspace, and read-only observation surface while adding the bounded
 Data Service workspace for revisioned catalogs, dictionaries, containers,
 shared data, and virtual-root files. Browser driver mutations, direct
 browser-to-driver access, generic database access, host-filesystem access, and
 unrestricted data mutation remain outside scope.
 
-Frontend unit tests and the production build passed during pre-candidate
-verification. Source freeze, canonical candidate and browser qualification,
-Gate 0B, Final qualification, packaging, the release commit, and annotated tag
-`v0.8.0` remain pending. v0.9 has been requested but is not gated or
-implemented.
+Canonical candidate and Final frontend unit, production-build, mocked-browser,
+and real-browser evidence passed as part of accepted v0.8.0. `V09-GATE-0A
+PASS` authorizes a separate local development-environment web surface under
+`V09-DEV-001` through `V09-DEV-009`; that surface is not yet implemented or
+qualified and is not part of the accepted v0.8 console.
 
 The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide
@@ -51,8 +51,10 @@ local Compose stack plus `SPELL_REAL_BACKEND=1`, `SPELL_E2E_BASE_URL` set to its
 loopback proxy URL, and `SPELL_E2E_TOKEN` set to a currently valid signed JWT.
 
 The retained `python scripts/qualify_v04.py plan` and associated Gate 1-5
-commands document the historical v0.4 workflow only. The current v0.8 evidence
+commands document the historical v0.4 workflow only. The accepted v0.8 evidence
 chain is owned by `scripts/qualify_candidate_v08.ps1`,
-`scripts/qualify_release_v08.ps1`, and the v0.8 validators. Successful frontend
-tests alone do not qualify or accept v0.8 and do not establish an operational or
-compliance claim.
+`scripts/qualify_release_v08.ps1`, and the v0.8 validators. The reserved v0.9
+candidate and release tool names in `PROMPT_Instructions.md` describe a future
+required flow and are not implemented evidence. Successful frontend tests alone
+do not qualify or accept v0.9 and do not establish an operational or compliance
+claim.

@@ -1,0 +1,91 @@
+{
+  "schema_version": "spell.v09.dictionary-catalog-authoring/1",
+  "contract_id": "V09-DICTIONARY-CATALOG-AUTHORING",
+  "release": "v0.9.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "scope_qualifier_confirmation": "LOCAL_SYNTHETIC_NON_CUI_ONLY",
+  "authorization_boundary": "V09_DEV_001_THROUGH_V09_DEV_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V09-DEV-003",
+  "cross_feature_work_package_id": "V09-DEV-009",
+  "authority_refs": [
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#repository-contract",
+    "contracts/v08/dictionary_exchange.json",
+    "contracts/v08/catalog_uri_dependency.json",
+    "SPELL-DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf"
+  ],
+  "qualification_test_ids": [
+    "V09-DEV-003-SCHEMA",
+    "V09-DEV-003-DICTIONARY",
+    "V09-DEV-003-CATALOG",
+    "V09-DEV-003-REFERENCE",
+    "V09-DEV-003-SECURITY"
+  ],
+  "dictionary_editor": {
+    "formats": ["DB", "IMP"],
+    "canonical_internal_form": "versioned typed dictionary document",
+    "original_bytes_and_provenance_retained": true,
+    "expected_workspace_revision_required": true,
+    "typed_value_contract": "contracts/v08/typed_values.json",
+    "implicit_type_conversion": false,
+    "source_execution": false,
+    "export_writes_browser_download_only": true,
+    "host_path_parameter": false
+  },
+  "catalog_views": {
+    "kinds": ["TM", "TC", "RESOURCE", "SCDB", "GDB", "PROC", "MMD"],
+    "inputs": "pinned schema-valid local snapshots",
+    "search": "bounded literal and typed field filters",
+    "generic_expression_filter": false,
+    "network_resolution": false,
+    "drag_or_insert_effect": "generate text-only editor snippet",
+    "telecommand_send_effect": false
+  },
+  "reference_identity": {
+    "required_fields": [
+      "catalog_id",
+      "catalog_revision",
+      "content_digest",
+      "entry_id",
+      "qualified_name"
+    ],
+    "digest_algorithm": "SHA-256",
+    "floating_revision": false,
+    "late_network_binding": false,
+    "casefold_collision_outcome": "CASE_CONFLICT"
+  },
+  "project_metadata": {
+    "procedure_header_form": true,
+    "argument_metadata_form": true,
+    "dictionary_properties_form": true,
+    "catalog_dependency_form": true,
+    "forms_emit_versioned_text_or_data": true,
+    "forms_mutate_runtime_catalog": false
+  },
+  "validation": {
+    "duplicate_keys": "REJECTED",
+    "unknown_fields": "REJECTED",
+    "invalid_utf8": "REJECTED",
+    "unpaired_surrogates": "REJECTED",
+    "schema_mismatch": "SCHEMA_INVALID",
+    "missing_pinned_catalog": "DEPENDENCY_MISSING",
+    "digest_mismatch": "DEPENDENCY_DIGEST_MISMATCH"
+  },
+  "limits": {
+    "maximum_dictionary_bytes": 16777216,
+    "maximum_dictionary_entries": 100000,
+    "maximum_catalog_entries": 100000,
+    "maximum_catalog_dependencies": 128,
+    "maximum_generated_snippet_bytes": 262144
+  },
+  "nonclaims": {
+    "live_gcs_catalog": false,
+    "telecommand_route": false,
+    "runtime_catalog_publication": false,
+    "arbitrary_template_execution": false,
+    "remote_url_import": false,
+    "operational_authorization": false
+  }
+}
