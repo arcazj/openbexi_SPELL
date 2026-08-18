@@ -1405,7 +1405,7 @@ def _validate_suite_manifest(
             f"{suite_id} does not prove both desktop and mobile projects",
         )
         required_fragments = (
-            ("operator-workspace.spec.ts::operates the dense v0.7 workspace",)
+            ("operator-workspace.spec.ts::operates the dense v0.6 workspace",)
             if suite_id == "browser_mocked"
             else (
                 "integration.spec.ts::controls a durable prompt workflow",

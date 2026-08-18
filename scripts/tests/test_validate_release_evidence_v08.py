@@ -298,12 +298,12 @@ def test_mocked_browser_requires_the_inherited_v07_operator_workflow(
     cases = [
         (
             "browser_chromium.operator-workspace.spec.ts",
-            "operates the dense v0.7 workspace on desktop and mobile",
+            "operates the dense v0.6 workspace on desktop and mobile",
             "passed",
         ),
         (
             "browser_mobile.operator-workspace.spec.ts",
-            "operates the dense v0.7 workspace on desktop and mobile",
+            "operates the dense v0.6 workspace on desktop and mobile",
             "passed",
         ),
     ]
@@ -327,7 +327,7 @@ def test_mocked_browser_requires_the_inherited_v07_operator_workflow(
     assert result is not None and count == len(cases)
 
     renamed = [
-        (classname, name.replace("v0.7", "v0.8"), status)
+        (classname, name.replace("v0.6", "v0.8"), status)
         for classname, name, status in cases
     ]
     _write_junit(path, renamed)
