@@ -7,12 +7,12 @@
 | --- | --- |
 | Version | SPELL v0.8.0 |
 | Release name | Local Data Service |
-| Record state | `CONDITIONAL_PENDING`; this document is not an acceptance claim |
+| Record state | `CONDITIONAL_FINAL_CLOSEOUT`; this document is not yet an acceptance claim |
 | Scope | `V08-DATA-001` through `V08-DATA-009` only |
 | Accepted baseline | SPELL v0.7.0, annotated tag `v0.7.0` |
 | Gate 0A | `PASS` at commit `451c065740e7b6501f86094d9be79578b30b1591` |
-| Gate 0B | `PENDING_CANDIDATE` |
-| Candidate source commit | Pending |
+| Gate 0B | `PASS` |
+| Candidate source commit | `f9c90fe8d6fd593bd9db4ed55f35d56ee3165e8c` |
 | Final qualified source commit | Pending |
 | Release commit | Pending |
 | Release tag | Pending annotated tag `v0.8.0` |
@@ -57,8 +57,8 @@ independent validators pass:
 
 | Evidence | Required canonical location | Current value |
 | --- | --- | --- |
-| Candidate qualification | `artifacts/v0.8/work-package/qualification.json` | Pending |
-| Gate 0B machine scope | `.../scopes/v0.8-gate-0b.json` | Pending activation |
+| Candidate qualification | `artifacts/v0.8/work-package/qualification.json` | `PASS`; SHA-256 `5fdfa848edf1bdfa8b3b2a161e4dc2c1a356a95cfc424e0e079e5719b1d046d7` |
+| Gate 0B machine scope | `.../scopes/v0.8-gate-0b.json` | `PASS`; SHA-256 `0e3e3fc2eea47d243f67cdc802a14d93e9053c1cf4f75fc1ab0c300392d36d0c` |
 | Final qualification | `artifacts/v0.8/final/qualification.json` | Pending |
 | Release qualification manifest | `artifacts/v0.8/release-qualification.json` | Pending |
 | Backend SBOM | `artifacts/v0.8/sbom/backend.cdx.json` | Pending |
@@ -83,7 +83,5 @@ annotated tagging proceed. Gate 0B itself changes this record only to
 ## Current Finding
 
 <!-- V08_RELEASE_CURRENT_FINDING_BEGIN -->
-SPELL v0.8.0 is not yet accepted by this record. Gate 0B activation, final
-qualification, supply-chain evidence, deterministic packaging, the release
-commit, annotated tag, and strict post-tag verification remain pending.
+Gate 0B has passed for the exact nine-package v0.8 candidate, but SPELL v0.8.0 is not yet accepted by this record. Final qualification, supply-chain evidence, deterministic packaging, the release commit, annotated tag, and strict post-tag verification remain pending.
 <!-- V08_RELEASE_CURRENT_FINDING_END -->
