@@ -1,9 +1,12 @@
 # OpenBEXI SPELL Project Instructions
 
-This file is the durable execution prompt for `openbexi_spell`. Read it before
+This file is the durable execution policy for `openbexi_spell`. Read it before
 analysis, design, implementation, testing, integration, packaging, or release
-work. Release-specific requests and results belong in `PROMPT_History.md`,
-`Test_and_Integration.md`, and the applicable version record.
+work. Keep request history, executed results, and release-specific bindings in
+`PROMPT_History.md`, `Test_and_Integration.md`, the active gate records, and the
+applicable version record. Never infer release acceptance from this prompt or
+from a mutable worktree; the strictly validated annotated tag and its committed
+evidence are authoritative.
 
 ## Mission
 
@@ -19,8 +22,11 @@ as operational qualification.
 
 ## Current Baseline And Candidate
 
-SPELL v0.3.0, tag `v0.3.0`, remains the accepted local simulator engineering
-baseline. It is built from new first-party code and provides:
+At the v0.8 source-freeze boundary, SPELL v0.7.0 is the accepted local
+synthetic non-CUI simulator engineering baseline. Annotated tag object
+`70e4d46a46d158dee3c63ec37a5d1922b3b61668` peels to release commit
+`cf18e9d887ba0476cbcc3d8194e321332a3ae864`. The cumulative accepted product is
+built from new first-party code and provides:
 
 - Python 3.13 FastAPI control plane and isolated procedure workers.
 - Restricted AST parser and data-only IR; submitted Python text is never
@@ -29,6 +35,9 @@ baseline. It is built from new first-party code and provides:
   malformed text receives stable non-echoing diagnostics before persistence.
 - Typed variables, safe expressions, deterministic conditions, bounded loops,
   bounded zero-argument local calls, and durable variable checkpoints.
+- A separately isolated, authenticated simulator driver lifecycle, durable
+  operator workspace and procedure composition, and simulator-only read-only
+  observations, conditions, scheduling, resource reads, limits, and cursors.
 - SQLite development storage and PostgreSQL 18 target storage with ordered,
   versioned migrations.
 - Versioned REST mutations and snapshots plus authenticated, downstream-only,
@@ -38,28 +47,27 @@ baseline. It is built from new first-party code and provides:
 - Signed short-lived JWT identity, server-enforced viewer/operator/admin roles,
   loopback reverse-proxy ingress, and an internal backend/database network.
 - Hash-locked Python dependencies, npm integrity locking, reproducible source
-  packages, distinct backend/proxy/frontend CycloneDX SBOMs, and dependency
-  audit gates.
+  packages, version-scoped backend/driver/frontend/proxy CycloneDX SBOMs, and
+  dependency audit gates.
 
-SPELL v0.4.0 is the owner-approved Candidate A engineering target. Its scope is
-strictly local-only, synthetic, non-CUI simulator engineering. Candidate scope
-is limited to a typed `spell.driver.v1` infrastructure-lifecycle contract, one
-bundled deterministic simulator driver in a separate host, control-plane-owned
-context and attachment supervision, mTLS service identity, durable operation
-reconciliation, read-only REST/WebSocket projections, and a read-only console
-projection. Existing v0.3 procedure semantics and their versioned schemas stay
-unchanged and do not route through the driver.
+`V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
+and their 45 proof identities under `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`.
+The bounded v0.8 implementation adds typed values, revisioned catalogs and
+dictionaries, non-executing DB/IMP exchange, typed `ARGS`/`IVARS`, shared data,
+virtual-root files, authenticated data APIs, durable mutation/audit/outbox
+records, migration and recovery, and the Data Service console workspace.
 
-The v0.4 candidate exposes no telemetry or telecommand data plane, no
-procedure-facing driver call, no arbitrary endpoint, and no browser mutation of
-driver state. It does not provide a legacy or live Ground Control System client,
-spacecraft or mission-network connection, externally effective command,
-persistent procedure authoring, production PKI or identity, high availability,
-deployment approval, compliance determination, mission authority, or
-operational authorization. Configuration must not make any excluded capability
-appear to exist. Gate 0 authorized bounded implementation; only executed and
-published Gates 1-5 evidence plus an explicit project-owner decision can accept
-the release candidate.
+Treat v0.8 as pending unless its candidate and Final evidence both validate,
+Gate 0B is `PASS`, the deterministic package and four SBOMs validate, and the
+annotated `v0.8.0` tag passes strict post-tag verification. Once all conditions
+hold, the tag and `SPELL_v0.8_Release.md` supersede this source-freeze snapshot
+as the accepted baseline record. v0.9 remains requested-only until its own
+explicit Gate 0A passes. No current release provides a legacy or live Ground
+Control System client, spacecraft or mission-network connection, externally
+effective command, production identity, high availability, deployment
+approval, compliance determination, mission authority, or operational
+authorization. Configuration must not make an excluded capability appear to
+exist.
 
 ## Legacy Evidence
 
@@ -73,8 +81,8 @@ code from them into the Apache-2.0 project:
 
 The supplied Server, GUI, Language, Driver Development, Development Environment,
 and Build manuals and GUI build instructions are read-only external evidence.
-For v0.4, use their page-complete review and compatibility ledger for
-classification and traceability, not as implementation source or a
+Use the active version's hash-bound, page-complete review and compatibility
+ledger for classification and traceability, not as implementation source or a
 version-exact executable oracle. Do not copy their code or weakly typed wire
 contracts, and do not place the supplied PDFs, extracted manual text, or legacy
 archives in product images or release packages. Record conflicts and exclusions;
@@ -91,8 +99,12 @@ version series.
   recover gaps through snapshot plus cursor replay.
 - Parse procedure source into a versioned, normalized, data-only IR. Maintain an
   explicit allowlist; reject imports, attributes, reflection, arbitrary calls,
-  dynamic loop bounds, recursion, filesystem, network, database, subprocess,
-  asynchronous, and exception syntax.
+  dynamic loop bounds, recursion, direct or arbitrary filesystem, network, or
+  database access, subprocesses, asynchronous syntax, and exception syntax.
+  Approved data and virtual-file operations must lower to closed, typed IR and
+  execute only through supervisor-brokered, schema-validated services with
+  authenticated scope, revisions, bounds, audit, and recovery. Never expose a
+  raw database connection or general host-filesystem handle to procedure code.
 - Bound source bytes before decoding or parsing, then bound AST nodes and depth,
   expanded steps, and serialized IR bytes before IR is handed to a worker or
   persisted. Catalog discovery must use bounded binary reads and reject files
@@ -190,52 +202,75 @@ version series.
   them. Install Python release dependencies with `--require-hashes` and Node
   dependencies with `npm ci`.
 - Produce the exact version-scoped SBOM set required by the active gate and a
-  checksum manifest, and run dependency audits for every release. The v0.4 set
-  is four distinct CycloneDX inventories for backend, driver, frontend build,
-  and proxy image identities under `artifacts/v0.4/sbom`. Critical or High
-  findings require resolution; every other advisory requires a recorded,
-  time-bounded disposition.
+  checksum manifest, and run dependency audits for every release. The current
+  release contract requires four distinct CycloneDX inventories for backend,
+  driver, frontend-build, and proxy image identities under the active version's
+  artifact root. Critical or High findings require resolution; every other
+  advisory requires a recorded, time-bounded disposition.
 - Build the release package twice from the same frozen source and require
   identical SHA-256 results. The manifest must exclude archives, secrets,
   generated browser screenshots, caches, and IDE files. Screenshot exclusion
   must be path- and file-type-specific; it must retain PNG or other visual
   assets that are part of the product.
-- Keep qualification and packaging version-aware. For v0.4, stage every
-  built-in or environment-bound Gate 1-5 result through
-  `scripts/qualify_v04.py`; require the exact test catalog, shared source
-  fingerprint, semantic validation, no missing or skipped mandatory result, and
-  atomic publication under `artifacts/v0.4`. Do not read, satisfy, overwrite, or
-  package retained v0.3 evidence as v0.4 evidence.
-- Generate and validate v0.4 contracts offline from pinned inputs. Inspect
-  source, package bytes, and the exact four images for secrets, manual/PDF or
-  legacy material, generated journals, and runtime generator tooling. Build the
-  v0.4 source package repeatedly from immutable inputs and require identical
-  SHA-256 results before recording any release decision.
+- Keep qualification and packaging version-aware. Require the exact test
+  catalog, one frozen source fingerprint, semantic validation, no missing or
+  skipped mandatory identity, and atomic publication under the active version's
+  artifact root. Never use one version's retained evidence to satisfy, replace,
+  or package another version.
+- Use only the active version's hash-pinned toolchain and canonical producers.
+  Initialize v0.8 commands with `scripts/assert_release_toolchain_v04.ps1` and
+  invoke Python tools with the resulting `SPELL_RELEASE_PYTHON_EXE` and `-I`;
+  never substitute an ambient interpreter. The v0.8 scope profile is
+  `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`, while qualification requires the
+  distinct exact confirmation `LOCAL_SYNTHETIC_NON_CUI_ONLY`. The canonical
+  producers and validators are `scripts/qualify_candidate_v08.ps1`,
+  `scripts/validate_candidate_evidence_v08.py`,
+  `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v08_gate_0b.py`,
+  `scripts/qualify_release_v08.ps1`, `scripts/generate_sbom_v08.ps1`,
+  `scripts/audit_supply_chain_v08.ps1`,
+  `scripts/create_release_qualification_v08.py`, and
+  `scripts/package_release_v08.ps1`, followed by
+  `scripts/validate_release_evidence_v08.py`. Inspect source, package bytes, and
+  all four images for secrets, excluded manuals or archives, generated journals,
+  and runtime generator tooling.
 - Preserve unrelated user changes. Do not rewrite or discard them to obtain a
   clean working tree.
 
 ## Version Workflow
 
-1. Read this file, the latest entry at the top of `PROMPT_History.md`, the
-   accepted baseline record, the active candidate gate/release record,
-   provenance, and relevant code/tests.
-2. Inspect repository and dependency state. Establish the last verified tag and
-   keep unrelated or local-only files out of the change.
-3. Before implementation, add the new version request at the top of
-   `PROMPT_History.md`, define scope and exclusions, and add requirements and
-   acceptance tests to `Test_and_Integration.md`.
-4. Do not implement until that pre-implementation gate is explicit. Resolve
-   ambiguity by narrowing scope, especially around operational behavior.
-5. Implement in small ownership-aligned changes. Update migrations, schemas,
-   examples, documentation, threat controls, and tests with the behavior.
-6. Execute every mandatory gate. Record exact environments, commands, totals,
-   timings, failures, exceptions, and artifact hashes. Never report an
+1. Establish authority: read this policy, the newest history entry, the accepted
+   tag evidence, the active gate/release records, provenance, and relevant code
+   and tests. Inspect Git, dependency, toolchain, and local-only state.
+2. Before implementation, record the owner request, scope, exclusions,
+   requirements, acceptance identities, and a fail-closed pre-implementation
+   gate. Narrow ambiguous or operational behavior; do not implement it by
+   assumption.
+3. Implement only the authorized packages in ownership-aligned changes. Update
+   migrations, schemas, documentation, threat controls, and tests with behavior.
+4. Resolve every pre-candidate defect, finalize all source-fingerprinted policy
+   files, and freeze exactly one candidate commit with the ancestry required by
+   the active gate. Never qualify mutable working-tree bytes.
+5. Run the canonical candidate producer and independent validator. Activate
+   Gate 0B only through its atomic prepare/apply protocol and commit the exact
+   candidate evidence and activated records.
+6. After Gate 0B passes, run Final qualification from the committed qualified
+   source, then generate and validate the SBOM and supply-chain evidence and
+   create the release-qualification manifest. Record exact environments,
+   commands, totals, timings, failures, exceptions, and hashes; never report an
    unexecuted test as passed.
-7. Update `README.md`, `PROVENANCE.md`, the version release record, test results,
-   and the latest history entry. Keep earlier history immutable.
-8. Commit only intended project files, create the requested annotated version
-   tag, and leave the verified local service running on its documented
-   loopback URL when the release includes a web application.
+7. When the active deterministic packager requires clean committed manifest
+   bytes, create a transient prepackage evidence commit solely as its immutable
+   input. Run the canonical packager's two builds in each of two independent
+   source exports, require all four archive hashes to be identical, stage the
+   archive and sidecar, and amend the transient commit so only the amended
+   object is eligible as the release commit. Never tag, publish, or describe the
+   transient object as a release.
+8. On the clean complete release commit, run
+   `scripts/validate_release_evidence_v08.py` before tagging, create the
+   requested annotated semantic-version tag, then rerun that validator with
+   `--require-tag`. Keep prior history and accepted evidence immutable.
+9. When the release includes a web application, start the verified local stack
+   and leave it running on its documented loopback URL after acceptance.
 
 ## Required Verification
 
@@ -253,21 +288,23 @@ Scale verification with risk, but every product release must include:
   idempotency, concurrency, late-message, and audit-integrity tests.
 - Frontend unit tests, strict TypeScript production build, desktop/mobile real
   browser workflows, keyboard control, responsive containment, and Axe checks.
+- Documentation integrity for every changed tracked Markdown file: strict UTF-8,
+  balanced fences and controlled HTML markers, valid GFM table delimiters with
+  unambiguous block separation, resolvable repository-local links, and a real
+  preview-engine check for representative table- and link-heavy documents.
+  Never autoformat validator-owned marker blocks after they are bound.
 - Canonical replay, latency, throughput, concurrency, and sustained soak tests
   against version-specific budgets. These are engineering gates, not
   operational SLOs.
 - Fingerprint-bound, version-specific built-in and environment-bound evidence,
-  with a separate validator that recomputes catalog completeness, identities,
-  budgets, and integrity. For v0.4 use `python scripts/qualify_v04.py plan`,
-  `run`/`collect`, `status`, and finally `publish`; staged evidence is not release
-  evidence until publication succeeds.
+  with an independent validator that recomputes catalog completeness,
+  identities, budgets, and integrity. Scratch or staged output is never release
+  evidence; only the atomically published canonical artifact is eligible.
 - Hash-locked dependency installation, Python and Node audits, exact image
   identity, version-scoped SBOM generation, proxy and driver isolation checks,
   package-manifest inspection, exact generated-browser evidence exclusion, and
-  repeated-build reproducibility. For v0.4 use
-  `scripts/audit_supply_chain_v04.ps1`, `scripts/generate_sbom_v04.ps1`,
-  `scripts/inspect_release_v04.ps1`, and
-  `scripts/package_release_v04.ps1` within the Gate 5 qualification workflow.
+  repeated-build reproducibility. Use the active version's pinned scripts and
+  validate their output independently before any release decision or tag.
 
 Any unresolved Critical or High defect in safety boundaries, identity,
 authorization, persistence, ordering, migration, recovery, isolation, or source

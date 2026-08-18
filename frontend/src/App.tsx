@@ -1,9 +1,10 @@
-import { AlertCircle, ServerCog, Workflow, X } from "lucide-react";
+import { AlertCircle, Database, ServerCog, Workflow, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AUTH_CHANGED_EVENT, getAccessToken } from "./api";
 import { AccessTokenGate } from "./components/AccessTokenGate";
 import { ConsoleHeader } from "./components/ConsoleHeader";
 import { DataDock } from "./components/DataDock";
+import { DataServiceWorkspace } from "./components/DataServiceWorkspace";
 import { DriverProjection } from "./components/DriverProjection";
 import { ExecutionWorkspace } from "./components/ExecutionWorkspace";
 import { InstanceMaster } from "./components/InstanceMaster";
@@ -16,7 +17,7 @@ export default function App() {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.console.error);
   const [authenticated, setAuthenticated] = useState(() => Boolean(getAccessToken()));
-  const [activeView, setActiveView] = useState<"execution" | "driver">("execution");
+  const [activeView, setActiveView] = useState<"execution" | "driver" | "data">("execution");
   useExecutionStream(authenticated);
 
   useEffect(() => {
@@ -59,10 +60,14 @@ export default function App() {
             tabIndex={activeView === "execution" ? 0 : -1}
             onClick={() => setActiveView("execution")}
             onKeyDown={(event) => {
-              if (event.key === "ArrowRight" || event.key === "End") {
+              if (event.key === "ArrowRight") {
                 event.preventDefault();
                 setActiveView("driver");
                 document.getElementById("workspace-tab-driver")?.focus();
+              } else if (event.key === "End") {
+                event.preventDefault();
+                setActiveView("data");
+                document.getElementById("workspace-tab-data")?.focus();
               }
             }}
           >
@@ -82,11 +87,38 @@ export default function App() {
                 event.preventDefault();
                 setActiveView("execution");
                 document.getElementById("workspace-tab-execution")?.focus();
+              } else if (event.key === "ArrowRight" || event.key === "End") {
+                event.preventDefault();
+                setActiveView("data");
+                document.getElementById("workspace-tab-data")?.focus();
               }
             }}
           >
             <ServerCog aria-hidden="true" size={15} />
             <span>Driver foundation</span>
+          </button>
+          <button
+            id="workspace-tab-data"
+            type="button"
+            role="tab"
+            aria-selected={activeView === "data"}
+            aria-controls="workspace-panel-data"
+            tabIndex={activeView === "data" ? 0 : -1}
+            onClick={() => setActiveView("data")}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                setActiveView("driver");
+                document.getElementById("workspace-tab-driver")?.focus();
+              } else if (event.key === "ArrowRight" || event.key === "Home") {
+                event.preventDefault();
+                setActiveView("execution");
+                document.getElementById("workspace-tab-execution")?.focus();
+              }
+            }}
+          >
+            <Database aria-hidden="true" size={15} />
+            <span>Data services</span>
           </button>
         </div>
       </div>
@@ -104,7 +136,7 @@ export default function App() {
             <DataDock />
           </div>
         </div>
-      ) : (
+      ) : activeView === "driver" ? (
         <div
           id="workspace-panel-driver"
           className="driver-shell"
@@ -112,6 +144,15 @@ export default function App() {
           aria-labelledby="workspace-tab-driver"
         >
           <DriverProjection />
+        </div>
+      ) : (
+        <div
+          id="workspace-panel-data"
+          className="data-shell"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-data"
+        >
+          <DataServiceWorkspace />
         </div>
       )}
     </div>

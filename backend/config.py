@@ -39,6 +39,8 @@ class Settings:
     driver_stale_after_seconds: float = 5.0
     observation_poll_seconds: float = 0.2
     observation_freshness_sweep_seconds: float = 0.5
+    data_dir: Path | None = None
+    v0007_backup_directory: Path | None = None
 
     def __post_init__(self) -> None:
         if self.websocket_replay_limit <= 0:
@@ -87,6 +89,29 @@ class Settings:
             )
             if any(actual != expected for actual, expected in fixed_paths):
                 raise ValueError("driver credential paths must use the fixed service mount")
+        if self.data_dir is not None:
+            data_dir = self.data_dir.resolve(strict=False)
+            procedures_dir = self.procedures_dir.resolve(strict=False)
+            if (
+                data_dir == procedures_dir
+                or procedures_dir in data_dir.parents
+                or data_dir in procedures_dir.parents
+            ):
+                raise ValueError("SPELL_DATA_DIR must be separate from executable procedures")
+        if (
+            self.v0007_backup_directory is not None
+            and not self.v0007_backup_directory.is_absolute()
+        ):
+            raise ValueError("SPELL_V0007_BACKUP_DIR must be an absolute path")
+
+    @property
+    def resolved_data_dir(self) -> Path:
+        if self.data_dir is not None:
+            return self.data_dir.resolve(strict=False)
+        if self.database_url.startswith("sqlite:///"):
+            database_path = Path(self.database_url.removeprefix("sqlite:///"))
+            return database_path.resolve(strict=False).parent / "spell-data"
+        return Path(__file__).resolve().parents[1] / "var" / "spell-data"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -121,5 +146,11 @@ class Settings:
             ),
             observation_freshness_sweep_seconds=float(
                 os.getenv("SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS", "0.5")
+            ),
+            data_dir=Path(os.getenv("SPELL_DATA_DIR", root / "var" / "spell-data")),
+            v0007_backup_directory=(
+                Path(value)
+                if (value := os.getenv("SPELL_V0007_BACKUP_DIR"))
+                else None
             ),
         )

@@ -26,9 +26,23 @@ from .ir_v07 import (
     V07ValidationError,
     validate_ir_v07,
 )
+from .ir_v08 import (
+    IR_VERSION as V08_IR_VERSION,
+    V08ValidationError,
+    data_operation_required_fields,
+    validate_ir_v08,
+)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
+ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
+    "BOOLEAN",
+    "LONG",
+    "FLOAT",
+    "STRING",
+    "DATETIME",
+    "RELTIME",
+}
 MAX_CALL_DEPTH = 16
 MAX_AST_DEPTH = 64
 MAX_AST_NODES = 20_000
@@ -42,6 +56,30 @@ MAX_USER_ACTIONS = 16
 _LABEL_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,127}\Z")
 _CATALOG_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\Z")
 MAX_CATALOG_DEPTH = 16
+
+V08_DATA_CALLS = frozenset(
+    {
+        "CreateDictionary",
+        "LoadDictionary",
+        "SaveDictionary",
+        "DataContainer",
+        "Var",
+        "AddSharedDataScope",
+        "GetSharedDataScopes",
+        "GetSharedData",
+        "GetSharedDataKeys",
+        "SetSharedData",
+        "ClearSharedData",
+        "ClearSharedDataScopes",
+        "File",
+        "OpenFile",
+        "CloseFile",
+        "ReadFile",
+        "ReadDirectory",
+        "WriteFile",
+        "DeleteFile",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -101,6 +139,7 @@ class ProcedureCatalog:
         "GetTM",
         "Verify",
         "WaitFor",
+        *V08_DATA_CALLS,
     }
 
     def __init__(self, directory: Path):
@@ -330,7 +369,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V07_IR_VERSION
+            V08_IR_VERSION
+            if compiler.uses_v08
+            else V07_IR_VERSION
             if compiler.uses_v07
             else V06_IR_VERSION
             if compiler.uses_v06
@@ -338,13 +379,20 @@ class ProcedureCatalog:
         )
         try:
             validated_ir = (
-                validate_ir_v07(ir_version, steps)
+                validate_ir_v08(ir_version, steps)
+                if compiler.uses_v08
+                else validate_ir_v07(ir_version, steps)
                 if compiler.uses_v07
                 else validate_ir_v06(ir_version, steps)
                 if compiler.uses_v06
                 else validate_ir_v03(ir_version, steps)
             )
-        except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
+        except (
+            IRValidationError,
+            V06ValidationError,
+            V07ValidationError,
+            V08ValidationError,
+        ) as exc:
             diagnostic = ProcedureDiagnostic(
                 code="SPELL105",
                 message=f"compiled IR failed independent validation at {exc.path}",
@@ -413,20 +461,25 @@ class _Compiler:
         "GetTM",
         "Verify",
         "WaitFor",
+        *V08_DATA_CALLS,
     }
-    _reserved_calls = {*_step_calls, "UserAction", "Label"}
+    _reserved_calls = {*_step_calls, "ARGS", "UserAction", "Label"}
 
     def __init__(self, source_name: str):
         self.source_name = source_name
         self.functions: dict[str, ast.FunctionDef] = {}
         self.types: dict[str, str] = {}
+        self.opaque_types: dict[str, str] = {}
+        self.opaque_declared_variables: set[str] = set()
         self.steps: list[dict[str, Any]] = []
         self.serialized_ir_bytes = 2
         self.branch_counter = 0
         self.called_functions: set[str] = set()
         self.user_actions: list[dict[str, Any]] = []
+        self.argument_declarations: dict[str, str] | None = None
         self.uses_v06 = False
         self.uses_v07 = False
+        self.uses_v08 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -451,6 +504,8 @@ class _Compiler:
                 self._register_function(statement)
             elif self._is_user_action_declaration(statement):
                 self._compile_user_action_declaration(statement)
+            elif self._is_args_declaration(statement):
+                self._compile_args_declaration(statement)
             else:
                 executable.append(statement)
 
@@ -476,6 +531,7 @@ class _Compiler:
                 "get_tm",
                 "verify",
                 "wait_for",
+                "data_operation",
             }
             for step in self.steps
         ):
@@ -488,6 +544,10 @@ class _Compiler:
             )
         for index, step in enumerate(self.steps):
             step["index"] = index
+        if self.uses_v08:
+            self.steps[0]["argument_declarations"] = dict(
+                sorted((self.argument_declarations or {}).items())
+            )
         if self.uses_v06:
             self._attach_v06_target_metadata(tree)
         return description, self.steps
@@ -533,6 +593,46 @@ class _Compiler:
             and isinstance(statement.value.func, ast.Name)
             and statement.value.func.id == "UserAction"
         )
+
+    @staticmethod
+    def _is_args_declaration(statement: ast.stmt) -> bool:
+        return (
+            isinstance(statement, ast.Expr)
+            and isinstance(statement.value, ast.Call)
+            and isinstance(statement.value.func, ast.Name)
+            and statement.value.func.id == "ARGS"
+        )
+
+    def _compile_args_declaration(self, node: ast.Expr) -> None:
+        call = node.value
+        assert isinstance(call, ast.Call)
+        if self.argument_declarations is not None:
+            self._reject(call, "SPELL820", "ARGS may be declared only once")
+        if call.args or any(keyword.arg is None for keyword in call.keywords):
+            self._reject(
+                call,
+                "SPELL820",
+                "ARGS accepts only explicit keyword type declarations",
+            )
+        if len(call.keywords) > 64:
+            self._reject(call, "SPELL820", "ARGS exceeds the 64-argument limit")
+        declarations: dict[str, str] = {}
+        for keyword in call.keywords:
+            assert keyword.arg is not None
+            self._validate_variable_name(keyword.value, keyword.arg)
+            declared_type = self._literal_required_string(
+                keyword.value,
+                f"ARGS {keyword.arg} type",
+            )
+            if declared_type not in ARGS_SUPPORTED_TYPES:
+                self._reject(
+                    keyword.value,
+                    "SPELL820",
+                    f"unsupported ARGS type {declared_type}",
+                )
+            declarations[keyword.arg] = declared_type
+        self.argument_declarations = declarations
+        self.uses_v08 = True
 
     def _compile_user_action_declaration(self, node: ast.Expr) -> None:
         call = node.value
@@ -613,6 +713,12 @@ class _Compiler:
                 if operation["op"] != "SET_LITERAL":
                     continue
                 name = operation["name"]
+                if name in self.opaque_declared_variables:
+                    self._reject(
+                        self.functions.get(name, ast.Constant(value=None)),
+                        "SPELL803",
+                        "UserAction cannot mutate a FileHandle variable",
+                    )
                 if self.types.get(name) != operation["declared_type"]:
                     self._reject(
                         self.functions.get(name, ast.Constant(value=None)),
@@ -688,9 +794,12 @@ class _Compiler:
             self._reject(node, "SPELL306", "assignment requires one simple variable target")
         target = node.targets[0]
         self._validate_variable_name(target, target.id)
+        if target.id in self.opaque_declared_variables:
+            self._reject(target, "SPELL718", "FileHandle variable cannot be assigned as a scalar")
         declared_type = self._declared_type(target)
         expression, actual_type = self._expression(node.value)
         self._require_assignable(node.value, declared_type, actual_type)
+        self.opaque_types.pop(target.id, None)
         self._append(
             node,
             "variable_set",
@@ -707,11 +816,18 @@ class _Compiler:
         if not isinstance(node.target, ast.Name):
             self._reject(node, "SPELL307", "augmented assignment requires a simple variable target")
         self._validate_variable_name(node.target, node.target.id)
+        if node.target.id in self.opaque_declared_variables:
+            self._reject(
+                node.target,
+                "SPELL718",
+                "FileHandle variable cannot be assigned as a scalar",
+            )
         declared_type = self._declared_type(node.target)
         synthetic = ast.BinOp(left=node.target, op=node.op, right=node.value)
         ast.copy_location(synthetic, node)
         expression, actual_type = self._expression(synthetic)
         self._require_assignable(node, declared_type, actual_type)
+        self.opaque_types.pop(node.target.id, None)
         self._append(
             node,
             "variable_set",
@@ -860,6 +976,9 @@ class _Compiler:
         call: ast.Call,
         guard: dict[str, Any] | None,
     ) -> None:
+        if name in V08_DATA_CALLS:
+            self._compile_v08_step(node, name, call, guard)
+            return
         if name in {"GetTM", "Verify", "WaitFor"}:
             self._compile_v07_step(node, name, call, guard)
             return
@@ -1167,6 +1286,272 @@ class _Compiler:
             )
         return node.id
 
+    def _compile_v08_step(
+        self,
+        node: ast.Expr,
+        name: str,
+        call: ast.Call,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        specs: dict[str, tuple[str, tuple[str, ...], set[str], dict[str, Any]]] = {
+            "CreateDictionary": (
+                "CREATE_DICTIONARY",
+                ("dictionary_id",),
+                {"dictionary_id", "format", "target"},
+                {"format": "DB"},
+            ),
+            "LoadDictionary": (
+                "LOAD_DICTIONARY",
+                ("dictionary_id",),
+                {
+                    "dictionary_id",
+                    "expected_revision",
+                    "format",
+                    "root_id",
+                    "source_revision",
+                    "target",
+                    "virtual_path",
+                },
+                {"format": "DB"},
+            ),
+            "SaveDictionary": (
+                "SAVE_DICTIONARY",
+                ("dictionary_id",),
+                {
+                    "dictionary_id",
+                    "dictionary_revision",
+                    "expected_file_revision",
+                    "format",
+                    "root_id",
+                    "virtual_path",
+                },
+                {"format": "DB"},
+            ),
+            "DataContainer": (
+                "CREATE_CONTAINER",
+                ("container_id",),
+                {"container_id", "schema_revision", "target"},
+                {"schema_revision": 1},
+            ),
+            "Var": (
+                "SET_VARIABLE",
+                ("container_id", "name"),
+                {
+                    "container_id",
+                    "variable_id",
+                    "name",
+                    "declared_type",
+                    "value",
+                    "expected_revision",
+                },
+                {},
+            ),
+            "AddSharedDataScope": (
+                "SHARED_CREATE_NAMESPACE",
+                ("namespace_id",),
+                {"namespace_id", "scope", "acl_revision"},
+                {"scope": "EXECUTION", "acl_revision": 1},
+            ),
+            "GetSharedDataScopes": (
+                "SHARED_LIST_NAMESPACES",
+                (),
+                {"cursor", "target"},
+                {},
+            ),
+            "GetSharedData": (
+                "SHARED_GET",
+                ("namespace_id", "key"),
+                {"namespace_id", "key", "target", "scalar_type"},
+                {},
+            ),
+            "GetSharedDataKeys": (
+                "SHARED_ENUMERATE",
+                ("namespace_id",),
+                {"namespace_id", "cursor", "target"},
+                {},
+            ),
+            "SetSharedData": (
+                "SHARED_PUT",
+                ("namespace_id", "key", "value"),
+                {
+                    "namespace_id",
+                    "key",
+                    "value",
+                    "expected_namespace_revision",
+                    "expected_entry_revision",
+                },
+                {},
+            ),
+            "ClearSharedData": (
+                "SHARED_CLEAR",
+                ("namespace_id",),
+                {"namespace_id", "expected_namespace_revision"},
+                {},
+            ),
+            "ClearSharedDataScopes": (
+                "SHARED_DELETE_NAMESPACE",
+                ("namespace_id",),
+                {"namespace_id", "expected_namespace_revision"},
+                {},
+            ),
+            "File": (
+                "FILE_VALUE",
+                ("root_id", "virtual_path"),
+                {
+                    "root_id",
+                    "virtual_path",
+                    "handle",
+                    "property",
+                    "target",
+                },
+                {},
+            ),
+            "OpenFile": (
+                "OPEN_FILE",
+                ("root_id", "virtual_path"),
+                {"root_id", "virtual_path", "mode", "revision", "target"},
+                {"mode": "READ"},
+            ),
+            "CloseFile": (
+                "CLOSE_FILE",
+                ("handle",),
+                {"handle"},
+                {},
+            ),
+            "ReadFile": (
+                "READ_FILE",
+                (),
+                {"root_id", "virtual_path", "revision", "handle", "length", "target"},
+                {},
+            ),
+            "ReadDirectory": (
+                "READ_DIRECTORY",
+                ("root_id", "virtual_path"),
+                {"root_id", "virtual_path", "cursor", "target"},
+                {},
+            ),
+            "WriteFile": (
+                "WRITE_FILE",
+                (),
+                {
+                    "root_id",
+                    "virtual_path",
+                    "handle",
+                    "content",
+                    "encoding",
+                    "expected_revision",
+                    "content_sha256",
+                },
+                {"encoding": "UTF8_TEXT"},
+            ),
+            "DeleteFile": (
+                "DELETE_FILE",
+                ("root_id", "virtual_path"),
+                {"root_id", "virtual_path", "expected_revision"},
+                {},
+            ),
+        }
+        operation, positional, allowed, defaults = specs[name]
+        if guard is not None and operation in {"OPEN_FILE", "CLOSE_FILE"}:
+            self._reject(
+                call,
+                "SPELL718",
+                "FileHandle lifetime transitions must be unconditional",
+            )
+        if len(call.args) > len(positional):
+            self._reject(call, "SPELL408", f"too many positional arguments for {name}")
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        if set(values) - allowed:
+            self._reject(call, "SPELL409", f"unsupported keyword for {name}")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+        parameters: dict[str, Any] = dict(defaults)
+        for key, value_node in values.items():
+            if key in {"target", "scalar_type"}:
+                continue
+            parameters[key] = (
+                self._opaque_variable_reference(value_node, "FileHandle", name)
+                if key == "handle"
+                else self._literal_value(value_node, None, f"{name} {key}")
+            )
+        if name == "File" and "property" in parameters:
+            operation = "FILE_PROPERTY"
+        required = data_operation_required_fields(operation)
+        missing = set(required) - set(parameters)
+        if missing:
+            self._reject(call, "SPELL411", f"missing argument {sorted(missing)[0]}")
+        target_type = "str"
+        target: str | None = None
+        if "target" in values:
+            if name == "GetSharedData":
+                target_type = self._literal_choice(
+                    values.get("scalar_type"),
+                    "",
+                    SUPPORTED_TYPES,
+                    "GetSharedData scalar type",
+                )
+            elif operation == "FILE_PROPERTY" and parameters["property"] in {
+                "exists",
+                "isdir",
+                "isfile",
+                "isOpen",
+                "canRead",
+                "canWrite",
+            }:
+                target_type = "bool"
+            target = self._v07_target(values["target"], target_type, name)
+        elif name in {
+            "GetSharedDataScopes",
+            "GetSharedData",
+            "GetSharedDataKeys",
+            "File",
+            "OpenFile",
+            "ReadFile",
+            "ReadDirectory",
+        }:
+            self._reject(call, "SPELL411", "missing argument target")
+        step: dict[str, Any] = {"operation": operation, "parameters": parameters}
+        if target is not None:
+            step.update(target=target, target_type=target_type)
+            if operation == "OPEN_FILE":
+                if target in self.opaque_types:
+                    self._reject(
+                        call,
+                        "SPELL718",
+                        "open FileHandle must be closed before the target is reused",
+                    )
+                self.opaque_types[target] = "FileHandle"
+                self.opaque_declared_variables.add(target)
+            else:
+                self.opaque_types.pop(target, None)
+        if operation == "CLOSE_FILE":
+            self.opaque_types.pop(parameters["handle"]["name"], None)
+        self.uses_v08 = True
+        self.uses_v06 = True
+        self._append(node, "data_operation", guard=guard, **step)
+
+    def _opaque_variable_reference(
+        self, node: ast.AST, opaque_type: str, label: str
+    ) -> dict[str, str]:
+        if not isinstance(node, ast.Name):
+            self._reject(
+                node,
+                "SPELL718",
+                f"{label} handle must name a prior {opaque_type} target",
+            )
+        self._validate_variable_name(node, node.id)
+        if self._declared_type(node) != "str" or self.opaque_types.get(node.id) != opaque_type:
+            self._reject(
+                node,
+                "SPELL718",
+                f"{label} handle must name a prior {opaque_type} target",
+            )
+        return {"kind": "variable_ref", "name": node.id, "value_type": opaque_type}
+
     def _compile_if(
         self,
         node: ast.If,
@@ -1280,6 +1665,12 @@ class _Compiler:
             return {"expr": "literal", "value": node.value}, type(node.value).__name__
         if isinstance(node, ast.Name):
             self._validate_variable_name(node, node.id)
+            if node.id in self.opaque_declared_variables:
+                self._reject(
+                    node,
+                    "SPELL718",
+                    "FileHandle variable cannot be used as a scalar expression",
+                )
             return {"expr": "variable", "name": node.id}, self._declared_type(node)
         if isinstance(node, ast.UnaryOp):
             operand, operand_type = self._expression(node.operand)

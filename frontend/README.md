@@ -1,26 +1,24 @@
-# SPELL v0.6 Operations Console Candidate
+# SPELL v0.8 Operations Console Candidate Preparation
 
-React and strict TypeScript real-time 2D console candidate for the bounded
-OpenBEXI SPELL v0.6 local-only, synthetic non-CUI simulator. The accepted
-product baseline remains v0.5.0 until closeout. The candidate preserves the
-authenticated simulator-driver projection and adds the exact operator-workspace
-surface authorized by v0.6 Gate 0A. Browser driver mutations and direct
-browser-to-driver access remain outside scope.
+React and strict TypeScript real-time 2D console for the bounded OpenBEXI SPELL
+local synthetic non-CUI simulator. SPELL v0.7.0 is the accepted product
+baseline at annotated tag `v0.7.0`, tag object
+`70e4d46a46d158dee3c63ec37a5d1922b3b61668`, and release commit
+`cf18e9d887ba0476cbcc3d8194e321332a3ae864`.
 
-The canonical `V05-IR-001` work package and live Gate 0B validator passed for
-candidate `aefa658`, test-only Docker inspection timeout metadata
-correction/source `ef26e53`, four suites, six identities, and 949 concrete
-tests. Final qualification passed 1,096 concrete tests with 1,090 passes, six
-exact approved SQLite environment skips, and no failures or errors. Annotated
-tag `v0.5.0` over release commit
-`e7b6bb9428833437e0160040541eb840deee7cca` activated the bounded acceptance.
+The latest implemented worktree increment is v0.8 Data and Local Service
+Compatibility. It preserves the authenticated simulator-driver projection,
+operator workspace, and read-only observation surface while adding the bounded
+Data Service workspace for revisioned catalogs, dictionaries, containers,
+shared data, and virtual-root files. Browser driver mutations, direct
+browser-to-driver access, generic database access, host-filesystem access, and
+unrestricted data mutation remain outside scope.
 
-The owner explicitly approved the bounded v0.6 Gate 0A for `V06-OP-001`
-through `V06-OP-009`. The candidate console now implements the corresponding
-Master, catalog, control, prompt, schedule, workspace, inspection, action, and
-parent-child workflows for desktop and mobile qualification. Canonical
-ten-suite/45-ID candidate evidence and Gate 0B remain pending; no v0.6 release
-or tag is accepted by this candidate state.
+Frontend unit tests and the production build passed during pre-candidate
+verification. Source freeze, canonical candidate and browser qualification,
+Gate 0B, Final qualification, packaging, the release commit, and annotated tag
+`v0.8.0` remain pending. v0.9 has been requested but is not gated or
+implemented.
 
 The console uses Redux Toolkit for authoritative UI state, native WebSocket
 reconnect and resynchronization, ECharts for numeric telemetry, and Lucide
@@ -52,10 +50,9 @@ The mocked browser suite runs without a backend. Real integration requires the
 local Compose stack plus `SPELL_REAL_BACKEND=1`, `SPELL_E2E_BASE_URL` set to its
 loopback proxy URL, and `SPELL_E2E_TOKEN` set to a currently valid signed JWT.
 
-From the repository root, `python scripts/qualify_v04.py plan` displays the
-version-scoped Gate 1-5 catalog. Built-in and environment-bound browser results
-are staged with its `run` and `collect` commands, checked with `status`, and only
-become canonical v0.4 evidence after `publish` validates the complete shared
-source fingerprint. Supply-chain and package commands are documented in
-`PROMPT_Instructions.md`; successful frontend tests alone do not accept the
-next release or establish an operational or compliance claim.
+The retained `python scripts/qualify_v04.py plan` and associated Gate 1-5
+commands document the historical v0.4 workflow only. The current v0.8 evidence
+chain is owned by `scripts/qualify_candidate_v08.ps1`,
+`scripts/qualify_release_v08.ps1`, and the v0.8 validators. Successful frontend
+tests alone do not qualify or accept v0.8 and do not establish an operational or
+compliance claim.

@@ -34,8 +34,8 @@ from backend.condition_service import (
     ConditionServiceValidationError,
 )
 from backend.database import create_database
-from backend.migrations import run_migrations
 from backend.migrations.versions import v0006_observation_conditions
+from backend.tests.migration_support import run_migrations
 from backend.models import Execution
 from driver_host.observation import CATALOG_DIGEST
 

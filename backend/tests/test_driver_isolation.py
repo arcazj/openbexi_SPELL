@@ -112,7 +112,9 @@ def test_compose_physically_separates_gateway_and_server_credentials() -> None:
         "mode=0700,uid=10001,gid=10001"
     ) in backend["tmpfs"]
     assert backend["volumes"] == [
-        "spell-driver-client-credentials:/run/spell-driver-client-source:ro"
+        "spell-driver-client-credentials:/run/spell-driver-client-source:ro",
+        "spell-data:/var/lib/openbexi-spell/data",
+        "spell-migration-backups:/var/lib/openbexi-spell/migration-backups",
     ]
 
     assert initializer["network_mode"] == "none"

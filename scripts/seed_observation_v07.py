@@ -44,6 +44,9 @@ from spell.driver.configuration import context_binding_digest
 
 CONFIRMATION = "LOCAL_SYNTHETIC_NON_CUI_ONLY"
 CONTEXT_ID = "v07-telemetry-synthetic-context"
+SUPPORTED_CONTEXT_IDS = frozenset(
+    {CONTEXT_ID, "v08-telemetry-synthetic-context"}
+)
 CONTEXT_GENERATION_ID = "00000000-0000-4000-8000-000000000701"
 OPERATION_ID = "00000000-0000-4000-8000-000000000702"
 ATTEMPT_ID = "00000000-0000-4000-8000-000000000703"
@@ -89,6 +92,8 @@ async def _wait_connected(
 def _ensure_context_projection(
     repository: DriverRepository,
     driver: dict[str, object],
+    *,
+    context_id: str = CONTEXT_ID,
 ) -> tuple[dict[str, object], str]:
     host_generation = str(driver["current_host_generation_id"])
     digest = context_binding_digest(
@@ -101,13 +106,13 @@ def _ensure_context_projection(
     )
     try:
         context = repository.get_context_generation(
-            CONTEXT_ID, CONTEXT_GENERATION_ID
+            context_id, CONTEXT_GENERATION_ID
         )["context_generation"]
     except DriverNotFoundError:
         repository.create_context_generation(
             profile_id=DEFAULT_PROFILE_ID,
             host_generation_id=host_generation,
-            context_id=CONTEXT_ID,
+            context_id=context_id,
             context_generation_id=CONTEXT_GENERATION_ID,
             configuration_schema_version=CONTEXT_SCHEMA_VERSION,
             configuration_digest=digest,
@@ -115,7 +120,7 @@ def _ensure_context_projection(
             correlation_id=CORRELATION_ID,
         )
         context = repository.get_context_generation(
-            CONTEXT_ID, CONTEXT_GENERATION_ID
+            context_id, CONTEXT_GENERATION_ID
         )["context_generation"]
     if (
         context["host_generation_id"] != host_generation
@@ -126,14 +131,19 @@ def _ensure_context_projection(
     return context, digest
 
 
-def _open_command(driver: dict[str, object], digest: str) -> OpenContextCommand:
+def _open_command(
+    driver: dict[str, object],
+    digest: str,
+    *,
+    context_id: str = CONTEXT_ID,
+) -> OpenContextCommand:
     return OpenContextCommand(
         identity=OperationIdentity(
             generations=GenerationTuple(
                 server_profile_id=str(driver["server_profile_id"]),
                 driver_host_generation=str(driver["current_host_generation_id"]),
                 host_profile_digest=str(driver["configuration_digest"]),
-                context_id=CONTEXT_ID,
+                context_id=context_id,
                 context_generation=CONTEXT_GENERATION_ID,
                 context_binding_digest=digest,
             ),
@@ -162,6 +172,7 @@ async def seed(
     observation_repository: ObservationRepository,
     *,
     timeout_seconds: float,
+    context_id: str = CONTEXT_ID,
 ) -> dict[str, object]:
     gateway = DriverGateway(driver_repository, settings)
     await gateway.start()
@@ -169,10 +180,15 @@ async def seed(
         driver = await _wait_connected(
             gateway, driver_repository, timeout_seconds=timeout_seconds
         )
-        context, digest = _ensure_context_projection(driver_repository, driver)
+        context, digest = _ensure_context_projection(
+            driver_repository,
+            driver,
+            context_id=context_id,
+        )
         if context["state"] == "OPENING":
             result = await gateway.execute_lifecycle(
-                _open_command(driver, digest), actor="v07-browser-qualification"
+                _open_command(driver, digest, context_id=context_id),
+                actor="v07-browser-qualification",
             )
             if result["stage"] != "SETTLED" or result["disposition"] != "OK":
                 raise RuntimeError("the real telemetry context did not open")
@@ -181,7 +197,7 @@ async def seed(
 
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        snapshot = observation_repository.snapshot(CONTEXT_ID)
+        snapshot = observation_repository.snapshot(context_id)
         if (
             snapshot["driver_time"] is not None
             and snapshot["synchronization_state"] == "COMPLETE"
@@ -195,7 +211,7 @@ async def seed(
             )
         ):
             return {
-                "context_id": CONTEXT_ID,
+                "context_id": context_id,
                 "context_generation_id": CONTEXT_GENERATION_ID,
                 "item_ids": list(ITEM_IDS),
                 "stream_epoch": snapshot["stream_epoch"],
@@ -208,10 +224,13 @@ async def seed(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm", required=True)
+    parser.add_argument("--context-id", default=CONTEXT_ID)
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
     args = parser.parse_args(argv)
     if args.confirm != CONFIRMATION:
         raise ValueError("exact local synthetic confirmation is required")
+    if args.context_id not in SUPPORTED_CONTEXT_IDS:
+        raise ValueError("supported telemetry context identity is required")
     if not 0 < args.timeout_seconds <= 60:
         raise ValueError("timeout must be positive and at most 60 seconds")
     settings = Settings.from_env()
@@ -226,6 +245,7 @@ def main(argv: list[str] | None = None) -> int:
                 DriverRepository(session_factory),
                 ObservationRepository(session_factory),
                 timeout_seconds=args.timeout_seconds,
+                context_id=args.context_id,
             )
         )
     finally:

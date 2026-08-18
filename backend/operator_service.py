@@ -1143,7 +1143,7 @@ class OperatorService:
             execution = session.get(Execution, execution_id)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
-            if execution.ir_version in {"0.6", "0.7"}:
+            if execution.ir_version in {"0.6", "0.7", "0.8"}:
                 raise OperatorAuthorizationError(
                     "v0.6-plus executions require a fenced operator command"
                 )
@@ -1218,7 +1218,7 @@ class OperatorService:
                 raise OperatorAuthorizationError(
                     "operator-projected prompts require a fenced response"
                 )
-            if execution.ir_version in {"0.6", "0.7"}:
+            if execution.ir_version in {"0.6", "0.7", "0.8"}:
                 raise OperatorAuthorizationError(
                     "v0.6-plus prompts require a fenced response"
                 )
@@ -2660,7 +2660,7 @@ class OperatorService:
                             execution, "lexical_frame_id"
                         )
                     )
-                    if execution.ir_version in {"0.6", "0.7"} and current_frame is None:
+                    if execution.ir_version in {"0.6", "0.7", "0.8"} and current_frame is None:
                         raise OperatorConflictError(
                             "command target requires a committed lexical frame"
                         )
@@ -2693,7 +2693,7 @@ class OperatorService:
                         )
                     target_step, target_item = candidates[0]
                     target_reachability = target_item.get("reachability_id")
-                    if execution.ir_version in {"0.6", "0.7"} and (
+                    if execution.ir_version in {"0.6", "0.7", "0.8"} and (
                         type(target_reachability) is not str
                         or not target_reachability
                     ):
@@ -7338,6 +7338,10 @@ class OperatorService:
             execution = session.get(Execution, execution_id, with_for_update=True)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
+            if execution.ir_version == "0.8" and scope == "ARGS":
+                raise OperatorAuthorizationError(
+                    "v0.8 ARGS is immutable after execution admission"
+                )
             self._sync_projection_from_execution(projection, execution)
             if projection.state not in {"PAUSED", "PROMPT", "INTERRUPTED"}:
                 raise OperatorConflictError("inspection edit is not allowed in this state")

@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.7.0 baseline and v0.8 Gate 0A authorized planning scope |
-| Update type | Accepted-release timing and bindings, v0.8 planning authorization, and requested-only v0.9 follow-on |
+| Document revision | Accepted v0.7.0 baseline and v0.8 candidate preparation |
+| Update type | Accepted-release timing and bindings, v0.8 worktree implementation/verification, and requested-only v0.9 follow-on |
 | Updated | 2026-08-17 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
 | Current accepted product baseline | SPELL v0.7.0, tag `v0.7.0`, tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
@@ -14,7 +14,7 @@
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
 | v0.6 status | Accepted 2026-08-16 at annotated tag `v0.6.0`; nine work packages implemented and qualified; no accepted exceptions |
 | v0.7 status | Accepted 2026-08-17 at annotated tag `v0.7.0`; nine work packages implemented and qualified; no accepted exceptions |
-| v0.8 status | `V08-GATE-0A PASS` recorded 2026-08-17; nine work packages and 45 proof identities authorized; no implementation, product evidence, release, or acceptance claimed |
+| v0.8 status | `V08-GATE-0A PASS` recorded 2026-08-17; nine work packages implemented and pre-candidate backend/frontend verification passed in the worktree; freeze, canonical qualification, Gate 0B, Final, package, release commit, and tag pending |
 | v0.9 status | Requested-only follow-on after v0.8; no completed Gate 0A or implementation claim |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
@@ -54,6 +54,8 @@ Conventions:
   evidence. Corrections must identify the new evidence.
 - A documentation-only patch is distinct from a product release. It does not
   change runtime, API, database, dependency, or qualification identities.
+- A mutable worktree verification result is not an exact repository interval or
+  immutable candidate result until source freeze and commit.
 
 ## Duration Summary
 
@@ -72,12 +74,31 @@ Conventions:
 | v0.7 Gate 0A | Simulator Read-Only Observation and Condition Engine planning authorization | Owner request recorded 2026-08-16; exact time not retained | Explicit owner approval, exact contract binding, Gate validator PASS, 22 Gate tests, and eight contract tests recorded 2026-08-16 | Same calendar day; exact elapsed time and active effort unknown | `V07-OBS-001` through `V07-OBS-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
 | v0.7 | Nine bounded read-only observation packages and version-scoped qualification/release tooling | Gate 0A commit `07c1943` at 2026-08-16 14:33:34 EDT | Annotated tag `v0.7.0` at 2026-08-17 04:57:47 EDT | 14h 24m 13s exact Gate-commit-to-tag interval; candidate-to-tag 9h 39m 04s; qualified-source-to-tag 7h 35m 33s; release-commit-to-tag 6m 05s; total active engineering effort unknown | Exact Git intervals; Final qualification, SBOMs, supply chain, deterministic package, release commit, and tag passed with no accepted exceptions |
 | v0.8 Gate 0A | Data and Local Service Compatibility planning authorization | Owner request and accepted v0.7.0 baseline recorded 2026-08-17; exact request time not retained | Explicit owner approval, nine-package/45-identity contract binding, and Gate validator PASS recorded 2026-08-17 | Same calendar day; exact elapsed time and active effort unknown | `V08-DATA-001` through `V08-DATA-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
+| v0.8 implementation | Nine bounded local data-service packages plus version-scoped qualification/release tooling | Gate 0A commit `451c065740e7b6501f86094d9be79578b30b1591` on 2026-08-17 | Pre-candidate backend/frontend verification recorded in the worktree on 2026-08-17; source freeze pending | Total elapsed time and active engineering effort unknown | Working-tree status only; no immutable candidate, canonical qualification, Gate 0B, Final, package, release commit, or tag endpoint yet |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-WP-00 readiness | Gate G0 allocation, validation, and decision package | Owner request to implement the next step recorded 2026-07-18; exact start time not retained | Gate G0 passed under pinned Python 3.13 on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Digest-bound working-tree evidence; no product delivery, release, operational, or compliance claim |
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
+
+## 2026-08-17 - v0.8 Worktree Implementation And Candidate Preparation
+
+| Field | Value |
+| --- | --- |
+| Accepted baseline | SPELL v0.7.0, annotated tag `v0.7.0`, unchanged |
+| Gate 0A | `V08-GATE-0A PASS` at commit `451c065740e7b6501f86094d9be79578b30b1591`; nine packages and 45 planned proof identities authorized |
+| Latest implemented version | SPELL v0.8 Data and Local Service Compatibility in the current worktree |
+| Implemented scope | `V08-DATA-001` through `V08-DATA-009`: typed values/catalogs/dictionaries/containers, shared data, virtual files, authorized local API, durable mutation/audit/outbox, migration and recovery, Data Service frontend, and release tooling |
+| Pre-candidate verification | Backend and frontend implementation verification PASS in the mutable worktree; frontend unit tests and production build included; exact canonical aggregate deferred to source freeze |
+| Pending endpoints | Candidate commit, canonical work-package qualification, Gate 0B, Final qualification, SBOM/supply-chain evidence, deterministic package and sidecar, release commit, and annotated `v0.8.0` tag |
+| Accepted release status | v0.7.0 remains accepted; no v0.8 release or acceptance claim |
+| v0.9 status | Requested-only; no completed Gate 0A or implementation claim |
+| Operational authorization or compliance determination | None |
+
+This entry records mutable worktree status only. It does not provide an
+immutable duration endpoint, canonical candidate evidence, or release
+authority. The Gate 0A event below remains the authorization-time record.
 
 ## 2026-08-17 - v0.7.0 Accepted And v0.8 Gate 0A
 
@@ -94,7 +115,7 @@ Conventions:
 | Accepted scope and exceptions | `V07-OBS-001` through `V07-OBS-009`; no accepted exceptions |
 | v0.8 Gate 0A | `V08-GATE-0A PASS`; `V08-DATA-001` through `V08-DATA-009` and 45 planned proof identities authorized under `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE` |
 | v0.8 gate marker | `gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0` |
-| v0.8 implementation/release status | Not implemented, not qualified, not released, and not accepted |
+| v0.8 status at the Gate 0A decision | Not implemented, not qualified, not released, and not accepted at that event |
 | v0.9 status | Requested-only; no completed Gate 0A or implementation claim |
 | Operational authorization or compliance determination | None |
 
@@ -562,7 +583,7 @@ active effort remain unknown.
 Bounded result:
 
 - Added a pure, data-only evaluator and adjacent status record under
-  [`backend/experimental/`](backend/experimental/README.md).
+  `backend/experimental/`.
 - Modeled Controller startup as Execution with `AWAITING_CONTROL`, Monitoring
   as read-only Monitoring, and Developer as development-only Edit without
   creating runtime or repository mutation authority.

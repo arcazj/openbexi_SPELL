@@ -22,7 +22,7 @@ from backend.driver_repository import (
     DEFAULT_PROFILE_ID,
     DriverRepository,
 )
-from backend.migrations import run_migrations
+from backend.tests.migration_support import run_migrations
 from backend.observation_domain import (
     ClockSource,
     DriverTelemetrySample,

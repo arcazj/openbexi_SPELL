@@ -6,14 +6,14 @@
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Current accepted product release | SPELL v0.7.0, tag `v0.7.0`, tag object `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864` |
-| Latest implemented version | SPELL v0.7 Simulator Read-Only Observation and Condition Engine; accepted with no exceptions |
-| Status | v0.7.0 Final, SBOM, supply-chain, deterministic-package, release-evidence, and strict annotated-tag validation PASS; `V08-GATE-0A PASS` authorizes planning/implementation entry only, with no v0.8 product evidence |
-| Requested follow-on | v0.8 has Gate 0A authorization but is not implemented; v0.9 remains requested-only with no completed Gate 0A |
+| Latest implemented version | SPELL v0.8 Data and Local Service Compatibility; implemented and pre-candidate verified in the worktree, not yet frozen or qualified canonically |
+| Status | v0.7.0 remains accepted; `V08-GATE-0A PASS`; v0.8 backend/frontend pre-candidate verification passed; candidate commit, canonical qualification, Gate 0B, Final, package, release commit, and tag remain pending |
+| Requested follow-on | v0.9 remains requested-only after v0.8 with no completed Gate 0A or implementation claim |
 | Date | Updated 2026-08-17 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
-## Version 0.8 Gate 0A Test Plan
+## Version 0.8 Candidate Preparation And Gate 0A Test Plan
 
 ### Current Disposition And Boundary
 
@@ -25,25 +25,40 @@ and their 45 planned proof identities under scope profile
 `contracts/v08` are hash-bound planning inputs. The exact gate marker is
 `gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
 
-This gate is planning and implementation-entry authorization only. It claims
-zero product constructs and zero runtime artifacts. No v0.8 source, API,
-schema, migration, dependency, runtime artifact, executed product test,
-qualification, release, deployment, operational authorization, compliance
-determination, or acceptance exists yet. v0.9 remains requested-only.
+At the Gate 0A decision, the gate was planning and implementation-entry
+authorization only and claimed zero product constructs and zero runtime
+artifacts. Subsequent work implemented the bounded backend, procedure-runtime,
+API, migration/recovery, frontend, and release-tooling surfaces in the current
+worktree. That later work does not rewrite the gate-time claim. v0.9 remains
+requested-only.
+
+### Pre-Candidate Implementation Verification
+
+| Evidence area | Current worktree result | Remaining canonical endpoint |
+| --- | --- | --- |
+| Gate and contracts | Gate validator and semantic contract verification PASS under locked Python 3.13.14 | Re-run unchanged at candidate freeze |
+| Backend | v0.8-focused and regression verification passed during implementation, including SQLite and isolated PostgreSQL coverage where applicable | Freeze source and record the canonical suite inventory and exact aggregate |
+| Frontend | Vitest and the production build PASS for the Data Service workspace and existing console | Capture the version-scoped candidate and browser qualification suites |
+| Candidate and release tooling | v0.8 validators, qualification runners, SBOM/supply-chain, package, and release-record tooling are prepared and locally tested | Candidate commit, canonical evidence, Gate 0B, Final, package, release commit, and tag are pending |
+
+These are mutable pre-candidate results. They are not canonical work-package
+evidence, Gate 0B authorization, Final qualification, release acceptance, or an
+operational/compliance result. Exact totals will be recorded by the canonical
+qualification run after source freeze.
 
 ### Gate 0A Planned Requirements And Tests
 
 | Work package | Requirement and expected result | Planned test identities | Status |
 | --- | --- | --- | --- |
-| `V08-DATA-001` | Canonical finite typed values use one versioned envelope with exact serialization, corruption rejection, and no evaluation | `V08-DATA-001-UNIT`, `V08-DATA-001-TYPE-MATRIX`, `V08-DATA-001-SERIALIZATION`, `V08-DATA-001-CORRUPTION`, `V08-DATA-001-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-002` | Versioned local `SCDB`, `GDB`, `PROC`, MMD, and user catalogs use safe URI resolution, explicit graph rules, recovery, and immutable dependency identity | `V08-DATA-002-UNIT`, `V08-DATA-002-CONTRACT`, `V08-DATA-002-GRAPH`, `V08-DATA-002-RECOVERY`, `V08-DATA-002-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-003` | DB/IMP dictionary exchange is non-executing, compatibility-bound, deterministic, corruption-safe, and import/export tested | `V08-DATA-003-UNIT`, `V08-DATA-003-COMPATIBILITY-GOLDEN`, `V08-DATA-003-IMPORT-EXPORT`, `V08-DATA-003-CORRUPTION-RECOVERY`, `V08-DATA-003-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-004` | `DataContainer`, `Var`, `ARGS`, and `IVARS` preserve declared types, ownership, restart behavior, integration boundaries, and security | `V08-DATA-004-UNIT`, `V08-DATA-004-MATRIX`, `V08-DATA-004-INTEGRATION`, `V08-DATA-004-RECOVERY`, `V08-DATA-004-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-005` | Durable shared data uses authorized namespaces, revisioned compare-and-set, deterministic races, recovery, enumeration, and clear semantics | `V08-DATA-005-UNIT`, `V08-DATA-005-INTEGRATION`, `V08-DATA-005-RACE`, `V08-DATA-005-RECOVERY`, `V08-DATA-005-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-006` | Virtual-root procedure files enforce traversal/symlink protection, quotas, encoding, atomic writes, recovery, and bounded integration | `V08-DATA-006-UNIT`, `V08-DATA-006-INTEGRATION`, `V08-DATA-006-PATH-SECURITY`, `V08-DATA-006-QUOTA-ATOMICITY`, `V08-DATA-006-RECOVERY` | Implementation authorized; not executed |
-| `V08-DATA-007` | The local data API is authorization-scoped, idempotent under races, and durably audit/outbox bound without generic mutation authority | `V08-DATA-007-CONTRACT`, `V08-DATA-007-AUTHORIZATION`, `V08-DATA-007-IDEMPOTENCY-RACE`, `V08-DATA-007-AUDIT-OUTBOX`, `V08-DATA-007-SECURITY` | Implementation authorized; not executed |
-| `V08-DATA-008` | Data migration, SQLite/PostgreSQL parity, backup/restore, and rollback are versioned, deterministic, and corruption-safe | `V08-DATA-008-SCHEMA`, `V08-DATA-008-SQLITE`, `V08-DATA-008-POSTGRES`, `V08-DATA-008-BACKUP-RESTORE`, `V08-DATA-008-MIGRATION-ROLLBACK` | Implementation authorized; not executed |
-| `V08-DATA-009` | Cross-feature semantic, integration, fault/recovery, load, and security evidence covers the complete bounded local data-service surface | `V08-DATA-009-SEMANTIC-GOLDEN`, `V08-DATA-009-INTEGRATION`, `V08-DATA-009-FAULT-RECOVERY`, `V08-DATA-009-LOAD`, `V08-DATA-009-SECURITY` | Implementation authorized; not executed |
+| `V08-DATA-001` | Canonical finite typed values use one versioned envelope with exact serialization, corruption rejection, and no evaluation | `V08-DATA-001-UNIT`, `V08-DATA-001-TYPE-MATRIX`, `V08-DATA-001-SERIALIZATION`, `V08-DATA-001-CORRUPTION`, `V08-DATA-001-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-002` | Versioned local `SCDB`, `GDB`, `PROC`, MMD, and user catalogs use safe URI resolution, explicit graph rules, recovery, and immutable dependency identity | `V08-DATA-002-UNIT`, `V08-DATA-002-CONTRACT`, `V08-DATA-002-GRAPH`, `V08-DATA-002-RECOVERY`, `V08-DATA-002-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-003` | DB/IMP dictionary exchange is non-executing, compatibility-bound, deterministic, corruption-safe, and import/export tested | `V08-DATA-003-UNIT`, `V08-DATA-003-COMPATIBILITY-GOLDEN`, `V08-DATA-003-IMPORT-EXPORT`, `V08-DATA-003-CORRUPTION-RECOVERY`, `V08-DATA-003-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-004` | `DataContainer`, `Var`, `ARGS`, and `IVARS` preserve declared types, ownership, restart behavior, integration boundaries, and security | `V08-DATA-004-UNIT`, `V08-DATA-004-MATRIX`, `V08-DATA-004-INTEGRATION`, `V08-DATA-004-RECOVERY`, `V08-DATA-004-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-005` | Durable shared data uses authorized namespaces, revisioned compare-and-set, deterministic races, recovery, enumeration, and clear semantics | `V08-DATA-005-UNIT`, `V08-DATA-005-INTEGRATION`, `V08-DATA-005-RACE`, `V08-DATA-005-RECOVERY`, `V08-DATA-005-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-006` | Virtual-root procedure files enforce traversal/symlink protection, quotas, encoding, atomic writes, recovery, and bounded integration | `V08-DATA-006-UNIT`, `V08-DATA-006-INTEGRATION`, `V08-DATA-006-PATH-SECURITY`, `V08-DATA-006-QUOTA-ATOMICITY`, `V08-DATA-006-RECOVERY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-007` | The local data API is authorization-scoped, idempotent under races, and durably audit/outbox bound without generic mutation authority | `V08-DATA-007-CONTRACT`, `V08-DATA-007-AUTHORIZATION`, `V08-DATA-007-IDEMPOTENCY-RACE`, `V08-DATA-007-AUDIT-OUTBOX`, `V08-DATA-007-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-008` | Data migration, SQLite/PostgreSQL parity, backup/restore, and rollback are versioned, deterministic, and corruption-safe | `V08-DATA-008-SCHEMA`, `V08-DATA-008-SQLITE`, `V08-DATA-008-POSTGRES`, `V08-DATA-008-BACKUP-RESTORE`, `V08-DATA-008-MIGRATION-ROLLBACK` | Implemented and pre-candidate verified; canonical identity result pending |
+| `V08-DATA-009` | Cross-feature semantic, integration, fault/recovery, load, and security evidence covers the complete bounded local data-service surface | `V08-DATA-009-SEMANTIC-GOLDEN`, `V08-DATA-009-INTEGRATION`, `V08-DATA-009-FAULT-RECOVERY`, `V08-DATA-009-LOAD`, `V08-DATA-009-SECURITY` | Implemented and pre-candidate verified; canonical identity result pending |
 
 ## Version 0.7 Gate 0A Test Plan
 

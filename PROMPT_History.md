@@ -6,6 +6,28 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-17 - v0.8 Worktree Implementation And Candidate Preparation
+
+The owner direction to finish v0.8 after accepted v0.7.0 remains bounded by
+`V08-GATE-0A PASS` and the exact `V08-DATA-001` through `V08-DATA-009`
+contracts. Subsequent work implemented those nine local synthetic non-CUI data
+service packages in the current worktree: canonical typed values, scoped and
+revisioned catalogs/dictionaries/containers, DB/IMP exchange, procedure
+`ARGS`/`IVARS` and dictionary file operations, shared data, virtual-root files,
+authorization-scoped APIs, durable mutation/audit/outbox behavior, ordered
+SQLite/PostgreSQL migration and recovery, backup/restore, the Data Service web
+workspace, and version-scoped qualification/release tooling.
+
+Backend and frontend pre-candidate verification passed during implementation,
+including frontend unit tests and the production build. Exact canonical totals
+are deliberately deferred until source freeze and qualification. No v0.8
+candidate commit or canonical work-package evidence is claimed yet;
+`V08-GATE-0B` remains `PENDING_CANDIDATE`, and Final qualification, SBOM and
+supply-chain evidence, deterministic packaging, the release commit, and
+annotated tag `v0.8.0` remain pending. SPELL v0.7.0 remains the accepted
+baseline. v0.9 remains requested-only with no completed Gate 0A or
+implementation claim.
+
 ## 2026-08-17 - v0.7.0 Accepted And v0.8 Gate 0A Approved
 
 ### v0.7.0 Accepted Release
@@ -43,11 +65,13 @@ the bounded Data and Local Service Compatibility gate recorded in
 and their 45 planned proof identities under
 `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The exact marker is
 `gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
-This is planning and implementation-entry authorization only: it claims no
-v0.8 source, API, schema, migration, dependency, runtime artifact, executed
-product test, qualification, release, operational authorization, compliance
-determination, or acceptance. v0.9 remains requested-only with no completed
-Gate 0A or implementation claim.
+At the Gate 0A decision, this was planning and implementation-entry
+authorization only: it claimed no v0.8 source, API, schema, migration,
+dependency, runtime artifact, executed product test, qualification, release,
+operational authorization, compliance determination, or acceptance. The later
+worktree implementation event above preserves rather than rewrites that
+gate-time result. v0.9 remains requested-only with no completed Gate 0A or
+implementation claim.
 
 ## 2026-08-16 - v0.7 Candidate Qualified And Gate 0B Passed
 

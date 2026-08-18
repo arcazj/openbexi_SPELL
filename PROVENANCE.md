@@ -3,7 +3,8 @@
 ## Record Status
 
 This record retains the bounded SPELL v0.5.0 and v0.6.0 provenance, records the
-accepted v0.7.0 release, and binds the v0.8 Gate 0A planning authorization.
+accepted v0.7.0 release, and binds the v0.8 Gate 0A authorization plus the
+subsequent candidate-in-preparation worktree provenance.
 SPELL v0.7.0 is the accepted local-only, synthetic, non-CUI simulator
 engineering baseline at annotated tag `v0.7.0`, tag object
 `70e4d46a46d158dee3c63ec37a5d1922b3b61668`, and release commit
@@ -52,11 +53,17 @@ and strict annotated-tag validation complete acceptance with no accepted
 exceptions.
 
 `V08-GATE-0A PASS` authorizes only the nine `V08-DATA-001` through
-`V08-DATA-009` planning packages and their 45 proof identities under
-`LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. It claims zero product constructs and
-zero runtime artifacts. No v0.8 implementation or provenance is claimed, and
-v0.9 remains requested-only. This document makes no compliance, deployment,
-mission, or operational authorization claim.
+`V08-DATA-009` packages and their 45 proof identities under
+`LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The gate itself claimed zero product
+constructs and zero runtime artifacts. Subsequent first-party work implemented
+the bounded data models, migrations, repositories and mutation coordinator,
+dictionary exchange, virtual-file runtime, authenticated API, procedure data
+operations, frontend Data Service workspace, and v0.8 qualification/release
+tooling. Backend and frontend pre-candidate verification passed in the current
+worktree. No immutable candidate source, canonical candidate evidence, Gate 0B
+PASS, Final result, package, release commit, or annotated `v0.8.0` tag is
+claimed. v0.9 remains requested-only. This document makes no compliance,
+deployment, mission, or operational authorization claim.
 
 Before this binding, Docker Scout identified 18 High findings in the pinned
 `postgresql18=18.4-r0` local image package. The candidate updates that exact
@@ -88,8 +95,9 @@ The archives are explicitly ignored and excluded from the reproducible package:
 
 A v0.2 SHA-256 comparison found no exact match between a new first-party source
 file and an archive entry. That mechanical check supports but does not by itself
-prove clean-room authorship. The accepted v0.4, v0.5, v0.6, and v0.7 releases
-and the v0.8 planning contracts retain the same source boundary.
+prove clean-room authorship. The accepted v0.4, v0.5, v0.6, and v0.7 releases,
+the v0.8 planning contracts, and the v0.8 candidate-in-preparation worktree
+retain the same source boundary.
 
 ### Manual Evidence Boundary
 
@@ -299,6 +307,11 @@ CUI, or production data was introduced.
 The approved v0.8 Gate 0A record independently binds the accepted v0.7.0 tag
 and nine declarative planning-contract files under `contracts/v08`. It
 authorizes bounded implementation entry for `V08-DATA-001` through
-`V08-DATA-009`, but establishes no source, API, schema, migration, dependency,
-runtime artifact, qualification, or release provenance. No v0.8 or v0.9
-implementation provenance is claimed.
+`V08-DATA-009`; at gate time it established no source, API, schema, migration,
+dependency, runtime artifact, qualification, or release provenance. The later
+candidate-in-preparation worktree implements only that bounded scope and uses
+new project-authored source, locked dependencies, synthetic local test data,
+and no legacy runtime content. Pre-candidate backend/frontend verification is a
+mutable working-tree result until source freeze. Canonical candidate,
+qualification, Gate 0B, Final, SBOM/supply-chain, package, release, and tag
+provenance remain pending. No v0.9 implementation provenance is claimed.

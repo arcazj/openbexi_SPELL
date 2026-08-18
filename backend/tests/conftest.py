@@ -79,12 +79,16 @@ def client(tmp_path: Path, procedures_dir: Path, auth_config: AuthConfig):
             schema_migrations.drop(connection, checkfirst=True)
             Base.metadata.drop_all(connection)
         engine.dispose()
+    migration_backups = tmp_path / "migration-backups"
+    migration_backups.mkdir()
     settings = Settings(
         database_url=database_url,
         procedures_dir=procedures_dir,
+        data_dir=tmp_path / "spell-data",
         websocket_replay_limit=1000,
         websocket_queue_size=64,
         websocket_keepalive_seconds=0.1,
+        v0007_backup_directory=migration_backups,
     )
     with TestClient(create_app(settings, auth_config=auth_config)) as test_client:
         yield test_client

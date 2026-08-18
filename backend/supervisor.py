@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING, Any, Callable, Mapping
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session, sessionmaker
 
+from .data_domain import DataDomainError, ProcedureCallerBinding
+from .data_repository import runtime_container_definitions
 from .events import EventHub
 from .ir_v03 import IRValidationError, validate_ir_v03
 from .ir_v06 import (
@@ -41,6 +43,23 @@ from .ir_v07 import (
     validate_ir_v07,
     validate_observation_request,
     validate_observation_result,
+)
+from .ir_v08 import (
+    IR_VERSION as V08_IR_VERSION,
+    DataRuntime,
+    V08ValidationError,
+    argument_declarations_from_steps,
+    canonicalize_data_result,
+    closed_file_handle_reference,
+    data_request_id,
+    is_file_handle_reference,
+    persistable_data_result,
+    stale_file_handle_result,
+    unavailable_data_result,
+    validate_data_request,
+    validate_data_result,
+    validate_file_handle_reference,
+    validate_ir_v08,
 )
 from .models import Command, Event, Execution, Prompt
 from .operator_models import OperatorCommand, OperatorPrompt
@@ -71,7 +90,10 @@ _LEGACY_EVENT_REFERENCE_NAMESPACE = uuid.uuid5(
     uuid.NAMESPACE_URL, "openbexi-spell:legacy-event-reference"
 )
 _WORKER_HANDLE_UNSET = object()
-_V06_PLUS_IR_VERSIONS = frozenset({V06_IR_VERSION, V07_IR_VERSION})
+_DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
+_V06_PLUS_IR_VERSIONS = frozenset(
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+)
 
 
 def _legacy_event_reference(value: str | None) -> str | None:
@@ -84,6 +106,25 @@ def _legacy_event_reference(value: str | None) -> str | None:
     if len(value) <= _LEGACY_EVENT_REFERENCE_LIMIT:
         return value
     return str(uuid.uuid5(_LEGACY_EVENT_REFERENCE_NAMESPACE, value))
+
+
+def _contains_file_handle_token(value: Any, token_digests: set[str]) -> bool:
+    if type(value) is str:
+        try:
+            encoded = value.encode("ascii")
+        except UnicodeEncodeError:
+            return False
+        return hashlib.sha256(encoded).hexdigest() in token_digests
+    if type(value) is list:
+        return any(
+            _contains_file_handle_token(item, token_digests) for item in value
+        )
+    if type(value) is dict:
+        return any(
+            _contains_file_handle_token(item, token_digests)
+            for item in value.values()
+        )
+    return False
 
 
 PROCEDURE_SUBSET_VERSION = f"spell-restricted-ast/{IR_VERSION}"
@@ -171,6 +212,12 @@ class Supervisor:
             | None
         ) = None,
         observation_anchor_provider: ObservationAnchorProvider | None = None,
+        data_runtime: (
+            DataRuntime
+            | Callable[[Mapping[str, Any]], Mapping[str, Any]]
+            | None
+        ) = None,
+        data_repository: Any | None = None,
     ):
         self.session_factory = session_factory
         self.catalog = catalog
@@ -181,6 +228,7 @@ class Supervisor:
         self._spawning: set[str] = set()
         self._startproc_watchers: set[tuple[str, str, int]] = set()
         self._observation_requests: set[tuple[str, str, int]] = set()
+        self._data_requests: set[tuple[str, str, int]] = set()
         self._abort_cleanup_barriers: set[tuple[str, str]] = set()
         self._recovery_pause_pending: set[str] = set()
         self._prompt_settlement_attempts: dict[str, float] = {}
@@ -196,6 +244,8 @@ class Supervisor:
         self.operator_service = operator_service
         self.observation_runtime = observation_runtime
         self.observation_anchor_provider = observation_anchor_provider
+        self.data_runtime = data_runtime
+        self.data_repository = data_repository
         if operator_service is not None:
             if operator_service.prompt_settlement_sink is None:
                 operator_service.prompt_settlement_sink = self.dispatch_prompt_settlement
@@ -210,6 +260,20 @@ class Supervisor:
         if operator_service.prompt_settlement_sink is None:
             operator_service.prompt_settlement_sink = self.dispatch_prompt_settlement
         self._start_operator_bridge()
+
+    @staticmethod
+    def _v08_admission_binding(
+        execution: Execution, creation_request_hash: str
+    ) -> ProcedureCallerBinding:
+        request_id = "admission." + hashlib.sha256(
+            f"{execution.id}\0{creation_request_hash}".encode("ascii")
+        ).hexdigest()
+        return ProcedureCallerBinding(
+            service_principal_id="procedure-runtime",
+            execution_id=execution.id,
+            worker_generation=int(execution.worker_generation),
+            deterministic_request_id=request_id,
+        )
 
     def _start_operator_bridge(self) -> None:
         with self._lock:
@@ -355,13 +419,25 @@ class Supervisor:
             raise ConflictError(
                 "operator settings must be a finite JSON object"
             ) from exc
-        initial_variables = initial_variables or {}
+        if initial_variables is None:
+            initial_variables = {}
         try:
             json.dumps(initial_variables, allow_nan=False)
         except (TypeError, ValueError) as exc:
             raise ConflictError("initial variables must be finite JSON data") from exc
         if not isinstance(initial_variables, dict) or len(initial_variables) > 64:
             raise ConflictError("initial variables must be a bounded object")
+        v08_argument_definitions = None
+        if procedure.ir_version == V08_IR_VERSION:
+            try:
+                v08_argument_definitions = runtime_container_definitions(
+                    initial_variables,
+                    declared_types=argument_declarations_from_steps(procedure.steps),
+                )
+            except (DataDomainError, V08ValidationError) as exc:
+                raise ConflictError(
+                    "v0.8 arguments do not match the immutable procedure declaration"
+                ) from exc
         creation_request_hash = canonical_hash(
             {
                 "procedure_id": procedure.id,
@@ -419,6 +495,16 @@ class Supervisor:
                 stored_hash = created_event.payload.get("request_hash") if created_event else None
                 if stored_hash != creation_request_hash:
                     raise ConflictError("creation idempotency key was used for another request")
+                if existing.ir_version == V08_IR_VERSION:
+                    repository = self.data_repository
+                    if repository is None:
+                        raise ConflictError("v0.8 data repository is unavailable")
+                    repository.assert_execution_projections(
+                        session,
+                        existing,
+                        self._v08_admission_binding(existing, creation_request_hash),
+                        args=v08_argument_definitions,
+                    )
                 session.commit()
                 session.expunge(existing)
 
@@ -454,7 +540,7 @@ class Supervisor:
             session.add(execution)
             session.flush()
             config_hash = configuration_hash(procedure, context_id)
-            self._add_event(
+            created_event = self._add_event(
                 session,
                 execution,
                 "execution.created",
@@ -487,6 +573,20 @@ class Supervisor:
                 source="supervisor",
             )
             if not automatic:
+                if execution.ir_version == V08_IR_VERSION:
+                    repository = self.data_repository
+                    if repository is None:
+                        raise ConflictError("v0.8 data repository is unavailable")
+                    admission = repository.stage_execution_admission(
+                        session,
+                        execution,
+                        self._v08_admission_binding(execution, creation_request_hash),
+                        args=v08_argument_definitions,
+                    )
+                    created_event.payload = {
+                        **created_event.payload,
+                        "data_projections": admission["projections"],
+                    }
                 session.commit()
                 session.refresh(execution)
                 events = session.scalars(
@@ -542,6 +642,20 @@ class Supervisor:
             execution.state = "starting"
             execution.revision = 3
             session.flush()
+            if execution.ir_version == V08_IR_VERSION:
+                repository = self.data_repository
+                if repository is None:
+                    raise ConflictError("v0.8 data repository is unavailable")
+                admission = repository.stage_execution_admission(
+                    session,
+                    execution,
+                    self._v08_admission_binding(execution, creation_request_hash),
+                    args=v08_argument_definitions,
+                )
+                created_event.payload = {
+                    **created_event.payload,
+                    "data_projections": admission["projections"],
+                }
             self._add_event(
                 session,
                 execution,
@@ -2428,7 +2542,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v07
+                    validate_ir_v08
+                    if ir_version == V08_IR_VERSION
+                    else validate_ir_v07
                     if ir_version == V07_IR_VERSION
                     else validate_ir_v06
                     if ir_version == V06_IR_VERSION
@@ -2443,7 +2559,12 @@ class Supervisor:
                     expected_total_steps=execution.total_steps,
                     **validation_metadata,
                 )
-            except (IRValidationError, V06ValidationError, V07ValidationError) as exc:
+            except (
+                IRValidationError,
+                V06ValidationError,
+                V07ValidationError,
+                V08ValidationError,
+            ) as exc:
                 rejection = self._add_event(
                     session,
                     execution,
@@ -2618,6 +2739,9 @@ class Supervisor:
                 with handle.dispatch_lock:
                     if not self._worker_message_is_current(execution_id, handle, message):
                         continue
+                    self._reject_raw_file_handle_worker_message(
+                        execution_id, handle.generation, message
+                    )
                     if kind == "terminal":
                         handle.process.join(timeout=2)
                         if handle.process.is_alive():
@@ -2692,6 +2816,8 @@ class Supervisor:
                         self._handle_startproc_request(execution_id, handle, message)
                     elif kind == "observation_requested":
                         self._handle_observation_request(execution_id, handle, message)
+                    elif kind == "data_requested":
+                        self._handle_data_request(execution_id, handle, message)
                     else:
                         raise ValueError(f"unsupported worker message kind: {kind!r}")
             except Exception as exc:
@@ -3118,7 +3244,7 @@ class Supervisor:
                 raise StaleWorkerMessage("worker generation is no longer current")
             step_index = request_payload.get("step_index")
             if (
-                execution.ir_version != V07_IR_VERSION
+                execution.ir_version not in {V07_IR_VERSION, V08_IR_VERSION}
                 or type(step_index) is not int
                 or step_index != execution.current_step
                 or step_index < 0
@@ -3304,7 +3430,7 @@ class Supervisor:
                 if (
                     execution is None
                     or execution.current_step != request["step_index"]
-                    or execution.ir_version != V07_IR_VERSION
+                    or execution.ir_version not in {V07_IR_VERSION, V08_IR_VERSION}
                 ):
                     return False
                 existing = self._observation_event(
@@ -3331,6 +3457,324 @@ class Supervisor:
                 if published is not None:
                     self.hub.publish(execution_id, published)
             handle.control.put({"type": "observation_result", **delivered})
+        return True
+
+    def _reject_raw_file_handle_worker_message(
+        self,
+        execution_id: str,
+        generation: int,
+        message: Mapping[str, Any],
+    ) -> None:
+        """Fence every worker persistence path against copied capability tokens."""
+
+        with self.session_factory() as session:
+            execution = session.get(Execution, execution_id)
+            if (
+                execution is None
+                or execution.ir_version != V08_IR_VERSION
+                or execution.worker_generation != generation
+            ):
+                return
+            token_digests = {
+                value["token_sha256"]
+                for value in (
+                    execution.variables.values()
+                    if type(execution.variables) is dict
+                    else ()
+                )
+                if is_file_handle_reference(value)
+            }
+            results = session.scalars(
+                select(Event).where(
+                    Event.execution_id == execution_id,
+                    Event.event_type == "procedure.data_result",
+                )
+            ).all()
+            token_digests.update(
+                event.payload["value"]["token_sha256"]
+                for event in results
+                if type(event.payload) is dict
+                and is_file_handle_reference(event.payload.get("value"))
+            )
+        if token_digests and _contains_file_handle_token(message, token_digests):
+            raise ConflictError("worker message contains a raw FileHandle token")
+
+    @staticmethod
+    def _data_event(
+        session: Session,
+        execution_id: str,
+        event_type: str,
+        request_id: str,
+    ) -> Event | None:
+        event = session.scalar(
+            select(Event)
+            .where(
+                Event.execution_id == execution_id,
+                Event.event_type == event_type,
+                Event.correlation_id == request_id,
+            )
+            .order_by(Event.sequence.desc())
+            .limit(1)
+        )
+        if event is not None and (
+            type(event.payload) is not dict
+            or event.payload.get("request_id") != request_id
+        ):
+            raise ConflictError("durable data event identity is inconsistent")
+        return event
+
+    def _handle_data_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        message: dict[str, Any],
+    ) -> None:
+        request_payload = {
+            key: value
+            for key, value in message.items()
+            if key not in {"kind", "generation"}
+        }
+        published: list[dict[str, Any]] = []
+        replay: dict[str, Any] | None = None
+        original_binding: ProcedureCallerBinding | None = None
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(
+                session, execution_id, handle.generation
+            )
+            if execution is None:
+                raise StaleWorkerMessage("worker generation is no longer current")
+            step_index = request_payload.get("step_index")
+            if (
+                execution.ir_version != V08_IR_VERSION
+                or type(step_index) is not int
+                or step_index != execution.current_step
+                or step_index < 0
+                or step_index >= len(execution.steps)
+            ):
+                raise ConflictError("data request does not target the current v0.8 step")
+            request = validate_data_request(
+                execution.steps[step_index],
+                request_payload,
+                execution_id=execution_id,
+                authoritative_variables=execution.variables,
+                worker_generation=handle.generation,
+            )
+            request_id = request["request_id"]
+            current_binding = ProcedureCallerBinding(
+                "procedure-runtime", execution_id, handle.generation, request_id
+            )
+            requested = self._data_event(
+                session,
+                execution_id,
+                "procedure.data_requested",
+                request_id,
+            )
+            if requested is None:
+                durable_request = {
+                    **request,
+                    _DATA_RUNTIME_BINDING_KEY: {
+                        "deterministic_request_id": request_id,
+                        "execution_id": execution_id,
+                        "service_principal_id": "procedure-runtime",
+                        "worker_generation": handle.generation,
+                    },
+                }
+                event = self._add_event(
+                    session,
+                    execution,
+                    "procedure.data_requested",
+                    durable_request,
+                    source="worker",
+                    correlation_id=request_id,
+                )
+                session.commit()
+                published.append(event_dict(event))
+                original_binding = current_binding
+            else:
+                stored_request = dict(requested.payload)
+                stored_binding = stored_request.pop(
+                    _DATA_RUNTIME_BINDING_KEY, None
+                )
+                request = validate_data_request(
+                    execution.steps[step_index],
+                    stored_request,
+                    execution_id=execution_id,
+                    authoritative_variables=execution.variables,
+                    worker_generation=handle.generation,
+                )
+                if type(stored_binding) is not dict or set(stored_binding) != {
+                    "deterministic_request_id",
+                    "execution_id",
+                    "service_principal_id",
+                    "worker_generation",
+                }:
+                    raise ConflictError(
+                        "durable data request binding is unavailable or corrupt"
+                    )
+                try:
+                    original_binding = ProcedureCallerBinding(**stored_binding)
+                except DataDomainError as exc:
+                    raise ConflictError(
+                        "durable data request binding is invalid"
+                    ) from exc
+                if (
+                    original_binding.execution_id != execution_id
+                    or original_binding.deterministic_request_id != request_id
+                    or original_binding.service_principal_id != "procedure-runtime"
+                    or original_binding.worker_generation > handle.generation
+                ):
+                    raise ConflictError("durable data request binding differs")
+
+            settled = self._data_event(
+                session,
+                execution_id,
+                "procedure.data_result",
+                request_id,
+            )
+            if settled is not None:
+                replay = validate_data_result(request, settled.payload)
+                if (
+                    replay["operation"] == "OPEN_FILE"
+                    and replay["outcome"] == "OK"
+                ):
+                    replay = stale_file_handle_result(request)
+            else:
+                key = (execution_id, request_id, handle.generation)
+                if key in self._data_requests:
+                    return
+                self._data_requests.add(key)
+
+            for event in published:
+                self.hub.publish(execution_id, event)
+
+        if replay is not None:
+            handle.control.put({"type": "data_result", **replay})
+            return
+
+        threading.Thread(
+            target=self._resolve_data_request,
+            args=(execution_id, handle, request, original_binding),
+            name=f"spell-data-{execution_id[:8]}-{step_index}",
+            daemon=True,
+        ).start()
+
+    def _resolve_data_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+        original_binding: ProcedureCallerBinding,
+    ) -> None:
+        key = (execution_id, request["request_id"], handle.generation)
+        try:
+            runtime = self.data_runtime
+            if runtime is None:
+                result = unavailable_data_result(
+                    request, "DATA_RUNTIME_UNAVAILABLE"
+                )
+            else:
+                runtime_request = json.loads(
+                    json.dumps(request, sort_keys=True, separators=(",", ":"))
+                )
+                runtime_request.update(
+                    service_principal_id="procedure-runtime",
+                    worker_generation=handle.generation,
+                )
+                if original_binding.worker_generation != handle.generation:
+                    recoverer = getattr(runtime, "recover", None)
+                    if not callable(recoverer):
+                        raise V08ValidationError(
+                            "DATA_RESULT_INVALID",
+                            "$.result",
+                            "runtime has no settlement recovery channel",
+                        )
+                    raw_result = recoverer(
+                        runtime_request,
+                        original_binding=original_binding,
+                    )
+                else:
+                    resolver = getattr(runtime, "resolve", None)
+                    raw_result = (
+                        resolver(runtime_request)
+                        if callable(resolver)
+                        else runtime(runtime_request)
+                        if callable(runtime)
+                        else None
+                    )
+                if raw_result is None:
+                    raise V08ValidationError(
+                        "DATA_RESULT_INVALID",
+                        "$.result",
+                        "runtime returned no result",
+                    )
+                result = canonicalize_data_result(request, raw_result)
+        except Exception:
+            result = unavailable_data_result(
+                request, "DATA_RUNTIME_RESULT_INVALID"
+            )
+        try:
+            self._settle_data_result(execution_id, handle, request, result)
+        finally:
+            with self._lock:
+                self._data_requests.discard(key)
+
+    def _settle_data_result(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+        result: dict[str, Any],
+    ) -> bool:
+        transient = validate_data_result(request, result)
+        durable = persistable_data_result(
+            request, transient, worker_generation=handle.generation
+        )
+        published: dict[str, Any] | None = None
+        delivered: dict[str, Any] | None = None
+        with handle.dispatch_lock:
+            with self._lock, self.session_factory() as session:
+                if self._workers.get(execution_id) is not handle:
+                    return False
+                execution = self._require_worker_epoch(
+                    session, execution_id, handle.generation
+                )
+                if (
+                    execution is None
+                    or execution.current_step != request["step_index"]
+                    or execution.ir_version != V08_IR_VERSION
+                ):
+                    return False
+                existing = self._data_event(
+                    session,
+                    execution_id,
+                    "procedure.data_result",
+                    request["request_id"],
+                )
+                if existing is None:
+                    event = self._add_event(
+                        session,
+                        execution,
+                        "procedure.data_result",
+                        durable,
+                        source="data-runtime",
+                        severity=(
+                            "info" if durable["outcome"] == "OK" else "warning"
+                        ),
+                        correlation_id=request["request_id"],
+                    )
+                    session.commit()
+                    published = event_dict(event)
+                    delivered = transient
+                else:
+                    delivered = validate_data_result(request, existing.payload)
+                    if (
+                        delivered["operation"] == "OPEN_FILE"
+                        and delivered["outcome"] == "OK"
+                    ):
+                        delivered = stale_file_handle_result(request)
+                if published is not None:
+                    self.hub.publish(execution_id, published)
+            handle.control.put({"type": "data_result", **delivered})
         return True
 
     def _watch_startproc_child(
@@ -4090,6 +4534,37 @@ class Supervisor:
             checkpoint_variables = message.get("variables")
             if not isinstance(checkpoint_variables, dict):
                 raise ConflictError("worker checkpoint variables are missing or invalid")
+            if execution.ir_version == V08_IR_VERSION:
+                known_handle_digests = {
+                    value["token_sha256"]
+                    for variables in (execution.variables, checkpoint_variables)
+                    if type(variables) is dict
+                    for value in variables.values()
+                    if is_file_handle_reference(value)
+                }
+                current_step = execution.steps[step_index]
+                if (
+                    current_step.get("type") == "data_operation"
+                    and current_step.get("operation") == "OPEN_FILE"
+                ):
+                    open_result = self._data_event(
+                        session,
+                        execution_id,
+                        "procedure.data_result",
+                        data_request_id(execution_id, step_index),
+                    )
+                    if open_result is not None and is_file_handle_reference(
+                        open_result.payload.get("value")
+                    ):
+                        known_handle_digests.add(
+                            open_result.payload["value"]["token_sha256"]
+                        )
+                if known_handle_digests and _contains_file_handle_token(
+                    message, known_handle_digests
+                ):
+                    raise ConflictError(
+                        "worker checkpoint attempts to persist a raw FileHandle token"
+                    )
             if prompt_resolution is not None:
                 prompt = session.get(Prompt, prompt_resolution["prompt_id"])
                 operator_prompt = session.get(
@@ -4203,21 +4678,142 @@ class Supervisor:
                         )
                     )
                 )
+            prior_checkpoint_variables = (
+                dict(execution.variables)
+                if isinstance(execution.variables, dict)
+                else {}
+            )
+            if execution.ir_version == V08_IR_VERSION:
+                current_step = execution.steps[step_index]
+                handle_names = {
+                    candidate["target"]
+                    for candidate in execution.steps
+                    if candidate.get("type") == "data_operation"
+                    and candidate.get("operation") == "OPEN_FILE"
+                    and type(candidate.get("target")) is str
+                }
+                bound_handle_names = {
+                    candidate["target"]
+                    for candidate in execution.steps[:step_index]
+                    if candidate.get("type") == "data_operation"
+                    and candidate.get("operation") == "OPEN_FILE"
+                    and type(candidate.get("target")) is str
+                }
+                if (
+                    current_step.get("type") == "data_operation"
+                    and current_step.get("operation") == "OPEN_FILE"
+                    and type(current_step.get("target")) is str
+                ):
+                    bound_handle_names.add(current_step["target"])
+                unknown_references = {
+                    name
+                    for name, value in checkpoint_variables.items()
+                    if is_file_handle_reference(value)
+                    and name not in bound_handle_names
+                }
+                if unknown_references:
+                    raise ConflictError(
+                        "worker checkpoint introduces an unbound FileHandle reference"
+                    )
+                expected_handles = {
+                    name: prior_checkpoint_variables.get(name)
+                    for name in bound_handle_names
+                }
+                if current_step.get("type") == "data_operation":
+                    operation = current_step.get("operation")
+                    request_id = data_request_id(execution_id, step_index)
+                    result_event = self._data_event(
+                        session,
+                        execution_id,
+                        "procedure.data_result",
+                        request_id,
+                    )
+                    if result_event is not None and result_event.payload.get("outcome") != "OK":
+                        raise ConflictError(
+                            "worker checkpoint applies an unsuccessful data result"
+                        )
+                    if operation == "OPEN_FILE" and type(current_step.get("target")) is str:
+                        target_name = current_step["target"]
+                        if result_event is not None:
+                            expected_handles[target_name] = validate_file_handle_reference(
+                                result_event.payload.get("value"),
+                                "$.procedure.data_result.value",
+                                execution_id=execution_id,
+                                worker_generation=generation,
+                                creator_request_id=request_id,
+                                require_open=True,
+                            )
+                    elif operation == "CLOSE_FILE":
+                        reference = current_step.get("parameters", {}).get("handle", {})
+                        target_name = reference.get("name")
+                        if result_event is not None and target_name in handle_names:
+                            expected_handles[target_name] = closed_file_handle_reference(
+                                prior_checkpoint_variables.get(target_name)
+                            )
+                for name, expected in expected_handles.items():
+                    if checkpoint_variables.get(name) != expected:
+                        raise ConflictError(
+                            "worker FileHandle checkpoint differs from durable data settlement"
+                        )
             execution.current_step = next_step
             execution.variables = checkpoint_variables
+            data_checkpoint: dict[str, Any] | None = None
+            if execution.ir_version == V08_IR_VERSION:
+                repository = self.data_repository
+                if repository is None:
+                    raise ConflictError("v0.8 data repository is unavailable")
+                prior_args = prior_checkpoint_variables.get("ARGS", {})
+                submitted_args = checkpoint_variables.get("ARGS", {})
+                if submitted_args != prior_args:
+                    raise ConflictError("v0.8 ARGS checkpoint differs from admission")
+                ivars = checkpoint_variables.get("IVARS", {})
+                if type(ivars) is not dict:
+                    raise ConflictError("v0.8 IVARS checkpoint must be a map")
+                local = {
+                    name: value
+                    for name, value in checkpoint_variables.items()
+                    if name not in {"ARGS", "GLOBALS", "IVARS", "SHARED_DATA"}
+                    and not is_file_handle_reference(value)
+                }
+                revisions = repository.execution_projection_revisions(
+                    session, execution.id
+                )
+                checkpoint_request_id = "checkpoint." + hashlib.sha256(
+                    f"{execution.id}\0{next_step}".encode("ascii")
+                ).hexdigest()
+                data_checkpoint = repository.stage_execution_checkpoint(
+                    session,
+                    execution,
+                    ProcedureCallerBinding(
+                        service_principal_id="procedure-runtime",
+                        execution_id=execution.id,
+                        worker_generation=generation,
+                        deterministic_request_id=checkpoint_request_id,
+                    ),
+                    checkpoint_sequence=next_step,
+                    expected_ivars_revision=revisions["IVARS"],
+                    expected_local_revision=revisions["LOCAL"],
+                    ivars=runtime_container_definitions(ivars),
+                    local=runtime_container_definitions(local),
+                )
             checkpoint_revision = execution.revision
             checkpoint_step = next_step
+            checkpoint_payload: dict[str, Any] = {
+                "next_step": next_step,
+                "generation": generation,
+                "variables": checkpoint_variables,
+            }
+            if data_checkpoint is not None:
+                checkpoint_payload["data_projections"] = data_checkpoint[
+                    "projections"
+                ]
             published.append(
                 event_dict(
                     self._add_event(
                         session,
                         execution,
                         "execution.checkpointed",
-                        {
-                            "next_step": next_step,
-                            "generation": generation,
-                            "variables": checkpoint_variables,
-                        },
+                        checkpoint_payload,
                         source="supervisor",
                     )
                 )

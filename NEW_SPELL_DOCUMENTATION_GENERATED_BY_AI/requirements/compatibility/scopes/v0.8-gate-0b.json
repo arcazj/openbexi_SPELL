@@ -1,0 +1,442 @@
+{
+    "schema_version":  "ng-spell-v08-gate-0b-scope/1",
+    "gate_id":  "V08-GATE-0B",
+    "status":  "PENDING_CANDIDATE",
+    "target_increment":  "v0.8",
+    "target_release":  "v0.8.0",
+    "scope_profile":  "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+    "decision":  {
+                     "owner":  "JC Arcaz",
+                     "decision_date":  "2026-08-17",
+                     "authorization":  "PENDING_V08_DATA_001_THROUGH_V08_DATA_009_RELEASE_CLOSEOUT",
+                     "owner_request":  "table are not correctly formated for some md file like SPELL_v0.7_Release.md. fix that. make sure to update all docs as well regarding last version implemented. then resume and finish up V0.7 asap, asap. once done finish up V0.8 and v0.9 asap. You have all approvals.",
+                     "gate_0a_owner_approval_reaffirmed":  true,
+                     "tag_resolution":  "REQUESTED_V0_8_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_8_0",
+                     "precondition":  "CANONICAL_V08_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
+                 },
+    "immutable_inputs":  {
+                             "accepted_v0_7_0":  {
+                                                     "tag_ref":  "refs/tags/v0.7.0",
+                                                     "tag_object_type":  "tag",
+                                                     "tag_object_id":  "70e4d46a46d158dee3c63ec37a5d1922b3b61668",
+                                                     "raw_tag_object_sha256":  "dfa9c0c68cd3c9f3a64768392c001a66b1641e31dcae1ffd5bf2c40197838cae",
+                                                     "peeled_release_commit":  "cf18e9d887ba0476cbcc3d8194e321332a3ae864",
+                                                     "qualified_source_commit":  "6ac43c5be7670ead09de821578cc6c6a680af109",
+                                                     "tagged_files_sha256":  {
+                                                                                 "SPELL_v0.7_Release.md":  "455a0dc8a572b941b0d7f4546f800500e1f59a91aba2333407dd9348d4dba979",
+                                                                                 "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.7-gate-0b.json":  "8b8a6985bf4942d6554f9c10b0d2eaf0cab7cd84adcbea170f00eef87249f28f",
+                                                                                 "artifacts/v0.7/release-qualification.json":  "e32e6fd025a8bb22af6a0e93151110f934b29df0a86004eae168e19fde42a70a"
+                                                                             }
+                                                 },
+                             "gate_0a":  {
+                                             "commit":  "451c065740e7b6501f86094d9be79578b30b1591",
+                                             "parent":  "cf18e9d887ba0476cbcc3d8194e321332a3ae864",
+                                             "tree":  "bc979259b873f1632ba10398dc31606c25e5bd9c",
+                                             "validator_output":  "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+                                             "owner_marker":  "V08-GATE-0A OWNER-APPROVAL: APPROVED",
+                                             "files":  {
+                                                           "SPELL_v0.8_Pre-Implementation.md":  {
+                                                                                                    "blob":  "cb70042557673015de8235447281da86bf7baac1",
+                                                                                                    "sha256":  "3ae294e9dd16fa6bd85294e197a7b755a259fdb8d38b28895ad903fab4b2483b"
+                                                                                                },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.8-gate-0a.json":  {
+                                                                                                                                                               "blob":  "483d07c9641ad5a7323f1389a4a4029115367f6e",
+                                                                                                                                                               "sha256":  "5e3a940f682ced3f95984f80161c10cf77abe10593d03f237332ce2cef8c5b03"
+                                                                                                                                                           },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v08_gate_0a.py":  {
+                                                                                                                                                 "blob":  "4f3d207b3cd2d1b52cb873f538e20f93485c2385",
+                                                                                                                                                 "sha256":  "b8c6b0220f0cc05c011e6e7df140d57e0bd3810575154029303bfceccbc903af"
+                                                                                                                                             },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v08_gate_0a.py":  {
+                                                                                                                                                      "blob":  "411f1a24773991cfcb8ec955fe88fecb7d0db020",
+                                                                                                                                                      "sha256":  "226d0a5efa280dca7b2ef777ac9ebb6ededd3ba8a7807c1d1c12518f5b503cea"
+                                                                                                                                                  }
+                                                       },
+                                             "contracts":  {
+                                                               "contracts/v08/manifest.json":  {
+                                                                                                   "blob":  "02df06e9affd3c78af5a4b8374ac5797dbb30371",
+                                                                                                   "sha256":  "8270ca2f3b43e96c85b33e6a98c79303a0c4b70d75889dbb813c410c70e416e3"
+                                                                                               },
+                                                               "contracts/v08/typed_values.json":  {
+                                                                                                       "blob":  "60b16dc793cdc2bbbf8b3e43206dd219bec0479f",
+                                                                                                       "sha256":  "e546ad93e94f93777bffcd2d8b51335cf934e599400658158b356f23015dc5a9"
+                                                                                                   },
+                                                               "contracts/v08/catalog_uri_dependency.json":  {
+                                                                                                                 "blob":  "acc2fa74e01b7102f948b6c22beaff77289ec865",
+                                                                                                                 "sha256":  "e534039af0e4d4e48004dfadf08813226677b9a851537c123b656fb7fdc99d48"
+                                                                                                             },
+                                                               "contracts/v08/dictionary_exchange.json":  {
+                                                                                                              "blob":  "c57be63010333a0c4349e7d25a24554345a0248d",
+                                                                                                              "sha256":  "59b1590fefb6784efe28d807f80d2a47617bd855dc872c625ff2d98590129f0a"
+                                                                                                          },
+                                                               "contracts/v08/data_containers.json":  {
+                                                                                                          "blob":  "d328b997f9056106dde7c5e9d22d42f868e8c901",
+                                                                                                          "sha256":  "a196cdf9cfd7ff6ae7c2728251e84263a7b2dab5eed0e20debc804e0d39e844b"
+                                                                                                      },
+                                                               "contracts/v08/shared_data.json":  {
+                                                                                                      "blob":  "3918e1a631b2f44b2d67dc02a6846376e477c583",
+                                                                                                      "sha256":  "fc6eec064ef0401b9fe159c88da998a6c60ba0e8141b145111749dff641a9737"
+                                                                                                  },
+                                                               "contracts/v08/virtual_files.json":  {
+                                                                                                        "blob":  "f036232d71dcfdf62419d896f40e2e3ca4c48d32",
+                                                                                                        "sha256":  "534edbdc4e4b4c13d04afd306e4d5b51da2cca1ef97c873dd74ad0f80ed4fac8"
+                                                                                                    },
+                                                               "contracts/v08/data_api_authorization.json":  {
+                                                                                                                 "blob":  "873a5a9655a584fe2529eff9c0f676d945e5ab1a",
+                                                                                                                 "sha256":  "97f9fa70c4d7dc82cf657e3b6caaa4a0fb9489d0c5fe50690086b4ef22666ade"
+                                                                                                             },
+                                                               "contracts/v08/migration_recovery.json":  {
+                                                                                                             "blob":  "3e115c211763438dde6e6c8c5db78017077a7305",
+                                                                                                             "sha256":  "034efcf98c5d8a60719323515701e4a12ced25873c24bfc4211fd93f6178ba8a"
+                                                                                                         }
+                                                           }
+                                         },
+                             "candidate":  {
+                                               "binding_status":  "PENDING_SOURCE_FREEZE",
+                                               "commit":  null,
+                                               "parent":  "451c065740e7b6501f86094d9be79578b30b1591",
+                                               "tree":  null,
+                                               "changed_paths":  [
+
+                                                                 ]
+                                           }
+                         },
+    "qualification_contract":  {
+                                   "status":  "PENDING_CANONICAL_EVIDENCE",
+                                   "manifest_path":  "artifacts/v0.8/work-package/qualification.json",
+                                   "manifest_schema":  "spell.v08.candidate-qualification/1",
+                                   "manifest_sha256":  null,
+                                   "validator_path":  "scripts/validate_candidate_evidence_v08.py",
+                                   "validator_success_shape":  {
+                                                                   "gate":  "PASS",
+                                                                   "schema_version":  "spell.v08.candidate-qualification/1",
+                                                                   "source_commit":  null,
+                                                                   "suites":  10,
+                                                                   "test_ids":  45,
+                                                                   "tests_minimum":  1
+                                                               },
+                                   "python_version":  "3.13.14",
+                                   "suite_ids":  [
+                                                     "backend_sqlite",
+                                                     "backend_postgresql",
+                                                     "backend_docker_host",
+                                                     "backend_v08_soak",
+                                                     "driver_host",
+                                                     "tooling",
+                                                     "frontend_vitest",
+                                                     "frontend_build",
+                                                     "frontend_playwright_mocked",
+                                                     "frontend_playwright_live"
+                                                 ],
+                                   "postgresql_environment_variables":  [
+                                                                            "SPELL_TEST_DATABASE_URL",
+                                                                            "SPELL_MIGRATION_TEST_DATABASE_URL"
+                                                                        ],
+                                   "mapped_test_ids_skipped":  [
+
+                                                               ],
+                                   "accepted_failures":  [
+
+                                                         ],
+                                   "waivers":  [
+
+                                               ],
+                                   "waivers_allowed":  false
+                               },
+    "qualified_work_packages":  [
+                                    {
+                                        "work_package_id":  "V08-DATA-001",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-001-UNIT",
+                                                         "V08-DATA-001-TYPE-MATRIX",
+                                                         "V08-DATA-001-SERIALIZATION",
+                                                         "V08-DATA-001-CORRUPTION",
+                                                         "V08-DATA-001-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-002",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-002-UNIT",
+                                                         "V08-DATA-002-CONTRACT",
+                                                         "V08-DATA-002-GRAPH",
+                                                         "V08-DATA-002-RECOVERY",
+                                                         "V08-DATA-002-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-003",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-003-UNIT",
+                                                         "V08-DATA-003-COMPATIBILITY-GOLDEN",
+                                                         "V08-DATA-003-IMPORT-EXPORT",
+                                                         "V08-DATA-003-CORRUPTION-RECOVERY",
+                                                         "V08-DATA-003-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-004",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-004-UNIT",
+                                                         "V08-DATA-004-MATRIX",
+                                                         "V08-DATA-004-INTEGRATION",
+                                                         "V08-DATA-004-RECOVERY",
+                                                         "V08-DATA-004-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-005",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-005-UNIT",
+                                                         "V08-DATA-005-INTEGRATION",
+                                                         "V08-DATA-005-RACE",
+                                                         "V08-DATA-005-RECOVERY",
+                                                         "V08-DATA-005-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-006",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-006-UNIT",
+                                                         "V08-DATA-006-INTEGRATION",
+                                                         "V08-DATA-006-PATH-SECURITY",
+                                                         "V08-DATA-006-QUOTA-ATOMICITY",
+                                                         "V08-DATA-006-RECOVERY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-007",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-007-CONTRACT",
+                                                         "V08-DATA-007-AUTHORIZATION",
+                                                         "V08-DATA-007-IDEMPOTENCY-RACE",
+                                                         "V08-DATA-007-AUDIT-OUTBOX",
+                                                         "V08-DATA-007-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-008",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-008-SCHEMA",
+                                                         "V08-DATA-008-SQLITE",
+                                                         "V08-DATA-008-POSTGRES",
+                                                         "V08-DATA-008-BACKUP-RESTORE",
+                                                         "V08-DATA-008-MIGRATION-ROLLBACK"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V08-DATA-009",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V08-DATA-009-SEMANTIC-GOLDEN",
+                                                         "V08-DATA-009-INTEGRATION",
+                                                         "V08-DATA-009-FAULT-RECOVERY",
+                                                         "V08-DATA-009-LOAD",
+                                                         "V08-DATA-009-SECURITY"
+                                                     ]
+                                    }
+                                ],
+    "reviewed_surface_delta":  {
+                                   "review_status":  "PENDING_CANDIDATE_BINDING_AND_QUALIFICATION",
+                                   "internal_ir":  {
+                                                       "accepted_persisted_versions_preserved":  [
+                                                                                                     "0.3",
+                                                                                                     "0.6",
+                                                                                                     "0.7"
+                                                                                                 ],
+                                                       "accepted_ir_bindings":  {
+                                                                                    "backend/ir_v03.py":  {
+                                                                                                              "blob":  "87f202e9e3ff192e348c2aea9f7009ea7fc95841",
+                                                                                                              "sha256":  "2726774ed5873e0c0c1eeaffa7b3713c708ac7f61a6fa93e544a8dbc8c79963c"
+                                                                                                          },
+                                                                                    "backend/ir_v06.py":  {
+                                                                                                              "blob":  "6a03742e6ca4828c35dcb0908f0ffe2ad3cc3f53",
+                                                                                                              "sha256":  "ce4228f7a29f45a0e18b5d78d431d664b33b7ad4374af3c6712c8f39cb234e73"
+                                                                                                          },
+                                                                                    "backend/ir_v07.py":  {
+                                                                                                              "blob":  "4d0de9c4fc23de60195628d6c2101ebdfb19e764",
+                                                                                                              "sha256":  "900287b184fc851db942be2918789524338ae3bb0cdd8faf8573c335969b7408"
+                                                                                                          }
+                                                                                },
+                                                       "new_internal_version":  "0.8",
+                                                       "new_internal_file":  "backend/ir_v08.py",
+                                                       "opt_in_constructs":  [
+                                                                                 "CATALOG",
+                                                                                 "DICTIONARY",
+                                                                                 "DATA_CONTAINER",
+                                                                                 "SHARED_DATA",
+                                                                                 "VIRTUAL_FILE"
+                                                                             ],
+                                                       "legacy_serialized_bytes_must_remain_unchanged":  true,
+                                                       "public_legacy_language_compatibility_claimed":  false
+                                                   },
+                                   "driver_contract":  {
+                                                           "protocol_file":  "contracts/spell/driver/v1/driver.proto",
+                                                           "accepted_protocol_blob":  "71f69f833edf6b10cdb60c0546baa13f591cc0d2",
+                                                           "accepted_protocol_sha256":  "c77b7cc14a39a47761296cbeb64bd39c65a9c3eb91d6eba6b45991801063761a",
+                                                           "legacy_service":  "DriverInfrastructureService",
+                                                           "legacy_unary_rpc_count":  9,
+                                                           "additive_service":  "DriverObservationService",
+                                                           "additive_rpc_names":  [
+                                                                                      "GetTime",
+                                                                                      "GetTM"
+                                                                                  ],
+                                                           "legacy_protocol_declarations_must_remain_byte_identical":  true,
+                                                           "legacy_handshake_bytes_must_remain_compatible":  true,
+                                                           "read_only":  true
+                                                       },
+                                   "data_api":  {
+                                                    "api_version":  "v1",
+                                                    "classification":  "BOUNDED_AUTHENTICATED_LOCAL_DATA_SERVICE_ROUTES",
+                                                    "route_families":  [
+                                                                           "VERSIONED_LOCAL_CATALOGS_AND_DEPENDENCY_GRAPHS",
+                                                                           "NON_EXECUTING_DICTIONARY_IMPORT_EXPORT",
+                                                                           "TYPED_CONTAINER_AND_SHARED_DATA_MUTATIONS",
+                                                                           "VIRTUAL_ROOT_FILE_APIS",
+                                                                           "AUTHORIZATION_IDEMPOTENCY_AUDIT_OUTBOX",
+                                                                           "OPERATOR_DATA_WORKSPACE"
+                                                                       ],
+                                                    "service_boundary_files":  [
+                                                                                   "backend/data_api.py",
+                                                                                   "backend/data_repository.py",
+                                                                                   "backend/dictionary_exchange.py",
+                                                                                   "backend/virtual_file_service.py"
+                                                                               ],
+                                                    "authorization_before_lookup_or_body_read":  true,
+                                                    "transactional_audit_outbox":  true,
+                                                    "arbitrary_expression_evaluation":  false,
+                                                    "broad_public_api_compatibility_claimed":  false
+                                                },
+                                   "database_schema":  {
+                                                           "migration_versions":  [
+                                                                                      "0007_data_local_service"
+                                                                                  ],
+                                                           "migration_files":  [
+                                                                                   "backend/migrations/versions/v0007_data_local_service.py"
+                                                                               ],
+                                                           "new_tables_by_migration":  {
+                                                                                           "0007_data_local_service":  [
+                                                                                                                           "data_schema_fingerprints",
+                                                                                                                           "data_catalogs",
+                                                                                                                           "data_catalog_revisions",
+                                                                                                                           "data_catalog_entries",
+                                                                                                                           "data_dependencies",
+                                                                                                                           "data_dictionaries",
+                                                                                                                           "data_dictionary_revisions",
+                                                                                                                           "data_containers",
+                                                                                                                           "data_container_revisions",
+                                                                                                                           "shared_namespaces",
+                                                                                                                           "shared_entries",
+                                                                                                                           "virtual_file_roots",
+                                                                                                                           "virtual_files",
+                                                                                                                           "data_mutation_idempotency",
+                                                                                                                           "data_audit_outbox"
+                                                                                                                       ]
+                                                                                       },
+                                                           "existing_tables_rewritten_by_migrations":  [
+
+                                                                                                       ],
+                                                           "sqlite_and_postgresql_required":  true,
+                                                           "rollback_and_upgrade_proof_required":  true,
+                                                           "broad_database_compatibility_claimed":  false
+                                                       },
+                                   "dependencies":  {
+                                                        "new_python_runtime_dependencies":  [
+
+                                                                                            ],
+                                                        "new_frontend_runtime_dependencies":  [
+
+                                                                                              ],
+                                                        "driver_implementation_version":  "0.4.0",
+                                                        "live_driver_or_external_effect_route_added":  false
+                                                    },
+                                   "compatibility_ledger":  {
+                                                                "claimed_construct_ids":  [
+
+                                                                                          ],
+                                                                "claimed_artifact_ids":  [
+
+                                                                                         ],
+                                                                "compatibility_ledger_rows_added":  0,
+                                                                "v0_7_scope_rows_changed":  0,
+                                                                "broad_compatibility_claimed":  false
+                                                            }
+                               },
+    "release_closeout_authorization":  {
+                                           "status":  "PENDING_GATE_0B_PASS",
+                                           "release_version":  "0.8.0",
+                                           "tag_name":  "v0.8.0",
+                                           "tag_object_type":  "annotated",
+                                           "permitted_actions_after_pass":  [
+                                                                                "RECORD_V08_DATA_001_THROUGH_V08_DATA_009_IMPLEMENTED",
+                                                                                "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+                                                                                "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+                                                                                "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
+                                                                                "CREATE_DETERMINISTIC_V0_8_RELEASE_PACKAGE",
+                                                                                "COMMIT_RELEASE_CLOSEOUT",
+                                                                                "CREATE_ONE_ANNOTATED_V0_8_0_TAG"
+                                                                            ],
+                                           "additional_product_work_authorized":  false
+                                       },
+    "activation_requirements":  {
+                                    "required_rebindings":  [
+                                                                "/immutable_inputs/candidate/binding_status",
+                                                                "/immutable_inputs/candidate/commit",
+                                                                "/immutable_inputs/candidate/tree",
+                                                                "/immutable_inputs/candidate/changed_paths",
+                                                                "/qualification_contract/status",
+                                                                "/qualification_contract/manifest_sha256",
+                                                                "/qualification_contract/validator_success_shape/source_commit",
+                                                                "/reviewed_surface_delta/review_status"
+                                                            ],
+                                    "required_status_transitions":  {
+                                                                        "/status":  "PASS",
+                                                                        "/decision/authorization":  "V08_DATA_001_THROUGH_V08_DATA_009_RELEASE_CLOSEOUT_ONLY",
+                                                                        "/immutable_inputs/candidate/binding_status":  "BOUND",
+                                                                        "/qualification_contract/status":  "PASS",
+                                                                        "/reviewed_surface_delta/review_status":  "REVIEWED_AND_QUALIFIED",
+                                                                        "/release_closeout_authorization/status":  "AUTHORIZED",
+                                                                        "/qualified_work_packages/*/status":  "IMPLEMENTED_AND_QUALIFIED"
+                                                                    },
+                                    "candidate_validator_must_pass":  true,
+                                    "all_45_mapped_test_ids_must_pass":  true,
+                                    "mapped_test_id_skips_allowed":  false,
+                                    "waivers_allowed":  false
+                                },
+    "claims":  {
+                   "v0_7_release_accepted":  true,
+                   "gate_0a_immutable_authorization_verified":  true,
+                   "v0_8_work_packages_implemented":  false,
+                   "v0_8_candidate_qualified":  false,
+                   "release_closeout_authorized":  false,
+                   "v0_8_release_accepted_by_gate":  false,
+                   "broad_language_or_compatibility_claimed":  false,
+                   "operational_authorization":  false,
+                   "deployment_approval":  false,
+                   "compliance_determination":  false,
+                   "cryptographic_signature_verified":  false
+               },
+    "explicit_exclusions":  [
+                                "SCOPE_BEYOND_V08_DATA_001_THROUGH_V08_DATA_009",
+                                "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+                                "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_DRIVER_MUTATION_OR_EXTERNAL_EFFECT_ROUTE",
+                                "ARBITRARY_SOURCE_PYTHON_EXPRESSION_TEMPLATE_FUNCTION_SHELL_NATIVE_BYTECODE_PICKLE_EXECUTABLE_IMPORT_OR_GENERIC_FILTER_EVALUATION",
+                                "DIRECT_BROWSER_OR_WORKER_DATABASE_OBJECT_ADMIN_HOST_FILESYSTEM_SECRET_CREDENTIAL_OR_UNRESTRICTED_NETWORK_ACCESS",
+                                "ABSOLUTE_TRAVERSAL_SYMLINK_REPARSE_DEVICE_ALTERNATE_DATA_STREAM_URL_OR_UNBOUNDED_FILE_ACCESS",
+                                "UNBOUNDED_VALUE_SCHEMA_CATALOG_DEPENDENCY_NAMESPACE_ENUMERATION_QUERY_TRANSACTION_RETRY_QUOTA_OR_RETENTION",
+                                "SILENT_COERCION_AMBIGUOUS_FORMAT_BEST_EFFORT_CORRUPTION_RECOVERY_LAST_WRITER_WINS_OR_PARTIAL_WRITE_SUCCESS",
+                                "AMBIGUOUS_SINGULAR_CLEAR_SHARED_DATA_SCOPE_ALIAS_IMPLEMENTATION",
+                                "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
+                                "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
+                                "LIGHTWEIGHT_SECONDARY_OR_V0_8_ALIAS_TAG",
+                                "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+                            ]
+}
