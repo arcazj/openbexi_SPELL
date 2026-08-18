@@ -1,0 +1,190 @@
+{
+  "schema_version": "spell.v08.catalog-uri-dependency/1",
+  "contract_id": "V08-CATALOG-URI-DEPENDENCY",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-002",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=78-86"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-002-UNIT",
+    "V08-DATA-002-CONTRACT",
+    "V08-DATA-002-GRAPH",
+    "V08-DATA-002-RECOVERY",
+    "V08-DATA-002-SECURITY"
+  ],
+  "catalog_kinds": [
+    {
+      "id": "SCDB",
+      "purpose": "versioned local synthetic spacecraft-database metadata without spacecraft connectivity"
+    },
+    {
+      "id": "GDB",
+      "purpose": "versioned local synthetic ground-database mappings without a GCS route"
+    },
+    {
+      "id": "PROC",
+      "purpose": "immutable procedure library identity and metadata"
+    },
+    {
+      "id": "MMD",
+      "purpose": "versioned local memory-map definitions used only by bounded local data services"
+    },
+    {
+      "id": "USER_DICTIONARY",
+      "purpose": "authorization-scoped typed user dictionary metadata"
+    }
+  ],
+  "catalog_identity": {
+    "required_fields": [
+      "catalog_id",
+      "kind",
+      "revision",
+      "content_digest",
+      "schema_version",
+      "created_at_database_time"
+    ],
+    "immutability_rule": "catalog_id plus revision names exactly one immutable canonical content digest",
+    "revision_rule": "revisions are positive monotonic integers; published revisions are never overwritten",
+    "lookup_rule": "display labels and filesystem names never substitute for catalog_id and revision"
+  },
+  "local_uri": {
+    "scheme": "spell+local",
+    "grammar": "spell+local:/catalogs/{kind}/{catalog_id}/revisions/{revision}/entries/{entry_id}",
+    "authority_component_allowed": false,
+    "query_allowed": false,
+    "fragment_allowed": false,
+    "userinfo_allowed": false,
+    "port_allowed": false,
+    "path_rules": [
+      "The URI is parsed structurally and is never joined as a host filesystem path.",
+      "Every identifier is an already-decoded bounded NFC segment using the allowlist [A-Za-z0-9._-].",
+      "Empty, dot, dot-dot, percent-encoded, slash, backslash, drive-letter, UNC, NUL, control, and case-ambiguous segments are rejected.",
+      "Resolution is confined to the durable catalog repository and cannot follow symlinks or reparse points."
+    ],
+    "allowed_schemes": [
+      "spell+local"
+    ],
+    "forbidden_schemes": [
+      "file",
+      "http",
+      "https",
+      "ftp",
+      "gcs",
+      "ssh",
+      "data",
+      "javascript"
+    ]
+  },
+  "legacy_uri_mappings": [
+    {
+      "input_scheme": "mmd",
+      "input_grammar": "mmd://{logical_folder}/{logical_name}",
+      "target_catalog_kind": "MMD",
+      "mapping": "parse the authority as the first bounded logical segment and map the remaining path into a pinned spell+local catalog entry identity",
+      "requires": [
+        "pinned catalog_id",
+        "pinned positive revision",
+        "pinned content_digest"
+      ],
+      "network_resolution": false
+    },
+    {
+      "input_scheme": "usr",
+      "input_grammar": "usr://{logical_folder}/{logical_name}",
+      "target_catalog_kind": "USER_DICTIONARY",
+      "mapping": "parse the authority as the first bounded logical segment and map the remaining path into a pinned spell+local catalog entry identity",
+      "requires": [
+        "pinned catalog_id",
+        "pinned positive revision",
+        "pinned content_digest"
+      ],
+      "network_resolution": false
+    }
+  ],
+  "legacy_uri_rules": [
+    "mmd and usr are compatibility syntax tokens, not registered network protocols and never invoke DNS, sockets, URL handlers, mounts, or host filesystem access.",
+    "Scheme matching is exact lowercase; userinfo, port, query, fragment, percent encoding, empty segments, traversal, backslash, control bytes, and non-allowlisted characters are rejected.",
+    "A legacy URI resolves only when authorization supplies one exact immutable local catalog identity; there is no latest-revision or display-name fallback."
+  ],
+  "dependency_identity": {
+    "required_fields": [
+      "dependency_id",
+      "source_catalog_id",
+      "source_revision",
+      "target_catalog_id",
+      "target_revision",
+      "target_content_digest",
+      "relationship"
+    ],
+    "relationships": [
+      "IMPORTS",
+      "REFERENCES",
+      "MAPS_TO"
+    ],
+    "closure_digest": "SHA-256 over the ordered immutable node and edge identities",
+    "late_binding": false,
+    "floating_revision": false,
+    "display_name_binding": false
+  },
+  "graph_limits": {
+    "maximum_direct_dependencies": 128,
+    "maximum_closure_nodes": 1024,
+    "maximum_depth": 16,
+    "maximum_entries_per_catalog": 100000,
+    "cycle_outcome": "DEPENDENCY_CYCLE",
+    "missing_outcome": "DEPENDENCY_NOT_FOUND",
+    "digest_mismatch_outcome": "DEPENDENCY_DIGEST_MISMATCH"
+  },
+  "resolution_transaction": [
+    "Parse and canonicalize every local URI before repository access.",
+    "Resolve the complete immutable dependency closure under one repeatable committed view.",
+    "Verify every schema version, revision, content digest, closure bound, and authorization scope.",
+    "Publish one resolved closure identity only after the entire graph succeeds.",
+    "A failure publishes no partial closure, cached alias, or inferred latest revision."
+  ],
+  "publication_transaction": {
+    "operation": "PUBLISH",
+    "authority": "admin plus explicit local catalog publication permission",
+    "preconditions": [
+      "new positive revision",
+      "canonical content bytes and SHA-256",
+      "complete bounded dependency closure",
+      "expected current catalog revision",
+      "idempotency key"
+    ],
+    "commit_rule": "immutable catalog revision, entries, dependency edges, closure digest, current head, idempotency settlement, audit record, and outbox event commit atomically",
+    "overwrite_published_revision": false,
+    "partial_publication": false
+  },
+  "restart_recovery": {
+    "cache_authority": false,
+    "rule": "restart reloads the immutable closure by identity and rechecks every digest before use",
+    "corruption_outcome": "CATALOG_CORRUPT",
+    "stale_outcome": "REVISION_UNAVAILABLE"
+  },
+  "nonclaims": {
+    "live_gcs_access": false,
+    "mission_network_access": false,
+    "spacecraft_access": false,
+    "external_network_resolution": false,
+    "host_filesystem_resolution": false,
+    "legacy_adapter_route": false,
+    "dynamic_import_or_code_loading": false
+  },
+  "forbidden_behavior": [
+    "network or DNS resolution",
+    "live GCS, spacecraft, mission-network, or legacy-adapter lookup",
+    "file URI, host absolute path, traversal, symlink, junction, or reparse resolution",
+    "floating latest revision or digest substitution",
+    "source, expression, module, plugin, template, or callable execution"
+  ]
+}

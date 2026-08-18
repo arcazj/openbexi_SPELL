@@ -1,0 +1,153 @@
+{
+  "schema_version": "spell.v08.typed-values/1",
+  "contract_id": "V08-TYPED-VALUES",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-001",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=78-86"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-001-UNIT",
+    "V08-DATA-001-TYPE-MATRIX",
+    "V08-DATA-001-SERIALIZATION",
+    "V08-DATA-001-CORRUPTION",
+    "V08-DATA-001-SECURITY"
+  ],
+  "envelope": {
+    "required_fields": [
+      "schema_version",
+      "type",
+      "value"
+    ],
+    "schema_version": "spell.data.value/1",
+    "closed_world": true,
+    "exactly_one_type": true,
+    "canonical_digest": "SHA-256 over canonical UTF-8 JSON bytes",
+    "unknown_field_outcome": "REJECTED"
+  },
+  "primitive_types": [
+    {
+      "id": "NULL",
+      "wire": "JSON null",
+      "canonical_rule": "value is exactly null"
+    },
+    {
+      "id": "BOOLEAN",
+      "wire": "JSON boolean",
+      "canonical_rule": "no numeric or string coercion"
+    },
+    {
+      "id": "INT64",
+      "wire": "canonical base-10 string",
+      "canonical_rule": "range -9223372036854775808 through 9223372036854775807; no plus sign or leading zero"
+    },
+    {
+      "id": "UINT64",
+      "wire": "canonical base-10 string",
+      "canonical_rule": "range 0 through 18446744073709551615; no plus sign or leading zero"
+    },
+    {
+      "id": "DECIMAL",
+      "wire": "canonical decimal string",
+      "canonical_rule": "finite base-10 coefficient and scale; exponent notation and negative zero forbidden"
+    },
+    {
+      "id": "FINITE_DOUBLE",
+      "wire": "JSON number",
+      "canonical_rule": "finite IEEE-754 binary64 only; NaN, infinity, and negative zero forbidden"
+    },
+    {
+      "id": "STRING",
+      "wire": "JSON string",
+      "canonical_rule": "valid UTF-8 scalar values normalized to NFC; unpaired surrogates forbidden"
+    },
+    {
+      "id": "BYTES",
+      "wire": "canonical base64 string",
+      "canonical_rule": "RFC 4648 standard alphabet with required padding and no whitespace"
+    },
+    {
+      "id": "UTC_DATETIME",
+      "wire": "canonical RFC 3339 string",
+      "canonical_rule": "UTC Z suffix, fixed microsecond precision, leap-second input rejected"
+    },
+    {
+      "id": "REL_DURATION",
+      "wire": "canonical signed base-10 nanosecond string",
+      "canonical_rule": "range -9223372036854775808 through 9223372036854775807; no plus sign, leading zero, unit suffix, or floating representation"
+    }
+  ],
+  "composite_types": [
+    {
+      "id": "LIST",
+      "wire": "ordered array of typed value envelopes",
+      "identity_rule": "position is significant and duplicate values are permitted"
+    },
+    {
+      "id": "MAP",
+      "wire": "array of key and typed-value entries",
+      "identity_rule": "keys are bounded NFC strings, unique by ordinal UTF-8 bytes, and serialized in ordinal order"
+    }
+  ],
+  "limits": {
+    "maximum_depth": 8,
+    "maximum_total_nodes": 4096,
+    "maximum_list_items": 1024,
+    "maximum_map_entries": 1024,
+    "maximum_key_utf8_bytes": 256,
+    "maximum_string_utf8_bytes": 65536,
+    "maximum_bytes_decoded": 1048576,
+    "maximum_serialized_utf8_bytes": 1048576
+  },
+  "serialization": {
+    "format": "strict UTF-8 JSON",
+    "duplicate_object_keys": "REJECTED",
+    "nonfinite_numbers": "REJECTED",
+    "byte_order_mark": "REJECTED",
+    "trailing_data": "REJECTED",
+    "round_trip_rule": "decode then encode yields the same canonical bytes and digest",
+    "implicit_conversion": false,
+    "text_evaluation": false,
+    "python_object_deserialization": false
+  },
+  "persistence": {
+    "required_fields": [
+      "value_id",
+      "value_digest",
+      "revision",
+      "created_at_database_time",
+      "created_by_subject"
+    ],
+    "revision_rule": "positive monotonically increasing integer scoped to the owning object",
+    "write_rule": "validate limits and canonical bytes before any durable mutation",
+    "read_rule": "verify stored digest before decoding and never return a partially decoded value",
+    "corruption_outcome": "CORRUPT_VALUE",
+    "restart_rule": "only a fully committed revision is visible after restart"
+  },
+  "forbidden_capabilities": [
+    "text or expression evaluation",
+    "Python pickle, marshal, eval, exec, import, callable, or source execution",
+    "implicit object construction",
+    "host file or process handles",
+    "socket, URL, network, GCS, mission-network, or spacecraft references",
+    "unbounded recursion, allocation, strings, bytes, lists, or maps"
+  ],
+  "safe_outcomes": [
+    "TYPE_MISMATCH",
+    "VALUE_OUT_OF_RANGE",
+    "LIMIT_EXCEEDED",
+    "NON_CANONICAL",
+    "CORRUPT_VALUE",
+    "REVISION_CONFLICT",
+    "NOT_FOUND",
+    "REJECTED"
+  ]
+}

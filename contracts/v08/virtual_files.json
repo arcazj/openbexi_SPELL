@@ -1,0 +1,249 @@
+{
+  "schema_version": "spell.v08.virtual-files/1",
+  "contract_id": "V08-VIRTUAL-FILES",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-006",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/security/SECURE_SDLC_AND_SUPPLY_CHAIN.md#import-and-export-security",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=90-92"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-006-UNIT",
+    "V08-DATA-006-INTEGRATION",
+    "V08-DATA-006-PATH-SECURITY",
+    "V08-DATA-006-QUOTA-ATOMICITY",
+    "V08-DATA-006-RECOVERY"
+  ],
+  "virtual_roots": [
+    {
+      "id": "PROCEDURE_DATA",
+      "owner": "immutable procedure-library identity",
+      "persistence": "durable and revisioned",
+      "executable": false
+    },
+    {
+      "id": "PROJECT_DATA",
+      "owner": "authorized local project identity",
+      "persistence": "durable and revisioned",
+      "executable": false
+    },
+    {
+      "id": "EXECUTION_SCRATCH",
+      "owner": "one execution identity",
+      "persistence": "durable through terminal retention",
+      "executable": false
+    }
+  ],
+  "root_provisioning": {
+    "authority": "trusted server configuration plus an allowlisted owner identity",
+    "public_create_or_retarget": false,
+    "host_path_returned_to_client": false,
+    "activation_rule": "server verifies the owned directory handle, absence of link or reparse components, exact quota policy, and root identity before activation"
+  },
+  "compatibility_types": [
+    {
+      "id": "File",
+      "representation": "immutable data-only value containing one validated virtual-root identity and normalized relative virtual path",
+      "construction": "File(path) parses and validates only the lexical virtual path; it does not open, create, read, write, resolve, or probe a host path",
+      "host_path_exposed": false,
+      "executable": false
+    },
+    {
+      "id": "FileHandle",
+      "representation": "opaque execution-scoped server handle bound to one authorized File value, opened revision, mode, and cursor",
+      "client_serializable": false,
+      "host_descriptor_exposed": false,
+      "executable": false
+    }
+  ],
+  "path_contract": {
+    "separator": "/",
+    "relative_only": true,
+    "normalization": "validate already-decoded NFC segments without filesystem normalization",
+    "case_policy": "ordinal case-sensitive identities; creation rejects case-colliding siblings on case-insensitive hosts",
+    "forbidden": [
+      "empty segment",
+      ". or .. segment",
+      "leading slash or backslash",
+      "trailing slash for file operations",
+      "backslash",
+      "drive letter or colon",
+      "UNC or device prefix",
+      "percent-encoded segment",
+      "NUL or control character",
+      "alternate data stream",
+      "reserved host device name",
+      "symlink, junction, mount point, hard-link ambiguity, or reparse point"
+    ],
+    "resolution_rule": "open from a server-owned virtual-root handle, inspect every existing component without following links, and verify the final handle remains beneath the root",
+    "host_path_disclosure": false
+  },
+  "operations": [
+    {
+      "id": "READ",
+      "compatibility_function": "ReadFile",
+      "mutating": false,
+      "precondition": "root READ authorization and exact revision or current head"
+    },
+    {
+      "id": "LIST",
+      "compatibility_function": "ReadDirectory",
+      "mutating": false,
+      "precondition": "root LIST authorization and bounded revision-bound cursor"
+    },
+    {
+      "id": "OPEN_FILE",
+      "compatibility_function": "OpenFile",
+      "mutating": false,
+      "precondition": "active execution, exact selected caller binding, root authorization, validated File value, exact mode, and exact revision or create revision zero",
+      "effect": "create one bounded FileHandle in OPEN state with cursor zero; no durable file mutation occurs"
+    },
+    {
+      "id": "CLOSE_FILE",
+      "compatibility_function": "CloseFile",
+      "mutating": false,
+      "precondition": "the caller presents the exact active execution, selected caller binding, and OPEN FileHandle token",
+      "effect": "atomically flush any authorized staged write through the atomic-write contract and transition the handle to CLOSED; otherwise discard the uncommitted stage"
+    },
+    {
+      "id": "CREATE_DIRECTORY",
+      "mutating": true,
+      "precondition": "root WRITE authorization, parent revision, and idempotency key"
+    },
+    {
+      "id": "WRITE",
+      "compatibility_function": "WriteFile",
+      "mutating": true,
+      "precondition": "root WRITE authorization, expected file revision or create revision zero, declared encoding, length, digest, and idempotency key"
+    },
+    {
+      "id": "DELETE",
+      "compatibility_function": "DeleteFile",
+      "mutating": true,
+      "precondition": "root DELETE authorization, expected node revision, empty-directory proof when applicable, and idempotency key"
+    }
+  ],
+  "content_contract": {
+    "encodings": [
+      "UTF8_TEXT",
+      "BINARY"
+    ],
+    "utf8_rule": "strict UTF-8 scalar values without byte-order mark; optional newline normalization must be explicitly requested and digest the stored bytes",
+    "binary_rule": "opaque bytes are never decoded, interpreted, imported, rendered as active content, or executed",
+    "digest": "SHA-256 of exact stored bytes",
+    "content_type_authority": false,
+    "executable_bit": false
+  },
+  "file_handle": {
+    "purpose": "data-only execution-scoped cursor over one authorized virtual-file revision",
+    "token": "opaque 256-bit server-generated token stored and compared only by SHA-256 digest",
+    "required_common_binding": [
+      "execution_id",
+      "root_id",
+      "virtual_path_digest",
+      "opened_file_revision",
+      "mode"
+    ],
+    "caller_binding_alternatives": {
+      "HTTP_MUTATION": [
+        "authenticated_subject",
+        "X-Spell-Session-Id request binding",
+        "X-Spell-Client-Instance-Key-Id request binding"
+      ],
+      "PROCEDURE_RUNTIME": [
+        "service_principal_id",
+        "execution_id",
+        "worker_generation",
+        "deterministic_request_id"
+      ]
+    },
+    "exactly_one_caller_binding_required": true,
+    "procedure_runtime_http_session_required": false,
+    "modes": [
+      "READ",
+      "WRITE",
+      "READ_WRITE",
+      "APPEND"
+    ],
+    "states": [
+      "OPEN",
+      "CLOSED"
+    ],
+    "cursor": "nonnegative byte offset bounded by the opened revision or staged content length",
+    "maximum_open_handles_per_execution": 32,
+    "maximum_idle_seconds": 900,
+    "restart_rule": "all OPEN handles become CLOSED and presented pre-restart tokens return STALE_HANDLE; content already atomically committed remains authoritative",
+    "external_descriptor_exposed": false,
+    "executable_or_importable": false
+  },
+  "file_properties": {
+    "properties": [
+      "basename",
+      "dirname",
+      "filename",
+      "exists",
+      "isdir",
+      "isfile",
+      "isOpen",
+      "canRead",
+      "canWrite"
+    ],
+    "lexical_rule": "basename, dirname, and filename derive only from the already-validated virtual path and never resolve a host path",
+    "authority_rule": "exists, isdir, isfile, canRead, and canWrite derive from one authorized repository snapshot and the exact root ACL revision",
+    "handle_rule": "isOpen is true only for the caller's exact active execution, selected caller binding, token digest, and opened revision",
+    "side_effect": false
+  },
+  "quotas": {
+    "maximum_file_bytes": 16777216,
+    "maximum_root_bytes": 268435456,
+    "maximum_nodes_per_root": 10000,
+    "maximum_path_utf8_bytes": 1024,
+    "maximum_segment_utf8_bytes": 255,
+    "maximum_depth": 32,
+    "maximum_list_page": 256,
+    "reservation_rule": "reserve the full worst-case byte and node delta inside the write transaction before staging content"
+  },
+  "atomic_write": {
+    "same_root_temporary": true,
+    "verify_length_and_digest_before_commit": true,
+    "fsync_content_before_replace": true,
+    "atomic_replace": true,
+    "fsync_parent_after_replace": true,
+    "metadata_transaction": "file revision, root quota counters, content digest, audit record, and outbox event commit with the authoritative replace outcome",
+    "partial_visibility": false,
+    "cross_root_move": false
+  },
+  "recovery": {
+    "restart_rule": "remove uncommitted server-owned temporary files, reconcile committed metadata to exact content digests, and expose no partial write",
+    "quota_rule": "recompute and verify quota counters before enabling mutations after inconsistent shutdown",
+    "missing_content_outcome": "CORRUPT_FILE",
+    "orphan_content_outcome": "QUARANTINED_ORPHAN",
+    "retry_rule": "same idempotency identity and content digest returns the original result"
+  },
+  "audit_fields": [
+    "operation_id",
+    "actor_subject",
+    "root_id",
+    "virtual_path_digest",
+    "prior_revision",
+    "new_revision",
+    "content_digest",
+    "byte_delta",
+    "outcome",
+    "database_time"
+  ],
+  "forbidden_capabilities": [
+    "host absolute path, traversal, link following, device, alternate stream, or path escape",
+    "execute, import, evaluate, source, template, macro, shell, process, or dynamic module behavior",
+    "URL fetch, DNS, socket, network mount, GCS, mission-network, spacecraft, or legacy-adapter access",
+    "unbounded files, directories, paths, listings, or quota consumption"
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "schema_version": "spell.v08.dictionary-exchange/1",
+  "contract_id": "V08-DICTIONARY-EXCHANGE",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-003",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/security/SECURE_SDLC_AND_SUPPLY_CHAIN.md#import-and-export-security",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=78-86"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-003-UNIT",
+    "V08-DATA-003-COMPATIBILITY-GOLDEN",
+    "V08-DATA-003-IMPORT-EXPORT",
+    "V08-DATA-003-CORRUPTION-RECOVERY",
+    "V08-DATA-003-SECURITY"
+  ],
+  "formats": [
+    {
+      "id": "DB",
+      "media_type": "application/vnd.openbexi.spell.dictionary-db+json",
+      "schema_version": "spell.dictionary.db/1",
+      "purpose": "complete canonical typed dictionary snapshot used by CreateDictionary, LoadDictionary, and SaveDictionary",
+      "import_effect": "create a new dictionary or replace exactly one expected base revision with the complete entry set"
+    },
+    {
+      "id": "IMP",
+      "media_type": "application/vnd.openbexi.spell.dictionary-imp+json",
+      "schema_version": "spell.dictionary.imp/1",
+      "purpose": "canonical typed bounded mutation set used only by LoadDictionary",
+      "import_effect": "apply explicit ordered UPSERT and DELETE records to exactly one expected base revision; unspecified entries remain unchanged"
+    }
+  ],
+  "compatibility_operations": [
+    {
+      "id": "CreateDictionary",
+      "accepted_formats": [
+        "DB"
+      ],
+      "effect": "create one new USER_DICTIONARY identity at revision one from a complete DB document or an explicitly empty DB document",
+      "existing_identity": "REJECTED"
+    },
+    {
+      "id": "LoadDictionary",
+      "accepted_formats": [
+        "DB",
+        "IMP"
+      ],
+      "effect": "DB performs complete expected-revision replacement; IMP performs only its explicit expected-revision UPSERT and DELETE records",
+      "implicit_create": false
+    },
+    {
+      "id": "SaveDictionary",
+      "accepted_formats": [
+        "DB"
+      ],
+      "effect": "serialize one authorized repeatable committed dictionary revision as canonical DB bytes without mutating it",
+      "host_path_write": false
+    }
+  ],
+  "document_envelope": {
+    "required_common_fields": [
+      "schema_version",
+      "format",
+      "dictionary_id",
+      "base_revision",
+      "content_digest"
+    ],
+    "payload_by_format": {
+      "DB": {
+        "required_field": "entries",
+        "forbidden_field": "records"
+      },
+      "IMP": {
+        "required_field": "records",
+        "forbidden_field": "entries"
+      }
+    },
+    "closed_world": true,
+    "encoding": "strict UTF-8 without byte-order mark",
+    "payload_order": "DB entries and IMP records are serialized in ordinal canonical entry_id order",
+    "content_digest": "SHA-256 over canonical bytes with content_digest omitted",
+    "duplicate_keys": "REJECTED",
+    "trailing_data": "REJECTED"
+  },
+  "db_snapshot_entry_contract": {
+    "required_fields": [
+      "entry_id",
+      "qualified_name",
+      "value",
+      "value_digest"
+    ],
+    "entry_id_rule": "bounded stable ASCII identifier using [A-Za-z0-9._-]",
+    "value_rule": "one spell.data.value/1 envelope whose canonical digest matches value_digest",
+    "duplicate_identity_outcome": "DUPLICATE_ENTRY",
+    "case_collision_outcome": "CASE_COLLISION",
+    "unknown_field_outcome": "REJECTED"
+  },
+  "imp_record_contract": {
+    "required_common_fields": [
+      "operation",
+      "entry_id",
+      "expected_entry_revision"
+    ],
+    "allowed_operations": [
+      "UPSERT",
+      "DELETE"
+    ],
+    "upsert_required_fields": [
+      "qualified_name",
+      "value",
+      "value_digest"
+    ],
+    "delete_forbidden_fields": [
+      "qualified_name",
+      "value",
+      "value_digest"
+    ],
+    "delete_effect": "commit one tombstone only when expected_entry_revision matches the live target",
+    "deterministic_order": "ordinal canonical entry_id order; operation does not affect ordering",
+    "duplicate_target_outcome": "DUPLICATE_ENTRY_TARGET",
+    "unknown_field_outcome": "REJECTED"
+  },
+  "caller_binding": {
+    "exactly_one_binding_required": true,
+    "http_mutation": "authenticated JWT subject and lowercase role plus bounded X-Spell-Session-Id and X-Spell-Client-Instance-Key-Id request-binding values",
+    "procedure_runtime": "authorized service_principal_id plus execution_id, worker_generation, and deterministic_request_id",
+    "procedure_runtime_http_session_required": false,
+    "binding_rule": "LoadDictionary and its idempotency settlement store and compare the exact selected caller binding; a procedure worker cannot fabricate or borrow a browser binding"
+  },
+  "source_provenance": {
+    "required_fields": [
+      "original_media_type",
+      "original_byte_length",
+      "original_bytes_sha256",
+      "canonical_document_sha256",
+      "actor_principal_id",
+      "caller_binding_kind",
+      "caller_binding_digest",
+      "received_at_database_time"
+    ],
+    "original_bytes_rule": "retain the exact bounded source bytes in non-executable quarantine storage through the configured audit retention period",
+    "normalization_rule": "canonical parsing never overwrites, substitutes for, or changes the digest of the original bytes",
+    "audit_rule": "the import settlement binds original and canonical digests, media type, actor, database receive time, dictionary identity, base revision, new revision, and outcome"
+  },
+  "limits": {
+    "maximum_document_bytes": 16777216,
+    "maximum_entries": 100000,
+    "maximum_entry_bytes": 2097152,
+    "maximum_identifier_bytes": 256,
+    "maximum_parse_depth": 12,
+    "maximum_diagnostics": 256,
+    "maximum_import_duration_seconds": 60
+  },
+  "import_transaction": {
+    "phases": [
+      "PARSE",
+      "CANONICALIZE",
+      "VALIDATE",
+      "STAGE",
+      "COMPARE_REVISION",
+      "COMMIT"
+    ],
+    "atomicity_rule": "all entries, the new dictionary revision, immutable source digest, and audit-outbox record commit in one transaction",
+    "precondition": "base_revision must equal the authoritative current revision or explicitly identify creation revision zero",
+    "idempotency": "same dictionary_id, base_revision, content_digest, exact caller binding, and idempotency key returns the original result",
+    "partial_import": false,
+    "merge_by_display_name": false,
+    "implicit_type_conversion": false,
+    "failure_rule": "any diagnostic rejects the complete import and exposes no staged entry"
+  },
+  "export_snapshot": {
+    "consistency": "one repeatable committed dictionary revision",
+    "canonical": true,
+    "stable_order": true,
+    "includes_value_types": true,
+    "includes_revision_and_digest": true,
+    "secret_redaction": "authorization is evaluated before serialization; unauthorized values are omitted by rejecting the export rather than silently redacting it",
+    "round_trip_rule": "export then import into an empty authorized dictionary preserves entry identities, typed canonical values, and content digest"
+  },
+  "corruption_and_recovery": {
+    "stored_digest_verification": "verify dictionary, entry, and typed-value digests on every import/export boundary",
+    "corrupt_source_outcome": "CORRUPT_DOCUMENT",
+    "corrupt_stored_outcome": "CORRUPT_DICTIONARY",
+    "restart_rule": "discard uncommitted staging; never advance revision or emit audit-outbox evidence without the committed entries",
+    "retry_rule": "retry requires the same immutable source digest or a new explicit import identity",
+    "backup_rule": "exports are compatibility artifacts, not authoritative backups"
+  },
+  "forbidden_content": [
+    "archive members, paths, symlinks, junctions, reparse points, devices, or alternate streams",
+    "include directives, external entities, templates, macros, expressions, or interpolation",
+    "Python pickle, marshal, eval, exec, import, callable, bytecode, or source",
+    "URL fetches, DNS, sockets, network, GCS, mission-network, spacecraft, or legacy-adapter references",
+    "credentials, access tokens, private keys, or implicit environment expansion"
+  ],
+  "safe_outcomes": [
+    "IMPORTED",
+    "EXPORTED",
+    "REVISION_CONFLICT",
+    "FORMAT_UNSUPPORTED",
+    "SCHEMA_UNSUPPORTED",
+    "CORRUPT_DOCUMENT",
+    "CORRUPT_DICTIONARY",
+    "LIMIT_EXCEEDED",
+    "FORBIDDEN_CONTENT",
+    "NOT_AUTHORIZED"
+  ]
+}

@@ -2,12 +2,12 @@
 
 ## Record Status
 
-This record retains the bounded SPELL v0.5.0 provenance, records the accepted
-v0.6.0 release, and binds the qualified v0.7 candidate and Gate 0B result.
-SPELL v0.6.0 remains the accepted local-only, synthetic, non-CUI simulator
-engineering baseline at annotated tag `v0.6.0`, tag object
-`b6dc64dc8fb6cfe9845f454904a078ec6f3c0919`, and release commit
-`05ec783a6e54a76e0548bdd536c18538f6bff51b`.
+This record retains the bounded SPELL v0.5.0 and v0.6.0 provenance, records the
+accepted v0.7.0 release, and binds the v0.8 Gate 0A planning authorization.
+SPELL v0.7.0 is the accepted local-only, synthetic, non-CUI simulator
+engineering baseline at annotated tag `v0.7.0`, tag object
+`70e4d46a46d158dee3c63ec37a5d1922b3b61668`, and release commit
+`cf18e9d887ba0476cbcc3d8194e321332a3ae864`.
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256
@@ -25,18 +25,38 @@ passed with no accepted exceptions. The final archive SHA-256 is
 `2f553c152ce103c7ded70af811f2f84257f7c1b5`, is bound to canonical evidence
 SHA-256
 `04176843f3769786e8ffb068bb3fd60048aae90b258a365657a7cb0b1d3d6e20`.
-Its source fingerprint is
+Its candidate source fingerprint is
 `c1e6ee8cce92f6a86da117646ec4643f78398b7a5d448f9ae22d2607e797d035`,
-and its product fingerprint is
+and its candidate product fingerprint is
 `3c90c205adef1daf8dcf9b60528b90d349c2d62ddf4568fc71b135398384bfb2`.
 Ten suites and all 45 mapped identities PASS; the 2,070-test aggregate contains
 2,051 passes, 19 explicit suite-level platform skips, 36 subtests, and zero
 failures or errors, while mapped identity skips, accepted failures, and waivers
 are zero.
 All nine packages are `IMPLEMENTED_AND_QUALIFIED`, and `V07-GATE-0B PASS`
-authorizes release closeout. Final provenance, SBOMs, supply-chain evidence,
-packaging, and acceptance remain pending. This document makes no compliance,
-deployment, mission, or operational authorization claim.
+authorized release closeout. Qualified source
+`6ac43c5be7670ead09de821578cc6c6a680af109` has source fingerprint
+`a04e158843acf2da08696e647d16f8f72f6dd329dd807daeb381f85911b817fb` and
+product fingerprint
+`fc9fb26fcb5cea7518f43064beb3ebb40a298c5ec31b93663fd27b0cabcc6633`.
+Final qualification passed nine suite captures, 2,041 tests, 2,034 passes,
+seven exact SQLite environment skips, 36 subtests, and zero failures or errors.
+Four image-bound SBOMs, supply-chain evidence, deterministic packaging, and
+release-evidence validation passed. Release-manifest SHA-256
+`e32e6fd025a8bb22af6a0e93151110f934b29df0a86004eae168e19fde42a70a`
+binds evidence fingerprint
+`7fe2a643ed335c4057aaac0976de6f1ef944543aae6ca53e9e71b7a5cffcb718`.
+Final archive SHA-256
+`90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`
+and strict annotated-tag validation complete acceptance with no accepted
+exceptions.
+
+`V08-GATE-0A PASS` authorizes only the nine `V08-DATA-001` through
+`V08-DATA-009` planning packages and their 45 proof identities under
+`LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. It claims zero product constructs and
+zero runtime artifacts. No v0.8 implementation or provenance is claimed, and
+v0.9 remains requested-only. This document makes no compliance, deployment,
+mission, or operational authorization claim.
 
 Before this binding, Docker Scout identified 18 High findings in the pinned
 `postgresql18=18.4-r0` local image package. The candidate updates that exact
@@ -52,7 +72,7 @@ establish a compliance determination or operational authorization.
 
 ## Clean-Room Boundary
 
-The accepted v0.4, v0.5, and v0.6 baselines and their bounded implementations
+The accepted v0.4, v0.5, v0.6, and v0.7 baselines and their bounded implementations
 are new first-party work. The three legacy archives are read-only behavioral
 and historical references; no legacy implementation may be compiled,
 imported, linked, copied into generated sources, loaded at runtime, or shipped
@@ -68,8 +88,8 @@ The archives are explicitly ignored and excluded from the reproducible package:
 
 A v0.2 SHA-256 comparison found no exact match between a new first-party source
 file and an archive entry. That mechanical check supports but does not by itself
-prove clean-room authorship. The accepted v0.4, v0.5, and v0.6 releases and the
-v0.7 planning contracts retain the same source boundary.
+prove clean-room authorship. The accepted v0.4, v0.5, v0.6, and v0.7 releases
+and the v0.8 planning contracts retain the same source boundary.
 
 ### Manual Evidence Boundary
 
@@ -268,7 +288,17 @@ simulator-only, read-only packages. New source remains project-authored and
 dependency-locked; the driver observation service, backend projections,
 condition runtime, APIs, and frontend use synthetic local data only. Canonical
 candidate evidence now binds the exact source revision and proves all 45
-identities with zero mapped skips. Gate 0B authorizes release closeout but is
-not Final provenance or release acceptance. No live GCS, spacecraft,
-mission-network, classified, CUI, or production data was introduced. No v0.8
-or v0.9 implementation or provenance is claimed.
+identities with zero mapped skips. Gate 0B authorized release closeout; Final
+qualification, four SBOMs, supply-chain validation, deterministic packaging,
+release-evidence validation, and annotated tag `v0.7.0` later passed. Tag object
+`70e4d46a46d158dee3c63ec37a5d1922b3b61668` fixes release commit
+`cf18e9d887ba0476cbcc3d8194e321332a3ae864` and accepted provenance with no
+accepted exceptions. No live GCS, spacecraft, mission-network, classified,
+CUI, or production data was introduced.
+
+The approved v0.8 Gate 0A record independently binds the accepted v0.7.0 tag
+and nine declarative planning-contract files under `contracts/v08`. It
+authorizes bounded implementation entry for `V08-DATA-001` through
+`V08-DATA-009`, but establishes no source, API, schema, migration, dependency,
+runtime artifact, qualification, or release provenance. No v0.8 or v0.9
+implementation provenance is claimed.

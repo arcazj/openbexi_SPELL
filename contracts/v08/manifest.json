@@ -1,0 +1,377 @@
+{
+  "schema_version": "spell.v08.contract-manifest/1",
+  "contract_id": "V08-CONTRACT-MANIFEST",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "purpose": "Machine-readable planning inputs for the accepted v0.8 Gate 0A scope; presence and validation do not claim implementation, runtime conformance, qualification evidence, deployment, or operational authorization.",
+  "matrix_count": 8,
+  "file_count": 9,
+  "work_packages": [
+    "V08-DATA-001",
+    "V08-DATA-002",
+    "V08-DATA-003",
+    "V08-DATA-004",
+    "V08-DATA-005",
+    "V08-DATA-006",
+    "V08-DATA-007",
+    "V08-DATA-008",
+    "V08-DATA-009"
+  ],
+  "work_package_definitions": [
+    {
+      "id": "V08-DATA-001",
+      "title": "Canonical bounded typed value envelope",
+      "test_ids": [
+        "V08-DATA-001-UNIT",
+        "V08-DATA-001-TYPE-MATRIX",
+        "V08-DATA-001-SERIALIZATION",
+        "V08-DATA-001-CORRUPTION",
+        "V08-DATA-001-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-002",
+      "title": "Versioned local catalogs, safe URIs, and immutable dependency graphs",
+      "test_ids": [
+        "V08-DATA-002-UNIT",
+        "V08-DATA-002-CONTRACT",
+        "V08-DATA-002-GRAPH",
+        "V08-DATA-002-RECOVERY",
+        "V08-DATA-002-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-003",
+      "title": "Non-executing DB and IMP dictionary exchange",
+      "test_ids": [
+        "V08-DATA-003-UNIT",
+        "V08-DATA-003-COMPATIBILITY-GOLDEN",
+        "V08-DATA-003-IMPORT-EXPORT",
+        "V08-DATA-003-CORRUPTION-RECOVERY",
+        "V08-DATA-003-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-004",
+      "title": "Typed DataContainer, Var, ARGS, and IVARS persistence",
+      "test_ids": [
+        "V08-DATA-004-UNIT",
+        "V08-DATA-004-MATRIX",
+        "V08-DATA-004-INTEGRATION",
+        "V08-DATA-004-RECOVERY",
+        "V08-DATA-004-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-005",
+      "title": "Authorized durable shared-data namespaces",
+      "test_ids": [
+        "V08-DATA-005-UNIT",
+        "V08-DATA-005-INTEGRATION",
+        "V08-DATA-005-RACE",
+        "V08-DATA-005-RECOVERY",
+        "V08-DATA-005-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-006",
+      "title": "Virtual-root bounded atomic file service",
+      "test_ids": [
+        "V08-DATA-006-UNIT",
+        "V08-DATA-006-INTEGRATION",
+        "V08-DATA-006-PATH-SECURITY",
+        "V08-DATA-006-QUOTA-ATOMICITY",
+        "V08-DATA-006-RECOVERY"
+      ]
+    },
+    {
+      "id": "V08-DATA-007",
+      "title": "Authenticated authorized idempotent data API",
+      "test_ids": [
+        "V08-DATA-007-CONTRACT",
+        "V08-DATA-007-AUTHORIZATION",
+        "V08-DATA-007-IDEMPOTENCY-RACE",
+        "V08-DATA-007-AUDIT-OUTBOX",
+        "V08-DATA-007-SECURITY"
+      ]
+    },
+    {
+      "id": "V08-DATA-008",
+      "title": "SQLite and PostgreSQL migration, backup, and recovery",
+      "test_ids": [
+        "V08-DATA-008-SCHEMA",
+        "V08-DATA-008-SQLITE",
+        "V08-DATA-008-POSTGRES",
+        "V08-DATA-008-BACKUP-RESTORE",
+        "V08-DATA-008-MIGRATION-ROLLBACK"
+      ]
+    },
+    {
+      "id": "V08-DATA-009",
+      "title": "Cross-feature bounded local data-service acceptance",
+      "test_ids": [
+        "V08-DATA-009-SEMANTIC-GOLDEN",
+        "V08-DATA-009-INTEGRATION",
+        "V08-DATA-009-FAULT-RECOVERY",
+        "V08-DATA-009-LOAD",
+        "V08-DATA-009-SECURITY"
+      ]
+    }
+  ],
+  "compatibility_authorization": {
+    "source": "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/COMPATIBILITY_LEDGER.json",
+    "selection_scope": "The exact Language Reference artifacts reviewed for V08-DATA-001 through V08-DATA-006; negative-only rows remain explicitly unauthorized for implementation.",
+    "hash_serialization": "globally sorted unique ASCII artifact IDs joined by LF with one final LF",
+    "reviewed_artifact_ids_by_work_package": {
+      "V08-DATA-001": [
+        "CMP-LRM244-TYPE-BOOLEAN",
+        "CMP-LRM244-TYPE-DICTIONARY",
+        "CMP-LRM244-TYPE-FLOAT",
+        "CMP-LRM244-TYPE-INTEGER",
+        "CMP-LRM244-TYPE-LIST",
+        "CMP-LRM244-TYPE-STRING"
+      ],
+      "V08-DATA-002": [
+        "CMP-LRM244-CONSTANT-PROC-KEY-ARGS",
+        "CMP-LRM244-CONSTANT-PROC-KEY-INPUT-DATA",
+        "CMP-LRM244-CONSTANT-PROC-KEY-NAME",
+        "CMP-LRM244-CONSTANT-PROC-KEY-OUTPUT-DATA",
+        "CMP-LRM244-CONSTANT-PROC-KEY-PARENT",
+        "CMP-LRM244-CONSTANT-PROC-KEY-PREV-STEP",
+        "CMP-LRM244-CONSTANT-PROC-KEY-STEP",
+        "CMP-LRM244-DATABASE-GDB",
+        "CMP-LRM244-DATABASE-PROC",
+        "CMP-LRM244-DATABASE-SCDB",
+        "CMP-LRM244-EXAMPLE-135",
+        "CMP-LRM244-EXAMPLE-136",
+        "CMP-LRM244-EXAMPLE-137",
+        "CMP-LRM244-EXAMPLE-139",
+        "CMP-LRM244-EXAMPLE-140",
+        "CMP-LRM244-EXAMPLE-141",
+        "CMP-LRM244-EXAMPLE-142",
+        "CMP-LRM244-SECTION-4-15-095",
+        "CMP-LRM244-SECTION-4-15-1-096",
+        "CMP-LRM244-SECTION-4-15-2-097",
+        "CMP-LRM244-SECTION-4-15-3-098",
+        "CMP-LRM244-SECTION-4-15-4-099",
+        "CMP-LRM244-SYNTAX-URI-MMD",
+        "CMP-LRM244-SYNTAX-URI-USR"
+      ],
+      "V08-DATA-003": [
+        "CMP-LRM244-EXAMPLE-138",
+        "CMP-LRM244-EXAMPLE-143",
+        "CMP-LRM244-EXAMPLE-144",
+        "CMP-LRM244-EXAMPLE-145",
+        "CMP-LRM244-EXAMPLE-146",
+        "CMP-LRM244-EXAMPLE-147",
+        "CMP-LRM244-EXAMPLE-148",
+        "CMP-LRM244-FUNCTION-CREATEDICTIONARY",
+        "CMP-LRM244-FUNCTION-LOADDICTIONARY",
+        "CMP-LRM244-FUNCTION-SAVEDICTIONARY",
+        "CMP-LRM244-METHOD-DICTIONARY-HAS-KEY",
+        "CMP-LRM244-SECTION-4-15-5-100",
+        "CMP-LRM244-SECTION-4-15-5-1-101",
+        "CMP-LRM244-SECTION-4-15-5-2-102",
+        "CMP-LRM244-SECTION-4-15-5-3-103",
+        "CMP-LRM244-SECTION-4-15-5-4-104",
+        "CMP-LRM244-SECTION-4-15-6-105",
+        "CMP-LRM244-TYPE-DATABASEDICTIONARY"
+      ],
+      "V08-DATA-004": [
+        "CMP-LRM244-DATA-CONTAINER-ARGS",
+        "CMP-LRM244-DATA-CONTAINER-IVARS",
+        "CMP-LRM244-EXAMPLE-149",
+        "CMP-LRM244-EXAMPLE-150",
+        "CMP-LRM244-SECTION-1-2-106",
+        "CMP-LRM244-SYNTAX-DATA-CONTAINER-VAR",
+        "CMP-LRM244-TYPE-DATACONTAINER",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-BOOLEAN",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-DATETIME",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-FLOAT",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-LONG",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-RELTIME",
+        "CMP-LRM244-TYPE-DATA-CONTAINER-STRING",
+        "CMP-LRM244-TYPE-VAR"
+      ],
+      "V08-DATA-005": [
+        "CMP-LRM244-CONSTANT-SCOPE-GLOBAL",
+        "CMP-LRM244-EXAMPLE-177",
+        "CMP-LRM244-EXAMPLE-178",
+        "CMP-LRM244-EXAMPLE-179",
+        "CMP-LRM244-EXAMPLE-180",
+        "CMP-LRM244-EXAMPLE-181",
+        "CMP-LRM244-EXAMPLE-182",
+        "CMP-LRM244-EXAMPLE-183",
+        "CMP-LRM244-EXAMPLE-184",
+        "CMP-LRM244-EXAMPLE-185",
+        "CMP-LRM244-EXAMPLE-186",
+        "CMP-LRM244-EXAMPLE-187",
+        "CMP-LRM244-EXAMPLE-188",
+        "CMP-LRM244-EXAMPLE-189",
+        "CMP-LRM244-EXAMPLE-190",
+        "CMP-LRM244-FUNCTION-ADDSHAREDDATASCOPE",
+        "CMP-LRM244-FUNCTION-CANDIDATE-CLEARSHAREDDATASCOPE",
+        "CMP-LRM244-FUNCTION-CLEARSHAREDDATA",
+        "CMP-LRM244-FUNCTION-CLEARSHAREDDATASCOPES",
+        "CMP-LRM244-FUNCTION-GETSHAREDDATA",
+        "CMP-LRM244-FUNCTION-GETSHAREDDATAKEYS",
+        "CMP-LRM244-FUNCTION-GETSHAREDDATASCOPES",
+        "CMP-LRM244-FUNCTION-SETSHAREDDATA",
+        "CMP-LRM244-MODIFIER-EXPECTED",
+        "CMP-LRM244-MODIFIER-SCOPE",
+        "CMP-LRM244-SECTION-4-19-1-130",
+        "CMP-LRM244-SECTION-4-19-129",
+        "CMP-LRM244-SECTION-4-19-2-131",
+        "CMP-LRM244-SECTION-4-19-3-132",
+        "CMP-LRM244-SECTION-4-19-4-133",
+        "CMP-LRM244-SECTION-4-19-5-134",
+        "CMP-LRM244-SYNTAX-SHARED-TEST-AND-SET",
+        "CMP-LRM244-TYPE-PRIMITIVESHAREDVALUE"
+      ],
+      "V08-DATA-006": [
+        "CMP-LRM244-CONSTANT-FILE-MODE-APPEND",
+        "CMP-LRM244-CONSTANT-FILE-MODE-READ",
+        "CMP-LRM244-CONSTANT-FILE-MODE-READ-WRITE",
+        "CMP-LRM244-CONSTANT-FILE-MODE-WRITE",
+        "CMP-LRM244-EXAMPLE-162",
+        "CMP-LRM244-EXAMPLE-163",
+        "CMP-LRM244-EXAMPLE-164",
+        "CMP-LRM244-EXAMPLE-165",
+        "CMP-LRM244-EXAMPLE-166",
+        "CMP-LRM244-EXAMPLE-167",
+        "CMP-LRM244-EXAMPLE-168",
+        "CMP-LRM244-FUNCTION-CANDIDATE-FILE",
+        "CMP-LRM244-FUNCTION-CLOSEFILE",
+        "CMP-LRM244-FUNCTION-DELETEFILE",
+        "CMP-LRM244-FUNCTION-OPENFILE",
+        "CMP-LRM244-FUNCTION-READDIRECTORY",
+        "CMP-LRM244-FUNCTION-READFILE",
+        "CMP-LRM244-FUNCTION-WRITEFILE",
+        "CMP-LRM244-METHOD-FILE-BASENAME",
+        "CMP-LRM244-METHOD-FILE-CANREAD",
+        "CMP-LRM244-METHOD-FILE-CANWRITE",
+        "CMP-LRM244-METHOD-FILE-DIRNAME",
+        "CMP-LRM244-METHOD-FILE-EXISTS",
+        "CMP-LRM244-METHOD-FILE-FILENAME",
+        "CMP-LRM244-METHOD-FILE-ISDIR",
+        "CMP-LRM244-METHOD-FILE-ISFILE",
+        "CMP-LRM244-METHOD-FILE-ISOPEN",
+        "CMP-LRM244-MODIFIER-MODE",
+        "CMP-LRM244-OPERATOR-FILE-PATH-APPEND",
+        "CMP-LRM244-SECTION-4-17-1-116",
+        "CMP-LRM244-SECTION-4-17-115",
+        "CMP-LRM244-SECTION-4-17-2-117",
+        "CMP-LRM244-SECTION-4-17-3-118",
+        "CMP-LRM244-SECTION-4-17-4-119",
+        "CMP-LRM244-SECTION-4-17-5-120",
+        "CMP-LRM244-SECTION-4-17-6-121",
+        "CMP-LRM244-SECTION-4-17-7-122",
+        "CMP-LRM244-SECTION-4-17-8-123",
+        "CMP-LRM244-TYPE-FILE",
+        "CMP-LRM244-TYPE-FILEHANDLE"
+      ]
+    },
+    "reviewed_artifact_id_count": 135,
+    "reviewed_artifact_ids_sha256": "2f59a5b185720d5707dd81ebfa6a9554eaec3dc067fba742f90342a94ff9f8e4",
+    "negative_only_artifact_ids": [
+      "CMP-LRM244-FUNCTION-CANDIDATE-CLEARSHAREDDATASCOPE"
+    ],
+    "negative_only_artifact_id_count": 1,
+    "negative_only_artifact_ids_sha256": "1ed876c1938566ec21d0b8ce69e26362c560fe97a25b755ec02337706c34ff07",
+    "implementation_authorized_artifact_ids_by_work_package": {
+      "V08-DATA-001": ["CMP-LRM244-TYPE-BOOLEAN", "CMP-LRM244-TYPE-DICTIONARY", "CMP-LRM244-TYPE-FLOAT", "CMP-LRM244-TYPE-INTEGER", "CMP-LRM244-TYPE-LIST", "CMP-LRM244-TYPE-STRING"],
+      "V08-DATA-002": ["CMP-LRM244-CONSTANT-PROC-KEY-ARGS", "CMP-LRM244-CONSTANT-PROC-KEY-INPUT-DATA", "CMP-LRM244-CONSTANT-PROC-KEY-NAME", "CMP-LRM244-CONSTANT-PROC-KEY-OUTPUT-DATA", "CMP-LRM244-CONSTANT-PROC-KEY-PARENT", "CMP-LRM244-CONSTANT-PROC-KEY-PREV-STEP", "CMP-LRM244-CONSTANT-PROC-KEY-STEP", "CMP-LRM244-DATABASE-GDB", "CMP-LRM244-DATABASE-PROC", "CMP-LRM244-DATABASE-SCDB", "CMP-LRM244-EXAMPLE-135", "CMP-LRM244-EXAMPLE-136", "CMP-LRM244-EXAMPLE-137", "CMP-LRM244-EXAMPLE-139", "CMP-LRM244-EXAMPLE-140", "CMP-LRM244-EXAMPLE-141", "CMP-LRM244-EXAMPLE-142", "CMP-LRM244-SECTION-4-15-095", "CMP-LRM244-SECTION-4-15-1-096", "CMP-LRM244-SECTION-4-15-2-097", "CMP-LRM244-SECTION-4-15-3-098", "CMP-LRM244-SECTION-4-15-4-099", "CMP-LRM244-SYNTAX-URI-MMD", "CMP-LRM244-SYNTAX-URI-USR"],
+      "V08-DATA-003": ["CMP-LRM244-EXAMPLE-138", "CMP-LRM244-EXAMPLE-143", "CMP-LRM244-EXAMPLE-144", "CMP-LRM244-EXAMPLE-145", "CMP-LRM244-EXAMPLE-146", "CMP-LRM244-EXAMPLE-147", "CMP-LRM244-EXAMPLE-148", "CMP-LRM244-FUNCTION-CREATEDICTIONARY", "CMP-LRM244-FUNCTION-LOADDICTIONARY", "CMP-LRM244-FUNCTION-SAVEDICTIONARY", "CMP-LRM244-METHOD-DICTIONARY-HAS-KEY", "CMP-LRM244-SECTION-4-15-5-100", "CMP-LRM244-SECTION-4-15-5-1-101", "CMP-LRM244-SECTION-4-15-5-2-102", "CMP-LRM244-SECTION-4-15-5-3-103", "CMP-LRM244-SECTION-4-15-5-4-104", "CMP-LRM244-SECTION-4-15-6-105", "CMP-LRM244-TYPE-DATABASEDICTIONARY"],
+      "V08-DATA-004": ["CMP-LRM244-DATA-CONTAINER-ARGS", "CMP-LRM244-DATA-CONTAINER-IVARS", "CMP-LRM244-EXAMPLE-149", "CMP-LRM244-EXAMPLE-150", "CMP-LRM244-SECTION-1-2-106", "CMP-LRM244-SYNTAX-DATA-CONTAINER-VAR", "CMP-LRM244-TYPE-DATACONTAINER", "CMP-LRM244-TYPE-DATA-CONTAINER-BOOLEAN", "CMP-LRM244-TYPE-DATA-CONTAINER-DATETIME", "CMP-LRM244-TYPE-DATA-CONTAINER-FLOAT", "CMP-LRM244-TYPE-DATA-CONTAINER-LONG", "CMP-LRM244-TYPE-DATA-CONTAINER-RELTIME", "CMP-LRM244-TYPE-DATA-CONTAINER-STRING", "CMP-LRM244-TYPE-VAR"],
+      "V08-DATA-005": ["CMP-LRM244-CONSTANT-SCOPE-GLOBAL", "CMP-LRM244-EXAMPLE-177", "CMP-LRM244-EXAMPLE-178", "CMP-LRM244-EXAMPLE-179", "CMP-LRM244-EXAMPLE-180", "CMP-LRM244-EXAMPLE-181", "CMP-LRM244-EXAMPLE-182", "CMP-LRM244-EXAMPLE-183", "CMP-LRM244-EXAMPLE-184", "CMP-LRM244-EXAMPLE-185", "CMP-LRM244-EXAMPLE-186", "CMP-LRM244-EXAMPLE-187", "CMP-LRM244-EXAMPLE-188", "CMP-LRM244-EXAMPLE-189", "CMP-LRM244-EXAMPLE-190", "CMP-LRM244-FUNCTION-ADDSHAREDDATASCOPE", "CMP-LRM244-FUNCTION-CLEARSHAREDDATA", "CMP-LRM244-FUNCTION-CLEARSHAREDDATASCOPES", "CMP-LRM244-FUNCTION-GETSHAREDDATA", "CMP-LRM244-FUNCTION-GETSHAREDDATAKEYS", "CMP-LRM244-FUNCTION-GETSHAREDDATASCOPES", "CMP-LRM244-FUNCTION-SETSHAREDDATA", "CMP-LRM244-MODIFIER-EXPECTED", "CMP-LRM244-MODIFIER-SCOPE", "CMP-LRM244-SECTION-4-19-1-130", "CMP-LRM244-SECTION-4-19-129", "CMP-LRM244-SECTION-4-19-2-131", "CMP-LRM244-SECTION-4-19-3-132", "CMP-LRM244-SECTION-4-19-4-133", "CMP-LRM244-SECTION-4-19-5-134", "CMP-LRM244-SYNTAX-SHARED-TEST-AND-SET", "CMP-LRM244-TYPE-PRIMITIVESHAREDVALUE"],
+      "V08-DATA-006": ["CMP-LRM244-CONSTANT-FILE-MODE-APPEND", "CMP-LRM244-CONSTANT-FILE-MODE-READ", "CMP-LRM244-CONSTANT-FILE-MODE-READ-WRITE", "CMP-LRM244-CONSTANT-FILE-MODE-WRITE", "CMP-LRM244-EXAMPLE-162", "CMP-LRM244-EXAMPLE-163", "CMP-LRM244-EXAMPLE-164", "CMP-LRM244-EXAMPLE-165", "CMP-LRM244-EXAMPLE-166", "CMP-LRM244-EXAMPLE-167", "CMP-LRM244-EXAMPLE-168", "CMP-LRM244-FUNCTION-CANDIDATE-FILE", "CMP-LRM244-FUNCTION-CLOSEFILE", "CMP-LRM244-FUNCTION-DELETEFILE", "CMP-LRM244-FUNCTION-OPENFILE", "CMP-LRM244-FUNCTION-READDIRECTORY", "CMP-LRM244-FUNCTION-READFILE", "CMP-LRM244-FUNCTION-WRITEFILE", "CMP-LRM244-METHOD-FILE-BASENAME", "CMP-LRM244-METHOD-FILE-CANREAD", "CMP-LRM244-METHOD-FILE-CANWRITE", "CMP-LRM244-METHOD-FILE-DIRNAME", "CMP-LRM244-METHOD-FILE-EXISTS", "CMP-LRM244-METHOD-FILE-FILENAME", "CMP-LRM244-METHOD-FILE-ISDIR", "CMP-LRM244-METHOD-FILE-ISFILE", "CMP-LRM244-METHOD-FILE-ISOPEN", "CMP-LRM244-MODIFIER-MODE", "CMP-LRM244-OPERATOR-FILE-PATH-APPEND", "CMP-LRM244-SECTION-4-17-1-116", "CMP-LRM244-SECTION-4-17-115", "CMP-LRM244-SECTION-4-17-2-117", "CMP-LRM244-SECTION-4-17-3-118", "CMP-LRM244-SECTION-4-17-4-119", "CMP-LRM244-SECTION-4-17-5-120", "CMP-LRM244-SECTION-4-17-6-121", "CMP-LRM244-SECTION-4-17-7-122", "CMP-LRM244-SECTION-4-17-8-123", "CMP-LRM244-TYPE-FILE", "CMP-LRM244-TYPE-FILEHANDLE"]
+    },
+    "implementation_authorized_artifact_id_count": 134,
+    "implementation_authorized_artifact_ids_sha256": "ec133a9f2c1eb44586be52f663e67cb178e913c0a788b6e1283f7cc3b24bbbe6",
+    "unlisted_artifact_authorized": false,
+    "negative_only_artifact_authorized": false
+  },
+  "hash_algorithm": "sha256",
+  "matrices": [
+    {
+      "file": "typed_values.json",
+      "sha256": "e546ad93e94f93777bffcd2d8b51335cf934e599400658158b356f23015dc5a9",
+      "contract_id": "V08-TYPED-VALUES",
+      "schema_version": "spell.v08.typed-values/1",
+      "work_package_id": "V08-DATA-001"
+    },
+    {
+      "file": "catalog_uri_dependency.json",
+      "sha256": "e534039af0e4d4e48004dfadf08813226677b9a851537c123b656fb7fdc99d48",
+      "contract_id": "V08-CATALOG-URI-DEPENDENCY",
+      "schema_version": "spell.v08.catalog-uri-dependency/1",
+      "work_package_id": "V08-DATA-002"
+    },
+    {
+      "file": "dictionary_exchange.json",
+      "sha256": "59b1590fefb6784efe28d807f80d2a47617bd855dc872c625ff2d98590129f0a",
+      "contract_id": "V08-DICTIONARY-EXCHANGE",
+      "schema_version": "spell.v08.dictionary-exchange/1",
+      "work_package_id": "V08-DATA-003"
+    },
+    {
+      "file": "data_containers.json",
+      "sha256": "a196cdf9cfd7ff6ae7c2728251e84263a7b2dab5eed0e20debc804e0d39e844b",
+      "contract_id": "V08-DATA-CONTAINERS",
+      "schema_version": "spell.v08.data-containers/1",
+      "work_package_id": "V08-DATA-004"
+    },
+    {
+      "file": "shared_data.json",
+      "sha256": "fc6eec064ef0401b9fe159c88da998a6c60ba0e8141b145111749dff641a9737",
+      "contract_id": "V08-SHARED-DATA",
+      "schema_version": "spell.v08.shared-data/1",
+      "work_package_id": "V08-DATA-005"
+    },
+    {
+      "file": "virtual_files.json",
+      "sha256": "534edbdc4e4b4c13d04afd306e4d5b51da2cca1ef97c873dd74ad0f80ed4fac8",
+      "contract_id": "V08-VIRTUAL-FILES",
+      "schema_version": "spell.v08.virtual-files/1",
+      "work_package_id": "V08-DATA-006"
+    },
+    {
+      "file": "data_api_authorization.json",
+      "sha256": "97f9fa70c4d7dc82cf657e3b6caaa4a0fb9489d0c5fe50690086b4ef22666ade",
+      "contract_id": "V08-DATA-API-AUTHORIZATION",
+      "schema_version": "spell.v08.data-api-authorization/1",
+      "work_package_id": "V08-DATA-007"
+    },
+    {
+      "file": "migration_recovery.json",
+      "sha256": "034efcf98c5d8a60719323515701e4a12ced25873c24bfc4211fd93f6178ba8a",
+      "contract_id": "V08-MIGRATION-RECOVERY",
+      "schema_version": "spell.v08.migration-recovery/1",
+      "work_package_id": "V08-DATA-008"
+    }
+  ],
+  "cross_feature_qualification_work_package_id": "V08-DATA-009",
+  "claims": {
+    "implemented_constructs": [],
+    "runtime_artifacts": [],
+    "qualification_results": [],
+    "database_migrations": [],
+    "public_api_routes": [],
+    "live_gcs_routes": [],
+    "legacy_adapter_routes": []
+  },
+  "safety_nonclaims": {
+    "arbitrary_code_or_expression_execution": false,
+    "path_escape_or_host_filesystem_authority": false,
+    "external_network_or_url_access": false,
+    "live_gcs_mission_network_or_spacecraft_access": false,
+    "telecommand_or_driver_mutation": false,
+    "production_or_operational_data_authorization": false,
+    "deployment_or_operational_authorization": false,
+    "compliance_or_cryptographic_signature_claim": false
+  }
+}

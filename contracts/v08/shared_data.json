@@ -1,0 +1,194 @@
+{
+  "schema_version": "spell.v08.shared-data/1",
+  "contract_id": "V08-SHARED-DATA",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-005",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=93-103"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-005-UNIT",
+    "V08-DATA-005-INTEGRATION",
+    "V08-DATA-005-RACE",
+    "V08-DATA-005-RECOVERY",
+    "V08-DATA-005-SECURITY"
+  ],
+  "namespace_scopes": [
+    {
+      "id": "PROJECT",
+      "identity": "project_id plus namespace_id",
+      "lifetime": "durable until revisioned namespace deletion"
+    },
+    {
+      "id": "CONTEXT",
+      "identity": "local synthetic context_id plus namespace_id",
+      "lifetime": "durable across context restart"
+    },
+    {
+      "id": "EXECUTION",
+      "identity": "execution_id plus namespace_id",
+      "lifetime": "execution creation through terminal retention"
+    }
+  ],
+  "namespace_contract": {
+    "required_fields": [
+      "namespace_id",
+      "scope",
+      "owner_id",
+      "revision",
+      "acl_revision",
+      "content_digest"
+    ],
+    "authorization_rule": "server evaluates subject, role, service principal, scope owner, operation, and pinned acl_revision for every request",
+    "default_policy": "DENY",
+    "cross_namespace_inheritance": false,
+    "display_name_authority": false
+  },
+  "entry_contract": {
+    "required_fields": [
+      "entry_id",
+      "key",
+      "value",
+      "value_digest",
+      "revision",
+      "updated_at_database_time",
+      "updated_by_subject"
+    ],
+    "key_rule": "bounded NFC string unique by ordinal UTF-8 bytes within one namespace",
+    "value_rule": "one canonical spell.data.value/1 envelope",
+    "revision_rule": "positive monotonic integer scoped to the entry",
+    "tombstone_rule": "delete commits an immutable tombstone revision and never silently reuses entry_id"
+  },
+  "operations": [
+    {
+      "id": "CREATE_NAMESPACE",
+      "mutating": true,
+      "preconditions": [
+        "owner namespace CREATE authorization",
+        "explicit scope and owner identity",
+        "explicit ACL revision",
+        "idempotency key"
+      ]
+    },
+    {
+      "id": "LIST_NAMESPACES",
+      "mutating": false,
+      "preconditions": [
+        "owner namespace LIST authorization",
+        "opaque owner-revision-bound cursor",
+        "bounded page size"
+      ]
+    },
+    {
+      "id": "GET",
+      "mutating": false,
+      "preconditions": [
+        "namespace READ authorization",
+        "exact namespace identity"
+      ]
+    },
+    {
+      "id": "ENUMERATE",
+      "mutating": false,
+      "preconditions": [
+        "namespace ENUMERATE authorization",
+        "opaque namespace-revision-bound cursor",
+        "bounded page size"
+      ]
+    },
+    {
+      "id": "PUT",
+      "mutating": true,
+      "preconditions": [
+        "namespace WRITE authorization",
+        "expected namespace revision",
+        "expected entry revision or explicit create revision zero",
+        "idempotency key",
+        "canonical typed value"
+      ]
+    },
+    {
+      "id": "DELETE",
+      "mutating": true,
+      "preconditions": [
+        "namespace DELETE authorization",
+        "expected namespace revision",
+        "expected entry revision",
+        "idempotency key"
+      ]
+    },
+    {
+      "id": "CLEAR",
+      "mutating": true,
+      "preconditions": [
+        "namespace CLEAR authorization",
+        "expected namespace revision",
+        "bounded maximum affected entry count",
+        "idempotency key"
+      ]
+    },
+    {
+      "id": "DELETE_NAMESPACE",
+      "mutating": true,
+      "preconditions": [
+        "owner namespace DELETE authorization",
+        "expected namespace revision",
+        "proof that no live entry remains",
+        "idempotency key"
+      ]
+    }
+  ],
+  "compare_and_set": {
+    "required_for_every_mutation": true,
+    "authoritative_revision": "database-committed entry or namespace revision",
+    "success": "mutation, new revision, namespace content digest, audit record, and outbox event commit atomically",
+    "conflict": "REVISION_CONFLICT with current revision only when caller retains read authorization",
+    "blind_overwrite": false,
+    "last_writer_wins": false
+  },
+  "enumeration": {
+    "order": "ordinal key then entry_id",
+    "maximum_page_size": 256,
+    "cursor_binding": "namespace identity, namespace revision, authorization scope, last key, and last entry_id",
+    "revision_change_outcome": "RESYNC_REQUIRED",
+    "unauthorized_key_redaction": false,
+    "authorization_rule": "a caller without enumeration authority receives NOT_AUTHORIZED rather than a partial key list"
+  },
+  "clear_transaction": {
+    "maximum_entries": 4096,
+    "partial_clear": false,
+    "rule": "all matching live entries receive tombstones and one namespace revision in the same transaction",
+    "race_rule": "a PUT, DELETE, or CLEAR at the same expected namespace revision has exactly one winner",
+    "retry_rule": "same idempotency identity returns the original committed result"
+  },
+  "recovery": {
+    "restart_rule": "reconstruct namespace heads only from committed entry revisions and verify the namespace content digest",
+    "audit_failure": "roll back the data mutation",
+    "outbox_failure": "roll back the data mutation",
+    "corruption_outcome": "CORRUPT_NAMESPACE",
+    "cache_authority": false
+  },
+  "limits": {
+    "maximum_namespaces_per_owner": 256,
+    "maximum_live_entries_per_namespace": 100000,
+    "maximum_value_bytes": 1048576,
+    "maximum_key_utf8_bytes": 512,
+    "maximum_batch_mutations": 256
+  },
+  "nonclaims": {
+    "distributed_consensus": false,
+    "cross_node_replication": false,
+    "external_cache_authority": false,
+    "network_shared_memory": false,
+    "live_gcs_or_spacecraft_data": false,
+    "operational_data_authorization": false
+  }
+}

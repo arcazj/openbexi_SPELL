@@ -1,0 +1,190 @@
+{
+  "schema_version": "spell.v08.data-containers/1",
+  "contract_id": "V08-DATA-CONTAINERS",
+  "release": "v0.8.0",
+  "status": "gate_0a_accepted",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE",
+  "authorization_boundary": "V08_DATA_001_THROUGH_V08_DATA_009",
+  "implementation_claim": false,
+  "normative_effect": "accepted_planning_contract_only",
+  "work_package_id": "V08-DATA-004",
+  "cross_feature_work_package_id": "V08-DATA-009",
+  "authority_refs": [
+    "PROJECT_ROADMAP.md#v08-data-and-local-service-compatibility",
+    "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/COMPATIBILITY_LEDGER.md#language-capability-index",
+    "SPELL-DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf#pages=78-86"
+  ],
+  "qualification_test_ids": [
+    "V08-DATA-004-UNIT",
+    "V08-DATA-004-MATRIX",
+    "V08-DATA-004-INTEGRATION",
+    "V08-DATA-004-RECOVERY",
+    "V08-DATA-004-SECURITY"
+  ],
+  "container_kinds": [
+    {
+      "id": "LOCAL",
+      "owner": "one durable procedure frame",
+      "mutable": true,
+      "lifetime": "frame checkpoint through terminal execution retention"
+    },
+    {
+      "id": "ARGS",
+      "owner": "one v0.8-admitted procedure invocation",
+      "mutable": false,
+      "lifetime": "v0.8 invocation creation through terminal execution retention"
+    },
+    {
+      "id": "IVARS",
+      "owner": "one procedure execution instance",
+      "mutable": true,
+      "lifetime": "execution creation through terminal execution retention"
+    },
+    {
+      "id": "DATA_CONTAINER",
+      "owner": "one explicitly authorized local data namespace",
+      "mutable": true,
+      "lifetime": "durable until explicit revisioned deletion"
+    }
+  ],
+  "container_identity": {
+    "required_fields": [
+      "container_id",
+      "kind",
+      "owner_id",
+      "revision",
+      "schema_revision",
+      "content_digest"
+    ],
+    "identity_rule": "kind, owner_id, and container_id form one stable case-sensitive identity",
+    "revision_rule": "every successful mutation increments one positive monotonic revision",
+    "content_rule": "content_digest covers canonical ordered variable identities and typed values"
+  },
+  "variable_contract": {
+    "required_fields": [
+      "variable_id",
+      "name",
+      "declared_type",
+      "value",
+      "value_digest",
+      "revision"
+    ],
+    "name_rule": "bounded NFC identifier; ordinal case-sensitive uniqueness within the container",
+    "value_rule": "spell.data.value/1 envelope exactly matching declared_type",
+    "undeclared_write": "REJECTED",
+    "implicit_conversion": false,
+    "expression_value": false,
+    "callable_value": false
+  },
+  "declared_type_mapping": {
+    "BOOLEAN": "BOOLEAN",
+    "LONG": "INT64",
+    "FLOAT": "FINITE_DOUBLE",
+    "STRING": "STRING",
+    "DATETIME": "UTC_DATETIME",
+    "RELTIME": "REL_DURATION",
+    "mapping_rule": "Each documented data-container declared type maps to exactly one canonical spell.data.value/1 type; reverse mapping is lossless and no numeric, time, or string coercion is implied."
+  },
+  "operation_matrix": [
+    {
+      "id": "CREATE",
+      "kinds": [
+        "DATA_CONTAINER"
+      ],
+      "precondition": "namespace CREATE authorization, explicit schema revision, create revision zero, and idempotency key",
+      "effect": "one empty durable container revision with audit and outbox evidence"
+    },
+    {
+      "id": "READ",
+      "kinds": [
+        "LOCAL",
+        "ARGS",
+        "IVARS",
+        "DATA_CONTAINER"
+      ],
+      "precondition": "authorized owner or namespace read",
+      "effect": "none"
+    },
+    {
+      "id": "SET",
+      "kinds": [
+        "LOCAL",
+        "IVARS",
+        "DATA_CONTAINER"
+      ],
+      "precondition": "expected container revision and exact declared type",
+      "effect": "one atomic variable and container revision"
+    },
+    {
+      "id": "DELETE",
+      "kinds": [
+        "LOCAL",
+        "IVARS",
+        "DATA_CONTAINER"
+      ],
+      "precondition": "expected container revision and variable identity",
+      "effect": "one tombstone and container revision"
+    },
+    {
+      "id": "ENUMERATE",
+      "kinds": [
+        "LOCAL",
+        "ARGS",
+        "IVARS",
+        "DATA_CONTAINER"
+      ],
+      "precondition": "authorized container read and bounded cursor",
+      "effect": "none"
+    }
+  ],
+  "runtime_container_provisioning": {
+    "kinds": [
+      "LOCAL",
+      "ARGS",
+      "IVARS"
+    ],
+    "authority": "trusted execution admission and checkpoint services only",
+    "public_create": false,
+    "rule": "a public CREATE operation can create only DATA_CONTAINER and cannot forge an execution, frame, invocation, ARGS, or IVARS owner identity"
+  },
+  "args_rules": [
+    "These ARGS rules apply only to IR and executions newly created under the v0.8 data contract.",
+    "Arguments are validated and committed atomically before v0.8 child execution admission.",
+    "For a v0.8-created invocation, ARGS is immutable after admission and never aliases a parent mutable value.",
+    "Missing required, extra, duplicate, or type-incompatible arguments reject admission without creating the child execution.",
+    "Every argument retains its canonical typed-value digest and caller provenance.",
+    "Accepted v0.6 and v0.7 IR, execution settings, safe-point mutation behavior, evidence, and release semantics are unchanged and are never retroactively interpreted by this v0.8 ARGS contract."
+  ],
+  "ivars_rules": [
+    "IVARS is private to one execution instance and cannot be read through another execution identity.",
+    "Checkpoint settlement commits procedure state, IVARS mutations, and their revisions atomically.",
+    "A restart loads only the latest fully committed checkpoint and cannot replay a partial mutation."
+  ],
+  "data_container_rules": [
+    "Persistent containers require an explicit namespace ACL and immutable schema revision.",
+    "Mutation requires compare-and-set against the authoritative container revision.",
+    "Enumeration is stable by ordinal variable_id and uses an opaque revision-bound cursor.",
+    "Deletion creates a durable tombstone; identity reuse requires a new container_id."
+  ],
+  "limits": {
+    "maximum_variables_per_container": 4096,
+    "maximum_container_canonical_bytes": 16777216,
+    "maximum_name_utf8_bytes": 256,
+    "maximum_enumeration_page": 256,
+    "maximum_mutations_per_transaction": 256
+  },
+  "recovery_and_races": {
+    "write_vs_write": "exactly one matching expected revision commits; losers receive REVISION_CONFLICT",
+    "write_vs_delete": "exactly one commits at the expected revision and the other observes the new revision or tombstone",
+    "checkpoint_vs_crash": "visibility is all-or-nothing with the durable execution checkpoint",
+    "retry": "an idempotency-bound committed mutation returns its original result without a second revision",
+    "corruption": "digest mismatch returns CORRUPT_CONTAINER and exposes no decoded values"
+  },
+  "forbidden_capabilities": [
+    "text, template, expression, function, module, or Python evaluation",
+    "object deserialization, callable storage, import, file handle, process handle, or socket",
+    "cross-owner aliasing or mutable reference sharing",
+    "host file, URL, network, GCS, mission-network, spacecraft, or legacy-adapter access",
+    "unbounded value, container, transaction, or enumeration size"
+  ]
+}
