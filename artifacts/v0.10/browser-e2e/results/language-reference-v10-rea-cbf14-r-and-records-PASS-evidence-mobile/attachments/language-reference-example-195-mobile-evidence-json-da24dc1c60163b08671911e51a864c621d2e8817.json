@@ -1,0 +1,238 @@
+{
+  "schema_version": "0.3",
+  "payload_version": "1",
+  "event_id": "8ee113d0-cb92-4ea4-9e64-62e769d62d1c",
+  "execution_id": "b0131ee1-668b-4361-b997-b238f50b5b7d",
+  "sequence": 29,
+  "event_type": "procedure.reference_example_completed",
+  "server_time": "2026-08-19T12:28:24.050819+00:00",
+  "source": "simulator",
+  "severity": "info",
+  "correlation_id": null,
+  "causation_id": null,
+  "payload": {
+    "schema_version": "spell.v10.reference-example-result/1",
+    "example_number": 195,
+    "artifact_id": "CMP-LRM244-EXAMPLE-195",
+    "display_title": "Example 195: extract TM/TC database values",
+    "semantic_family": "catalog.tm_tc_lookup",
+    "handler_family": "MEMORY_AND_TMTC_LOOKUP",
+    "execution_mode": "BOUNDED_ADAPTATION",
+    "status": "PASS",
+    "assertions": [
+      {
+        "assertion_id": "tmtc.tm_outcome",
+        "passed": true,
+        "expected": "OK",
+        "actual": "OK"
+      },
+      {
+        "assertion_id": "tmtc.tc_outcome",
+        "passed": true,
+        "expected": "OK",
+        "actual": "OK"
+      },
+      {
+        "assertion_id": "tmtc.tm_direction",
+        "passed": true,
+        "expected": "TM",
+        "actual": "TM"
+      },
+      {
+        "assertion_id": "tmtc.tc_direction",
+        "passed": true,
+        "expected": "TC",
+        "actual": "TC"
+      },
+      {
+        "assertion_id": "tmtc.value_types",
+        "passed": true,
+        "expected": [
+          "FINITE_DOUBLE",
+          "BOOLEAN"
+        ],
+        "actual": [
+          "FINITE_DOUBLE",
+          "BOOLEAN"
+        ]
+      },
+      {
+        "assertion_id": "tmtc.filter_boundaries",
+        "passed": true,
+        "expected": true,
+        "actual": true
+      },
+      {
+        "assertion_id": "tmtc.catalog_digest",
+        "passed": true,
+        "expected": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+        "actual": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7"
+      },
+      {
+        "assertion_id": "tmtc.negative_lookup",
+        "passed": true,
+        "expected": "NOT_FOUND",
+        "actual": "NOT_FOUND"
+      },
+      {
+        "assertion_id": "runtime.trace_is_bounded",
+        "passed": true,
+        "expected": true,
+        "actual": true
+      },
+      {
+        "assertion_id": "runtime.execution_mode",
+        "passed": true,
+        "expected": "BOUNDED_ADAPTATION",
+        "actual": "BOUNDED_ADAPTATION"
+      },
+      {
+        "assertion_id": "runtime.source_span_is_pinned",
+        "passed": true,
+        "expected": true,
+        "actual": true
+      }
+    ],
+    "trace": [
+      {
+        "sequence": 1,
+        "operation": "TMTCLookup",
+        "inputs": {
+          "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+          "catalog_id": "bundled-observation-reads",
+          "queries": [
+            {
+              "Begin": "TM.POWER.A",
+              "End": "TM.POWER.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            {
+              "Begin": "TC.SIMULATOR.A",
+              "End": "TC.SIMULATOR.Z",
+              "Name": "TC.SIMULATOR.RESET",
+              "Source": "bundled-observation-reads",
+              "Type": "TC"
+            }
+          ]
+        },
+        "output": {
+          "catalog_identity": {
+            "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+            "catalog_id": "bundled-observation-reads",
+            "catalog_kind": "SIMULATOR",
+            "catalog_revision": "v07-r1"
+          },
+          "negative_lookup": {
+            "entries": [],
+            "filters": {
+              "Begin": "TM.THERMAL.A",
+              "End": "TM.THERMAL.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            "outcome": "NOT_FOUND"
+          },
+          "tc": {
+            "catalog_identity": {
+              "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+              "catalog_id": "bundled-observation-reads",
+              "catalog_kind": "SIMULATOR",
+              "catalog_revision": "v07-r1"
+            },
+            "entries": [
+              {
+                "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+                "catalog_revision": "v07-r1",
+                "description": "Read-only telecommand metadata; dispatch is unavailable",
+                "direction": "TC",
+                "item_id": "TC.SIMULATOR.RESET",
+                "qualified_name": "SIM.CONTROL.RESET",
+                "unit": "",
+                "value_type": "BOOLEAN"
+              }
+            ],
+            "filters": {
+              "Begin": "TC.SIMULATOR.A",
+              "End": "TC.SIMULATOR.Z",
+              "Name": "TC.SIMULATOR.RESET",
+              "Source": "bundled-observation-reads",
+              "Type": "TC"
+            },
+            "operation": "TMTCLookup",
+            "outcome": "OK",
+            "reason": "EXACT_MATCH"
+          },
+          "tm": {
+            "catalog_identity": {
+              "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+              "catalog_id": "bundled-observation-reads",
+              "catalog_kind": "SIMULATOR",
+              "catalog_revision": "v07-r1"
+            },
+            "entries": [
+              {
+                "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+                "catalog_revision": "v07-r1",
+                "description": "Synthetic DC bus voltage",
+                "direction": "TM",
+                "item_id": "TM.POWER.BUS_VOLTAGE",
+                "qualified_name": "SIM.POWER.BUS_VOLTAGE",
+                "unit": "V",
+                "value_type": "FINITE_DOUBLE"
+              }
+            ],
+            "filters": {
+              "Begin": "TM.POWER.A",
+              "End": "TM.POWER.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            "operation": "TMTCLookup",
+            "outcome": "OK",
+            "reason": "EXACT_MATCH"
+          }
+        }
+      }
+    ],
+    "effect_proofs": [
+      {
+        "effect_id": "FILTER_BOUNDARIES_ASSERTED",
+        "assertion_ids": [
+          "tmtc.filter_boundaries"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      },
+      {
+        "effect_id": "TM_TC_CATALOG_PROVENANCE_ASSERTED",
+        "assertion_ids": [
+          "tmtc.tm_direction",
+          "tmtc.tc_direction",
+          "tmtc.catalog_digest"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      },
+      {
+        "effect_id": "TM_TC_CATALOG_VALUES_EXTRACTED",
+        "assertion_ids": [
+          "tmtc.tm_outcome",
+          "tmtc.tc_outcome",
+          "tmtc.value_types"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      }
+    ],
+    "evidence_digest": "bcb1ae230b3337085eae331b662d4c673c00d5cdfae668a56d31d09649afb2e2",
+    "passed": true,
+    "summary": "Example 195: PASS (11/11 assertions)"
+  }
+}
