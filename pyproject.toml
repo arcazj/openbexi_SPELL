@@ -1,0 +1,38 @@
+[project]
+name = "openbexi-spell"
+version = "0.9.0"
+description = "Local synthetic simulator with a durable SPELL operator workspace"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "OpenBEXI SPELL contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Web Environment",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "driver_host/tests"]
+addopts = "-ra --strict-config --strict-markers"
+
+[tool.spell.supply-chain]
+python_input = "backend/requirements.txt"
+python_lock = "backend/requirements.hashes.lock"
+node_lock = "frontend/package-lock.json"
+base_images_are_digest_pinned = true
+live_spacecraft_approved = false
+python_hash_locks = [
+  "backend/requirements.hashes.lock",
+  "driver_host/requirements.hashes.lock",
+  "driver_host/pki-requirements.hashes.lock",
+  "contracts/generator-requirements.hashes.lock",
+  "scripts/supply-chain-requirements.hashes.lock",
+]
+protobuf_generator_lock = "contracts/generator-requirements.hashes.lock"
+driver_package_profile = "scripts/driver-package-v04.json"
+declared_platform_profiles = ["oci-compose-linux-amd64"]
+release_artifact_root = "artifacts/v0.9"
+release_toolchain_lock = "scripts/release-toolchain-v04.json"
