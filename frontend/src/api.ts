@@ -786,7 +786,7 @@ export const api = {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.9.0"),
+      version: String(raw.version ?? "0.10.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,

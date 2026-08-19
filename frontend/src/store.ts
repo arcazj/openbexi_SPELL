@@ -1,5 +1,5 @@
 import { configureStore, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { accessTokenSubject, api, currentControlProof, normalizeActivePrompt } from "./api";
+import { ApiError, accessTokenSubject, api, currentControlProof, normalizeActivePrompt } from "./api";
 import type { ControlProof } from "./api";
 import type {
   AsRunReport,
@@ -122,7 +122,18 @@ export const startExecution = createAsyncThunk(
   "console/startExecution",
   async ({ procedureId, contextId }: { procedureId: string; contextId: string }) => {
     const created = await api.startExecution(procedureId, contextId);
-    await api.control(created.id, "ACQUIRE", created.revision, currentControlProof(null));
+    let expectedRevision = created.revision;
+    const maxAcquireAttempts = 3;
+    for (let attempt = 1; attempt <= maxAcquireAttempts; attempt += 1) {
+      try {
+        await api.control(created.id, "ACQUIRE", expectedRevision, currentControlProof(null));
+        break;
+      } catch (error) {
+        const canRetry = error instanceof ApiError && error.status === 409 && attempt < maxAcquireAttempts;
+        if (!canRetry) throw error;
+        expectedRevision = (await api.snapshot(created.id)).revision;
+      }
+    }
     return api.snapshot(created.id);
   },
 );

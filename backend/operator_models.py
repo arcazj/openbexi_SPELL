@@ -50,6 +50,8 @@ STARTPROC_STATES = (
     "CANCELLED",
     "RECONCILING",
 )
+CATALOG_AVAILABILITY_STATES = ("ACTIVE", "INACTIVE")
+CATALOG_SOURCE_KINDS = ("BUILT_IN", "PROMOTED", "HISTORICAL")
 
 
 class OperatorContext(Base):
@@ -85,6 +87,36 @@ class ProcedureCatalogEntry(Base):
     entrypoint: Mapped[str] = mapped_column(String(200))
     current_revision: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class ProcedureCatalogAvailability(Base):
+    __tablename__ = "procedure_catalog_availability"
+    __table_args__ = (
+        CheckConstraint(
+            "state IN ('ACTIVE','INACTIVE')",
+            name="ck_procedure_catalog_availability_state",
+        ),
+        CheckConstraint(
+            "source_kind IN ('BUILT_IN','PROMOTED','HISTORICAL')",
+            name="ck_procedure_catalog_source_kind",
+        ),
+        CheckConstraint(
+            "availability_revision > 0",
+            name="ck_procedure_catalog_availability_revision",
+        ),
+        Index("ix_procedure_catalog_availability_state", "state"),
+    )
+
+    catalog_id: Mapped[str] = mapped_column(
+        ForeignKey("procedure_catalog_entries.id"), primary_key=True
+    )
+    state: Mapped[str] = mapped_column(String(20), nullable=False)
+    source_kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    availability_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    updated_by: Mapped[str] = mapped_column(String(200), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
@@ -744,6 +776,8 @@ class ParentChildLink(Base):
 
 
 __all__ = [
+    "CATALOG_AVAILABILITY_STATES",
+    "CATALOG_SOURCE_KINDS",
     "COMMAND_STATES",
     "LEASE_STATES",
     "OWNERSHIP_MODES",
@@ -764,6 +798,7 @@ __all__ = [
     "OperatorUserAction",
     "OperatorUserActionInvocation",
     "ParentChildLink",
+    "ProcedureCatalogAvailability",
     "ProcedureCatalogEntry",
     "ProcedureCatalogRevision",
     "ProcedureSchedule",

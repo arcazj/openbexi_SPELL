@@ -37,7 +37,7 @@ interface CodeEditorProps {
   onSave: () => void;
 }
 
-// Mirrors ProcedureCatalog._step_calls and _Compiler._reserved_calls.
+// Development-bundle authoring calls; ReferenceExample is built-in-only.
 const SPELL_CALLS = [
   "ARGS", "AddSharedDataScope", "ClearSharedData", "ClearSharedDataScopes", "CloseFile",
   "CreateDictionary", "DataContainer", "DeleteFile", "File", "GetSharedData", "GetSharedDataKeys",

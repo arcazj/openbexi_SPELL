@@ -32,9 +32,15 @@ from .ir_v08 import (
     data_operation_required_fields,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
+V10_LANGUAGE_PROFILE = "spell-lrm244-adapter/0.10"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -80,6 +86,12 @@ V08_DATA_CALLS = frozenset(
         "DeleteFile",
     }
 )
+
+
+def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V10_IR_VERSION:
+        return V10_LANGUAGE_PROFILE
+    return f"spell-restricted-ast/{ir_version}"
 
 
 @dataclass(frozen=True)
@@ -143,6 +155,7 @@ class ProcedureCatalog:
         "GetTM",
         "Verify",
         "WaitFor",
+        "ReferenceExample",
         *V08_DATA_CALLS,
     }
 
@@ -386,7 +399,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V08_IR_VERSION
+            V10_IR_VERSION
+            if compiler.uses_v10
+            else V08_IR_VERSION
             if compiler.uses_v08
             else V07_IR_VERSION
             if compiler.uses_v07
@@ -396,7 +411,9 @@ class ProcedureCatalog:
         )
         try:
             validated_ir = (
-                validate_ir_v08(ir_version, steps)
+                validate_ir_v10(ir_version, steps)
+                if compiler.uses_v10
+                else validate_ir_v08(ir_version, steps)
                 if compiler.uses_v08
                 else validate_ir_v07(ir_version, steps)
                 if compiler.uses_v07
@@ -409,6 +426,7 @@ class ProcedureCatalog:
             V06ValidationError,
             V07ValidationError,
             V08ValidationError,
+            V10ValidationError,
         ) as exc:
             diagnostic = ProcedureDiagnostic(
                 code="SPELL105",
@@ -478,6 +496,7 @@ class _Compiler:
         "GetTM",
         "Verify",
         "WaitFor",
+        "ReferenceExample",
         *V08_DATA_CALLS,
     }
     _reserved_calls = {*_step_calls, "ARGS", "UserAction", "Label"}
@@ -497,6 +516,7 @@ class _Compiler:
         self.uses_v06 = False
         self.uses_v07 = False
         self.uses_v08 = False
+        self.uses_v10 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -549,6 +569,7 @@ class _Compiler:
                 "verify",
                 "wait_for",
                 "data_operation",
+                "reference_example",
             }
             for step in self.steps
         ):
@@ -993,6 +1014,9 @@ class _Compiler:
         call: ast.Call,
         guard: dict[str, Any] | None,
     ) -> None:
+        if name == "ReferenceExample":
+            self._compile_v10_step(node, call, guard)
+            return
         if name in V08_DATA_CALLS:
             self._compile_v08_step(node, name, call, guard)
             return
@@ -1014,6 +1038,7 @@ class _Compiler:
                 "warning_delay",
                 "response_timeout",
                 "no_controller_grace",
+                "target",
             },
             "StartProc": {"procedure", "args", "blocking", "visible", "automatic"},
         }
@@ -1079,6 +1104,7 @@ class _Compiler:
                 "warning_delay",
                 "response_timeout",
                 "no_controller_grace",
+                "target",
             }
             if not (set(values) & v06_keywords):
                 choices = self._literal_string_list(
@@ -1150,6 +1176,18 @@ class _Compiler:
             step["question"] = self._typed_argument(
                 values["question"], {"str"}, "Prompt question"
             )
+            if "target" in values:
+                if spec.prompt_type != "LIST" or spec.list_mode != "INDEX":
+                    self._reject(
+                        values["target"],
+                        "SPELL901",
+                        "Prompt target requires a LIST prompt in INDEX mode",
+                    )
+                step["response_target"] = self._v07_target(
+                    values["target"], "int", "Prompt"
+                )
+                step["response_target_type"] = "int"
+                self.uses_v10 = True
             self.uses_v06 = True
         else:
             child_reference = self._literal_required_string(
@@ -1172,6 +1210,57 @@ class _Compiler:
             step.update(spec.as_ir_fields())
             self.uses_v06 = True
         self._append(node, name.lower(), guard=guard, **step)
+
+    def _compile_v10_step(
+        self,
+        node: ast.Expr,
+        call: ast.Call,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        positional = ("example",)
+        allowed = {"example", "target"}
+        if len(call.args) > len(positional):
+            self._reject(
+                call,
+                "SPELL408",
+                "too many positional arguments for ReferenceExample",
+            )
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        if set(values) - allowed:
+            self._reject(call, "SPELL409", "unsupported keyword for ReferenceExample")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+        missing = allowed - set(values)
+        if missing:
+            self._reject(
+                call,
+                "SPELL411",
+                f"missing ReferenceExample argument {sorted(missing)[0]}",
+            )
+        example = self._typed_argument(
+            values["example"], {"int"}, "ReferenceExample number"
+        )
+        if type(example) is int and not 1 <= example <= 195:
+            self._reject(
+                values["example"],
+                "SPELL902",
+                "ReferenceExample number must be 1 through 195",
+            )
+        target = self._v07_target(values["target"], "str", "ReferenceExample")
+        self.uses_v10 = True
+        self.uses_v06 = True
+        self._append(
+            node,
+            "reference_example",
+            guard=guard,
+            example=example,
+            target=target,
+            target_type="str",
+        )
 
     def _compile_v07_step(
         self,

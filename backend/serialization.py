@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 from .models import Command, Event, Execution, Prompt
+from .procedure_parser import language_profile_for_ir
 
 
 def iso(value):
@@ -63,7 +64,7 @@ def prompt_dict(prompt: Prompt) -> dict[str, Any]:
 
 
 def execution_dict(execution: Execution) -> dict[str, Any]:
-    subset_version = f"spell-restricted-ast/{execution.ir_version}"
+    subset_version = language_profile_for_ir(execution.ir_version)
     config_identity = {
         "context_id": execution.context_id,
         "procedure_hash": execution.procedure_hash,

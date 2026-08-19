@@ -61,6 +61,11 @@ from .ir_v08 import (
     validate_file_handle_reference,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
 from .models import Command, Event, Execution, Prompt
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
@@ -92,7 +97,7 @@ _LEGACY_EVENT_REFERENCE_NAMESPACE = uuid.uuid5(
 _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION}
 )
 
 
@@ -2596,7 +2601,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v08
+                    validate_ir_v10
+                    if ir_version == V10_IR_VERSION
+                    else validate_ir_v08
                     if ir_version == V08_IR_VERSION
                     else validate_ir_v07
                     if ir_version == V07_IR_VERSION
@@ -2618,6 +2625,7 @@ class Supervisor:
                 V06ValidationError,
                 V07ValidationError,
                 V08ValidationError,
+                V10ValidationError,
             ) as exc:
                 rejection = self._add_event(
                     session,
@@ -5124,6 +5132,8 @@ class Supervisor:
                             "prompt_id": prompt["id"],
                             "step_index": prompt["step_index"],
                             "type": prompt["type"],
+                            "input_kind": prompt["input_kind"],
+                            "list_mode": prompt["list_mode"],
                             "question": prompt["question"],
                             "options": prompt["options"],
                             "default": prompt["default"],

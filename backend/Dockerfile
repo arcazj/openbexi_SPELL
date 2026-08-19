@@ -1,7 +1,7 @@
 FROM python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280
 
 LABEL org.opencontainers.image.base.name="python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280" \
-    io.openbexi.spell.bundle-builder-profile="spell-v09-dual-network-none-builder/1"
+    io.openbexi.spell.bundle-builder-profile="spell-v10-dual-network-none-builder/1"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -16,6 +16,7 @@ RUN python -m pip install --require-hashes -r /tmp/requirements.hashes.lock \
 
 COPY backend /app/backend
 COPY compose.yaml /app/compose.yaml
+COPY contracts/v10 /app/contracts/v10
 COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \

@@ -48,7 +48,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   border: 0;
 }
 
-.app-frame { height: 100vh; display: grid; grid-template-rows: 58px auto 1fr; background: #e8ecee; }
+.app-frame { height: 100vh; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 58px auto 1fr; background: #e8ecee; }
 .console-header {
   grid-row: 1;
   display: flex;
@@ -186,6 +186,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .workspace-tabs button:hover:not([aria-selected="true"]) { color: var(--ink); background: #dce2e5; }
 
+.status-area, .console-layout { width: 100%; min-width: 0; max-width: 100%; }
 .console-layout { min-height: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr); }
 .driver-shell { min-width: 0; min-height: 0; overflow: hidden; }
 .driver-projection {
@@ -680,14 +681,15 @@ select { padding: 0 9px; font-size: 12px; }
 .prompt-heading { align-items: flex-start; }
 .prompt-heading h3 { font-size: 13px; line-height: 1.35; }
 .prompt-deadline { display: inline-flex; align-items: center; gap: 4px; color: var(--amber); font-size: 10px; white-space: nowrap; }
-.prompt-options { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
-.prompt-options label { position: relative; }
+.prompt-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); align-content: start; gap: 7px; max-height: min(42vh, 380px); margin: 8px 0 10px; padding: 4px; overflow-y: auto; overscroll-behavior: contain; }
+.prompt-options label { position: relative; min-width: 0; }
 .prompt-options input { position: absolute; opacity: 0; }
-.prompt-options span { min-width: 76px; height: 31px; display: grid; place-items: center; padding: 0 12px; color: #37424b; background: #fff; border: 1px solid #b7bfc4; border-radius: 4px; font-size: 11px; }
+.prompt-options span { width: 100%; min-width: 0; min-height: 34px; display: grid; align-items: center; padding: 7px 10px; overflow-wrap: anywhere; color: #37424b; background: #fff; border: 1px solid #b7bfc4; border-radius: 4px; font-size: 11px; line-height: 1.35; text-align: left; }
 .prompt-options input:checked + span { color: #fff; background: var(--teal); border-color: var(--teal-deep); }
 .prompt-options input:focus-visible + span { outline: 2px solid #2479c3; outline-offset: 2px; }
 .prompt-input { display: grid; grid-template-columns: 80px minmax(100px, 1fr); align-items: center; gap: 7px; margin: 10px 0; color: var(--muted); font-size: 11px; }
 .prompt-input input { min-height: 32px; padding: 0 8px; }
+.prompt-option-count { margin: -4px 0 0; color: var(--muted); font-size: 10px; }
 .prompt-submit { min-height: 32px; width: auto; margin-left: auto; font-size: 11px; }
 
 .flow-section, .source-section { margin: 12px 18px 0; border-top: 1px solid var(--line); }
@@ -714,7 +716,7 @@ select { padding: 0 9px; font-size: 12px; }
 .source-list li.current-line { color: #fff; background: #3c3323; border-left-color: #f4aa35; }
 .source-list li.current-line .line-number { color: #ffc568; }
 
-.data-dock { min-height: 0; display: grid; grid-template-rows: 39px minmax(0, 1fr); background: var(--surface); border-top: 1px solid #9da8af; }
+.data-dock { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 39px minmax(0, 1fr); background: var(--surface); border-top: 1px solid #9da8af; }
 .dock-tabs { display: flex; align-items: end; gap: 2px; padding: 5px 12px 0; background: #e8ecee; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .dock-tabs button { min-width: 112px; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; color: #53606a; background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; font-size: 11px; font-weight: 650; }
 .dock-tabs button[aria-selected="true"] { color: var(--ink); background: #fff; border-color: var(--line); }
@@ -1087,8 +1089,9 @@ td code { color: #245785; font: 10px ui-monospace, SFMono-Regular, Consolas, mon
   .validation-status { padding-inline: 6px; }
   .data-dock { height: 460px; }
   .execution-titlebar, .section-heading, .prompt-heading { align-items: flex-start; }
-  .execution-titlebar { padding-inline: 12px; }
-  .execution-metadata { flex-wrap: wrap; justify-content: flex-end; gap: 5px 8px; }
+  .execution-titlebar { flex-wrap: wrap; padding-inline: 12px; }
+  .execution-titlebar > div:first-child { min-width: 0; flex: 1 1 180px; }
+  .execution-metadata { flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-start; gap: 5px 8px; }
   .command-toolbar { min-height: 74px; flex-wrap: wrap; align-content: center; padding-inline: 10px; overflow-x: visible; }
   .toolbar-spacer { display: none; }
   .toolbar-command span, .danger-command span { display: none; }

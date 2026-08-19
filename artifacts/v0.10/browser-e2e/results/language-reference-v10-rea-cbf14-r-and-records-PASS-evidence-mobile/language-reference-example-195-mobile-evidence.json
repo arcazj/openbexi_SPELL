@@ -1,0 +1,277 @@
+{
+  "schema_version": "0.3",
+  "payload_version": "1",
+  "event_id": "eaaae60b-3a13-4d7b-8034-bf4894f0bf48",
+  "execution_id": "323c07c2-fba6-496f-944c-4ab2c7eaacda",
+  "sequence": 29,
+  "event_type": "procedure.reference_example_completed",
+  "server_time": "2026-08-19T22:33:45.429066+00:00",
+  "source": "simulator",
+  "severity": "info",
+  "correlation_id": null,
+  "causation_id": null,
+  "payload": {
+    "schema_version": "spell.v10.reference-example-result/1",
+    "example_number": 195,
+    "artifact_id": "CMP-LRM244-EXAMPLE-195",
+    "display_title": "Example 195: extract TM/TC database values",
+    "semantic_family": "catalog.tm_tc_lookup",
+    "handler_family": "MEMORY_AND_TMTC_LOOKUP",
+    "execution_mode": "BOUNDED_ADAPTATION",
+    "status": "PASS",
+    "assertions": [
+      {
+        "assertion_id": "tmtc.tm_outcome",
+        "passed": true,
+        "expected": "OK",
+        "actual": "OK",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.tc_outcome",
+        "passed": true,
+        "expected": "OK",
+        "actual": "OK",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.tm_direction",
+        "passed": true,
+        "expected": "TM",
+        "actual": "TM",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.tc_direction",
+        "passed": true,
+        "expected": "TC",
+        "actual": "TC",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.value_types",
+        "passed": true,
+        "expected": [
+          "FINITE_DOUBLE",
+          "BOOLEAN"
+        ],
+        "actual": [
+          "FINITE_DOUBLE",
+          "BOOLEAN"
+        ],
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.filter_boundaries",
+        "passed": true,
+        "expected": true,
+        "actual": true,
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.catalog_digest",
+        "passed": true,
+        "expected": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+        "actual": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "tmtc.negative_lookup",
+        "passed": true,
+        "expected": "NOT_FOUND",
+        "actual": "NOT_FOUND",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "variant.example_195.subcase_01",
+        "passed": true,
+        "expected": true,
+        "actual": true,
+        "variant_id": "V10-LRM244-EXAMPLE-195-VARIANT-01"
+      },
+      {
+        "assertion_id": "runtime.trace_is_bounded",
+        "passed": true,
+        "expected": true,
+        "actual": true,
+        "variant_id": null
+      },
+      {
+        "assertion_id": "runtime.execution_mode",
+        "passed": true,
+        "expected": "BOUNDED_ADAPTATION",
+        "actual": "BOUNDED_ADAPTATION",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "runtime.source_span_is_pinned",
+        "passed": true,
+        "expected": true,
+        "actual": true,
+        "variant_id": null
+      }
+    ],
+    "trace": [
+      {
+        "sequence": 1,
+        "operation": "TMTCLookup",
+        "inputs": {
+          "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+          "catalog_id": "bundled-observation-reads",
+          "queries": [
+            {
+              "Begin": "TM.POWER.A",
+              "End": "TM.POWER.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            {
+              "Begin": "TC.SIMULATOR.A",
+              "End": "TC.SIMULATOR.Z",
+              "Name": "TC.SIMULATOR.RESET",
+              "Source": "bundled-observation-reads",
+              "Type": "TC"
+            }
+          ]
+        },
+        "output": {
+          "catalog_identity": {
+            "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+            "catalog_id": "bundled-observation-reads",
+            "catalog_kind": "SIMULATOR",
+            "catalog_revision": "v07-r1"
+          },
+          "negative_lookup": {
+            "entries": [],
+            "filters": {
+              "Begin": "TM.THERMAL.A",
+              "End": "TM.THERMAL.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            "outcome": "NOT_FOUND"
+          },
+          "tc": {
+            "catalog_identity": {
+              "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+              "catalog_id": "bundled-observation-reads",
+              "catalog_kind": "SIMULATOR",
+              "catalog_revision": "v07-r1"
+            },
+            "entries": [
+              {
+                "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+                "catalog_revision": "v07-r1",
+                "description": "Read-only telecommand metadata; dispatch is unavailable",
+                "direction": "TC",
+                "item_id": "TC.SIMULATOR.RESET",
+                "qualified_name": "SIM.CONTROL.RESET",
+                "unit": "",
+                "value_type": "BOOLEAN"
+              }
+            ],
+            "filters": {
+              "Begin": "TC.SIMULATOR.A",
+              "End": "TC.SIMULATOR.Z",
+              "Name": "TC.SIMULATOR.RESET",
+              "Source": "bundled-observation-reads",
+              "Type": "TC"
+            },
+            "operation": "TMTCLookup",
+            "outcome": "OK",
+            "reason": "EXACT_MATCH"
+          },
+          "tm": {
+            "catalog_identity": {
+              "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+              "catalog_id": "bundled-observation-reads",
+              "catalog_kind": "SIMULATOR",
+              "catalog_revision": "v07-r1"
+            },
+            "entries": [
+              {
+                "catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+                "catalog_revision": "v07-r1",
+                "description": "Synthetic DC bus voltage",
+                "direction": "TM",
+                "item_id": "TM.POWER.BUS_VOLTAGE",
+                "qualified_name": "SIM.POWER.BUS_VOLTAGE",
+                "unit": "V",
+                "value_type": "FINITE_DOUBLE"
+              }
+            ],
+            "filters": {
+              "Begin": "TM.POWER.A",
+              "End": "TM.POWER.Z",
+              "Name": "TM.POWER.BUS_VOLTAGE",
+              "Source": "bundled-observation-reads",
+              "Type": "TM"
+            },
+            "operation": "TMTCLookup",
+            "outcome": "OK",
+            "reason": "EXACT_MATCH"
+          }
+        },
+        "variant_id": null
+      }
+    ],
+    "effect_proofs": [
+      {
+        "effect_id": "FILTER_BOUNDARIES_ASSERTED",
+        "assertion_ids": [
+          "tmtc.filter_boundaries"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      },
+      {
+        "effect_id": "TM_TC_CATALOG_PROVENANCE_ASSERTED",
+        "assertion_ids": [
+          "tmtc.tm_direction",
+          "tmtc.tc_direction",
+          "tmtc.catalog_digest"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      },
+      {
+        "effect_id": "TM_TC_CATALOG_VALUES_EXTRACTED",
+        "assertion_ids": [
+          "tmtc.tm_outcome",
+          "tmtc.tc_outcome",
+          "tmtc.value_types"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      }
+    ],
+    "variant_proofs": [
+      {
+        "variant_id": "V10-LRM244-EXAMPLE-195-VARIANT-01",
+        "subcase_id": "V10-LRM244-EXAMPLE-195-SUBCASE-01",
+        "classification": "SEMANTIC_ADAPTATION",
+        "adapter_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-ADAPTER",
+        "oracle_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-ORACLE",
+        "test_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-TEST",
+        "source_anchor_sha256": "b8f57b23c0e5614ac5b7dbe9c8315994bd40ad4a48b4496ffdd01228832d32e3",
+        "required_assertion_id": "variant.example_195.subcase_01",
+        "required_trace_operation": "PRIMARY_SEMANTIC_TRACE",
+        "status": "PASS",
+        "assertion_ids": [
+          "variant.example_195.subcase_01"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      }
+    ],
+    "evidence_digest": "ae20d7639800270817ba69af58a36471f2ccb87210bc6251d623fbb44d934f9f",
+    "passed": true,
+    "summary": "Example 195: PASS (12/12 assertions)"
+  }
+}

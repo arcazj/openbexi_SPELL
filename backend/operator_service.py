@@ -39,6 +39,7 @@ from .operator_models import (
     OperatorUserAction,
     OperatorUserActionInvocation,
     ParentChildLink,
+    ProcedureCatalogAvailability,
     ProcedureCatalogEntry,
     ProcedureCatalogRevision,
     ProcedureSchedule,
@@ -69,6 +70,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,
@@ -524,6 +526,7 @@ class OperatorService:
         procedures = self.catalog.list()
         with self._lock, self.session_factory() as session:
             now = self._database_now(session)
+            live_catalog_ids: set[str] = set()
             for procedure in procedures:
                 catalog_id = "pc-" + hashlib.sha256(
                     procedure.id.encode("utf-8")
@@ -537,6 +540,13 @@ class OperatorService:
                     }
                 )
                 entry = session.get(ProcedureCatalogEntry, catalog_id, with_for_update=True)
+                current: ProcedureCatalogRevision | None = None
+                if entry is None:
+                    entry = session.scalar(
+                        select(ProcedureCatalogEntry)
+                        .where(ProcedureCatalogEntry.procedure_ref == procedure.id)
+                        .with_for_update()
+                    )
                 if entry is None:
                     entry = ProcedureCatalogEntry(
                         id=catalog_id,
@@ -557,17 +567,65 @@ class OperatorService:
                             ProcedureCatalogRevision.revision == entry.current_revision,
                         )
                     )
-                    if current is not None and current.bundle_digest == bundle_digest:
-                        continue
                     next_revision = entry.current_revision + 1
-                    entry.current_revision = next_revision
-                    entry.name = procedure.name
-                    entry.description = procedure.description
-                    entry.entrypoint = procedure.path.name
-                    entry.updated_at = now
+
+                live_catalog_ids.add(entry.id)
+                source_kind = (
+                    "PROMOTED" if procedure.bundle_digest is not None else "BUILT_IN"
+                )
+                availability = session.get(
+                    ProcedureCatalogAvailability, entry.id, with_for_update=True
+                )
+                if availability is None:
+                    availability = ProcedureCatalogAvailability(
+                        catalog_id=entry.id,
+                        state="ACTIVE",
+                        source_kind=source_kind,
+                        availability_revision=1,
+                        updated_by=actor,
+                        updated_at=now,
+                    )
+                    session.add(availability)
+                elif (
+                    availability.state != "ACTIVE"
+                    or availability.source_kind != source_kind
+                ):
+                    previous_state = availability.state
+                    previous_source_kind = availability.source_kind
+                    availability.state = "ACTIVE"
+                    availability.source_kind = source_kind
+                    availability.availability_revision += 1
+                    availability.updated_by = actor
+                    availability.updated_at = now
+                    self._audit(
+                        session,
+                        event_type="catalog.availability_changed",
+                        aggregate_type="procedure_catalog",
+                        aggregate_id=entry.id,
+                        actor=actor,
+                        payload={
+                            "catalog_id": entry.id,
+                            "previous_state": previous_state,
+                            "state": "ACTIVE",
+                            "previous_source_kind": previous_source_kind,
+                            "source_kind": source_kind,
+                            "availability_revision": (
+                                availability.availability_revision
+                            ),
+                        },
+                        created_at=now,
+                    )
+
+                if current is not None and current.bundle_digest == bundle_digest:
+                    continue
+                entry.current_revision = next_revision
+                entry.name = procedure.name
+                entry.description = procedure.description
+                entry.entrypoint = procedure.path.name
+                entry.updated_at = now
                 revision = ProcedureCatalogRevision(
                     id=new_id(),
-                    catalog_id=catalog_id,
+                    catalog_id=entry.id,
                     revision=next_revision,
                     source_digest=procedure.sha256,
                     bundle_digest=bundle_digest,
@@ -589,13 +647,41 @@ class OperatorService:
                     session,
                     event_type="catalog.revision_registered",
                     aggregate_type="procedure_catalog",
-                    aggregate_id=catalog_id,
+                    aggregate_id=entry.id,
                     actor=actor,
                     payload={
-                        "catalog_id": catalog_id,
+                        "catalog_id": entry.id,
                         "revision": next_revision,
                         "source_digest": procedure.sha256,
                         "bundle_digest": bundle_digest,
+                    },
+                    created_at=now,
+                )
+
+            active_rows = session.scalars(
+                select(ProcedureCatalogAvailability)
+                .where(ProcedureCatalogAvailability.state == "ACTIVE")
+                .with_for_update()
+            ).all()
+            for availability in active_rows:
+                if availability.catalog_id in live_catalog_ids:
+                    continue
+                availability.state = "INACTIVE"
+                availability.availability_revision += 1
+                availability.updated_by = actor
+                availability.updated_at = now
+                self._audit(
+                    session,
+                    event_type="catalog.availability_changed",
+                    aggregate_type="procedure_catalog",
+                    aggregate_id=availability.catalog_id,
+                    actor=actor,
+                    payload={
+                        "catalog_id": availability.catalog_id,
+                        "previous_state": "ACTIVE",
+                        "state": "INACTIVE",
+                        "source_kind": availability.source_kind,
+                        "availability_revision": availability.availability_revision,
                     },
                     created_at=now,
                 )
@@ -781,18 +867,29 @@ class OperatorService:
         if sync:
             self.sync_catalog(actor="catalog-read-sync")
         with self.session_factory() as session:
-            entries = session.scalars(
-                select(ProcedureCatalogEntry).order_by(ProcedureCatalogEntry.procedure_ref)
+            entries = session.execute(
+                select(ProcedureCatalogEntry, ProcedureCatalogAvailability)
+                .join(
+                    ProcedureCatalogAvailability,
+                    ProcedureCatalogAvailability.catalog_id
+                    == ProcedureCatalogEntry.id,
+                )
+                .where(ProcedureCatalogAvailability.state == "ACTIVE")
+                .order_by(ProcedureCatalogEntry.procedure_ref)
             ).all()
             result: list[dict[str, Any]] = []
-            for entry in entries:
+            for entry, availability in entries:
                 revision = session.scalar(
                     select(ProcedureCatalogRevision).where(
                         ProcedureCatalogRevision.catalog_id == entry.id,
                         ProcedureCatalogRevision.revision == entry.current_revision,
                     )
                 )
-                result.append(catalog_entry_dict(entry, revision))
+                result.append(
+                    catalog_entry_dict(
+                        entry, revision, availability=availability
+                    )
+                )
             return result
 
     def catalog_history(self, procedure_ref_or_id: str) -> dict[str, Any]:
@@ -813,8 +910,11 @@ class OperatorService:
                 .where(ProcedureCatalogRevision.catalog_id == entry.id)
                 .order_by(ProcedureCatalogRevision.revision.desc())
             ).all()
+            availability = session.get(ProcedureCatalogAvailability, entry.id)
             return {
-                "procedure": catalog_entry_dict(entry),
+                "procedure": catalog_entry_dict(
+                    entry, availability=availability
+                ),
                 "items": [catalog_revision_dict(item, include_source=True) for item in revisions],
             }
 
@@ -940,6 +1040,17 @@ class OperatorService:
                         updated_at=now,
                     )
                     session.add(entry)
+                    session.flush([entry])
+                    session.add(
+                        ProcedureCatalogAvailability(
+                            catalog_id=entry.id,
+                            state="INACTIVE",
+                            source_kind="HISTORICAL",
+                            availability_revision=1,
+                            updated_by=actor,
+                            updated_at=now,
+                        )
+                    )
                     next_revision = 1
                 else:
                     latest = session.scalar(
@@ -1182,7 +1293,7 @@ class OperatorService:
             execution = session.get(Execution, execution_id)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
-            if execution.ir_version in {"0.6", "0.7", "0.8"}:
+            if execution.ir_version in _FENCED_OPERATOR_IR_VERSIONS:
                 raise OperatorAuthorizationError(
                     "v0.6-plus executions require a fenced operator command"
                 )
@@ -1257,7 +1368,7 @@ class OperatorService:
                 raise OperatorAuthorizationError(
                     "operator-projected prompts require a fenced response"
                 )
-            if execution.ir_version in {"0.6", "0.7", "0.8"}:
+            if execution.ir_version in _FENCED_OPERATOR_IR_VERSIONS:
                 raise OperatorAuthorizationError(
                     "v0.6-plus prompts require a fenced response"
                 )
@@ -2699,7 +2810,10 @@ class OperatorService:
                             execution, "lexical_frame_id"
                         )
                     )
-                    if execution.ir_version in {"0.6", "0.7", "0.8"} and current_frame is None:
+                    if (
+                        execution.ir_version in _FENCED_OPERATOR_IR_VERSIONS
+                        and current_frame is None
+                    ):
                         raise OperatorConflictError(
                             "command target requires a committed lexical frame"
                         )
@@ -2732,7 +2846,7 @@ class OperatorService:
                         )
                     target_step, target_item = candidates[0]
                     target_reachability = target_item.get("reachability_id")
-                    if execution.ir_version in {"0.6", "0.7", "0.8"} and (
+                    if execution.ir_version in _FENCED_OPERATOR_IR_VERSIONS and (
                         type(target_reachability) is not str
                         or not target_reachability
                     ):
@@ -4051,12 +4165,20 @@ class OperatorService:
             if context is None or not context.enabled:
                 raise OperatorConflictError("schedule context is unavailable")
             entry = session.scalar(
-                select(ProcedureCatalogEntry).where(
+                select(ProcedureCatalogEntry)
+                .join(
+                    ProcedureCatalogAvailability,
+                    ProcedureCatalogAvailability.catalog_id
+                    == ProcedureCatalogEntry.id,
+                )
+                .where(
+                    ProcedureCatalogAvailability.state == "ACTIVE",
                     or_(
                         ProcedureCatalogEntry.id == procedure_catalog_id,
                         ProcedureCatalogEntry.procedure_ref == procedure_catalog_id,
-                    )
+                    ),
                 )
+                .with_for_update(of=ProcedureCatalogAvailability)
             )
             if entry is None:
                 raise OperatorNotFoundError("procedure catalog entry not found")
@@ -6283,9 +6405,17 @@ class OperatorService:
         str | None,
     ]:
         entry = session.scalar(
-            select(ProcedureCatalogEntry).where(
-                ProcedureCatalogEntry.procedure_ref == child_reference
+            select(ProcedureCatalogEntry)
+            .join(
+                ProcedureCatalogAvailability,
+                ProcedureCatalogAvailability.catalog_id
+                == ProcedureCatalogEntry.id,
             )
+            .where(
+                ProcedureCatalogAvailability.state == "ACTIVE",
+                ProcedureCatalogEntry.procedure_ref == child_reference,
+            )
+            .with_for_update(of=ProcedureCatalogAvailability)
         )
         if entry is None:
             # v0.6 has one local catalog priority tier. Exact qualified refs win;
@@ -6294,7 +6424,16 @@ class OperatorService:
             requested_stem = Path(child_reference).stem
             candidates = [
                 item
-                for item in session.scalars(select(ProcedureCatalogEntry)).all()
+                for item in session.scalars(
+                    select(ProcedureCatalogEntry)
+                    .join(
+                        ProcedureCatalogAvailability,
+                        ProcedureCatalogAvailability.catalog_id
+                        == ProcedureCatalogEntry.id,
+                    )
+                    .where(ProcedureCatalogAvailability.state == "ACTIVE")
+                    .with_for_update(of=ProcedureCatalogAvailability)
+                ).all()
                 if requested_name
                 in {
                     Path(item.procedure_ref).name,

@@ -43,8 +43,10 @@ def test_v0008_postgresql_schema_and_logical_fingerprint_match_contract() -> Non
     engine = _postgres_engine()
     _reset(engine)
     try:
-        assert run_migrations(engine)[-1] == migration.VERSION
-        assert database_version(engine) == migration.VERSION == MIGRATIONS[-1].VERSION
+        applied = run_migrations(engine)
+        assert migration.VERSION in applied
+        assert applied[-1] == MIGRATIONS[-1].VERSION
+        assert database_version(engine) == MIGRATIONS[-1].VERSION
         with engine.connect() as connection:
             migration.verify(connection)
             for table in migration.NEW_TABLES:

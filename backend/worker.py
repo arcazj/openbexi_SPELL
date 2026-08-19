@@ -37,6 +37,12 @@ from .ir_v08 import (
     validate_data_result,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
+from .reference_examples_v10 import ReferenceExampleError, execute_reference_example
 
 
 MAX_INTEGER_BITS = 4_096
@@ -338,11 +344,19 @@ def worker_main(
         output.put({"kind": kind, "generation": generation, **fields})
 
     try:
+        v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
         v07_preflight = ir_version == V07_IR_VERSION
-        v06_preflight = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+        v06_preflight = ir_version in {
+            V06_IR_VERSION,
+            V07_IR_VERSION,
+            V08_IR_VERSION,
+            V10_IR_VERSION,
+        }
         validator = (
-            validate_ir_v08
+            validate_ir_v10
+            if v10_preflight
+            else validate_ir_v08
             if v08_preflight
             else validate_ir_v07
             if v07_preflight
@@ -458,6 +472,7 @@ def worker_main(
         V06ValidationError,
         V07ValidationError,
         V08ValidationError,
+        V10ValidationError,
     ) as exc:
         send(
             "event",
@@ -475,7 +490,12 @@ def worker_main(
     variables.update(runtime_checkpoint)
     if durable_arguments is not None:
         variables["ARGS"] = durable_arguments
-    v06_runtime = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    v06_runtime = ir_version in {
+        V06_IR_VERSION,
+        V07_IR_VERSION,
+        V08_IR_VERSION,
+        V10_IR_VERSION,
+    }
     file_handle_variables = {
         step["target"]
         for step in steps
@@ -1302,6 +1322,37 @@ def worker_main(
                     if type(settlement_id) is str:
                         completed_prompt_settlement_ids.add(settlement_id)
                     break
+                if "response_target" in step:
+                    if prompt_resolution.get("outcome") != "ANSWERED":
+                        raise ExpressionEvaluationError(
+                            "Prompt target requires an answered settlement"
+                        )
+                    response = prompt_resolution.get("response")
+                    if type(response) is not int:
+                        raise ExpressionEvaluationError(
+                            "Prompt LIST index response changed type"
+                        )
+                    variables[step["response_target"]] = response
+            elif should_run and step["type"] == "reference_example":
+                example_number = evaluate_expression(step["example"], variables)
+                if type(example_number) is not int or not 1 <= example_number <= 195:
+                    raise ExpressionEvaluationError(
+                        "ReferenceExample number must evaluate to an integer from 1 through 195"
+                    )
+                result = execute_reference_example(example_number)
+                if not result.passed:
+                    raise ReferenceExampleError(
+                        f"reference example {example_number} did not satisfy its oracle"
+                    )
+                variables[step["target"]] = result.summary
+                effects.append(
+                    {
+                        "event_type": "procedure.reference_example_completed",
+                        "source": "simulator",
+                        "severity": "info",
+                        "payload": result.as_event_payload(),
+                    }
+                )
             elif should_run and step["type"] == "startproc":
                 startproc_id = str(
                     uuid.uuid5(
@@ -1574,6 +1625,8 @@ def worker_main(
             V06ValidationError,
             V07ValidationError,
             V08ValidationError,
+            V10ValidationError,
+            ReferenceExampleError,
         ) as exc:
             send(
                 "event",

@@ -41,6 +41,7 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
   const executionState = useAppSelector((state) => state.console.execution?.state);
   const [value, setValue] = useState(displayValue(prompt.default_value));
   const [selectedOption, setSelectedOption] = useState(() => initialOptionIndex(prompt));
+  const [optionQuery, setOptionQuery] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(Date.now);
   const refreshedBoundaries = useRef(new Set<string>());
@@ -48,6 +49,7 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
   useEffect(() => {
     setValue(displayValue(prompt.default_value));
     setSelectedOption(initialOptionIndex(prompt));
+    setOptionQuery("");
     setValidationError(null);
   }, [prompt.id, prompt.revision]);
 
@@ -125,6 +127,11 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
     deadlineReached ||
     pending !== null ||
     executionRevision === undefined;
+  const visibleOptions = (prompt.options ?? [])
+    .map((option, index) => ({ option, index }))
+    .filter(({ option }) => option.toLocaleLowerCase().includes(optionQuery.trim().toLocaleLowerCase()));
+  const selectedOptionVisible = visibleOptions.some(({ index }) => index === selectedOption);
+  const optionCountId = `prompt-${prompt.id}-option-count`;
   return (
     <section className="prompt-panel" aria-labelledby="prompt-title">
       <div className="prompt-icon"><AlertTriangle aria-hidden="true" size={20} /></div>
@@ -142,8 +149,34 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
         </div>
         <div className="prompt-metadata"><code>{prompt.id}</code><span>Revision {prompt.revision}</span>{prompt.default_value !== undefined && <span>Default: {displayValue(prompt.default_value)}</span>}</div>
         {prompt.options?.length ? (
-          <div className="prompt-options" role="radiogroup" aria-label="Prompt response">
-            {prompt.options.map((option, index) => (
+          <>
+          {prompt.options.length > 20 && (
+            <label className="prompt-input">
+              <span>Filter {prompt.options.length} examples</span>
+              <input
+                type="search"
+                value={optionQuery}
+                onChange={(event) => {
+                  const query = event.target.value;
+                  setOptionQuery(query);
+                  const normalized = query.trim().toLocaleLowerCase();
+                  if (normalized && selectedOption >= 0 && !prompt.options?.[selectedOption]?.toLocaleLowerCase().includes(normalized)) {
+                    setSelectedOption(-1);
+                  }
+                }}
+                placeholder="Example number or title"
+                aria-describedby={optionCountId}
+                disabled={disabled}
+              />
+            </label>
+          )}
+          {prompt.options.length > 20 && (
+            <p className="prompt-option-count" id={optionCountId} role="status" aria-live="polite">
+              Showing {visibleOptions.length} of {prompt.options.length} examples
+            </p>
+          )}
+          <div className="prompt-options" role="radiogroup" aria-label="Prompt response" aria-describedby={prompt.options.length > 20 ? optionCountId : undefined}>
+            {visibleOptions.map(({ option, index }) => (
               <label key={`${index}-${option}`}>
                 <input
                   type="radio"
@@ -156,7 +189,9 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
                 <span>{option}</span>
               </label>
             ))}
+            {visibleOptions.length === 0 && <p role="status">No matching examples.</p>}
           </div>
+          </>
         ) : (
           <label className="prompt-input">
             <span>Response</span>
@@ -179,9 +214,9 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
         {validationError && <p className="prompt-validation" role="alert">{validationError}</p>}
         {!canControl && <p className="prompt-monitor-notice">Monitor mode is read-only. Acquire control to settle this prompt.</p>}
         <div className="prompt-actions">
-          <button className="toolbar-command" type="button" onClick={() => { setValue(displayValue(prompt.default_value)); setSelectedOption(initialOptionIndex(prompt)); setValidationError(null); }} disabled={pending !== null}><RotateCcw aria-hidden="true" size={15} /> Reset draft</button>
+          <button className="toolbar-command" type="button" onClick={() => { setValue(displayValue(prompt.default_value)); setSelectedOption(initialOptionIndex(prompt)); setOptionQuery(""); setValidationError(null); }} disabled={pending !== null}><RotateCcw aria-hidden="true" size={15} /> Reset draft</button>
           <button className="danger-command" type="button" onClick={abort} disabled={disabled}><X aria-hidden="true" size={15} /> Abort prompt</button>
-          <button className="prompt-submit" type="submit" disabled={disabled || (selectedOption < 0 && !value)}><Check aria-hidden="true" size={17} /> Commit response</button>
+          <button className="prompt-submit" type="submit" disabled={disabled || (prompt.options?.length ? !selectedOptionVisible : !value)}><Check aria-hidden="true" size={17} /> Commit response</button>
         </div>
       </form>
     </section>
