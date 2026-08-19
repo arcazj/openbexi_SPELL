@@ -47,6 +47,7 @@ CONTEXT_ID = "v07-telemetry-synthetic-context"
 SUPPORTED_CONTEXT_IDS = frozenset(
     {
         CONTEXT_ID,
+        "simulator",
         "v08-telemetry-synthetic-context",
         "v09-telemetry-synthetic-context",
     }

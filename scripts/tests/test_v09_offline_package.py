@@ -189,9 +189,13 @@ def _remove_container(docker: Path, container: str) -> None:
 
 
 def test_v09_offline_package_dependency_closure_is_exactly_pinned() -> None:
+    package = json.loads((FRONTEND / "package.json").read_text(encoding="utf-8"))
     lock = json.loads((FRONTEND / "package-lock.json").read_text(encoding="utf-8"))
     assert lock["lockfileVersion"] == 3
-    assert lock["packages"][""]["version"] == "0.9.0"
+    assert lock["name"] == package["name"]
+    assert lock["version"] == package["version"]
+    assert lock["packages"][""]["name"] == package["name"]
+    assert lock["packages"][""]["version"] == package["version"]
     packages = {name: value for name, value in lock["packages"].items() if name}
     assert packages
     assert all(
