@@ -25,7 +25,7 @@ accepted v0.9.0 product release.
   execution, verification, disposition, certainty, cancellation, recovery, and
   reconciliation.
 - [x] Record exact commands and results from one consistent final working-tree
-  state in `../../SPELL_v0.11_Implementation.md`.
+  state in `../releases/SPELL_v0.11_Implementation.md`.
 - [x] Confirm direct public telecommand API extreme numeric inputs fail with
   bounded typed diagnostics and no raw exception.
 - [x] Confirm the full v0.10 195-example/257-variant gate, v0.11 command corpus,

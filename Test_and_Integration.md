@@ -67,7 +67,7 @@ Python or verbatim executable snippets.
 ### Scope And Entry Decision
 
 `V11-GATE-0A PASS` in
-[`SPELL_v0.11_Pre-Implementation.md`](SPELL_v0.11_Pre-Implementation.md)
+[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
 authorizes the roadmap-defined deterministic simulator scope after the
 strengthened v0.10 gate. The accepted release baseline remains v0.9.0.
 
@@ -99,7 +99,7 @@ backend passes, all 19 environment-selected PostgreSQL/Compose selections, 112
 frontend passes, a production build, 2/2 real-browser passes, and product-image/documentation
 checks. The exact commands and the intentionally separate historical
 release-only tooling disposition are maintained in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). The 195
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). The 195
 example outcomes and 257 variant subcases remain separate evidence dimensions; neither
 permits raw invalid or pseudocode snippets to be represented as verbatim
 executable Python or unrestricted SPELL source.
@@ -114,7 +114,7 @@ packaging, and strict annotated-tag validation and is now accepted at tag
 ### Current Disposition And Boundary
 
 The owner request `start and complete asap V0.9` and
-[`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md)
+[`SPELL_v0.9_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md)
 authorize exactly `V09-DEV-001` through `V09-DEV-009` and their 45 planned
 proof identities. The profile is
 `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`; qualification requires the
@@ -156,7 +156,7 @@ authoritative only through the strictly validated annotated tag.
 ### Current Disposition And Boundary
 
 The owner approved the bounded Data and Local Service Compatibility scope in
-[`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md).
+[`SPELL_v0.8_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.8_Pre-Implementation.md).
 `V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
 and their 45 planned proof identities under scope profile
 `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The manifest and eight matrices under
@@ -198,7 +198,7 @@ claim.
 ### Current Disposition And Boundary
 
 The owner explicitly approved the bounded scope in
-[`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md).
+[`SPELL_v0.7_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.7_Pre-Implementation.md).
 `V07-GATE-0A PASS` authorizes implementation of exactly `V07-OBS-001` through
 `V07-OBS-009`. The exact planning contract is the manifest and six matrices
 under `contracts/v07`, bound to the accepted annotated `v0.6.0` baseline by
@@ -275,7 +275,7 @@ no accepted exceptions.
 ### Current Disposition And Boundary
 
 The owner requested completion of v0.6 and explicitly approved the exact scope
-in [`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+in [`SPELL_v0.6_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.6_Pre-Implementation.md).
 `V06-GATE-0A PASS` makes the requirements and planned test identities below
 the bounded implementation contract. Candidate code and qualification tooling
 now exist, but the gate-time table is preserved and no identity is represented
@@ -375,7 +375,7 @@ and annotated tag `v0.5.0` activated the recorded conditional acceptance.
 ### Gate Status And Scope
 
 This section is the acceptance contract for the single work package authorized
-by [`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md).
+by [`SPELL_v0.5_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Pre-Implementation.md).
 `V05-GATE-0A PASS` authorizes implementation of `V05-IR-001` only. The table
 below preserves the gate-time `Planned` contract; the gate itself did not claim
 the code or its evidence existed. The later implementation evidence is recorded
@@ -486,7 +486,7 @@ waivable.
 
 ### Current Disposition
 
-[`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) records
+[`SPELL_v0.5_Gate_0B.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Gate_0B.md) records
 `V05-GATE-0B PASS`: the immutable candidate and six required identities are
 qualified for release closeout, and only `V05-IR-001` may proceed. Gate 0B is
 an authorization boundary, not Final release acceptance. The canonical
@@ -537,7 +537,7 @@ would be a false compatibility change.
   SBOMs, and deterministic package must bind the same fixed release tree.
 - Accepted v0.4 evidence must remain byte-unchanged and may be used only as
   inherited regression support, not direct v0.5 proof.
-- This document and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md) must record
+- This document and [`SPELL_v0.5_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Release.md) must record
   actual hashes and results before a Final PASS or owner acceptance decision.
 - No annotated `v0.5.0` tag may be claimed until the fixed release commit and
   all Final evidence exist and validate.
@@ -551,11 +551,11 @@ would be a false compatibility change.
 
 This section preserves the owner-approved acceptance contract for the
 local-only, synthetic non-CUI Candidate A scope in
-[`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md). Every
+[`SPELL_v0.4_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.4_Pre-Implementation.md). Every
 `Planned` result below records the pre-implementation state. v0.4 subsequently
 passed its complete Final qualification and was accepted at tag `v0.4.0`; the
 executed release disposition is recorded in
-[`SPELL_v0.4_Release.md`](SPELL_v0.4_Release.md).
+[`SPELL_v0.4_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.4_Release.md).
 
 The planned product slice is one typed, mutually authenticated, out-of-process
 deterministic simulator driver supporting host/context/execution lifecycle,

@@ -36,7 +36,7 @@ availability, and full regression/frontend/build results from one consistent
 working-tree state. Direct public-API extremes fail with bounded typed
 diagnostics rather than raw runtime exceptions. Completed local evidence and
 non-release exclusions are recorded in
-`../../SPELL_v0.11_Implementation.md`; no local result becomes an accepted
+`../releases/SPELL_v0.11_Implementation.md`; no local result becomes an accepted
 release without an immutable release endpoint and its independent gates.
 
 ## Evidence Contract

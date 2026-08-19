@@ -104,7 +104,7 @@ Conventions:
 The exact commands, durations, hashes, all 19 environment-selected passes, nine inapplicable
 historical release/package validators, and cold-cache offline-build limitation
 are recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). Elapsed time
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). Elapsed time
 and active engineering effort remain unknown.
 
 ## 2026-08-19 - v0.10 Working-Tree Implementation And Local Verification
@@ -120,7 +120,7 @@ and active engineering effort remain unknown.
 
 The exact local evidence is recorded in
 [`Test_and_Integration.md`](Test_and_Integration.md) and
-[`SPELL_v0.10_Implementation.md`](SPELL_v0.10_Implementation.md). Elapsed time
+[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). Elapsed time
 and active engineering effort are unknown because the request time and a
 continuous work log are not retained. Local PASS results must not be
 represented as release acceptance.
@@ -345,8 +345,8 @@ duration can be calculated until those endpoints exist.
 
 Records:
 
-- [`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md)
-- [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md)
+- [`SPELL_v0.5_Gate_0B.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Gate_0B.md)
+- [`SPELL_v0.5_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Release.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
 - [`PROVENANCE.md`](PROVENANCE.md)
 
@@ -383,7 +383,7 @@ time and active effort remain unknown.
 
 Records:
 
-- [`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md)
+- [`SPELL_v0.5_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Pre-Implementation.md)
 - [`PROMPT_History.md`](PROMPT_History.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
 - [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md)
@@ -409,7 +409,7 @@ active engineering effort remain unknown.
 
 Records:
 
-- [`SPELL_v0.4_Release.md`](SPELL_v0.4_Release.md)
+- [`SPELL_v0.4_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.4_Release.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
 
 ## Historical v0.4 Gate Milestones
@@ -439,7 +439,7 @@ release entry above. Its pending language is historical, not current status.
 Draft records:
 
 - [`PROMPT_History.md`](PROMPT_History.md)
-- [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md)
+- [`SPELL_v0.4_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.4_Pre-Implementation.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
 - [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md)
 - [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md)
@@ -842,9 +842,9 @@ the recorded July 13-16 verification range.
 Records:
 
 - [`PROMPT_History.md`](PROMPT_History.md)
-- [`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md)
+- [`SPELL_v0.3_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.3_Pre-Implementation.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
-- [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md)
+- [`SPELL_v0.3_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.3_Release.md)
 
 ## 2026-07-12 - v0.2.0 - Simulator Vertical Slice
 
@@ -903,7 +903,7 @@ Records:
 
 - [`PROMPT_History.md`](PROMPT_History.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
-- [`SPELL_v0.2_Release.md`](SPELL_v0.2_Release.md)
+- [`SPELL_v0.2_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.2_Release.md)
 
 ## 2026-07-12 - v0.1 - Pre-Implementation Baseline
 
@@ -947,7 +947,7 @@ unknown. Reporting a minutes-or-hours value would be invented precision.
 Records:
 
 - [`PROMPT_History.md`](PROMPT_History.md)
-- [`SPELL_v0.1_Pre-Implementation.md`](SPELL_v0.1_Pre-Implementation.md)
+- [`SPELL_v0.1_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.1_Pre-Implementation.md)
 - [`Test_and_Integration.md`](Test_and_Integration.md)
 
 ## Cumulative Release Intervals

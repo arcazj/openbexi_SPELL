@@ -19,7 +19,7 @@ history remains in the parent project and is not duplicated as document history.
   the parent project's accepted product baseline. The v0.10/v0.11 source and
   evidence remain mutable working-tree material; v0.11 local qualification,
   exact commands, results, and non-release exclusions are recorded in
-  `../SPELL_v0.11_Implementation.md`.
+  `releases/SPELL_v0.11_Implementation.md`.
 - Made no live GCS, spacecraft, operational, deployment, compliance, candidate,
   release, or accepted-baseline claim.
 

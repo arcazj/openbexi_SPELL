@@ -28,9 +28,12 @@ as closed, deterministic simulator `BuildTC`/`Send` behavior. The Language
 Reference owns documented syntax and procedure-visible intent; the Driver
 Development Manual owns stage and provider concepts. Where legacy prose
 conflicts with typed certainty, no-resend, or supervisor-owned confirmation,
-the bounded decisions in `SPELL_v0.11_Pre-Implementation.md` apply, the mutable
+the bounded decisions in
+`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md`
+apply, the mutable
 implementation and local qualification boundary is recorded in
-`SPELL_v0.11_Implementation.md`, and
+`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md`,
+and
 the conflict remains documented rather than guessed.
 
 These applications do not copy manual bodies into runtime source and do not

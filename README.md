@@ -195,7 +195,7 @@ The exact v0.10 contracts and evidence are in:
 - [`contracts/v10/language_reference_example_matrix.json`](contracts/v10/language_reference_example_matrix.json)
 - [`contracts/v10/language_reference_variant_matrix.json`](contracts/v10/language_reference_variant_matrix.json)
 - [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json)
-- [SPELL_v0.10_Implementation.md](SPELL_v0.10_Implementation.md)
+- [SPELL_v0.10_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md)
 
 ## v0.11 Telecommand Boundary
 
@@ -212,8 +212,8 @@ canonical checkpoints; and a possible uncertain effect is never automatically
 resent. Provider behavior, telemetry, and time are injected deterministic
 fixtures. No browser route can configure a live command endpoint.
 
-See [SPELL_v0.11_Pre-Implementation.md](SPELL_v0.11_Pre-Implementation.md) and
-[SPELL_v0.11_Implementation.md](SPELL_v0.11_Implementation.md) for the approved
+See [SPELL_v0.11_Pre-Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md) and
+[SPELL_v0.11_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md) for the approved
 scope, semantics, exact commands, evidence hashes, and exclusions.
 
 ## Development
@@ -319,8 +319,8 @@ integration record.
 | `contracts/` | Versioned machine-readable behavior, compatibility, and gate contracts |
 | `artifacts/` | Qualification, release, browser, SBOM, and reference-example evidence |
 | `scripts/` | Build, qualification, audit, packaging, token, and evidence tools |
-| `SPELL_DOCUMENTATION/` | Controlled next-generation requirements, architecture, security, web, and assurance specification |
-| `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` | Preserved documentation-generation source set |
+| `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` | AI-generated requirements, architecture, security, web, assurance, and version-specific release records |
+| `SPELL_DOCUMENTATION/` | Versioned legacy SPELL manuals; explicitly ignored source archives may also be retained locally |
 | `tools/` | Standalone legacy SPELL Procedure Compliance Auditor and its own documentation |
 
 The compliance auditor is a separate tool. Its usage, policies, cases, and
@@ -335,10 +335,16 @@ define the root project README.
   the v0.10 and v0.11 working-tree increments.
 - [Test_and_Integration.md](Test_and_Integration.md): per-version test plans,
   commands, evidence, and exit decisions.
-- [SPELL_DOCUMENTATION/README.md](SPELL_DOCUMENTATION/README.md): controlled
-  next-generation design specification and document map.
-- [SPELL_DOCUMENTATION/SOURCE_AUTHORITY.md](SPELL_DOCUMENTATION/SOURCE_AUTHORITY.md):
+- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md):
+  AI-generated next-generation design specification and document map.
+- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/SOURCE_AUTHORITY.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/SOURCE_AUTHORITY.md):
   reviewed source authority, precedence, and evidence hashes.
+- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md):
+  index of version-specific planning, gate, implementation, and release records.
+- [SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf](SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf):
+  retained legacy SPELL language manual.
+- [SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf](SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf):
+  retained legacy SPELL development manual.
 - [PROVENANCE.md](PROVENANCE.md): source, build, dependency, and release
   provenance records.
 - [PROMPT_History.md](PROMPT_History.md): retained project prompt and decision

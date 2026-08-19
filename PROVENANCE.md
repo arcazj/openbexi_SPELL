@@ -36,7 +36,7 @@ creates local working-tree compatibility evidence only; it does not establish
 ownership of legacy documentation, general SPELL conformance, deployment or
 mission suitability, or an accepted v0.11 release.
 Its implementation, local qualification, and non-release boundary are recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md).
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256
@@ -310,7 +310,7 @@ by v0.4 qualification and packaging.
 
 The v0.5 closeout binds exact audit results, image identities, evidence
 fingerprints, package hashes, exceptions, and the project-owner decision in
-canonical artifacts and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md).
+canonical artifacts and [`SPELL_v0.5_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Release.md).
 The verified annotated `v0.5.0` tag activated the conditional owner acceptance
 recorded in the release commit; no post-tag documentation commit was required.
 

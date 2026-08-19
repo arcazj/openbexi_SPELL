@@ -11,6 +11,9 @@ from scripts import validate_markdown_v09 as markdown
 
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = ROOT / "scripts/supply-chain-requirements.hashes.lock"
+RELEASE_DOCUMENTATION = (
+    ROOT / "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI" / "releases"
+)
 
 
 def test_markdown_preview_engine_is_exactly_hash_locked() -> None:
@@ -89,7 +92,9 @@ def test_every_tracked_markdown_file_renders_in_preview_mode() -> None:
 
 
 def test_never_versioned_v03_capture_is_not_a_nonportable_link() -> None:
-    source = (ROOT / "SPELL_v0.3_Release.md").read_text(encoding="utf-8")
+    source = (RELEASE_DOCUMENTATION / "SPELL_v0.3_Release.md").read_text(
+        encoding="utf-8"
+    )
     assert "[Session access gate](artifacts/v0.3/session-access.png)" not in source
     assert "`artifacts/v0.3/session-access.png`" in source
     assert "never versioned" in source

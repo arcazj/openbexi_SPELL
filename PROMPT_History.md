@@ -6,6 +6,42 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-19 - Release Record Consolidation
+
+The owner directed all root-level version-specific release Markdown records to
+move under `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/` and requested
+the resulting documentation changes be committed and pushed to GitHub. The 24
+matching `SPELL_v*.md` planning, gate, implementation, and release records for
+v0.1 through v0.11 were moved. Their canonical index is
+[`releases/README.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md).
+
+Cross-version records remain at the repository root. Documentation links follow
+the new layout, while immutable historical tag, artifact, qualification-tool,
+and hash-manifest path identities retain the paths recorded when those releases
+were accepted.
+
+## 2026-08-19 - Documentation Tree Deduplication
+
+The owner directed the project to separate AI-generated documentation from
+legacy SPELL source manuals. `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` is the
+canonical location for the generated requirements, architecture, security,
+web, assurance, assets, and validation tools. `SPELL_DOCUMENTATION/` is
+reserved for legacy manuals supplied to the project now or later.
+
+The two trees were compared by relative path and SHA-256. All 100 generated
+files under `SPELL_DOCUMENTATION/` were exact duplicates of files already
+present under `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` and were removed from
+the legacy folder. The unique legacy file
+`SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf` was retained. The resulting
+trees contain 100 generated files, one legacy manual, and zero cross-tree
+content duplicates.
+
+The later owner-supplied `SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf` is also a
+valid, distinct legacy manual and was retained. The local
+`SPELL_DOCUMENTATION/SPELL2.6.10-src.zip` remains external evidence under its
+explicit `.gitignore` rule and is not represented as a committed GitHub file.
+The versioned legacy tree therefore contains two manuals.
+
 ## 2026-08-19 - Strengthened v0.10 Gate And v0.11 Direction
 
 The owner required v0.10 to be audited before any v0.11 implementation. The
@@ -27,7 +63,7 @@ of those fragments.
 After that prerequisite, the owner direction authorizes the bounded v0.11
 simulator telecommand scope in `PROJECT_ROADMAP.md`. The gate and local
 compatibility decisions are recorded in
-[`SPELL_v0.11_Pre-Implementation.md`](SPELL_v0.11_Pre-Implementation.md).
+[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md).
 The scope includes catalog-backed `BuildTC`/`Send`, all 26 documented command
 statements in Examples 57 through 77, durable confirmation and settlement,
 deterministic timing and verification, failure policy, recovery, effect
@@ -37,7 +73,7 @@ release authorization.
 
 The resulting mutable-worktree implementation boundary, completed local
 qualification, and recorded non-release exclusions are recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). This later
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). This later
 status note does not rewrite the authorization decision above or claim an
 accepted release.
 
@@ -127,7 +163,7 @@ Strict release and annotated-tag validation passed with no accepted exceptions.
 
 The owner request was recorded exactly as: `start and complete asap V0.9`.
 The accepted v0.8.0 tag satisfies the baseline precondition, and
-[`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md) maps
+[`SPELL_v0.9_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) maps
 that direction to exactly `V09-DEV-001` through `V09-DEV-009` and 45 planned
 proof identities under
 `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. `V09-GATE-0A PASS` is
@@ -192,7 +228,7 @@ Strict release and annotated-tag validation passed with no accepted exceptions.
 
 Following accepted v0.7.0, the owner direction to proceed to v0.8 authorized
 the bounded Data and Local Service Compatibility gate recorded in
-[`SPELL_v0.8_Pre-Implementation.md`](SPELL_v0.8_Pre-Implementation.md).
+[`SPELL_v0.8_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.8_Pre-Implementation.md).
 `V08-GATE-0A PASS` authorizes exactly `V08-DATA-001` through `V08-DATA-009`
 and their 45 planned proof identities under
 `LOCAL_SYNTHETIC_NON_CUI_DATA_SERVICE`. The exact marker is
@@ -276,7 +312,7 @@ compliance, or cryptographic-signature authority.
 
 The owner request was recorded exactly as: `resume and finish up asap v0.6 asap and move forward to finis up v0.7 asap. you have all aprrovals.` The
 accepted v0.6.0 tag satisfies the baseline precondition, and
-[`SPELL_v0.7_Pre-Implementation.md`](SPELL_v0.7_Pre-Implementation.md) maps
+[`SPELL_v0.7_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.7_Pre-Implementation.md) maps
 that direction to the bounded explicit authorization set `V07-OBS-001` through
 `V07-OBS-009`. The exact owner marker is
 `V07-GATE-0A OWNER-APPROVAL: APPROVED`.
@@ -341,7 +377,7 @@ specified. Operational authorization and compliance determination remain none.
 
 The project owner requested completion of v0.6 and subsequently explicitly
 approved the exact bounded Gate 0A recorded in
-[`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+[`SPELL_v0.6_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.6_Pre-Implementation.md).
 `V06-GATE-0A PASS` authorizes implementation of `V06-OP-001` through
 `V06-OP-009` under the accepted v0.5.0 baseline binding, exclusions, operator
 state/command/prompt/inspection matrices, and recovery/security acceptance
@@ -362,7 +398,7 @@ operational, broad compatibility, or compliance result is claimed.
 
 The project owner directed the qualified `V05-IR-001` increment through
 release closeout and requested the v0.5 tag when all required work is done.
-[`SPELL_v0.5_Gate_0B.md`](SPELL_v0.5_Gate_0B.md) resolves the tag request to
+[`SPELL_v0.5_Gate_0B.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Gate_0B.md) resolves the tag request to
 the repository's one authorized semantic-version tag, `v0.5.0`, and records
 `V05-GATE-0B PASS` with authorization
 `V05_IR_001_RELEASE_CLOSEOUT_ONLY`.
@@ -417,7 +453,7 @@ exceptions, no compliance determination, and no operational authorization.
 ### Gate 0A Decision
 
 The next bounded step is recorded in
-[`SPELL_v0.5_Pre-Implementation.md`](SPELL_v0.5_Pre-Implementation.md).
+[`SPELL_v0.5_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Pre-Implementation.md).
 `V05-GATE-0A PASS` authorizes only `V05-IR-001`: strict independent validation
 and canonicalization of the existing IR 0.3 payload, parser-output
 postvalidation, persisted-IR supervisor preflight before worker generation or
@@ -717,7 +753,7 @@ The owner must explicitly resolve or approve:
 
 ### Entry Decision
 
-**Pending.** [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md)
+**Pending.** [`SPELL_v0.4_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.4_Pre-Implementation.md)
 and the v0.4 section of [`Test_and_Integration.md`](Test_and_Integration.md) are
 draft proposals. Their creation does not approve the release or authorize
 implementation. Product code, schemas, dependencies, services, and deployment

@@ -27,11 +27,11 @@ object `b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
 `a8caa957179f8df301f9863e421e3fd7127e5318`; strict release validation passed
 with no accepted exceptions. v0.10 is an owner-directed mutable-worktree
 implementation of the bounded Language Reference Example Adapter recorded in
-[`SPELL_v0.10_Implementation.md`](SPELL_v0.10_Implementation.md). v0.11 is the
+[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). v0.11 is the
 owner-authorized mutable-worktree simulator telecommand increment governed by
-[`SPELL_v0.11_Pre-Implementation.md`](SPELL_v0.11_Pre-Implementation.md) and
+[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md) and
 recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). Its final
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). Its final
 local qualification commands, results, and exclusions are complete. These
 local implementations are not candidate
 freezes, accepted releases, deployment approvals, compliance results, or

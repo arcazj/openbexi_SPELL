@@ -43,7 +43,7 @@ and annotated tagging passed with no accepted exceptions. The verified tag
 activated the conditional owner acceptance without a post-tag documentation
 commit and provides no operational authorization. The earlier owner request
 `start and complete asap V0.9` and the subsequent
-[`V09-GATE-0A`](SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
+[`V09-GATE-0A`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
 local synthetic non-CUI development-environment work packages and 45 planned
 proof identities. At the authorization event, Gate 0A claimed zero implemented
 constructs or runtime artifacts. At candidate source freeze, the bounded
@@ -287,7 +287,7 @@ Delivered foundations:
   reviewed on 2026-07-17; that later evidence does not rewrite the v0.1 fact.
 
 Primary record:
-[`SPELL_v0.1_Pre-Implementation.md`](SPELL_v0.1_Pre-Implementation.md).
+[`SPELL_v0.1_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.1_Pre-Implementation.md).
 
 ### v0.2 - Simulator Vertical Slice
 
@@ -310,7 +310,7 @@ outbound isolation, unhashed Python artifacts, security residuals, and
 unexecuted performance/soak targets. v0.3 addressed these within the bounded
 simulator architecture.
 
-Primary record: [`SPELL_v0.2_Release.md`](SPELL_v0.2_Release.md).
+Primary record: [`SPELL_v0.2_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.2_Release.md).
 
 ### v0.3 - Simulator Hardening and Language Foundation
 
@@ -329,8 +329,8 @@ Delivered foundations:
   performance evidence, and reproducible packaging.
 
 Primary records:
-[`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md) and
-[`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md).
+[`SPELL_v0.3_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.3_Pre-Implementation.md) and
+[`SPELL_v0.3_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.3_Release.md).
 
 ### v0.3.1 - Roadmap and Timeline Records
 
@@ -656,7 +656,7 @@ prompt, monitoring, scheduling, source, log, and subprocedure workflows in the
 simulator-only 2D workspace.
 
 Current disposition: the owner explicitly approved the exact bounded scope in
-[`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
+[`SPELL_v0.6_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.6_Pre-Implementation.md).
 `V06-GATE-0A PASS` authorized the following work packages. Candidate commit
 `0ea26105e72d7830de4a265989ed7d9074ffbe09` and canonical evidence SHA-256
 `16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`
@@ -712,7 +712,7 @@ failure/effect certainty; no kill action implies a clean external state.
 Goal: implement the documented read-only TM and driver-time contract against
 the bundled deterministic simulator.
 
-Current disposition: [`V07-GATE-0A PASS`](SPELL_v0.7_Pre-Implementation.md)
+Current disposition: [`V07-GATE-0A PASS`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.7_Pre-Implementation.md)
 authorizes implementation of exactly `V07-OBS-001` through `V07-OBS-009` and
 their 45 planned proof identities. The manifest and six planning matrices under
 `contracts/v07` are hash-bound authorization inputs. Candidate
@@ -799,7 +799,7 @@ surface and controlled promotion pipeline.
 Current disposition: accepted at annotated tag `v0.9.0`, object
 `b47ee98429841afd7d91c928f3a314d6ac7f348c`, which peels to release commit
 `a8caa957179f8df301f9863e421e3fd7127e5318`. The earlier
-[`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md) authorized exactly
+[`V09-GATE-0A PASS`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) authorized exactly
 `V09-DEV-001` through `V09-DEV-009` and their 45 planned proof identities under
 scope profile `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`; its historical
 zero-implementation claim remains true at the gate event. Candidate, Gate 0B,
@@ -875,7 +875,7 @@ Current disposition: the authorized simulator-only implementation is locally
 qualified in the mutable working tree. Exact multi-suite commands, counts,
 skips, non-applicable historical release checks, and the cold-cache offline
 build limitation are recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). This is not a
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). This is not a
 candidate freeze, package, accepted release, or annotated-tag endpoint.
 
 Required properties:
