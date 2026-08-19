@@ -228,10 +228,22 @@ def test_v09_final_runner_stages_only_ledger_bound_external_manuals() -> None:
 def test_v09_final_runner_probes_exact_manual_and_schema_bytes_in_image() -> None:
     runner = RUNNER.read_text(encoding="utf-8")
     ignore_lines = QUALIFICATION_IGNORE.read_text(encoding="utf-8").splitlines()
+    manual_mount = (
+        'type=bind,source=$stagedManualRoot,'
+        'target=/qualification-source/SPELL-DOCUMENTATION,readonly'
+    )
+    probe_start = runner.index("$imageInputProbeResult =")
+    probe_end = runner.index(
+        'Assert-NativeSuccess "qualification image input probe failed"', probe_start
+    )
+    probe = runner[probe_start:probe_end]
 
     assert '"artifacts/v0.9/work-package/schema.json"' in runner
     assert "$schemaBinding = $candidateEvidence.toolchain.files_sha256" in runner
     assert "frozen candidate schema binding differs" in runner
+    assert runner.count(f'$manualEvidenceMount = "{manual_mount}"') == 1
+    assert runner.index("$manualEvidenceMount =") < probe_start
+    assert "--mount $manualEvidenceMount --entrypoint python" in probe
     assert '$imageInputHashes["SPELL-DOCUMENTATION/$($entry.Key)"]' in runner
     assert "actual_manuals != expected_manuals or len(expected_manuals) != 7" in runner
     assert 'print("qualification-inputs=PASS files=8")' in runner
