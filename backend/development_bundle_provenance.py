@@ -1,4 +1,4 @@
-"""Exact local builder provenance for immutable v0.9 procedure bundles."""
+"""Exact local builder provenance for immutable v0.11 procedure bundles."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ BASE_IMAGE_REFERENCE = (
     "python:3.13-slim@sha256:"
     "eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280"
 )
-BUILDER_IDENTITY = "spell-v09-dual-network-none-builder/1"
+BUILDER_IDENTITY = "spell-v11-dual-network-none-builder/1"
 DESCRIPTOR_SCHEMA = "spell.bundle-toolchain/1"
 MAX_TOOLCHAIN_FILE_BYTES = 2_000_000
 MAX_TOOLCHAIN_FILES = 1_000
@@ -30,6 +30,8 @@ _TOOLCHAIN_STATIC_FILES = (
     "backend/Dockerfile",
     "backend/requirements.hashes.lock",
     "contracts/v10/language_reference_example_matrix.json",
+    "contracts/v11/telecommand_catalog.json",
+    "contracts/v11/telecommand_execution.json",
 )
 _TOOLCHAIN_EXCLUDED_DIRECTORIES = frozenset({"tests", "__pycache__"})
 

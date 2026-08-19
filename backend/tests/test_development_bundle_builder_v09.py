@@ -393,6 +393,11 @@ def test_toolchain_descriptor_binds_runtime_lock_dockerfile_and_regular_files(
     assert hashlib.sha256(canonical_json_bytes(descriptor)).hexdigest() == toolchain_digest()
 
     repository = Path(__file__).resolve().parents[2]
+    assert {
+        "contracts/v10/language_reference_example_matrix.json",
+        "contracts/v11/telecommand_catalog.json",
+        "contracts/v11/telecommand_execution.json",
+    } <= set(toolchain_files(repository))
     copied = tmp_path / "repository"
     for relative in toolchain_files(repository):
         destination = copied.joinpath(*relative.split("/"))

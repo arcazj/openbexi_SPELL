@@ -23,6 +23,7 @@ from .ir_v06 import (
     validate_user_action,
     validate_user_action_block,
 )
+from .ir_v11 import telecommand_dependency_variables
 from .models import Event, Execution, Prompt
 from .operator_models import (
     ControllerLease,
@@ -70,7 +71,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
-_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10"})
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,
@@ -2857,6 +2858,14 @@ class OperatorService:
                         raise OperatorValidationError(
                             "RUN target must be a future executable line"
                         )
+                    if (
+                        command_type == "GOTO"
+                        and execution.ir_version == "0.11"
+                        and target_step <= execution.current_step
+                    ):
+                        raise OperatorValidationError(
+                            "v0.11 telecommand procedures do not permit backward GOTO"
+                        )
                     target = {
                         **target,
                         "source_digest": projection.source_digest,
@@ -5547,6 +5556,19 @@ class OperatorService:
             pinned_handler = _validate_literal(
                 list(action.definition.get("handler") or [])
             )
+            if rejection is None and execution.ir_version == "0.11":
+                try:
+                    operations = validate_user_action_block(pinned_handler)
+                except V06ValidationError:
+                    rejection = "ACTION_HANDLER_INVALID"
+                else:
+                    protected = telecommand_dependency_variables(execution.steps)
+                    if any(
+                        operation.operation == "SET_LITERAL"
+                        and operation.payload["name"] in protected
+                        for operation in operations
+                    ):
+                        rejection = "TELECOMMAND_DEPENDENCY_IMMUTABLE"
             handler_digest = canonical_digest(pinned_handler)
             invocation = OperatorUserActionInvocation(
                 id=new_id(),
@@ -5906,6 +5928,11 @@ class OperatorService:
                     and type(step.get("name")) is str
                     and type(step.get("declared_type")) is str
                 }
+                protected = (
+                    telecommand_dependency_variables(execution.steps)
+                    if execution.ir_version == "0.11"
+                    else frozenset()
+                )
                 for operation in operations:
                     if operation.operation == "LOG":
                         expected_effects.append(
@@ -5922,6 +5949,10 @@ class OperatorService:
                         )
                         continue
                     name = operation.payload["name"]
+                    if name in protected:
+                        raise OperatorConflictError(
+                            "user action cannot mutate a telecommand dependency"
+                        )
                     current_value = expected_variables.get(name)
                     current_type = (
                         "bool"
@@ -7575,6 +7606,14 @@ class OperatorService:
             execution = session.get(Execution, execution_id, with_for_update=True)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
+            if (
+                execution.ir_version == "0.11"
+                and container_name is None
+                and name in telecommand_dependency_variables(execution.steps)
+            ):
+                raise OperatorAuthorizationError(
+                    "v0.11 telecommand dependencies are not inspection-edit targets"
+                )
             if execution.ir_version == "0.8" and scope == "ARGS":
                 raise OperatorAuthorizationError(
                     "v0.8 ARGS is immutable after execution admission"

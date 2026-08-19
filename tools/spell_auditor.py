@@ -379,8 +379,43 @@ def derive_spec_for(lname: str) -> Dict[str, Any]:
     return spec
 
 
-def load_header_rules(_path: Optional[str]) -> Dict[str, Any]:
-    return {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True, "spacecraft_check": True}
+def load_header_rules(path: Optional[str]) -> Dict[str, Any]:
+    if path is None:
+        return {
+            "required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT),
+            "file_must_match": True,
+            "spacecraft_check": True,
+        }
+
+    with open(path, "r", encoding="utf-8") as stream:
+        policy = json.load(stream)
+    if not isinstance(policy, dict):
+        raise ValueError("header rules must be a JSON object")
+
+    required = policy.get("required")
+    fields = policy.get("fields")
+    if (
+        not isinstance(required, list)
+        or not required
+        or any(not isinstance(name, str) or not name for name in required)
+        or not isinstance(fields, dict)
+    ):
+        raise ValueError("header rules require non-empty `required` and `fields` entries")
+    unknown = set(required) - set(fields)
+    if unknown:
+        raise ValueError(f"header rules omit field definitions for: {sorted(unknown)}")
+
+    file_policy = fields.get("FILE", {})
+    if not isinstance(file_policy, dict):
+        raise ValueError("header FILE rules must be a JSON object")
+    spacecraft_policy = fields.get("SPACECRAFT", {})
+    if not isinstance(spacecraft_policy, dict):
+        raise ValueError("header SPACECRAFT rules must be a JSON object")
+    return {
+        "required_keys": required,
+        "file_must_match": file_policy.get("must_match_filename") is True,
+        "spacecraft_check": "SPACECRAFT" in required,
+    }
 
 
 def _parse_commented_header(lines: List[str]) -> Tuple[Dict[str, str], int]:
@@ -507,7 +542,83 @@ def extract_calls_anywhere_multiline(lines: List[str]) -> List[Tuple[int, str]]:
             in_dq = False
             depth = 0
             line_idx = i
-            col_idx = m…640 tokens truncated…_sq = not in_sq
+            col_idx = m.start()
+            buf_chars: List[str] = []
+
+            # Begin at the function name; collect until depth returns to 0
+            found_open = False
+            while True:
+                if line_idx >= n:
+                    # Unterminated call; emit best effort and stop
+                    out.append((start_line, ''.join(buf_chars)))
+                    i = n
+                    break
+
+                line = lines[line_idx]
+                if col_idx >= len(line):
+                    # end of line -> newline and advance
+                    buf_chars.append('\n')
+                    line_idx += 1
+                    col_idx = 0
+                    continue
+
+                ch = line[col_idx]
+                buf_chars.append(ch)
+
+                # toggle quotes
+                if ch == "'" and not in_dq:
+                    in_sq = not in_sq
+                elif ch == '"' and not in_sq:
+                    in_dq = not in_dq
+                elif not in_sq and not in_dq:
+                    if ch == '(':
+                        depth += 1
+                        found_open = True
+                    elif ch == ')':
+                        if found_open:
+                            depth -= 1
+                            if depth == 0:
+                                # Completed this call
+                                out.append((start_line, ''.join(buf_chars)))
+                                # Continue scanning after this call on the same line
+                                i = line_idx
+                                s = lines[i]
+                                pos = col_idx + 1
+                                break
+
+                col_idx += 1
+            # end inner char scan
+        # end while scan in this line
+        i += 1
+    return out
+def _is_call_like(tok: str) -> bool:
+    s = tok.strip()
+    # very loose: funcName(...)
+    return bool(re.match(r'^[A-Za-z_][A-Za-z0-9_]*\s*\(.*\)\s*$', s))
+
+def _is_string_like_expr(tok: str) -> bool:
+    """
+    Return True if tok is a top-level '+' concatenation of string-like parts:
+    - string literal  e.g., 'abc' or "abc"
+    - identifier      e.g., NAME
+    - index expr      e.g., SCDB['k'] or SCDB[NAME]
+    - call-like expr  e.g., getLabel(...)
+    Ignoring nested brackets/quotes while splitting by '+' at top level.
+    """
+    s = tok.strip()
+    if not s:
+        return False
+
+    parts = []
+    buf = []
+    depth = 0
+    in_sq = False
+    in_dq = False
+    i = 0
+    while i < len(s):
+        ch = s[i]
+        if ch == "'" and not in_dq:
+            in_sq = not in_sq
             buf.append(ch)
         elif ch == '"' and not in_sq:
             in_dq = not in_dq
@@ -883,6 +994,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("procedure_path")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--header-rules")
     args = ap.parse_args()
 
     global CURRENT_PROCEDURE_PATH
@@ -895,8 +1007,10 @@ def main():
         print(json.dumps(err, indent=2) if args.json else f"[ERROR] {e}")
         sys.exit(1)
 
-    header_rules = {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True,
-                    "spacecraft_check": True}
+    try:
+        header_rules = load_header_rules(args.header_rules)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        ap.error(f"invalid header rules: {exc}")
     res = audit(text, args.json, header_rules)
 
     if args.json:
