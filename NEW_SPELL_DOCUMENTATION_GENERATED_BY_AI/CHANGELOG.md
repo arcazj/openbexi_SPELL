@@ -5,6 +5,15 @@ history remains in the parent project and is not duplicated as document history.
 
 ## Unreleased Product-Application Alignment - 2026-08-19
 
+- Established every document under the parent repository's
+  `SPELL_DOCUMENTATION/` directory as a mandatory source reference for future
+  coding and delivery. Clarified that this generated specification is a
+  controlled, traceable interpretation rather than an independent replacement
+  for those manuals.
+- Versioned five reviewed 2.4.4 behavioral manuals at their current source
+  location and inventoried two supplementary earlier manuals. Preserved
+  explicit compatibility decisions for ambiguity, obsolete mechanisms, safety
+  strengthening, and intentional incompatibility.
 - Recorded that the parent project's mutable v0.10 adapter maps all 195 numbered
   Language Reference examples to 257 independently asserted, hash-bound variant
   subcases. Raw malformed, pseudocode, output-only, placeholder, negative, and
@@ -28,7 +37,8 @@ history remains in the parent project and is not duplicated as document history.
 - Established the generated next-generation documentation repository.
 - Recorded the complete seven-file, 304-page legacy documentation evidence set.
 - Preserved Language Reference 2.4.4 and Driver Development Manual 2.4.4 as
-  external hash-pinned authorities.
+  hash-pinned source authorities under the parent repository's
+  `SPELL_DOCUMENTATION/` directory.
 - Defined normative system requirements, traceability, compatibility disposition,
   architecture decisions, web operating modes, procedure Git workflow, security,
   NIST SP 800-171 alignment, operations, reliability, verification and roadmap.

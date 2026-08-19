@@ -8,6 +8,52 @@ applicable version record. Never infer release acceptance from this prompt or
 from a mutable worktree; the strictly validated annotated tag and its committed
 evidence are authoritative.
 
+## Documentation Reference Baseline
+
+Every document stored under `SPELL_DOCUMENTATION/`, now or later, is a
+mandatory source-reference input for future SPELL analysis, planning, coding,
+testing, integration, packaging, and delivery. Before changing behavior, an
+engineer or AI agent shall inventory the applicable documents, read the
+relevant sections, and trace the proposed scope and acceptance evidence back to
+the source document, version, page or section, and SHA-256 identity where
+available.
+
+The documents define the forward reference baseline for documented SPELL
+language behavior, driver services, server concepts, operator workflows,
+development workflows, and related delivery expectations. Content under
+`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` is a controlled, derived
+interpretation of that baseline. Generated requirements, architecture,
+procedures, and release records may clarify or safely strengthen an
+implementation, but they shall not silently replace, weaken, omit, or
+contradict an applicable source document.
+
+When a source document is ambiguous, obsolete, internally inconsistent, or
+unsafe under the modern architecture, record the conflict in the compatibility
+ledger or an approved decision record. Define the exact supported behavior,
+diagnostic or migration path, and test evidence before implementation. A
+deliberate incompatibility requires an explicit scope decision; absence from a
+generated document is not a decision.
+
+This reference policy does not authorize copying legacy implementation code,
+shipping the manuals in product images or release packages, connecting to a
+GCS or spacecraft, deployment, compliance claims, or operational use. Accepted
+Git tags and committed release evidence remain authoritative for release
+status, while `SPELL_DOCUMENTATION/` remains authoritative for the source
+behavior and concepts that future work must address.
+
+## GitHub Delivery Default
+
+After completing and validating repository work, stage only the intended
+changes, create a clear commit, and push the current branch to the configured
+GitHub `origin` unless the owner explicitly directs otherwise or publication
+would expose secrets, invalid work, or unfinished work. Do not leave completed
+changes only in the local worktree when GitHub has not been updated.
+
+After each push, verify that the remote branch resolves to the new local commit
+and report any remaining worktree changes or publication blocker. A normal
+commit and push does not create an accepted release, authorize deployment, or
+replace the annotated-tag and committed-evidence release gates.
+
 ## Mission
 
 OpenBEXI SPELL is a clean-room modernization of the Satellite Procedure
@@ -37,12 +83,15 @@ local implementations are not candidate
 freezes, accepted releases, deployment approvals, compliance results, or
 operational authorizations.
 
-For v0.10 and v0.11 work, the 195-example documentation set is the traceability
-source of truth. Preserve distinct proof for every identified variant, including
-both Example 60 `Send` forms. Do not weaken tests, silently ignore conflicting
-modifiers, infer success from transport or loading, or automatically resend an
-effect-possible or effect-unknown operation. v0.11 remains deterministic and
-simulator-only with supervisor-owned durable confirmation and settlement.
+For v0.10 and v0.11 work, the applicable manuals under
+`SPELL_DOCUMENTATION/`, including the 195-example Language Reference 2.4.4,
+are the behavioral reference baseline. The generated matrices and version
+records provide derived traceability and evidence. Preserve distinct proof for
+every identified variant, including both Example 60 `Send` forms. Do not weaken
+tests, silently ignore conflicting modifiers, infer success from transport or
+loading, or automatically resend an effect-possible or effect-unknown
+operation. v0.11 remains deterministic and simulator-only with
+supervisor-owned durable confirmation and settlement.
 
 At the v0.9 candidate source-freeze boundary, SPELL v0.8.0 was the accepted
 local synthetic non-CUI simulator engineering baseline. Annotated tag object
@@ -102,7 +151,7 @@ approval, compliance determination, mission authority, or operational
 authorization. Configuration must not make an excluded capability appear to
 exist.
 
-## Legacy Evidence
+## Reference Manuals And Legacy Code Evidence
 
 The following excluded archives are read-only compatibility and historical
 evidence. Never compile, import, link, package, or silently copy implementation
@@ -112,15 +161,16 @@ code from them into the Apache-2.0 project:
 - `SPELL-COTS-2.6.10.zip`: legacy third-party dependency bundle.
 - `SPELL_GUI_4.0.12-win32.win32.x86.zip`: legacy 32-bit Eclipse GUI binary.
 
-The supplied Server, GUI, Language, Driver Development, Development Environment,
-and Build manuals and GUI build instructions are read-only external evidence.
-Use the active version's hash-bound, page-complete review and compatibility
-ledger for classification and traceability, not as implementation source or a
-version-exact executable oracle. Do not copy their code or weakly typed wire
-contracts, and do not place the supplied PDFs, extracted manual text, or legacy
-archives in product images or release packages. Record conflicts and exclusions;
-do not invent compatibility. Core and GUI legacy versions are independent
-version series.
+The supplied Server, GUI, Language, Driver Development, Development
+Environment, and other manuals under `SPELL_DOCUMENTATION/` are mandatory
+read-only source references for forward work. Use the active version's
+hash-bound review and compatibility ledger to translate them into scoped
+requirements and tests. The manuals are not implementation source or a
+version-exact executable oracle: do not copy their code or weakly typed wire
+contracts, and do not place supplied PDFs, extracted manual text, or legacy
+archives in product images or release packages. Record conflicts, modern safety
+strengthening, and exclusions; do not invent or silently omit compatibility.
+Core and GUI legacy versions remain independent version series.
 
 ## Architecture Rules
 
@@ -370,15 +420,27 @@ safety boundary.
 
 ## Authoritative References
 
-Local versioned code, migrations, tests, lock files, license files, and release
-records are authoritative for the implementation. Use upstream SPELL material
-for historical and architectural context:
+Use authority by domain:
+
+- Every document under `SPELL_DOCUMENTATION/` is the primary source reference
+  for documented SPELL behavior and concepts that future work must address.
+- Controlled requirements, compatibility dispositions, ADRs, code, migrations,
+  tests, and lock files are authoritative for the approved modern
+  implementation of that referenced behavior.
+- Version records, committed evidence, and strictly validated annotated tags
+  are authoritative for scope, qualification results, and release status.
+- Generated documentation is derived and must remain traceable to the source
+  references; it cannot silently supersede them.
+
+Use upstream SPELL material for additional historical and architectural
+context:
 
 - SPELL Wiki: `https://sourceforge.net/p/spell-sat/wiki/Home/`
 - SPELL project: `https://sourceforge.net/projects/spell-sat/`
 - Getting started: `https://sourceforge.net/p/spell-sat/wiki/Start%20using%20SPELL/`
 - Licensing overview: `https://sourceforge.net/p/spell-sat/wiki/Licensing/`
 
-When local evidence and upstream documentation disagree, record the discrepancy
-and follow the approved local version contract unless a later prompt explicitly
-adopts different behavior.
+When the source documents, generated specification, implementation evidence,
+and upstream material disagree, record the discrepancy and apply the explicit
+compatibility or architecture decision approved for that domain. Never resolve
+the conflict by silently following whichever source is most convenient.

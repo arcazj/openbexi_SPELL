@@ -5,18 +5,36 @@
 | Field | Value |
 | --- | --- |
 | Review date | 2026-07-17 |
-| Evidence location | `SPELL-DOCUMENTATION/` |
-| Coverage | Seven PDF files; 304 of 304 pages reviewed |
+| Evidence location | Versioned references under `SPELL_DOCUMENTATION/`; two historical build records remain digest-identified external evidence |
+| Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Current product baseline | SPELL v0.3.0, tag `v0.3.0` |
 | Product implementation change | None |
 | Operational authorization | None |
-| Distribution decision | Not made; the supplied PDFs remain external read-only evidence unless separately cleared |
+| Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |
 
-This record documents a page-complete review of the material currently under
-`SPELL-DOCUMENTATION/`. It is a clean-room behavioral input and roadmap record,
-not permission to copy legacy implementation code, package the PDFs, connect to
-a Ground Control System (GCS), or reproduce unsafe legacy behavior.
+This record documents a page-complete review of the historical seven-file
+source set and the current forward-reference policy for documents under
+`SPELL_DOCUMENTATION/`. It is a clean-room behavioral input and roadmap record,
+not permission to copy legacy implementation code, package the PDFs with the
+product, connect to a Ground Control System (GCS), or reproduce unsafe legacy
+behavior.
+
+## Forward-Work Reference Baseline
+
+Every document currently or later stored under `SPELL_DOCUMENTATION/` is a
+mandatory source reference for future SPELL analysis, requirements, coding,
+testing, integration, and delivery. The generated documentation is a controlled
+modern interpretation of those sources and shall retain traceability to them.
+It may strengthen safety, security, typing, isolation, recovery, or delivery
+mechanisms, but it shall not silently replace, weaken, omit, or contradict
+documented behavior.
+
+Ambiguity, version conflict, obsolete mechanisms, unsafe behavior, and
+intentional incompatibility require an explicit compatibility or architecture
+decision with verification evidence. The manuals define what forward work must
+address; versioned code and tests define the approved implementation; validated
+annotated tags and committed evidence define release status.
 
 ## v0.10 And v0.11 Application Note
 
@@ -28,13 +46,13 @@ as closed, deterministic simulator `BuildTC`/`Send` behavior. The Language
 Reference owns documented syntax and procedure-visible intent; the Driver
 Development Manual owns stage and provider concepts. Where legacy prose
 conflicts with typed certainty, no-resend, or supervisor-owned confirmation,
-the bounded decisions in
+the manual intent remains the source baseline and the explicit safety
+interpretation in
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md`
-apply, the mutable
+applies. The mutable
 implementation and local qualification boundary is recorded in
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md`,
-and
-the conflict remains documented rather than guessed.
+and the conflict remains documented rather than guessed.
 
 These applications do not copy manual bodies into runtime source and do not
 create a live GCS adapter, driver credential, spacecraft connection, operational
@@ -53,13 +71,26 @@ authorization, general SPELL 2.4.4 conformance claim, or accepted release.
 | `SPELL-GUI-4.0.2-Build-Instructions.pdf` | 3/3 | GUI 4.0.2 | `5d8c93bec655499b42f921336640c42eb9dcd68f8979eced3e74758aef71dba6` | Windows/Linux GUI build and package evidence | Conflicts with older Java/Eclipse build versions and is not a behavior specification |
 | **Total** | **304/304** | Mixed | - | Complete supplied-document review | Manuals are not an executable or version-exact oracle |
 
+### Supplementary Current References
+
+These earlier manuals are also mandatory references because they are versioned
+under `SPELL_DOCUMENTATION/`. They are outside the historical 304-page review
+total and supplement, rather than override, the applicable later manuals.
+
+| Document | Pages | SHA-256 | Principal use |
+| --- | ---: | --- | --- |
+| `SPELL_Language_Manual.pdf` | 68 | `f2f3e72e62692eeabb287b704878240012062f894b52a10570b8f42199c233fb` | Earlier language terminology, behavior, and revision context |
+| `SPELL_DEV_Manual.pdf` | 37 | `94c1443646e22f3692ac25d2ef570ff437d83c38b71082e7077b4a322e5fb94f` | Earlier development-environment workflow and revision context |
+
 The manuals are labeled 2.4.4, the previously inventoried Core archive is
 2.6.10, the supplied GUI binary is 4.0.12, and the separate GUI build note is
-4.0.2. The manuals therefore define important observable behavior, vocabulary,
-and workflows, but they do not prove the exact behavior of every later binary.
-Where they conflict, approved observed traces and version-specific source
-evidence take precedence, followed by the manuals and then explicit modern
-design decisions. Ambiguity must be recorded rather than guessed.
+4.0.2. The manuals define the observable behavior, vocabulary, and workflows
+that forward work must address, but they do not prove the exact behavior of
+every later binary. Approved observed traces and version-specific source
+evidence may establish what a particular binary did; they do not silently
+override the documented forward baseline. Version and evidence conflicts
+require an explicit compatibility decision. Ambiguity must be recorded rather
+than guessed.
 
 ## Compatibility Policy
 

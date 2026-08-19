@@ -152,13 +152,17 @@ file and an archive entry. That mechanical check supports but does not by itself
 prove clean-room authorship. The accepted v0.4 through v0.8 releases and the
 v0.9 planning contracts retain the same source boundary.
 
-### Manual Evidence Boundary
+### Manual Reference Boundary
 
-The seven supplied manuals and build instructions are read-only external
-evidence. Their page-complete review and compatibility ledger classify concepts,
-conflicts, errata, Candidate A applicability, and explicit exclusions. They are
-not implementation source, redistributable product content, a version-exact
-executable oracle, or proof that an excluded legacy capability exists.
+Every document under `SPELL_DOCUMENTATION/` is a mandatory read-only source
+reference for future analysis, implementation scope, tests, and delivery. The
+page-complete review and compatibility ledger classify concepts, conflicts,
+errata, Candidate A applicability, safety strengthening, and explicit
+exclusions. The manuals are not implementation source, redistributable product
+content, a version-exact executable oracle, or proof that an excluded legacy
+capability exists. Generated documentation and new first-party code must trace
+their applicable behavior and deliberate incompatibilities back to these
+references.
 
 | External evidence set | Stated version | Pages | Packaging disposition |
 | --- | --- | ---: | --- |
@@ -170,7 +174,7 @@ executable oracle, or proof that an excluded legacy capability exists.
 | Server Manual | 2.4.4 | 11 | Excluded |
 | GUI Build Instructions | 4.0.2 | 3 | Excluded |
 
-The authoritative filenames and SHA-256 values are recorded in
+The controlled filenames and SHA-256 values are recorded in
 [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md). Supplied PDFs,
 extracted manual text, and legacy archives must be absent from product images
 and the v0.4 package. The Candidate A typed contract deliberately does not copy
