@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.8.0 baseline and v0.9 candidate source freeze |
-| Update type | Accepted-release status, strict v0.8 bindings, and bounded v0.9 source-freeze status |
-| Updated | 2026-08-18 |
-| Accepted product baseline at v0.9 source freeze | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Document revision | Accepted v0.9.0 baseline and bounded v0.10/v0.11 working-tree implementations |
+| Update type | Accepted-release status plus non-release v0.10 verification and v0.11 implementation closeout scope |
+| Updated | 2026-08-19 |
+| Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -15,8 +15,11 @@
 | v0.7 status | Accepted at annotated tag `v0.7.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
+| v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
+| v0.10 current status | Reference Example Adapter implemented and locally verified in the mutable worktree; no v0.10 candidate freeze, package, release commit, or tag |
+| v0.11 current status | Simulator-only `BuildTC`/`Send` implementation locally qualified in the mutable worktree with recorded non-release exclusions; no v0.11 candidate freeze, package, release commit, or tag |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | At source freeze, accepted v0.8 remained the product baseline; bounded v0.9 development API, migration, and separate frontend changes were not yet a qualified candidate or accepted release |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.9.0 is the accepted baseline; bounded v0.10 and simulator-only v0.11 changes exist only in the mutable worktree and are not released |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -32,14 +35,13 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.8.0 is now the accepted product baseline. Its annotated tag object
-`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` peels to release commit
-`d6e01222de3bf52013279e48a099b6ae7ded121d`. Final validation,
+SPELL v0.9.0 is now the accepted product baseline. Its annotated tag object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`. Final validation,
 supply-chain/SBOM checks, deterministic packaging, release-evidence validation,
 and annotated tagging passed with no accepted exceptions. The verified tag
 activated the conditional owner acceptance without a post-tag documentation
-commit. This acceptance remains limited to `V08-DATA-001` through
-`V08-DATA-009` and provides no operational authorization. The owner request
+commit and provides no operational authorization. The earlier owner request
 `start and complete asap V0.9` and the subsequent
 [`V09-GATE-0A`](SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
 local synthetic non-CUI development-environment work packages and 45 planned
@@ -48,8 +50,11 @@ constructs or runtime artifacts. At candidate source freeze, the bounded
 implementation, version-scoped tooling, and exact product inventory were frozen
 together. At that boundary, canonical candidate qualification had not yet run;
 Gate 0B, Final qualification, packaging, release, and tag validation were
-pending. Later acceptance is authoritative only through the strictly validated
-annotated tag and committed evidence.
+pending. That historical boundary was later superseded by the validated
+`v0.9.0` tag. The v0.10 adapter and v0.11 simulator telecommand implementation
+described below exist only in the mutable worktree; neither has a release
+endpoint. The v0.11 local closeout record is complete and records every
+environment-selected or intentionally inapplicable release-only check.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -249,9 +254,9 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Accepted at annotated tag `v0.7.0`; no accepted exceptions | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`, and annotated tag `v0.7.0` passed. |
 | v0.8 | Data and Local Service Compatibility | Product | Accepted at annotated tag `v0.8.0`; no accepted exceptions | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`, and annotated tag `v0.8.0` passed. |
-| v0.9 | SPELL Development Environment | Product | Candidate source and exact product inventory frozen; canonical qualification was pending at freeze; later acceptance only by validated annotated tag | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Accepted v0.8.0 baseline plus hash-bound project, language-service, authoring, bundle, promotion, migration, security, and offline acceptance contracts. |
-| v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
-| v0.11 | Simulator Telecommand Semantics | Product | Candidate | Implement `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, time/load intent, per-element stages, certainty, and reconciliation. | Accepted simulator services, explicit no-resend/confirmation model, command corpus, and exhaustive fault tests. |
+| v0.9 | SPELL Development Environment | Product | Accepted at annotated tag `v0.9.0`; no accepted exceptions | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Final qualification, supply-chain/SBOM audit, deterministic package, release-evidence validation, and strict annotated-tag validation passed. |
+| v0.10 | SPELL 2.4.4 Reference Example Adapter | Product | Implemented and locally qualified in the mutable worktree; not released and not raw-source conformance | Provide one bounded runner for all 195 numbered reference examples, with explicit semantic adaptations, deterministic simulator effects, and exact per-example oracles. | Exact 195-example source contract plus 257 independently asserted variant subcases, one bundled procedure, 195/195 direct and worker-path passes, public menu execution, and zero skipped, failed, expected-failed, or unresolved examples. |
+| v0.11 | Simulator Telecommand Semantics | Product | Implemented and locally qualified in the mutable worktree with recorded non-release exclusions; not released | Implement simulator-only `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, deterministic time/load/release intent, per-element stages, certainty, verification, cancellation, and reconciliation. | Strengthened v0.10 variant gate, closed command corpus, explicit no-resend/confirmation model, deterministic timing/verification, durable recovery, exhaustive fault tests, and recorded final commands/results. |
 | v0.12 | Read-Only Legacy Observation | Product | Candidate | Compare an isolated legacy test environment to the proven typed simulator APIs with structurally zero command authority. | Accepted read-only simulator contracts, version-specific evidence, golden traces, and a read-only enforcement plan. |
 | v0.13 | Controlled Non-Operational Procedure Control | Product | Candidate | Add audited legacy procedure control in an explicitly approved non-operational environment; no spacecraft command authority. | Accepted v0.12 observation and dedicated control-lease, failure, rollback, and environment safety plan. |
 | v0.14 | Bounded Adapter Migration | Product | Candidate | Migrate one specifically approved adapter capability per tranche with conformance, certainty, security, load, and rollback evidence. | Accepted capability contract and separate environment/effect authorization for each tranche. |
@@ -791,16 +796,15 @@ backup/restore, and migration tests pass for the claimed APIs.
 Goal: deliver the documented offline development workflows as a separate web
 surface and controlled promotion pipeline.
 
-Current disposition: [`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md)
-authorizes exactly `V09-DEV-001` through `V09-DEV-009` and their 45 planned
-proof identities under scope profile
-`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. The gate claims zero
-implemented constructs and zero runtime artifacts at its authorization-time
-boundary. At candidate source freeze, the bounded implementation, canonical
-v0.9 qualification/release tooling, and exact product inventory were frozen
-together. At that boundary, canonical candidate qualification had not yet run;
-Gate 0B, Final evidence, packaging, release, and acceptance were pending. Later
-acceptance is authoritative only through the strictly validated annotated tag.
+Current disposition: accepted at annotated tag `v0.9.0`, object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c`, which peels to release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`. The earlier
+[`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md) authorized exactly
+`V09-DEV-001` through `V09-DEV-009` and their 45 planned proof identities under
+scope profile `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`; its historical
+zero-implementation claim remains true at the gate event. Candidate, Gate 0B,
+Final, packaging, and strict annotated-tag validation subsequently passed with
+no accepted exceptions.
 
 Required properties:
 
@@ -819,44 +823,85 @@ Exit gate: authoring accessibility, language-service non-execution,
 project/dictionary compatibility, collaboration, promotion, installation, and
 offline-package tests pass on the declared platform/browser matrix.
 
-### v0.10 - Simulator Auxiliary Service Mutations
+### v0.10 - SPELL 2.4.4 Reference Example Adapter
 
-Goal: add GCS-oriented non-command service families one approved effect class
-at a time, using only deterministic simulators.
+Goal: make every numbered example in SPELL Language Reference 2.4.4 selectable
+from one runnable procedure and prove its independently authored semantic
+adaptation against deterministic simulator oracles.
+
+Current disposition: implemented and locally verified on 2026-08-19 in the
+mutable working tree. The canonical local result is 195 PASS with zero failed,
+skipped, expected-failed, or unresolved examples; the strengthened traceability
+gate contains 257 independently asserted variant subcases across those 195
+examples. Public API and desktop/mobile browser execution are also local
+evidence. This is not a candidate freeze, package, accepted release, or
+annotated-tag endpoint.
 
 Required properties:
 
-- Separate tranches for `Event`, `SetGroundParameter`, `SetResource`, limit and
-  alarm changes, external display intents, optional memory report/image
-  operations, and optional ranging.
-- Stable operation identity, capability-specific authorization, explicit stage
-  and certainty, reconciliation, audit, rollback, and no generic retries.
-- Driver facts and criticality remain separate from supervisor-owned prompts,
-  authorization, persistence, retry policy, and publication.
+- Exactly one bundled procedure with a searchable typed menu for Examples
+  1 through 195 and durable index-to-example routing.
+- A hash-pinned 195-row contract binding the reference authority, source spans,
+  compatibility identities, semantic families, adaptations, expected effects,
+  and success criteria.
+- A generated 257-subcase variant matrix covering all 195 examples, including
+  independent assertions and traces for every documented form and all 46
+  multi-variant examples.
+- Closed IR and runtime operations with no `exec`, `eval`, arbitrary import,
+  shell, network, or live command dispatch.
+- Exact expected-effect coverage for every PASS, including assertion and trace
+  references; Example 195 must query real bundled TM and TC catalog entries and
+  prove catalog provenance, filter bounds, types, directions, and a negative
+  lookup.
+- Direct adapter, worker, public API, and desktop/mobile menu verification with
+  195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, and 0 unresolved.
 
-Exit gate: each service has an independent conformance/fault/security gate; one
-accepted service never implies acceptance of another.
+This profile adapts semantic intent because the reference includes fragments,
+pseudocode, output-only illustrations, and intentionally invalid examples. It
+does not claim verbatim execution of PDF snippets or general SPELL 2.4.4 parser
+compatibility. The previously planned auxiliary-service mutation tranche is
+deferred; simulated effects in this adapter do not authorize or implement live
+service or telecommand routes.
+
+Exit gate: the contract, generator, single procedure, qualification artifact,
+worker/API tests, and real browser proof all pass without waiver.
 
 ### v0.11 - Simulator Telecommand Semantics
 
 Goal: implement the documented `BuildTC` and `Send` surface in a simulator with
 no operational route.
 
+Current disposition: the authorized simulator-only implementation is locally
+qualified in the mutable working tree. Exact multi-suite commands, counts,
+skips, non-applicable historical release checks, and the cold-cache offline
+build limitation are recorded in
+[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). This is not a
+candidate freeze, package, accepted release, or annotated-tag endpoint.
+
 Required properties:
 
 - Catalog-backed typed arguments and stable expansion of a logical command into
   ordered uniquely identified elements, including sequences, groups, and blocks.
 - Explicit preflight/critical confirmation, global versus per-command
-  modifiers, time/release/load-only intent, delays, closed-loop verification,
-  and per-element stages.
+  modifiers, time/release/load-only intent, no-real-wait logical scheduling,
+  per-element timeouts, delayed closed-loop verification, tolerance and
+  adjustable-limit intent, and per-element stages.
 - Separate transport, loading, release, acknowledgement, onboard execution,
   verification, disposition, effect certainty, and provider-native detail.
 - No transport-success inference, no `LoadOnly` success inflation, and no
   automatic resend or false success after uncertainty.
+- Durable intent and confirmation, bounded checkpoints, cancellation,
+  crash-boundary recovery, canonical-state integrity checks, and reconciliation
+  without dispatching a second command.
 
-Exit gate: command-corpus, confirmation, duplicate-child, stage, cancellation,
-crash-boundary, uncertainty, reconciliation, and no-resend tests pass entirely
-against deterministic simulators.
+Exit gate result: command-corpus, confirmation, duplicate-child, stage,
+cancellation, crash-boundary, uncertainty, reconciliation, and no-resend tests
+pass against deterministic simulators. The strengthened 195-example/257-variant
+v0.10 gate, current product regression, frontend, browser, build, and image
+checks pass, including all 19 environment-selected PostgreSQL and Docker-Compose
+tests. The implementation record preserves nine historical v0.5-v0.9
+current-root release/package validators as explicit non-v0.11 closeout
+boundaries rather than relabeling them as passes.
 
 ### v0.12 - Read-Only Legacy Observation
 
