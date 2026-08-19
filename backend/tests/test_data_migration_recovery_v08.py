@@ -105,6 +105,23 @@ def _sqlite_engine(path: Path):
     return engine
 
 
+def _v0007_migration_index() -> int:
+    return next(
+        index
+        for index, migration in enumerate(migration_runner.MIGRATIONS)
+        if migration.VERSION == v0007_data_local_service.VERSION
+    )
+
+
+def _run_through_v0007(engine) -> tuple[str, ...]:
+    original = migration_runner.MIGRATIONS
+    try:
+        migration_runner.MIGRATIONS = original[: _v0007_migration_index() + 1]
+        return run_migrations(engine)
+    finally:
+        migration_runner.MIGRATIONS = original
+
+
 class _VirtualBackupProvider:
     def __init__(self, objects: dict[tuple[str, str], tuple[str, bytes]]) -> None:
         self.objects = dict(objects)
@@ -570,7 +587,7 @@ def test_v0007_creates_exact_fifteen_tables_and_persists_unactivated_fingerprint
     tmp_path: Path,
 ) -> None:
     engine = _sqlite_engine(tmp_path / "schema.sqlite")
-    applied = run_migrations(engine)
+    applied = _run_through_v0007(engine)
     assert applied[-1] == "0007_data_local_service"
     assert database_version(engine) == "0007_data_local_service"
     assert set(DATA_TABLE_NAMES) == EXPECTED_DATA_TABLES
@@ -590,7 +607,7 @@ def test_v0007_creates_exact_fifteen_tables_and_persists_unactivated_fingerprint
     assert fingerprint["canonical_schema_sha256"] == CANONICAL_SCHEMA_SHA256
     assert fingerprint["activated"] is False
     assert fingerprint["created_at_database_time"] is not None
-    assert run_migrations(engine) == ()
+    assert _run_through_v0007(engine) == ()
 
 
 def test_bigint_revisions_and_binary_container_state_cross_32_bit_exactly(
@@ -894,8 +911,9 @@ def test_v0007_requires_exact_predecessor_and_rejects_partial_objects(tmp_path: 
 
     engine = _sqlite_engine(tmp_path / "partial.sqlite")
     original = migration_runner.MIGRATIONS
+    v0007_index = _v0007_migration_index()
     try:
-        migration_runner.MIGRATIONS = original[:-1]
+        migration_runner.MIGRATIONS = original[:v0007_index]
         run_migrations(engine)
     finally:
         migration_runner.MIGRATIONS = original
@@ -917,7 +935,9 @@ def test_v0007_failure_rolls_back_all_new_objects_and_record(
 ) -> None:
     engine = _sqlite_engine(tmp_path / "atomic.sqlite")
     original = migration_runner.MIGRATIONS
-    monkeypatch.setattr(migration_runner, "MIGRATIONS", original[:-1])
+    v0007_index = _v0007_migration_index()
+    predecessor = original[:v0007_index]
+    monkeypatch.setattr(migration_runner, "MIGRATIONS", predecessor)
     run_migrations(engine)
 
     def fail_after_schema(connection) -> None:
@@ -927,7 +947,7 @@ def test_v0007_failure_rolls_back_all_new_objects_and_record(
     failing = SimpleNamespace(
         VERSION=v0007_data_local_service.VERSION, upgrade=fail_after_schema
     )
-    monkeypatch.setattr(migration_runner, "MIGRATIONS", (*original[:-1], failing))
+    monkeypatch.setattr(migration_runner, "MIGRATIONS", (*predecessor, failing))
     with pytest.raises(RuntimeError, match="controlled v0007 failure"):
         run_migrations(engine)
     assert not EXPECTED_DATA_TABLES.intersection(inspect(engine).get_table_names())
@@ -1214,39 +1234,39 @@ def test_schema_verifier_binds_check_sql_and_default_expressions(
 
 def test_empty_unactivated_rollback_is_exact_and_reapplicable(tmp_path: Path) -> None:
     engine = _sqlite_engine(tmp_path / "rollback.sqlite")
-    run_migrations(engine)
+    _run_through_v0007(engine)
     dropped = rollback_data_local_service(engine)
     assert set(dropped) == EXPECTED_DATA_TABLES
     assert not EXPECTED_DATA_TABLES.intersection(inspect(engine).get_table_names())
     assert database_version(engine) == "0006_observation_conditions"
-    assert run_migrations(engine) == ("0007_data_local_service",)
+    assert _run_through_v0007(engine) == ("0007_data_local_service",)
 
 
 def test_data_rollback_rejects_activation_records_unknown_objects_and_drift(
     tmp_path: Path,
 ) -> None:
     activated = _sqlite_engine(tmp_path / "activated.sqlite")
-    run_migrations(activated)
+    _run_through_v0007(activated)
     with activated.begin() as connection:
         connection.execute(data_schema_fingerprints.update().values(activated=True))
     with pytest.raises(UnsafeDataRollbackError, match="activated"):
         rollback_data_local_service(activated)
 
     populated = _sqlite_engine(tmp_path / "populated.sqlite")
-    run_migrations(populated)
+    _run_through_v0007(populated)
     _seed_dictionary_revision(populated)
     with pytest.raises(UnsafeDataRollbackError, match="data or evidence"):
         rollback_data_local_service(populated)
 
     unknown = _sqlite_engine(tmp_path / "unknown.sqlite")
-    run_migrations(unknown)
+    _run_through_v0007(unknown)
     with unknown.begin() as connection:
         connection.exec_driver_sql("CREATE TABLE data_unreviewed (id TEXT PRIMARY KEY)")
     with pytest.raises(UnsafeDataRollbackError, match="unknown database objects"):
         rollback_data_local_service(unknown)
 
     drifted = _sqlite_engine(tmp_path / "drifted.sqlite")
-    run_migrations(drifted)
+    _run_through_v0007(drifted)
     with drifted.begin() as connection:
         connection.exec_driver_sql("ALTER TABLE data_catalogs ADD COLUMN drift TEXT")
     with pytest.raises(UnsafeDataRollbackError, match="fingerprint"):
@@ -1555,7 +1575,7 @@ def test_v0007_postgresql_schema_and_fingerprint_match_sqlite_contract() -> None
     engine = postgresql_migration_engine()
     reset_migration_database(engine)
     try:
-        assert run_migrations(engine)[-1] == "0007_data_local_service"
+        assert _run_through_v0007(engine)[-1] == "0007_data_local_service"
         assert schema_validation_errors(engine) == []
         with engine.connect() as connection:
             row = connection.execute(select(data_schema_fingerprints)).mappings().one()

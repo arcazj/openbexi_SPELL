@@ -16,10 +16,10 @@ from starlette.websockets import WebSocketDisconnect
 from backend.app import create_app
 from backend.auth import AuthConfig, issue_local_dev_token
 from backend.config import Settings
-from backend.database import Base, create_database as create_test_database
-from backend.migrations import schema_migrations
+from backend.database import create_database as create_test_database
 from backend.models import Command, Event, Execution
 from backend.supervisor import ConflictError, WorkerHandle
+from backend.tests.migration_support import reset_test_database
 
 from .conftest import wait_for_state
 
@@ -347,6 +347,9 @@ def test_prompt_crash_interrupts_then_recovers_from_checkpoint(
     assert recovery_required["active_prompt"]["id"] == first_prompt_id
     assert recovery_required["execution"]["current_step"] == 1
 
+    # Recovery semantics are independent of the separately tested 5-second
+    # watchdog; allow process-spawn jitter in constrained qualification hosts.
+    client.app.state.supervisor.command_ack_timeout_seconds = 30.0
     recover = client.post(
         f"/api/v1/executions/{execution_id}/commands",
         headers=operator_headers,
@@ -358,7 +361,9 @@ def test_prompt_crash_interrupts_then_recovers_from_checkpoint(
         },
     )
     assert recover.status_code == 202, recover.text
-    replayed = wait_for_state(client, execution_id, viewer_headers, {"prompting"})
+    replayed = wait_for_state(
+        client, execution_id, viewer_headers, {"prompting"}, timeout=35
+    )
     assert replayed["active_prompt"]["id"] == first_prompt_id
     # Abnormal retirement advances the durable epoch before recovery starts.
     assert replayed["execution"]["worker_generation"] == 3
@@ -674,9 +679,7 @@ def test_control_plane_restart_requires_explicit_recovery(
     )
     if os.getenv("SPELL_TEST_DATABASE_URL"):
         engine, _ = create_test_database(database_url)
-        with engine.begin() as connection:
-            schema_migrations.drop(connection, checkfirst=True)
-            Base.metadata.drop_all(connection)
+        reset_test_database(engine)
         engine.dispose()
     migration_backups = tmp_path / "migration-backups"
     migration_backups.mkdir(exist_ok=True)

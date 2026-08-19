@@ -45,7 +45,11 @@ from spell.driver.configuration import context_binding_digest
 CONFIRMATION = "LOCAL_SYNTHETIC_NON_CUI_ONLY"
 CONTEXT_ID = "v07-telemetry-synthetic-context"
 SUPPORTED_CONTEXT_IDS = frozenset(
-    {CONTEXT_ID, "v08-telemetry-synthetic-context"}
+    {
+        CONTEXT_ID,
+        "v08-telemetry-synthetic-context",
+        "v09-telemetry-synthetic-context",
+    }
 )
 CONTEXT_GENERATION_ID = "00000000-0000-4000-8000-000000000701"
 OPERATION_ID = "00000000-0000-4000-8000-000000000702"

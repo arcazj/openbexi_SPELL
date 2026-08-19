@@ -1,4 +1,4 @@
-"""Bounded, digest-bound backup and isolated restore for v0.8 local data."""
+"""Bounded, digest-bound backup and isolated restore for the current database."""
 
 from __future__ import annotations
 
@@ -25,6 +25,7 @@ from .data_models import (
 )
 from .data_values import TypedValueError, strict_json_loads
 from .migrations import MIGRATIONS, database_version, run_migrations
+from .migrations.versions import v0008_development_environment
 from .virtual_file_service import (
     MAXIMUM_FILE_BYTES as MAXIMUM_VIRTUAL_FILE_BYTES,
     MAXIMUM_ROOT_BYTES as MAXIMUM_VIRTUAL_ROOT_BYTES,
@@ -44,6 +45,7 @@ BACKUP_STREAM_CHUNK_BYTES = 1_048_576
 _SAFE_SEGMENT = re.compile(r"[A-Za-z0-9._-]+\Z")
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 _POSTGRES_IDENTIFIER = re.compile(r"[a-z_][a-z0-9_]{0,62}\Z")
+CURRENT_MIGRATION_HEAD = MIGRATIONS[-1].VERSION
 
 
 class DataBackupError(RuntimeError):
@@ -678,6 +680,7 @@ def _verify_sqlite_database(
             if connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() != "ok":
                 raise BackupCorruptionError("backup database integrity check failed")
             verify_persisted_schema_fingerprint(connection)
+            v0008_development_environment.verify(connection)
             references = _virtual_references(connection)
             verify_data_integrity(
                 connection, virtual_file_reader=virtual_file_reader
@@ -723,11 +726,12 @@ def create_sqlite_backup(
                 ) from exc
             try:
                 migration_head = _connection_migration_head(source)
-                if migration_head != "0007_data_local_service":
+                if migration_head != CURRENT_MIGRATION_HEAD:
                     raise DataBackupError(
-                        "backup requires the complete v0.8 migration head"
+                        "backup requires the complete current migration head"
                     )
                 verify_persisted_schema_fingerprint(source)
+                v0008_development_environment.verify(source)
                 references = _virtual_references(source)
                 expected_identities = frozenset(references)
                 if _provider_inventory(virtual_file_provider) != expected_identities:
@@ -849,11 +853,12 @@ def create_postgresql_backup(
                 ) from exc
             try:
                 migration_head = _connection_migration_head(source)
-                if migration_head != "0007_data_local_service":
+                if migration_head != CURRENT_MIGRATION_HEAD:
                     raise DataBackupError(
-                        "backup requires the complete v0.8 migration head"
+                        "backup requires the complete current migration head"
                     )
                 verify_persisted_schema_fingerprint(source)
+                v0008_development_environment.verify(source)
                 table_specs = _postgresql_table_specs(source)
                 if [item["name"] for item in table_specs] != names:
                     raise BackupCorruptionError(
@@ -1111,7 +1116,7 @@ def verify_backup_bundle(directory: Path | str) -> dict[str, Any]:
     backend = manifest["database_backend"]
     if backend not in {"sqlite", "postgresql"}:
         raise BackupCorruptionError("backup backend is unsupported")
-    if manifest["migration_head"] != "0007_data_local_service":
+    if manifest["migration_head"] != CURRENT_MIGRATION_HEAD:
         raise BackupCorruptionError("backup migration head differs")
     try:
         datetime.strptime(
@@ -1445,6 +1450,7 @@ def restore_postgresql_backup(
                     "restored PostgreSQL migration head differs"
                 )
             verify_persisted_schema_fingerprint(target)
+            v0008_development_environment.verify(target)
             restored_references = _virtual_references(target)
             if restored_references != expected_references:
                 raise BackupCorruptionError(

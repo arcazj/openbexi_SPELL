@@ -41,6 +41,10 @@ class Settings:
     observation_freshness_sweep_seconds: float = 0.5
     data_dir: Path | None = None
     v0007_backup_directory: Path | None = None
+    bundle_request_directory: Path | None = None
+    bundle_response_a_directory: Path | None = None
+    bundle_response_b_directory: Path | None = None
+    bundle_build_timeout_seconds: float = 30.0
 
     def __post_init__(self) -> None:
         if self.websocket_replay_limit <= 0:
@@ -103,6 +107,31 @@ class Settings:
             and not self.v0007_backup_directory.is_absolute()
         ):
             raise ValueError("SPELL_V0007_BACKUP_DIR must be an absolute path")
+        builder_directories = (
+            self.bundle_request_directory,
+            self.bundle_response_a_directory,
+            self.bundle_response_b_directory,
+        )
+        if any(item is not None for item in builder_directories):
+            if any(item is None for item in builder_directories):
+                raise ValueError("all three bundle builder directories are required")
+            concrete = tuple(item for item in builder_directories if item is not None)
+            if any(not item.is_absolute() for item in concrete):
+                raise ValueError("bundle builder directories must be absolute paths")
+            normalized = tuple(item.resolve(strict=False) for item in concrete)
+            if len(set(normalized)) != 3 or any(
+                left in right.parents or right in left.parents
+                for index, left in enumerate(normalized)
+                for right in normalized[index + 1 :]
+            ):
+                raise ValueError("bundle builder directories must be separate")
+        if (
+            not math.isfinite(self.bundle_build_timeout_seconds)
+            or not 0.1 <= self.bundle_build_timeout_seconds <= 120.0
+        ):
+            raise ValueError(
+                "SPELL_BUNDLE_BUILD_TIMEOUT_SECONDS must be between 0.1 and 120"
+            )
 
     @property
     def resolved_data_dir(self) -> Path:
@@ -112,6 +141,10 @@ class Settings:
             database_path = Path(self.database_url.removeprefix("sqlite:///"))
             return database_path.resolve(strict=False).parent / "spell-data"
         return Path(__file__).resolve().parents[1] / "var" / "spell-data"
+
+    @property
+    def bundle_builder_configured(self) -> bool:
+        return self.bundle_request_directory is not None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -152,5 +185,23 @@ class Settings:
                 Path(value)
                 if (value := os.getenv("SPELL_V0007_BACKUP_DIR"))
                 else None
+            ),
+            bundle_request_directory=(
+                Path(value)
+                if (value := os.getenv("SPELL_BUNDLE_REQUEST_DIR"))
+                else None
+            ),
+            bundle_response_a_directory=(
+                Path(value)
+                if (value := os.getenv("SPELL_BUNDLE_RESPONSE_A_DIR"))
+                else None
+            ),
+            bundle_response_b_directory=(
+                Path(value)
+                if (value := os.getenv("SPELL_BUNDLE_RESPONSE_B_DIR"))
+                else None
+            ),
+            bundle_build_timeout_seconds=float(
+                os.getenv("SPELL_BUNDLE_BUILD_TIMEOUT_SECONDS", "30")
             ),
         )

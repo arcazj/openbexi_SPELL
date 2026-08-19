@@ -1,18 +1,31 @@
 import { KeyRound, LogIn } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { setAccessToken } from "../api";
+import { authenticateAccessToken } from "../api";
 
-export function AccessTokenGate() {
+interface AccessTokenGateProps {
+  title?: string;
+  subtitle?: string;
+  authenticate?: (token: string) => Promise<unknown>;
+}
+
+export function AccessTokenGate({
+  title = "Session access",
+  subtitle = "OpenBEXI SPELL simulator",
+  authenticate = authenticateAccessToken,
+}: AccessTokenGateProps = {}) {
   const [token, setToken] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
-  function connect(event: FormEvent<HTMLFormElement>) {
+  async function connect(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setConnecting(true);
     try {
-      setAccessToken(token);
-      window.location.reload();
+      await authenticate(token);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The access token is invalid.");
+    } finally {
+      setConnecting(false);
     }
   }
 
@@ -22,8 +35,8 @@ export function AccessTokenGate() {
         <div className="access-title">
           <KeyRound aria-hidden="true" size={22} />
           <div>
-            <h1 id="access-title">Session access</h1>
-            <span>OpenBEXI SPELL simulator</span>
+            <h1 id="access-title">{title}</h1>
+            <span>{subtitle}</span>
           </div>
         </div>
         <label htmlFor="access-token">Signed JWT</label>
@@ -33,14 +46,18 @@ export function AccessTokenGate() {
           autoCapitalize="none"
           spellCheck={false}
           value={token}
-          onChange={(event) => setToken(event.target.value)}
+          onChange={(event) => {
+            setToken(event.target.value);
+            if (error) setError(null);
+          }}
           aria-invalid={Boolean(error)}
+          aria-describedby={error ? "access-token-error" : undefined}
           autoFocus
         />
-        {error && <p className="access-error" role="alert">{error}</p>}
-        <button type="submit" className="primary-command" disabled={!token.trim()}>
+        {error && <p id="access-token-error" className="access-error" role="alert">{error}</p>}
+        <button type="submit" className="primary-command" disabled={!token.trim() || connecting}>
           <LogIn aria-hidden="true" size={16} />
-          Connect
+          {connecting ? "Checking..." : "Connect"}
         </button>
       </form>
     </main>

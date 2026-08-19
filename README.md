@@ -1,7 +1,8 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL v0.8.0 is the current accepted clean-room, simulator-only
-engineering release. It combines a Python execution service, isolated workers,
+At the v0.9 candidate source-freeze boundary, OpenBEXI SPELL v0.8.0 was the
+accepted clean-room, simulator-only engineering release. It combines a Python
+execution service, isolated workers,
 durable state and event storage, a restricted typed procedure language, a
 typed simulator-driver lifecycle foundation, durable operator workspace and
 procedure-composition workflows, simulator-only read-only observations and
@@ -13,9 +14,14 @@ accepted exceptions.
 
 `V09-GATE-0A PASS` now authorizes only `V09-DEV-001` through `V09-DEV-009`
 and their 45 planned proof identities under the bounded local synthetic
-non-CUI development-environment profile. It is an implementation-entry gate,
-not an implementation, candidate, qualification, release, deployment,
-compliance, cryptographic-signature, or operational claim.
+non-CUI development-environment profile. At v0.9 candidate source freeze, the
+authorized implementation, version-scoped qualification/release tooling, and
+exact product inventory were frozen together. Canonical candidate
+qualification had not yet run; Gate 0B, Final qualification, packaging, the
+release commit, and the annotated tag were pending at that boundary. Later
+v0.9 acceptance is authoritative only through its strictly validated annotated
+tag and committed evidence. The source-freeze status is not a release,
+deployment, compliance, cryptographic-signature, or operational claim.
 
 It has no Ground Control System driver, spacecraft connection, operational
 telecommand capability, or authorization for mission use.
@@ -142,7 +148,7 @@ the deterministic archive SHA-256 is
 Release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` and annotated tag
 `v0.8.0`, object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, completed acceptance.
 
-## Version 0.9 Gate 0A
+## Version 0.9 Gate 0A And Candidate Preparation
 
 The owner request `start and complete asap V0.9` authorized the bounded
 development-environment planning contract in
@@ -152,9 +158,13 @@ non-executing procedure language services, dictionary/catalog authoring,
 semantic checks and Problems, safe import/export and external changes,
 provider-neutral local history/collaboration, immutable validated bundles,
 local simulator promotion/rollback, and cross-feature offline acceptance.
-Gate 0A claims zero implementation or runtime artifacts. Gate 0B, Final
-qualification, packaging, release, deployment, compliance, and operational
-authorization remain separate and unclaimed.
+At the Gate 0A decision, the gate claimed zero implementation or runtime
+artifacts. The bounded implementation, canonical v0.9 producer/validator
+tooling, and exact product inventory were frozen together at candidate source
+freeze. At that boundary, canonical candidate qualification had not yet run,
+and Gate 0B, Final qualification, packaging, release, deployment, compliance,
+and operational authorization were unclaimed. Later acceptance is established
+only by the strictly validated annotated tag and committed evidence.
 
 ## Version 0.3 Foundation
 
@@ -304,7 +314,10 @@ deterministic packaging, release-evidence validation, and strict annotated-tag
 validation then passed; annotated tag `v0.7.0` now fixes the accepted release.
 The v0.8 candidate, Gate 0B, Final, SBOM, supply-chain, deterministic package,
 release, and strict tag evidence passed; annotated tag `v0.8.0` fixes the
-accepted release. v0.9 Gate 0A authorizes bounded implementation entry only.
+accepted release. The v0.9 implementation, tooling, and exact product inventory
+were frozen together at candidate source freeze; canonical candidate
+qualification and all later closeout endpoints were pending at that boundary.
+The strictly validated annotated tag is authoritative for any later acceptance.
 
 ## Project Documents
 
@@ -333,12 +346,15 @@ accepted release. v0.9 Gate 0A authorizes bounded implementation entry only.
 | [`SPELL_v0.8_Gate_0B.md`](SPELL_v0.8_Gate_0B.md) | Evidence-bound Gate 0B PASS for the qualified v0.8 candidate and authorized release closeout |
 | [`SPELL_v0.8_Release.md`](SPELL_v0.8_Release.md) | v0.8.0 conditional closeout record activated by the verified annotated tag |
 | [`SPELL_v0.9_Pre-Implementation.md`](SPELL_v0.9_Pre-Implementation.md) | Approved Gate 0A scope and hash-bound planning contracts for nine bounded development-environment work packages; not implementation or release acceptance |
+| [`SPELL_v0.9_Gate_0B.md`](SPELL_v0.9_Gate_0B.md) | v0.9 release-closeout decision contract; activation was pending at candidate source freeze |
+| [`SPELL_v0.9_Release.md`](SPELL_v0.9_Release.md) | v0.9 conditional release contract; qualification and acceptance were pending at candidate source freeze |
 | [`Test_and_Integration.md`](Test_and_Integration.md) | Versioned acceptance plans and executed evidence |
 | [`PROVENANCE.md`](PROVENANCE.md) | Clean-room, dependency, and licensing review |
 | [`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md) | v0.3 release scope, results, limitations, and decision |
 
-SPELL v0.8.0 is the accepted product baseline at annotated tag `v0.8.0` and
-release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`. Its acceptance is
+At v0.9 candidate source freeze, SPELL v0.8.0 was the accepted product baseline
+at annotated tag `v0.8.0` and release commit
+`d6e01222de3bf52013279e48a099b6ae7ded121d`. Its acceptance is
 limited to the nine `V08-DATA-001` through `V08-DATA-009` work packages and creates
 no deployment, operational-use, broad-compatibility, or compliance authority.
 
@@ -356,8 +372,12 @@ semantic oracles. Exact SHA-256 manifest binding and pinned Python 3.13 Gate 0
 qualification pass; organization-only approvals are outside this local gate.
 The accepted v0.4 through v0.8 release evidence remains immutable. v0.9 Gate
 0A authorizes nine exact local synthetic non-CUI development-environment
-packages and 45 planned proof identities. No v0.9 implementation, candidate,
-qualification, Gate 0B, Final result, package, release commit, or tag exists.
+packages and 45 planned proof identities. Their bounded implementation,
+version-scoped tooling, and exact product inventory were frozen together at
+candidate source freeze. At that boundary, canonical candidate qualification
+had not yet run and no Gate 0B result, Final result, package, release commit, or
+tag existed. The strictly validated annotated tag is authoritative for any
+later acceptance.
 
 The next-generation design specification was prepared on 2026-07-18 under
 `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`. It preserves the two core 2.4.4

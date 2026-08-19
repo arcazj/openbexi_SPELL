@@ -15,6 +15,7 @@ NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL.pdf
 
 .idea/
 *.iml
+/.qualification/
 SPELL-DOCUMENTATION/
 
 frontend/node_modules/
@@ -39,6 +40,7 @@ artifacts/v0.5/*.tar.gz.sha256
 artifacts/v0.6/.qualification/
 artifacts/v0.7/.qualification/
 artifacts/v0.8/.qualification/
+artifacts/v0.9/.qualification/
 
 *.log
 

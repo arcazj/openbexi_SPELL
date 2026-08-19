@@ -1,0 +1,424 @@
+{
+    "schema_version":  "ng-spell-v09-gate-0b-scope/1",
+    "gate_id":  "V09-GATE-0B",
+    "status":  "PENDING_CANDIDATE",
+    "target_increment":  "v0.9",
+    "target_release":  "v0.9.0",
+    "scope_profile":  "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+    "decision":  {
+                     "owner":  "JC Arcaz",
+                     "decision_date":  "2026-08-18",
+                     "authorization":  "PENDING_V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT",
+                     "owner_request":  "start and complete asap V0.9",
+                     "gate_0a_owner_approval_reaffirmed":  true,
+                     "tag_resolution":  "REQUESTED_V0_9_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_9_0",
+                     "precondition":  "CANONICAL_V09_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
+                 },
+    "immutable_inputs":  {
+                             "accepted_v0_8_0":  {
+                                                     "tag_ref":  "refs/tags/v0.8.0",
+                                                     "tag_object_type":  "tag",
+                                                     "tag_object_id":  "0dcf4f539fd1a9036fe4db4bc159cde04c35cfae",
+                                                     "raw_tag_object_sha256":  "c609c25cb8987222df0b143f71aa792140171acffd454e31a760c16fb263eede",
+                                                     "peeled_release_commit":  "d6e01222de3bf52013279e48a099b6ae7ded121d",
+                                                     "qualified_source_commit":  "d80c4d43969018633bc17650a23412b7274e58ea",
+                                                     "tagged_files_sha256":  {
+                                                                                 "SPELL_v0.8_Release.md":  "37735796cd6b3ee968950c447382aea4ede28255244e772975b06d12ee5592cd",
+                                                                                 "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.8-gate-0b.json":  "0e3e3fc2eea47d243f67cdc802a14d93e9053c1cf4f75fc1ab0c300392d36d0c",
+                                                                                 "artifacts/v0.8/release-qualification.json":  "82e90f0d3a9481423d948d83559bde56ff332833f14ab2d01a8089ebf6a5e50e"
+                                                                             }
+                                                 },
+                             "gate_0a":  {
+                                             "commit":  "92f3b4b82908d44e28b9506749e498386a428c27",
+                                             "parent":  "d6e01222de3bf52013279e48a099b6ae7ded121d",
+                                             "tree":  "e6b90f1e277f905a1d885008262916d86d6cdceb",
+                                             "validator_output":  "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+                                             "owner_marker":  "V09-GATE-0A OWNER-APPROVAL: APPROVED",
+                                             "files":  {
+                                                           "SPELL_v0.9_Pre-Implementation.md":  {
+                                                                                                    "blob":  "c4265214447c052ac2054c404ff70494475d9217",
+                                                                                                    "sha256":  "9ed958fa2141e950defc5dd36e4c3fcfc4dc0f5bd2763340c6d32cb29a612511"
+                                                                                                },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.9-gate-0a.json":  {
+                                                                                                                                                               "blob":  "409ff99af6219a49bce4d9772dac977d503e60b1",
+                                                                                                                                                               "sha256":  "c333f458bfb3eb965f59f6d2718eb317bf79c716b89596d746e30b72f6fb8e00"
+                                                                                                                                                           },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0a.py":  {
+                                                                                                                                                 "blob":  "c6390654db14f14f28fcbd33db260f04ae04479c",
+                                                                                                                                                 "sha256":  "247825a429c572a9eed2984e144039ebfd9e75cad19ac776274b065cc92a176b"
+                                                                                                                                             },
+                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v09_gate_0a.py":  {
+                                                                                                                                                      "blob":  "a60ee97871396ba48a4a62749b3db7be0e322c5d",
+                                                                                                                                                      "sha256":  "da818362a3e6e7549d329101fb569a637b75aa79f47f4c300134245f622e59a8"
+                                                                                                                                                  }
+                                                       },
+                                             "contracts":  {
+                                                               "contracts/v09/manifest.json":  {
+                                                                                                   "blob":  "65b01182d097e4654513ee9ab1c25d95886addf6",
+                                                                                                   "sha256":  "ce27b6b7d84ffbb3663ebee85befa89d1a765adfe2fc5fab7de24401e0d6c6de"
+                                                                                               },
+                                                               "contracts/v09/project_workspace.json":  {
+                                                                                                            "blob":  "afee3f966331398c797349855834897a2eb5bbed",
+                                                                                                            "sha256":  "1972deab80d78fde2760004fd0a545b62dd2cbc530ea2a12ee29f2d81f32745c"
+                                                                                                        },
+                                                               "contracts/v09/language_services.json":  {
+                                                                                                            "blob":  "3126e8b84482c8464a979282bc899102980d83da",
+                                                                                                            "sha256":  "628abeade69458149217bd30f5fff8f5810c708fc11eb08ba0d3a1c4379cf97a"
+                                                                                                        },
+                                                               "contracts/v09/dictionary_catalog_authoring.json":  {
+                                                                                                                       "blob":  "3fa350ae854674dc9df78f32b7113eb7940f0604",
+                                                                                                                       "sha256":  "30976e5b93d40437ed42b2e38371b39603ae81b82be3a703e453083d30b5a090"
+                                                                                                                   },
+                                                               "contracts/v09/semantic_checks.json":  {
+                                                                                                          "blob":  "8c61c7da3fd68600a8f2d858eadf5360407c976f",
+                                                                                                          "sha256":  "8cb4fc54b147e54a77d615bd3070068de2f70729d9887664df26557bbf8b8a66"
+                                                                                                      },
+                                                               "contracts/v09/import_export_external_changes.json":  {
+                                                                                                                         "blob":  "d2e8afe12af27e378352dd2c8311939eb2ae5539",
+                                                                                                                         "sha256":  "6faf3897cdd2baecf193320c42f273c925e783acfeec9bc8fffcda3af039efbd"
+                                                                                                                     },
+                                                               "contracts/v09/collaboration_history.json":  {
+                                                                                                                "blob":  "d22fa8e18b5633d0d884abf9a6588e4cd850c502",
+                                                                                                                "sha256":  "fd7c0b5d6ee82ed57b9d23ac816428503987482ff6a53d29a941099b2308ed32"
+                                                                                                            },
+                                                               "contracts/v09/immutable_bundles.json":  {
+                                                                                                            "blob":  "45b881f5c443baed01482d8a3f48a30903a6a46b",
+                                                                                                            "sha256":  "232ab4a2094db8ee1a7bf840401a153b297f9c6e5d3c1924cb0c44e63889637e"
+                                                                                                        },
+                                                               "contracts/v09/promotion_registry.json":  {
+                                                                                                             "blob":  "d1ac7775b389b50c3b6c3e15019fd1597e314c23",
+                                                                                                             "sha256":  "1e98e28770047af36899c1db6b4db1355f70503ffd030f155f1de680d83f6972"
+                                                                                                         }
+                                                           }
+                                         },
+                             "candidate":  {
+                                               "binding_status":  "PENDING_SOURCE_FREEZE",
+                                               "commit":  null,
+                                               "parent":  "92f3b4b82908d44e28b9506749e498386a428c27",
+                                               "tree":  null,
+                                               "changed_paths":  [
+
+                                                                 ]
+                                           }
+                         },
+    "qualification_contract":  {
+                                   "status":  "PENDING_CANONICAL_EVIDENCE",
+                                   "manifest_path":  "artifacts/v0.9/work-package/qualification.json",
+                                   "manifest_schema":  "spell.v09.candidate-qualification/1",
+                                   "manifest_sha256":  null,
+                                   "validator_path":  "scripts/validate_candidate_evidence_v09.py",
+                                   "validator_success_shape":  {
+                                                                   "gate":  "PASS",
+                                                                   "schema_version":  "spell.v09.candidate-qualification/1",
+                                                                   "source_commit":  null,
+                                                                   "suites":  10,
+                                                                   "test_ids":  45,
+                                                                   "tests_minimum":  1
+                                                               },
+                                   "python_version":  "3.13.14",
+                                   "suite_ids":  [
+                                                     "backend_sqlite",
+                                                     "backend_postgresql",
+                                                     "backend_docker_host",
+                                                     "backend_v09_soak",
+                                                     "driver_host",
+                                                     "tooling",
+                                                     "frontend_vitest",
+                                                     "frontend_build",
+                                                     "frontend_playwright_mocked",
+                                                     "frontend_playwright_live"
+                                                 ],
+                                   "postgresql_environment_variables":  [
+                                                                            "SPELL_TEST_DATABASE_URL",
+                                                                            "SPELL_MIGRATION_TEST_DATABASE_URL"
+                                                                        ],
+                                   "mapped_test_ids_skipped":  [
+
+                                                               ],
+                                   "accepted_failures":  [
+
+                                                         ],
+                                   "waivers":  [
+
+                                               ],
+                                   "waivers_allowed":  false
+                               },
+    "qualified_work_packages":  [
+                                    {
+                                        "work_package_id":  "V09-DEV-001",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-001-CONTRACT",
+                                                         "V09-DEV-001-PROJECT-LIFECYCLE",
+                                                         "V09-DEV-001-WORKSPACE-RACE",
+                                                         "V09-DEV-001-BROWSER",
+                                                         "V09-DEV-001-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-002",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-002-PARSER-GOLDEN",
+                                                         "V09-DEV-002-EDITOR",
+                                                         "V09-DEV-002-COMPLETION",
+                                                         "V09-DEV-002-NON-EXECUTION",
+                                                         "V09-DEV-002-DETERMINISM"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-003",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-003-SCHEMA",
+                                                         "V09-DEV-003-DICTIONARY",
+                                                         "V09-DEV-003-CATALOG",
+                                                         "V09-DEV-003-REFERENCE",
+                                                         "V09-DEV-003-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-004",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-004-UNIT",
+                                                         "V09-DEV-004-PROJECT-CHECK",
+                                                         "V09-DEV-004-CANCELLATION",
+                                                         "V09-DEV-004-PROBLEMS",
+                                                         "V09-DEV-004-RECOVERY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-005",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-005-IMPORT-EXPORT",
+                                                         "V09-DEV-005-EXTERNAL-CHANGE",
+                                                         "V09-DEV-005-CASE-CONFLICT",
+                                                         "V09-DEV-005-PATH-SECURITY",
+                                                         "V09-DEV-005-PROVENANCE"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-006",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-006-HISTORY",
+                                                         "V09-DEV-006-DIFF",
+                                                         "V09-DEV-006-CONFLICT",
+                                                         "V09-DEV-006-COLLABORATION-RACE",
+                                                         "V09-DEV-006-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-007",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-007-CANONICALIZATION",
+                                                         "V09-DEV-007-REPRODUCIBILITY",
+                                                         "V09-DEV-007-TAMPER",
+                                                         "V09-DEV-007-RETENTION",
+                                                         "V09-DEV-007-SECURITY"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-008",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-008-STATE-MACHINE",
+                                                         "V09-DEV-008-AUTHORIZATION",
+                                                         "V09-DEV-008-TRANSACTION-AUDIT",
+                                                         "V09-DEV-008-ROLLBACK-WITHDRAWAL",
+                                                         "V09-DEV-008-PINNING"
+                                                     ]
+                                    },
+                                    {
+                                        "work_package_id":  "V09-DEV-009",
+                                        "status":  "PENDING_QUALIFICATION",
+                                        "test_ids":  [
+                                                         "V09-DEV-009-SEMANTIC-GOLDEN",
+                                                         "V09-DEV-009-INTEGRATION",
+                                                         "V09-DEV-009-BROWSER-MATRIX",
+                                                         "V09-DEV-009-OFFLINE-PACKAGE",
+                                                         "V09-DEV-009-FAULT-RECOVERY"
+                                                     ]
+                                    }
+                                ],
+    "reviewed_surface_delta":  {
+                                   "review_status":  "PENDING_CANDIDATE_BINDING_AND_QUALIFICATION",
+                                   "development_surface":  {
+                                                               "api_version":  "v1",
+                                                               "route_prefix":  "/api/v1/development",
+                                                               "classification":  "BOUNDED_AUTHENTICATED_LOCAL_DEVELOPMENT_ENVIRONMENT",
+                                                               "feature_families":  [
+                                                                                        "PROJECT_WORKSPACE_AND_RESOURCE_LIFECYCLE",
+                                                                                        "NON_EXECUTING_LANGUAGE_SERVICES",
+                                                                                        "DICTIONARY_AND_CATALOG_AUTHORING",
+                                                                                        "SEMANTIC_CHECKS_AND_PROBLEMS",
+                                                                                        "SAFE_IMPORT_EXPORT_AND_EXTERNAL_CHANGE",
+                                                                                        "LOCAL_HISTORY_AND_COLLABORATION",
+                                                                                        "IMMUTABLE_VALIDATED_BUNDLES",
+                                                                                        "LOCAL_SIMULATOR_PROMOTION_REGISTRY"
+                                                                                    ],
+                                                               "service_boundary_files":  [
+                                                                                              "backend/development_domain.py",
+                                                                                              "backend/development_analysis.py",
+                                                                                               "backend/development_models.py",
+                                                                                               "backend/development_service.py",
+                                                                                               "backend/development_api.py",
+                                                                                               "backend/procedure_parser.py",
+                                                                                               "backend/app.py"
+                                                                                          ],
+                                                               "frontend_surface_files":  [
+                                                                                              "frontend/development.html",
+                                                                                              "frontend/vite.config.ts",
+                                                                                              "frontend/src/development/main.tsx",
+                                                                                              "frontend/src/development/DevelopmentApp.tsx",
+                                                                                              "frontend/src/development/DevelopmentWorkspace.tsx",
+                                                                                              "frontend/src/development/api.ts",
+                                                                                              "frontend/src/development/types.ts"
+                                                                                          ],
+                                                               "frontend_entrypoint":  "/development.html",
+                                                               "authorization_before_lookup_or_body_read":  true,
+                                                               "transactional_audit_outbox":  true,
+                                                               "procedure_language_services_are_non_executing":  true,
+                                                               "browser_has_no_direct_database_or_filesystem_access":  true,
+                                                               "arbitrary_expression_evaluation":  false,
+                                                               "broad_public_api_compatibility_claimed":  false
+                                                           },
+                                   "accepted_boundaries":  {
+                                                               "accepted_v08_artifacts_immutable":  true,
+                                                               "gate_0a_contract_blobs_immutable":  true,
+                                                               "legacy_driver_protocol_bytes_unchanged":  true,
+                                                               "legacy_ir_serialized_bytes_unchanged":  true,
+                                                               "live_driver_or_external_effect_route_added":  false
+                                                           },
+                                   "database_schema":  {
+                                                           "migration_versions":  [
+                                                                                      "0008_development_environment"
+                                                                                  ],
+                                                           "migration_files":  [
+                                                                                   "backend/migrations/versions/v0008_development_environment.py"
+                                                                               ],
+                                                           "new_tables_by_migration":  {
+                                                                                           "0008_development_environment":  [
+                                                                                                                                "development_projects",
+                                                                                                                                "development_resources",
+                                                                                                                                "development_idempotency",
+                                                                                                                                "development_audit_events",
+                                                                                                                                "development_outbox",
+                                                                                                                                "development_analysis_jobs",
+                                                                                                                                "development_problems",
+                                                                                                                                "development_library_cache",
+                                                                                                                                "development_history_revisions",
+                                                                                                                                "development_history_reviews",
+                                                                                                                                "development_conflicts",
+                                                                                                                                "development_import_provenance",
+                                                                                                                                "development_dictionary_artifacts",
+                                                                                                                                "development_catalog_snapshots",
+                                                                                                                                "development_presence",
+                                                                                                                                "development_bundles",
+                                                                                                                                "development_catalog_entries",
+                                                                                                                                "development_promotion_decisions",
+                                                                                                                                "development_runtime_pins"
+                                                                                                                            ]
+                                                                                       },
+                                                           "existing_tables_rewritten_by_migrations":  [
+
+                                                                                                       ],
+                                                           "sqlite_and_postgresql_required":  true,
+                                                           "rollback_and_upgrade_proof_required":  true,
+                                                           "broad_database_compatibility_claimed":  false
+                                                       },
+                                   "dependencies":  {
+                                                        "new_python_runtime_dependencies":  [
+
+                                                                                            ],
+                                                        "new_frontend_runtime_dependencies":  [
+
+                                                                                              ],
+                                                        "driver_implementation_version":  "0.4.0",
+                                                        "live_driver_or_external_effect_route_added":  false
+                                                    },
+                                   "compatibility_ledger":  {
+                                                                "claimed_construct_ids":  [
+
+                                                                                          ],
+                                                                "claimed_artifact_ids":  [
+
+                                                                                         ],
+                                                                "compatibility_ledger_rows_added":  0,
+                                                                "v0_8_scope_rows_changed":  0,
+                                                                "broad_compatibility_claimed":  false
+                                                            }
+                               },
+    "release_closeout_authorization":  {
+                                           "status":  "PENDING_GATE_0B_PASS",
+                                           "release_version":  "0.9.0",
+                                           "tag_name":  "v0.9.0",
+                                           "tag_object_type":  "annotated",
+                                           "permitted_actions_after_pass":  [
+                                                                                "RECORD_V09_DEV_001_THROUGH_V09_DEV_009_IMPLEMENTED",
+                                                                                "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+                                                                                "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+                                                                                "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
+                                                                                "CREATE_DETERMINISTIC_V0_9_RELEASE_PACKAGE",
+                                                                                "COMMIT_RELEASE_CLOSEOUT",
+                                                                                "CREATE_ONE_ANNOTATED_V0_9_0_TAG"
+                                                                            ],
+                                           "additional_product_work_authorized":  false
+                                       },
+    "activation_requirements":  {
+                                    "required_rebindings":  [
+                                                                "/immutable_inputs/candidate/binding_status",
+                                                                "/immutable_inputs/candidate/commit",
+                                                                "/immutable_inputs/candidate/tree",
+                                                                "/immutable_inputs/candidate/changed_paths",
+                                                                "/qualification_contract/status",
+                                                                "/qualification_contract/manifest_sha256",
+                                                                "/qualification_contract/validator_success_shape/source_commit",
+                                                                "/reviewed_surface_delta/review_status"
+                                                            ],
+                                    "required_status_transitions":  {
+                                                                        "/status":  "PASS",
+                                                                        "/decision/authorization":  "V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT_ONLY",
+                                                                        "/immutable_inputs/candidate/binding_status":  "BOUND",
+                                                                        "/qualification_contract/status":  "PASS",
+                                                                        "/reviewed_surface_delta/review_status":  "REVIEWED_AND_QUALIFIED",
+                                                                        "/release_closeout_authorization/status":  "AUTHORIZED",
+                                                                        "/qualified_work_packages/*/status":  "IMPLEMENTED_AND_QUALIFIED"
+                                                                    },
+                                    "candidate_validator_must_pass":  true,
+                                    "all_45_mapped_test_ids_must_pass":  true,
+                                    "mapped_test_id_skips_allowed":  false,
+                                    "waivers_allowed":  false
+                                },
+    "claims":  {
+                   "gate_0a_immutable_authorization_verified":  true,
+                   "v0_9_work_packages_implemented":  false,
+                   "v0_9_candidate_qualified":  false,
+                   "release_closeout_authorized":  false,
+                   "v0_9_release_accepted_by_gate":  false,
+                   "broad_language_or_compatibility_claimed":  false,
+                   "operational_authorization":  false,
+                   "deployment_approval":  false,
+                   "compliance_determination":  false,
+                   "cryptographic_signature_verified":  false,
+                   "v0_8_release_accepted":  true
+               },
+    "explicit_exclusions":  [
+                                "SCOPE_BEYOND_V09_DEV_001_THROUGH_V09_DEV_009",
+                                "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+                                "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_DRIVER_MUTATION_OR_EXTERNAL_EFFECT_ROUTE",
+                                "ARBITRARY_SOURCE_PYTHON_EXPRESSION_TEMPLATE_FUNCTION_SHELL_NATIVE_BYTECODE_PICKLE_EXECUTABLE_IMPORT_OR_GENERIC_FILTER_EVALUATION",
+                                "DIRECT_BROWSER_OR_WORKER_DATABASE_OBJECT_ADMIN_HOST_FILESYSTEM_SECRET_CREDENTIAL_OR_UNRESTRICTED_NETWORK_ACCESS",
+                                "ABSOLUTE_TRAVERSAL_SYMLINK_REPARSE_DEVICE_ALTERNATE_DATA_STREAM_URL_OR_UNBOUNDED_FILE_ACCESS",
+                                "UNBOUNDED_PROJECT_RESOURCE_DIAGNOSTIC_HISTORY_BUNDLE_QUERY_TRANSACTION_RETRY_QUOTA_OR_RETENTION",
+                                "SILENT_COERCION_AMBIGUOUS_FORMAT_BEST_EFFORT_CORRUPTION_RECOVERY_LAST_WRITER_WINS_OR_PARTIAL_WRITE_SUCCESS",
+                                "AMBIGUOUS_EXTERNAL_CHANGE_CONFLICT_PROMOTION_OR_ROLLBACK_RESOLUTION",
+                                "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
+                                "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
+                                "LIGHTWEIGHT_SECONDARY_OR_V0_9_ALIAS_TAG",
+                                "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+                            ]
+}

@@ -16,19 +16,20 @@ import { useExecutionStream } from "./useExecutionStream";
 export default function App() {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.console.error);
-  const [authenticated, setAuthenticated] = useState(() => Boolean(getAccessToken()));
+  const [accessToken, setCurrentAccessToken] = useState(() => getAccessToken());
   const [activeView, setActiveView] = useState<"execution" | "driver" | "data">("execution");
-  useExecutionStream(authenticated);
+  const authenticated = Boolean(accessToken);
+  useExecutionStream(accessToken);
 
   useEffect(() => {
-    const updateAuthentication = () => setAuthenticated(Boolean(getAccessToken()));
+    const updateAuthentication = () => setCurrentAccessToken(getAccessToken());
     window.addEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
   }, []);
 
   useEffect(() => {
-    if (authenticated) void dispatch(bootstrap());
-  }, [authenticated, dispatch]);
+    if (accessToken) void dispatch(bootstrap());
+  }, [accessToken, dispatch]);
 
   if (!authenticated) return <AccessTokenGate />;
 

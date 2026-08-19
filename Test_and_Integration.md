@@ -5,15 +5,15 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Current accepted product release | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
-| Latest implemented version | SPELL v0.8 Data and Local Service Compatibility, accepted with no exceptions |
-| Status | v0.8.0 accepted; `V09-GATE-0A PASS`; v0.9 implementation, qualification, Gate 0B, Final, package, release commit, and tag remain pending |
+| Accepted product release at v0.9 source freeze | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Source-freeze product state | Bounded SPELL v0.9 Development Environment frozen in candidate source; SPELL v0.8.0 was the accepted release at that boundary |
+| Source-freeze status | v0.9 candidate source and exact product inventory frozen; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | Authorized follow-on | `V09-DEV-001` through `V09-DEV-009`; 45 planned proof identities under `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT` |
 | Date | Updated 2026-08-18 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
-## Version 0.9 Gate 0A Test Plan
+## Version 0.9 Gate 0A Test Plan And Candidate Preparation
 
 ### Current Disposition And Boundary
 
@@ -26,24 +26,34 @@ distinct exact confirmation `LOCAL_SYNTHETIC_NON_CUI_ONLY`. The exact Gate 0A
 marker is
 `gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0`.
 
-Gate 0A claims zero implemented product constructs and zero runtime artifacts.
-It does not claim a candidate, executed product test, Gate 0B, qualification,
-package, release, deployment, cryptographic signature, compliance result, or
-operational authorization.
+At its authorization-time boundary, Gate 0A claims zero implemented product
+constructs and zero runtime artifacts. It does not claim a candidate, executed
+product test, Gate 0B, qualification, package, release, deployment,
+cryptographic signature, compliance result, or operational authorization.
+
+### Candidate Source-Freeze Status
+
+At v0.9 candidate source freeze, the authorized implementation,
+version-scoped qualification/release tooling, exact selectors, allowed skips,
+nodes, totals, inventory hashes, and 45-identity mappings were frozen together.
+Canonical candidate qualification had not yet run at that boundary. Gate 0B,
+Final qualification, SBOM and supply-chain evidence, deterministic packaging,
+the release commit, and the annotated tag were pending. Later acceptance is
+authoritative only through the strictly validated annotated tag.
 
 ### Gate 0A Planned Requirements And Tests
 
 | Work package | Requirement and expected result | Planned test identities | Status |
 | --- | --- | --- | --- |
-| `V09-DEV-001` | A separate bounded web surface provides versioned project/workspace lifecycle, stable identities, concurrency, browser behavior, and path/authorization isolation | `V09-DEV-001-CONTRACT`, `V09-DEV-001-PROJECT-LIFECYCLE`, `V09-DEV-001-WORKSPACE-RACE`, `V09-DEV-001-BROWSER`, `V09-DEV-001-SECURITY` | Implementation authorized; not executed |
-| `V09-DEV-002` | Procedure editing provides deterministic syntax, folding, outline, completion, snippets, and source diagnostics without importing, compiling, evaluating, or executing source | `V09-DEV-002-PARSER-GOLDEN`, `V09-DEV-002-EDITOR`, `V09-DEV-002-COMPLETION`, `V09-DEV-002-NON-EXECUTION`, `V09-DEV-002-DETERMINISM` | Implementation authorized; not executed |
-| `V09-DEV-003` | Dictionary and TM/TC catalog authoring preserves schemas, DB/IMP compatibility, pinned references, and safe text-only template generation | `V09-DEV-003-SCHEMA`, `V09-DEV-003-DICTIONARY`, `V09-DEV-003-CATALOG`, `V09-DEV-003-REFERENCE`, `V09-DEV-003-SECURITY` | Implementation authorized; not executed |
-| `V09-DEV-004` | File/folder/project semantic checks provide cancellable progress, reports, cache/reparse recovery, check-on-save, and stable Problems entries | `V09-DEV-004-UNIT`, `V09-DEV-004-PROJECT-CHECK`, `V09-DEV-004-CANCELLATION`, `V09-DEV-004-PROBLEMS`, `V09-DEV-004-RECOVERY` | Implementation authorized; not executed |
-| `V09-DEV-005` | Import/export and external changes are bounded, provenance preserving, case-conflict aware, path safe, atomic, and recoverable | `V09-DEV-005-IMPORT-EXPORT`, `V09-DEV-005-EXTERNAL-CHANGE`, `V09-DEV-005-CASE-CONFLICT`, `V09-DEV-005-PATH-SECURITY`, `V09-DEV-005-PROVENANCE` | Implementation authorized; not executed |
-| `V09-DEV-006` | Provider-neutral local history, diff, conflict, and collaboration workflows use optimistic concurrency, explicit conflict resolution, audit, and no browser-held repository credential | `V09-DEV-006-HISTORY`, `V09-DEV-006-DIFF`, `V09-DEV-006-CONFLICT`, `V09-DEV-006-COLLABORATION-RACE`, `V09-DEV-006-SECURITY` | Implementation authorized; not executed |
-| `V09-DEV-007` | Exact validated source and pinned inputs produce canonical, tamper-evident, retained immutable bundles with independently reproducible digests | `V09-DEV-007-CANONICALIZATION`, `V09-DEV-007-REPRODUCIBILITY`, `V09-DEV-007-TAMPER`, `V09-DEV-007-RETENTION`, `V09-DEV-007-SECURITY` | Implementation authorized; not executed |
-| `V09-DEV-008` | A local simulator promotion registry uses an authorized revisioned state machine, transactional audit/outbox, rollback/withdrawal, and immutable execution/schedule pinning | `V09-DEV-008-STATE-MACHINE`, `V09-DEV-008-AUTHORIZATION`, `V09-DEV-008-TRANSACTION-AUDIT`, `V09-DEV-008-ROLLBACK-WITHDRAWAL`, `V09-DEV-008-PINNING` | Implementation authorized; not executed |
-| `V09-DEV-009` | Cross-feature semantic, integration, browser-matrix, offline-package, and fault/recovery evidence covers the complete bounded development environment | `V09-DEV-009-SEMANTIC-GOLDEN`, `V09-DEV-009-INTEGRATION`, `V09-DEV-009-BROWSER-MATRIX`, `V09-DEV-009-OFFLINE-PACKAGE`, `V09-DEV-009-FAULT-RECOVERY` | Implementation authorized; not executed |
+| `V09-DEV-001` | A separate bounded web surface provides versioned project/workspace lifecycle, stable identities, concurrency, browser behavior, and path/authorization isolation | `V09-DEV-001-CONTRACT`, `V09-DEV-001-PROJECT-LIFECYCLE`, `V09-DEV-001-WORKSPACE-RACE`, `V09-DEV-001-BROWSER`, `V09-DEV-001-SECURITY` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-002` | Procedure editing provides deterministic syntax, folding, outline, completion, snippets, and source diagnostics without importing, compiling, evaluating, or executing source | `V09-DEV-002-PARSER-GOLDEN`, `V09-DEV-002-EDITOR`, `V09-DEV-002-COMPLETION`, `V09-DEV-002-NON-EXECUTION`, `V09-DEV-002-DETERMINISM` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-003` | Dictionary and TM/TC catalog authoring preserves schemas, DB/IMP compatibility, pinned references, and safe text-only template generation | `V09-DEV-003-SCHEMA`, `V09-DEV-003-DICTIONARY`, `V09-DEV-003-CATALOG`, `V09-DEV-003-REFERENCE`, `V09-DEV-003-SECURITY` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-004` | File/folder/project semantic checks provide cancellable progress, reports, cache/reparse recovery, check-on-save, and stable Problems entries | `V09-DEV-004-UNIT`, `V09-DEV-004-PROJECT-CHECK`, `V09-DEV-004-CANCELLATION`, `V09-DEV-004-PROBLEMS`, `V09-DEV-004-RECOVERY` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-005` | Import/export and external changes are bounded, provenance preserving, case-conflict aware, path safe, atomic, and recoverable | `V09-DEV-005-IMPORT-EXPORT`, `V09-DEV-005-EXTERNAL-CHANGE`, `V09-DEV-005-CASE-CONFLICT`, `V09-DEV-005-PATH-SECURITY`, `V09-DEV-005-PROVENANCE` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-006` | Provider-neutral local history, diff, conflict, and collaboration workflows use optimistic concurrency, explicit conflict resolution, audit, and no browser-held repository credential | `V09-DEV-006-HISTORY`, `V09-DEV-006-DIFF`, `V09-DEV-006-CONFLICT`, `V09-DEV-006-COLLABORATION-RACE`, `V09-DEV-006-SECURITY` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-007` | Exact validated source and pinned inputs produce canonical, tamper-evident, retained immutable bundles with independently reproducible digests | `V09-DEV-007-CANONICALIZATION`, `V09-DEV-007-REPRODUCIBILITY`, `V09-DEV-007-TAMPER`, `V09-DEV-007-RETENTION`, `V09-DEV-007-SECURITY` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-008` | A local simulator promotion registry uses an authorized revisioned state machine, transactional audit/outbox, rollback/withdrawal, and immutable execution/schedule pinning | `V09-DEV-008-STATE-MACHINE`, `V09-DEV-008-AUTHORIZATION`, `V09-DEV-008-TRANSACTION-AUDIT`, `V09-DEV-008-ROLLBACK-WITHDRAWAL`, `V09-DEV-008-PINNING` | Frozen in candidate source; canonical qualification pending at freeze |
+| `V09-DEV-009` | Cross-feature semantic, integration, browser-matrix, offline-package, and fault/recovery evidence covers the complete bounded development environment | `V09-DEV-009-SEMANTIC-GOLDEN`, `V09-DEV-009-INTEGRATION`, `V09-DEV-009-BROWSER-MATRIX`, `V09-DEV-009-OFFLINE-PACKAGE`, `V09-DEV-009-FAULT-RECOVERY` | Frozen in candidate source; canonical qualification pending at freeze |
 
 ## Version 0.8 Gate 0A Test Plan And Final Release Result
 

@@ -59,22 +59,26 @@ def test_seed_builds_one_exact_real_driver_context_tuple() -> None:
     assert command.identity.generations.context_binding_digest == digest
     assert command.configuration.expected_digest == digest
 
-    v08_context_id = "v08-telemetry-synthetic-context"
-    v08_repository = FixtureRepository(v08_context_id)
-    v08_context, v08_digest = seed._ensure_context_projection(
-        v08_repository,
-        DRIVER,
-        context_id=v08_context_id,
-    )
-    v08_command = seed._open_command(
-        DRIVER,
-        v08_digest,
-        context_id=v08_context_id,
-    )
-    assert v08_context["state"] == "OPENING"
-    assert v08_repository.created is not None
-    assert v08_repository.created["context_id"] == v08_context_id
-    assert v08_command.identity.generations.context_id == v08_context_id
+    for release_context_id in (
+        "v08-telemetry-synthetic-context",
+        "v09-telemetry-synthetic-context",
+    ):
+        assert release_context_id in seed.SUPPORTED_CONTEXT_IDS
+        release_repository = FixtureRepository(release_context_id)
+        release_context, release_digest = seed._ensure_context_projection(
+            release_repository,
+            DRIVER,
+            context_id=release_context_id,
+        )
+        release_command = seed._open_command(
+            DRIVER,
+            release_digest,
+            context_id=release_context_id,
+        )
+        assert release_context["state"] == "OPENING"
+        assert release_repository.created is not None
+        assert release_repository.created["context_id"] == release_context_id
+        assert release_command.identity.generations.context_id == release_context_id
 
 
 def test_seed_rejects_a_conflicting_persisted_context() -> None:

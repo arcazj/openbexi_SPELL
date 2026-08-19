@@ -6,6 +6,30 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-18 - Prompt, Markdown, Local Session, And v0.9 Direction
+
+The owner directed the project to revisit and optimize `PROMPT_Instructions.md`,
+repair Markdown preview behavior for every tracked Markdown document, provide a
+signed effectively long-lived local JWT, and start and complete v0.9. The
+approved local-session exception is one loopback-only token in an ignored local
+file under `var/`, with a finite `exp` and issuance by a one-shot transient
+issuer while issuance remains disabled in the running service. The ignored
+local `.env` contains issuer configuration and the signing secret, not the
+issued token. Default and qualification tokens remain short-lived. The local
+token is never expiry-free, and no token or signing-secret bytes may be printed,
+logged, committed, packaged, or recorded in evidence or documentation.
+
+The durable prompt workflow and pinned real Markdown renderer validation were
+prepared for the v0.9 candidate source freeze. The conflicting IntelliJ
+Markdown provider is disabled pending an IDE restart. The JWT login and
+expiration-timer path is fixed, while the one-shot local token issuance remains
+pending outside source and release evidence. At candidate source freeze, the
+bounded v0.9 implementation, qualification tooling, and exact product inventory
+were frozen together; canonical candidate qualification had not yet run. Gate
+0B, Final qualification, packaging, release, and tag creation were pending at
+that boundary. Any later v0.9 acceptance is authoritative only through its
+strictly validated annotated tag and committed evidence.
+
 ## 2026-08-18 - v0.8.0 Accepted And v0.9 Gate 0A Approved
 
 ### v0.8.0 Accepted Release

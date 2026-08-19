@@ -41,6 +41,8 @@ FROM_DEFINITION = re.compile(
     r"(?im)^\s*FROM\s+([^\s]+)(?:\s+AS\s+([A-Za-z0-9_.-]+))?\s*$"
 )
 COMPOSE_IMAGE = re.compile(r"(?m)^\s*image:\s*([^\s#]+)")
+LOCAL_COMPOSE_BUILD_IMAGE = "openbexi-spell-backend:${SPELL_IMAGE_TAG:-local}"
+LOCAL_COMPOSE_BUILD_SERVICES = ("backend", "bundle-builder-a", "bundle-builder-b")
 PINNED_IMAGE = re.compile(r"[^@\s]+@sha256:[0-9a-f]{64}$")
 PYTHON_LOCKS = (
     ("backend/requirements.txt", "backend/requirements.hashes.lock"),
@@ -330,7 +332,31 @@ def validate_locks(root: Path) -> LockValidation:
                 image_inputs.append(image)
             if alias:
                 aliases.add(alias)
-    image_inputs.extend(COMPOSE_IMAGE.findall((source_root / "compose.yaml").read_text(encoding="utf-8")))
+    compose_text = (source_root / "compose.yaml").read_text(encoding="utf-8")
+    compose_images = COMPOSE_IMAGE.findall(compose_text)
+    local_build_count = compose_images.count(LOCAL_COMPOSE_BUILD_IMAGE)
+    if local_build_count not in (0, len(LOCAL_COMPOSE_BUILD_SERVICES)):
+        raise ValueError("local Compose build-output image references differ")
+    if local_build_count:
+        for service in LOCAL_COMPOSE_BUILD_SERVICES:
+            service_image = re.compile(
+                rf"(?m)^  {re.escape(service)}:\s*$\n(?:(?:    .*|\s*)\n)*?"
+                rf"    image: {re.escape(LOCAL_COMPOSE_BUILD_IMAGE)}\s*$"
+            )
+            if service_image.search(compose_text) is None:
+                raise ValueError(f"local Compose build-output service differs: {service}")
+        backend_build = re.compile(
+            r"(?m)^  backend:\s*$\n"
+            r"    image: openbexi-spell-backend:\$\{SPELL_IMAGE_TAG:-local\}\s*$\n"
+            r"    build:\s*$\n"
+            r"      context: \.\s*$\n"
+            r"      dockerfile: backend/Dockerfile\s*$"
+        )
+        if backend_build.search(compose_text) is None:
+            raise ValueError("local Compose backend build definition differs")
+    image_inputs.extend(
+        image for image in compose_images if image != LOCAL_COMPOSE_BUILD_IMAGE
+    )
     unlocked_images = [item for item in image_inputs if PINNED_IMAGE.fullmatch(item) is None]
     if unlocked_images:
         raise ValueError(f"image inputs are not digest pinned: {unlocked_images!r}")

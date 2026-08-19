@@ -1,6 +1,7 @@
 .git
 .idea
 *.iml
+.qualification
 .env
 .venv
 var
@@ -12,6 +13,7 @@ artifacts/v0.3
 artifacts/sbom
 artifacts/v04-plan.json
 artifacts/v0.4/.qualification
+artifacts/v0.9/.qualification
 artifacts/v0.4/browser
 artifacts/v0.4/performance-*.json
 artifacts/v0.4/driver-projection-*.png

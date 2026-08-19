@@ -3,9 +3,11 @@
 ## Record Status
 
 This record retains the bounded SPELL v0.5.0 through v0.7.0 provenance, records
-the accepted v0.8.0 release, and binds the v0.9 Gate 0A planning authorization.
-SPELL v0.8.0 is the accepted local-only, synthetic, non-CUI simulator
-engineering baseline at annotated tag `v0.8.0`, tag object
+the accepted v0.8.0 release, binds the v0.9 Gate 0A planning authorization, and
+distinguishes the v0.9 candidate source freeze from immutable candidate
+evidence.
+At v0.9 candidate source freeze, SPELL v0.8.0 was the accepted local-only,
+synthetic, non-CUI simulator engineering baseline at annotated tag `v0.8.0`, tag object
 `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, and release commit
 `d6e01222de3bf52013279e48a099b6ae7ded121d`.
 
@@ -72,9 +74,22 @@ the final archive SHA-256 is
 The owner request `start and complete asap V0.9` and `V09-GATE-0A PASS`
 authorize only `V09-DEV-001` through `V09-DEV-009` and 45 planned proof
 identities under `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. That gate
-claims zero implementation or runtime artifacts. No candidate, qualification,
-Gate 0B, package, release, deployment, cryptographic-signature, compliance,
-mission, or operational provenance is claimed for v0.9.
+claims zero implementation or runtime artifacts at its authorization-time
+boundary. At candidate source freeze, the bounded first-party implementation,
+version-scoped tooling, and exact product inventory were frozen together.
+Canonical candidate qualification had not yet run, so no Gate 0B, package,
+release, deployment, cryptographic-signature, compliance, mission, or
+operational provenance is claimed for v0.9.
+
+The owner-approved local-session JWT exception is configuration provenance, not
+release evidence: one effectively long-lived, loopback-only token with a finite
+`exp` may be created by a one-shot transient issuer and stored only in an
+ignored local file under `var/`, while token issuance remains disabled in every
+running service. Issuer configuration and the signing secret stay in the
+ignored local `.env`; the issued token does not. Default and qualification
+tokens remain short-lived. Token and signing-secret bytes must never be printed,
+logged, committed, packaged, or included in evidence, and secret rotation
+invalidates the local token.
 
 Before v0.8 qualification, Docker Scout identified 18 High findings in the
 pinned `postgresql18=18.4-r0` local image package. v0.8 updated that exact pin
@@ -332,3 +347,11 @@ for `V09-DEV-001` through `V09-DEV-009` only. No v0.9 product source,
 dependency, migration, runtime artifact, executed product result, bundle,
 promotion, qualification, release, or cryptographic-signature provenance is
 claimed at Gate 0A.
+
+Subsequent new project-authored source freezes the bounded development API,
+migration, separate `/development.html` frontend, v0.9 qualification/release
+tooling, and exact product inventory together for one candidate commit. This is
+source-freeze provenance only. Canonical candidate qualification had not yet
+run, and it established no Gate 0B decision, Final result, package, release
+commit, or tag provenance. Any later acceptance is authoritative only through
+the strictly validated annotated tag and committed evidence.

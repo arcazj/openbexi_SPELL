@@ -26,6 +26,7 @@ services:
       - spell-internal
 
   backend:
+    image: openbexi-spell-backend:${SPELL_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -49,12 +50,20 @@ services:
       SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS: ${SPELL_OBSERVATION_FRESHNESS_SWEEP_SECONDS:-0.5}
       SPELL_DATA_DIR: /var/lib/openbexi-spell/data
       SPELL_V0007_BACKUP_DIR: /var/lib/openbexi-spell/migration-backups
+      SPELL_BUNDLE_REQUEST_DIR: /var/lib/openbexi-spell/builder/requests
+      SPELL_BUNDLE_RESPONSE_A_DIR: /var/lib/openbexi-spell/builder/responses-a
+      SPELL_BUNDLE_RESPONSE_B_DIR: /var/lib/openbexi-spell/builder/responses-b
+      SPELL_BUNDLE_BUILD_TIMEOUT_SECONDS: ${SPELL_BUNDLE_BUILD_TIMEOUT_SECONDS:-30}
     depends_on:
       postgres:
         condition: service_healthy
       pki-init:
         condition: service_completed_successfully
         required: false
+      bundle-builder-a:
+        condition: service_healthy
+      bundle-builder-b:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "/app/backend/healthcheck.py"]
       interval: 5s
@@ -79,11 +88,78 @@ services:
       - spell-driver-client-credentials:/run/spell-driver-client-source:ro
       - spell-data:/var/lib/openbexi-spell/data
       - spell-migration-backups:/var/lib/openbexi-spell/migration-backups
+      - spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests
+      - spell-bundle-builder-response-a:/var/lib/openbexi-spell/builder/responses-a
+      - spell-bundle-builder-response-b:/var/lib/openbexi-spell/builder/responses-b
     networks:
       spell-internal:
         aliases:
           - spell-api
       spell-driver-internal: {}
+
+  bundle-builder-a:
+    image: openbexi-spell-backend:${SPELL_IMAGE_TAG:-local}
+    entrypoint: ["python", "-m", "backend.development_bundle_worker"]
+    command: []
+    environment:
+      SPELL_BUNDLE_BUILDER_WORKER_ID: builder-a
+      SPELL_BUNDLE_REQUEST_DIR: /var/lib/openbexi-spell/builder/requests
+      SPELL_BUNDLE_RESPONSE_DIR: /var/lib/openbexi-spell/builder/responses
+      SPELL_BUNDLE_BUILDER_POLL_SECONDS: ${SPELL_BUNDLE_BUILDER_POLL_SECONDS:-0.05}
+    user: "10001:10001"
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 32
+    mem_limit: 512m
+    cpus: "0.50"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-m", "backend.development_bundle_worker", "--healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 2s
+    volumes:
+      - spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests:ro
+      - spell-bundle-builder-response-a:/var/lib/openbexi-spell/builder/responses
+
+  bundle-builder-b:
+    image: openbexi-spell-backend:${SPELL_IMAGE_TAG:-local}
+    entrypoint: ["python", "-m", "backend.development_bundle_worker"]
+    command: []
+    environment:
+      SPELL_BUNDLE_BUILDER_WORKER_ID: builder-b
+      SPELL_BUNDLE_REQUEST_DIR: /var/lib/openbexi-spell/builder/requests
+      SPELL_BUNDLE_RESPONSE_DIR: /var/lib/openbexi-spell/builder/responses
+      SPELL_BUNDLE_BUILDER_POLL_SECONDS: ${SPELL_BUNDLE_BUILDER_POLL_SECONDS:-0.05}
+    user: "10001:10001"
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 32
+    mem_limit: 512m
+    cpus: "0.50"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-m", "backend.development_bundle_worker", "--healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 2s
+    volumes:
+      - spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests:ro
+      - spell-bundle-builder-response-b:/var/lib/openbexi-spell/builder/responses
 
   postgres:
     build:
@@ -192,6 +268,9 @@ volumes:
   spell-driver-journal:
   spell-data:
   spell-migration-backups:
+  spell-bundle-builder-requests:
+  spell-bundle-builder-response-a:
+  spell-bundle-builder-response-b:
 
 networks:
   spell-edge:

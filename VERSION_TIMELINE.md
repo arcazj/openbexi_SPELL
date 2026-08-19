@@ -4,18 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.8.0 baseline and v0.9 Gate 0A authorization |
-| Update type | Accepted-release timing and bindings plus bounded v0.9 development-environment planning authorization |
+| Document revision | Accepted v0.8.0 baseline and v0.9 candidate source freeze |
+| Update type | Accepted-release timing and bindings plus bounded v0.9 source-freeze status |
 | Updated | 2026-08-18 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
-| Current accepted product baseline | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Accepted product baseline at v0.9 source freeze | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
 | v0.6 status | Accepted 2026-08-16 at annotated tag `v0.6.0`; nine work packages implemented and qualified; no accepted exceptions |
 | v0.7 status | Accepted 2026-08-17 at annotated tag `v0.7.0`; nine work packages implemented and qualified; no accepted exceptions |
 | v0.8 status | Accepted 2026-08-18 at annotated tag `v0.8.0`; nine work packages implemented and qualified; no accepted exceptions |
-| v0.9 status | `V09-GATE-0A PASS` recorded 2026-08-18; nine work packages and 45 planned proof identities authorized; no implementation claim |
+| v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and all later release endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -76,12 +76,30 @@ Conventions:
 | v0.8 Gate 0A | Data and Local Service Compatibility planning authorization | Owner request and accepted v0.7.0 baseline recorded 2026-08-17; exact request time not retained | Explicit owner approval, nine-package/45-identity contract binding, and Gate validator PASS recorded 2026-08-17 | Same calendar day; exact elapsed time and active effort unknown | `V08-DATA-001` through `V08-DATA-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
 | v0.8 | Nine bounded local data-service packages plus version-scoped qualification/release tooling | Gate 0A commit `451c065740e7b6501f86094d9be79578b30b1591` at 2026-08-17 20:37:48 EDT | Annotated tag `v0.8.0` at 2026-08-18 15:48:51 EDT | 19h 11m 03s exact Gate-commit-to-tag interval; candidate-to-tag 1h 46m 40s; qualified-source-to-tag 35m 34s; release-commit-to-tag 1m 39s; total active engineering effort unknown | Exact Git intervals; Final qualification, SBOMs, supply chain, deterministic package, release commit, and tag passed with no accepted exceptions |
 | v0.9 Gate 0A | SPELL Development Environment planning authorization | Owner request `start and complete asap V0.9` recorded 2026-08-18; exact time not retained | Explicit owner approval, nine-package/45-identity contract binding, and Gate validator PASS recorded 2026-08-18 | Same calendar day; exact elapsed time and active effort unknown | `V09-DEV-001` through `V09-DEV-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
+| v0.9 candidate source freeze | Bounded development-environment implementation and version-scoped qualification/release tooling | Gate 0A commit `92f3b4b82908d44e28b9506749e498386a428c27`; exact implementation start time not retained | Candidate source and exact product inventory frozen 2026-08-18; canonical qualification had not yet run | Elapsed time and active effort unknown | Gate 0B, Final, package, release commit, and tag were pending at freeze; later acceptance only by validated annotated tag |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-WP-00 readiness | Gate G0 allocation, validation, and decision package | Owner request to implement the next step recorded 2026-07-18; exact start time not retained | Gate G0 passed under pinned Python 3.13 on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Digest-bound working-tree evidence; no product delivery, release, operational, or compliance claim |
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
+
+## 2026-08-18 - v0.9 Candidate Source Freeze
+
+| Field | Value |
+| --- | --- |
+| Accepted release status at source freeze | SPELL v0.8.0 was the accepted baseline |
+| Gate authority | Final v0.9 Gate 0A commit `92f3b4b82908d44e28b9506749e498386a428c27`, sole parent `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Candidate source status | The bounded development API, migration, separate `/development.html` frontend, and version-scoped qualification/release tooling were frozen together for one candidate commit |
+| Product inventory | Exact selectors, skips, nodes, totals, hashes, and 45-identity mappings frozen with candidate source after joint review |
+| Endpoints pending at source freeze | Candidate commit and canonical qualification, Gate 0B, Final qualification, SBOM/supply-chain evidence, deterministic package and sidecar, release commit, and annotated `v0.9.0` tag |
+| Operational authorization or compliance determination | None |
+
+This entry records the source-freeze boundary, not qualification. Canonical
+candidate qualification had not yet run, and this entry does not establish a
+Gate 0B result, Final result, release authority, accepted exception, or
+annotated-tag endpoint. The strictly validated annotated tag remains the
+authoritative acceptance boundary.
 
 ## 2026-08-18 - v0.8.0 Accepted And v0.9 Gate 0A
 

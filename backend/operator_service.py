@@ -341,11 +341,15 @@ class OperatorService:
         *,
         execution_starter: Callable[..., Execution] | None = None,
         prompt_settlement_sink: Callable[[dict[str, Any]], None] | None = None,
+        development_admission_check: Callable[[str, str], bool] | None = None,
+        development_runtime_pin: Callable[..., dict[str, Any] | None] | None = None,
     ) -> None:
         self.session_factory = session_factory
         self.catalog = catalog
         self.execution_starter = execution_starter
         self.prompt_settlement_sink = prompt_settlement_sink
+        self.development_admission_check = development_admission_check
+        self.development_runtime_pin = development_runtime_pin
         self._lock = threading.RLock()
         self._legacy_compatibility_inflight: set[str] = set()
         self._stop = threading.Event()
@@ -361,6 +365,40 @@ class OperatorService:
         if not isinstance(value, datetime):
             raise OperatorServiceError("database clock did not return a timestamp")
         return _stored_utc(value)  # type: ignore[return-value]
+
+    def _pin_development_runtime(
+        self,
+        session: Session,
+        *,
+        runtime_kind: str,
+        runtime_id: str,
+        procedure_id: str,
+        bundle_digest: str | None,
+        inherited_runtime_kind: str | None = None,
+        inherited_runtime_id: str | None = None,
+    ) -> bool:
+        if bundle_digest is None:
+            return True
+        if self.development_runtime_pin is None:
+            return bool(
+                self.development_admission_check
+                and self.development_admission_check(procedure_id, bundle_digest)
+            )
+        try:
+            result = self.development_runtime_pin(
+                session,
+                runtime_kind=runtime_kind,
+                runtime_id=runtime_id,
+                procedure_id=procedure_id,
+                bundle_digest=bundle_digest,
+                inherited_runtime_kind=inherited_runtime_kind,
+                inherited_runtime_id=inherited_runtime_id,
+            )
+        except Exception as exc:
+            raise OperatorConflictError(
+                "development runtime admission failed"
+            ) from exc
+        return result is not None
 
     @staticmethod
     def _require_worker_epoch(
@@ -490,7 +528,7 @@ class OperatorService:
                 catalog_id = "pc-" + hashlib.sha256(
                     procedure.id.encode("utf-8")
                 ).hexdigest()[:32]
-                bundle_digest = canonical_digest(
+                bundle_digest = procedure.bundle_digest or canonical_digest(
                     {
                         "procedure_ref": procedure.id,
                         "source_digest": procedure.sha256,
@@ -541,6 +579,7 @@ class OperatorService:
                         "description": procedure.description,
                         "entrypoint": procedure.path.name,
                         "step_count": len(procedure.steps),
+                        "development_bundle_digest": procedure.bundle_digest,
                     },
                     created_by=actor,
                     created_at=now,
@@ -4030,9 +4069,27 @@ class OperatorService:
             )
             if revision is None:
                 raise OperatorNotFoundError("procedure catalog revision not found")
+            development_digest = (revision.properties or {}).get(
+                "development_bundle_digest"
+            )
+            schedule_id = new_id()
+            if not self._pin_development_runtime(
+                session,
+                runtime_kind="SCHEDULE",
+                runtime_id=schedule_id,
+                procedure_id=entry.procedure_ref,
+                bundle_digest=(
+                    str(development_digest)
+                    if development_digest is not None
+                    else None
+                ),
+            ):
+                raise OperatorConflictError(
+                    "development procedure is not currently promoted"
+                )
             arguments_digest = canonical_digest(arguments)
             schedule = ProcedureSchedule(
-                id=new_id(),
+                id=schedule_id,
                 revision=0,
                 controller_execution_id=controller_execution_id,
                 schedule_type=schedule_type,
@@ -4580,6 +4637,9 @@ class OperatorService:
                 sha256=revision.source_digest,
                 steps=tuple(revision.steps),
                 ir_version=revision.ir_version,
+                bundle_digest=(revision.properties or {}).get(
+                    "development_bundle_digest"
+                ),
             )
             schedule_view = schedule_dict(schedule)
         try:
@@ -6127,6 +6187,30 @@ class OperatorService:
                         if revision.id == parent_projection.catalog_revision_id
                         else "STARTPROC_INDIRECT_CYCLE"
                     )
+            development_digest = (
+                (revision.properties or {}).get("development_bundle_digest")
+                if revision is not None
+                else None
+            )
+            if (
+                rejection is None
+                and revision is not None
+                and entry is not None
+                and not self._pin_development_runtime(
+                    session,
+                    runtime_kind="STARTPROC",
+                    runtime_id=startproc_id,
+                    procedure_id=entry.procedure_ref,
+                    bundle_digest=(
+                        str(development_digest)
+                        if development_digest is not None
+                        else None
+                    ),
+                    inherited_runtime_kind="EXECUTION",
+                    inherited_runtime_id=parent_execution_id,
+                )
+            ):
+                rejection = "PROCEDURE_NOT_PROMOTED"
             now = self._database_now(session)
             operation = StartProcOperation(
                 id=startproc_id,
@@ -6191,9 +6275,8 @@ class OperatorService:
                 lambda: self._resume_startproc_admission(startproc_id)
             )
 
-    @staticmethod
     def _resolve_current_startproc_catalog(
-        session: Session, child_reference: str
+        self, session: Session, child_reference: str
     ) -> tuple[
         ProcedureCatalogEntry | None,
         ProcedureCatalogRevision | None,
@@ -6236,6 +6319,20 @@ class OperatorService:
             if entry is not None
             else None
         )
+        if revision is not None:
+            development_digest = (revision.properties or {}).get(
+                "development_bundle_digest"
+            )
+            if (
+                development_digest is not None
+                and (
+                    self.development_admission_check is None
+                    or not self.development_admission_check(
+                        entry.procedure_ref, str(development_digest)
+                    )
+                )
+            ):
+                return entry, None, "PROCEDURE_NOT_PROMOTED"
         return entry, revision, None if revision is not None else "PROCEDURE_NOT_FOUND"
 
     @staticmethod
@@ -6254,9 +6351,8 @@ class OperatorService:
             return []
         return list(parent_operation.dependency_closure or [])
 
-    @classmethod
     def _resolve_startproc_catalog(
-        cls,
+        self,
         session: Session,
         child_reference: str,
         *,
@@ -6268,7 +6364,7 @@ class OperatorService:
     ]:
         closure = pinned_closure or []
         if not closure:
-            return cls._resolve_current_startproc_catalog(session, child_reference)
+            return self._resolve_current_startproc_catalog(session, child_reference)
         exact = [
             item
             for item in closure
@@ -6313,9 +6409,8 @@ class OperatorService:
             return None, None, "PINNED_CATALOG_MISMATCH"
         return entry, revision, None
 
-    @classmethod
     def _build_startproc_dependency_closure(
-        cls,
+        self,
         session: Session,
         root_entry: ProcedureCatalogEntry,
         root_revision: ProcedureCatalogRevision,
@@ -6361,7 +6456,7 @@ class OperatorService:
                 if type(reference) is not str:
                     return "STARTPROC_DEPENDENCY_INVALID"
                 child_entry, child_revision, rejection = (
-                    cls._resolve_current_startproc_catalog(session, reference)
+                    self._resolve_current_startproc_catalog(session, reference)
                 )
                 if rejection is not None or child_entry is None or child_revision is None:
                     return rejection or "PROCEDURE_NOT_FOUND"
@@ -6413,6 +6508,9 @@ class OperatorService:
                 sha256=revision.source_digest,
                 steps=tuple(revision.steps),
                 ir_version=revision.ir_version,
+                bundle_digest=(revision.properties or {}).get(
+                    "development_bundle_digest"
+                ),
             )
         if child_id is None:
             if self.execution_starter is None:

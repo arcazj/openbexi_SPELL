@@ -54,6 +54,10 @@ from .data_api import LocalDataPermissionResolver, install_data_api
 from .data_domain import DataAuthorizationError, ProcedureCallerBinding
 from .data_models import activate_data_schema, verify_data_integrity
 from .data_repository import DataRepository
+from .development_api import install_development_api
+from .development_bundle_broker import DualContainerBundleBroker
+from .development_bundle_builder import BundleBuilder
+from .development_service import DevelopmentService
 from .driver_repository import (
     DriverNotFoundError,
     DriverRepository,
@@ -136,16 +140,41 @@ class SessionBinding:
 def create_app(
     settings: Optional[Settings] = None,
     auth_config: AuthConfig | None = None,
+    development_bundle_builder: BundleBuilder | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     engine, session_factory = create_database(settings.database_url)
     catalog = ProcedureCatalog(settings.procedures_dir)
+    inherited_procedure_ids = [procedure.id for procedure in catalog.list()]
+    if development_bundle_builder is not None and settings.bundle_builder_configured:
+        raise ValueError("an injected bundle builder cannot override configured workers")
+    if development_bundle_builder is None and settings.bundle_builder_configured:
+        assert settings.bundle_request_directory is not None
+        assert settings.bundle_response_a_directory is not None
+        assert settings.bundle_response_b_directory is not None
+        development_bundle_builder = DualContainerBundleBroker(
+            request_directory=settings.bundle_request_directory,
+            response_directories={
+                "builder-a": settings.bundle_response_a_directory,
+                "builder-b": settings.bundle_response_b_directory,
+            },
+            timeout_seconds=settings.bundle_build_timeout_seconds,
+        )
+    development_service = DevelopmentService(
+        session_factory,
+        reserved_procedure_ids=inherited_procedure_ids,
+        bundle_builder=development_bundle_builder,
+    )
+    catalog.attach_promoted_loader(development_service.list_promoted_procedures)
     hub = EventHub(settings.websocket_queue_size)
     supervisor = Supervisor(
         session_factory,
         catalog,
         hub,
         command_ack_timeout_seconds=settings.command_ack_timeout_seconds,
+        development_runtime_pin=(
+            development_service.pin_runtime_reference_in_session
+        ),
     )
     virtual_files = VirtualFileService(settings.resolved_data_dir)
     data_permission_resolver = LocalDataPermissionResolver()
@@ -233,6 +262,10 @@ def create_app(
                 "B" if automatic and background_allowed else "CONTROL_LOST"
             ),
             "operator_settings": operator_settings,
+            "runtime_pin_parent_kind": (
+                "SCHEDULE" if schedule is not None else "STARTPROC"
+            ),
+            "runtime_pin_parent_id": str(resource["id"]),
         }
         return supervisor.create_execution(**kwargs)
 
@@ -241,6 +274,10 @@ def create_app(
         catalog,
         execution_starter=start_operator_execution,
         prompt_settlement_sink=supervisor.dispatch_prompt_settlement,
+        development_admission_check=development_service.is_runtime_admitted,
+        development_runtime_pin=(
+            development_service.pin_runtime_reference_in_session
+        ),
     )
     supervisor.attach_operator_service(operator_service)
     driver_repository = DriverRepository(session_factory)
@@ -295,6 +332,9 @@ def create_app(
             sha256=revision["source_digest"],
             steps=tuple(revision["steps"]),
             ir_version=revision["ir_version"],
+            bundle_digest=(revision.get("properties") or {}).get(
+                "development_bundle_digest"
+            ),
         )
         execution = start_operator_execution(
             procedure=procedure,
@@ -321,6 +361,9 @@ def create_app(
         snapshot_provider=condition_snapshots,
         execution_starter=OccurrenceBoundExecutionStarter(
             create_or_find_condition_execution
+        ),
+        development_runtime_pin=(
+            development_service.pin_runtime_reference_in_session
         ),
     )
     condition_runtime = ConditionProcedureRuntime(
@@ -356,6 +399,8 @@ def create_app(
                 engine,
                 v0007_backup_directory=settings.v0007_backup_directory,
             )
+            development_service.recover_analysis_jobs()
+            development_service.recover_import_operations()
             activate_data_schema(engine)
             virtual_files.start()
             virtual_files_started = True
@@ -446,6 +491,8 @@ def create_app(
             "Content-Encoding",
             "Idempotency-Key",
             "X-Idempotency-Key",
+            "X-Spell-Filename-Base64url",
+            "X-Spell-Workspace-Revision",
             "X-Spell-Session-Id",
             "X-Spell-Client-Instance-Key-Id",
         ],
@@ -471,6 +518,7 @@ def create_app(
     app.state.virtual_files = virtual_files
     app.state.data_runtime = data_runtime
     app.state.data_repository = None
+    app.state.development_service = development_service
     app.state.hub = hub
     app.state.auth_config = auth_config
 
@@ -546,7 +594,7 @@ def create_app(
                     parse_constant=reject_constant,
                 )
                 validate_utf8(parsed)
-            except (UnicodeError, ValueError):
+            except (RecursionError, UnicodeError, ValueError):
                 return JSONResponse(
                     status_code=422,
                     content={
@@ -651,6 +699,12 @@ def create_app(
         return caller
 
     MutationIdentityDep = Annotated[Identity, Depends(mutation_identity)]
+
+    install_development_api(
+        app,
+        service=development_service,
+        identity_dependency=identity,
+    )
 
     install_data_api(
         app,
@@ -1653,8 +1707,12 @@ def create_app(
                 retry_interval_seconds=request.retry_interval_seconds,
                 controller_execution_id=request.controller_execution_id,
                 procedure_catalog_id=entry["id"],
+                procedure_id=entry["procedure_ref"],
                 procedure_revision=revision["revision"],
                 bundle_digest=revision["bundle_digest"],
+                development_bundle_digest=(revision.get("properties") or {}).get(
+                    "development_bundle_digest"
+                ),
                 context_id=request.context_id,
                 arguments=request.arguments,
                 automatic=request.automatic,
