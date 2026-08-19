@@ -1,0 +1,351 @@
+{
+  "schema_version": "ng-spell-implementation-allocation-rules/3",
+  "baseline": "0.1.0-draft.1",
+  "status": "APPROVED_LOCAL_ENGINEERING_INPUT",
+  "expected_family_counts": {
+    "ARC": 40,
+    "COM": 27,
+    "COMP": 22,
+    "DATA": 29,
+    "DEP": 25,
+    "DOC": 11,
+    "EXEC": 28,
+    "GIT": 24,
+    "MODE": 27,
+    "OPS": 10,
+    "REL": 29,
+    "SEC": 23,
+    "SRV": 22,
+    "VNV": 12,
+    "WEB": 37
+  },
+  "g0": {
+    "gate_ids": [
+      "G0",
+      "V04-GATE-0"
+    ],
+    "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+    "approval_mode": "RECORDED_PROJECT_OWNER_ATTESTATION",
+    "base_product_commit": "7bccbb4eb096b22d0d1f2f765d5172f6dde244f1",
+    "blocking_decisions": [],
+    "organization_decisions_excluded_from_local_gate": [
+      "OD-001",
+      "OD-002",
+      "OD-004",
+      "OD-005",
+      "OD-006",
+      "OD-010",
+      "OD-011",
+      "OD-012",
+      "OD-015",
+      "OD-023"
+    ],
+    "approval_evidence_path": "quality/G0_HUMAN_APPROVAL_LEDGER.json",
+    "required_signer_roles": [
+      "Project owner"
+    ],
+    "required_adrs": [],
+    "retained_engineering_gates": [
+      "scope-and-exclusion-enforcement",
+      "synthetic-simulator-only-resolution",
+      "bounded-ir-and-mtls-credential-separation",
+      "fail-closed-driver-authentication",
+      "typed-contract-and-lifecycle-integrity",
+      "operation-idempotency-and-no-resend-certainty",
+      "migration-and-rollback",
+      "secret-and-supply-chain-hygiene",
+      "v0.3-regression",
+      "evidence-bound-release-acceptance"
+    ],
+    "qualification_image": "python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280",
+    "required_python": "3.13"
+  },
+  "families": {
+    "ARC": {
+      "primary_design": "architecture/LOGICAL_ARCHITECTURE.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-07", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G2"
+    },
+    "COM": {
+      "primary_design": "architecture/REAL_TIME_COMMUNICATIONS.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-03", "NG-WP-07", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G2"
+    },
+    "COMP": {
+      "primary_design": "requirements/COMPATIBILITY_LEDGER.md",
+      "primary_work_package": "NG-WP-00",
+      "supporting_work_packages": ["NG-WP-02", "NG-WP-03", "NG-WP-08"],
+      "phase": 0,
+      "acceptance_gate": "G3"
+    },
+    "DATA": {
+      "primary_design": "architecture/DATA_ARCHITECTURE.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-07", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G2"
+    },
+    "DEP": {
+      "primary_design": "architecture/DEPLOYMENT_AND_SCALABILITY.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-07", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G8"
+    },
+    "DOC": {
+      "primary_design": "requirements/DOCUMENT_REQUIREMENT_ALLOCATION.md",
+      "primary_work_package": "NG-WP-00",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 0,
+      "acceptance_gate": "G0"
+    },
+    "EXEC": {
+      "primary_design": "architecture/SERVER_AND_EXECUTION.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-03", "NG-WP-07", "NG-WP-08"],
+      "phase": 2,
+      "acceptance_gate": "G2"
+    },
+    "GIT": {
+      "primary_design": "procedures/AUTHORING_AND_GIT.md",
+      "primary_work_package": "NG-WP-03",
+      "supporting_work_packages": ["NG-WP-05", "NG-WP-08"],
+      "phase": 4,
+      "acceptance_gate": "G3"
+    },
+    "MODE": {
+      "primary_design": "web/OPERATING_MODES.md",
+      "primary_work_package": "NG-WP-03",
+      "supporting_work_packages": ["NG-WP-05", "NG-WP-08"],
+      "phase": 3,
+      "acceptance_gate": "G7"
+    },
+    "OPS": {
+      "primary_design": "operations/OPERATIONS_AND_OBSERVABILITY.md",
+      "primary_work_package": "NG-WP-07",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 7,
+      "acceptance_gate": "G8"
+    },
+    "REL": {
+      "primary_design": "architecture/RELIABILITY_AND_RECOVERY.md",
+      "primary_work_package": "NG-WP-07",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 7,
+      "acceptance_gate": "G4"
+    },
+    "SEC": {
+      "primary_design": "security/SECURITY_ARCHITECTURE.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-06", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G5"
+    },
+    "SRV": {
+      "primary_design": "architecture/SERVER_AND_EXECUTION.md",
+      "primary_work_package": "NG-WP-02",
+      "supporting_work_packages": ["NG-WP-07", "NG-WP-08"],
+      "phase": 1,
+      "acceptance_gate": "G2"
+    },
+    "VNV": {
+      "primary_design": "quality/VERIFICATION_AND_VALIDATION.md",
+      "primary_work_package": "NG-WP-08",
+      "supporting_work_packages": [],
+      "phase": 8,
+      "acceptance_gate": "G9"
+    },
+    "WEB": {
+      "primary_design": "web/WEB_APPLICATION.md",
+      "primary_work_package": "NG-WP-03",
+      "supporting_work_packages": ["NG-WP-05", "NG-WP-08"],
+      "phase": 3,
+      "acceptance_gate": "G7"
+    }
+  },
+  "overrides": [
+    {
+      "selectors": ["DOC-003..DOC-005"],
+      "primary_design": "SOURCE_AUTHORITY.md"
+    },
+    {
+      "selectors": ["DOC-007"],
+      "primary_design": "DOCUMENT_CONTROL.md"
+    },
+    {
+      "selectors": ["DOC-008"],
+      "primary_design": "SOURCE_AUTHORITY.md"
+    },
+    {
+      "selectors": ["DOC-011"],
+      "primary_design": "web/SPELL_GUI_USER_MANUAL.md",
+      "primary_work_package": "NG-WP-05",
+      "supporting_work_packages": ["NG-WP-00", "NG-WP-08"],
+      "phase": 8,
+      "acceptance_gate": "G7"
+    },
+    {
+      "selectors": ["ARC-001..ARC-003", "ARC-026"],
+      "primary_design": "architecture/SYSTEM_CONTEXT.md"
+    },
+    {
+      "selectors": ["ARC-028", "ARC-030"],
+      "primary_design": "architecture/SERVER_AND_EXECUTION.md"
+    },
+    {
+      "selectors": ["SRV-005..SRV-009", "SRV-014..SRV-017", "SRV-021"],
+      "primary_design": "web/OPERATING_MODES.md",
+      "primary_work_package": "NG-WP-04",
+      "supporting_work_packages": ["NG-WP-02", "NG-WP-07", "NG-WP-08"],
+      "phase": 3,
+      "acceptance_gate": "G7"
+    },
+    {
+      "selectors": ["WEB-002", "WEB-005", "WEB-013"],
+      "primary_work_package": "NG-WP-01",
+      "supporting_work_packages": ["NG-WP-03", "NG-WP-05", "NG-WP-08"],
+      "phase": 1
+    },
+    {
+      "selectors": ["WEB-023..WEB-028"],
+      "primary_design": "web/PROCEDURE_NAVIGATION.md"
+    },
+    {
+      "selectors": ["WEB-029..WEB-037"],
+      "primary_design": "web/REAL_TIME_STATE.md"
+    },
+    {
+      "selectors": ["MODE-010..MODE-012"],
+      "primary_design": "web/PROCEDURE_NAVIGATION.md"
+    },
+    {
+      "selectors": ["MODE-001", "MODE-023..MODE-024"],
+      "primary_work_package": "NG-WP-01",
+      "supporting_work_packages": ["NG-WP-03", "NG-WP-05", "NG-WP-08"],
+      "phase": 1
+    },
+    {
+      "selectors": ["MODE-013"],
+      "primary_work_package": "NG-WP-01",
+      "supporting_work_packages": ["NG-WP-03", "NG-WP-04", "NG-WP-05", "NG-WP-08"],
+      "phase": 1,
+      "supporting_phases": [3],
+      "supporting_gates": ["G7"]
+    },
+    {
+      "selectors": ["MODE-014..MODE-017", "MODE-021..MODE-022"],
+      "primary_work_package": "NG-WP-04",
+      "supporting_work_packages": ["NG-WP-01", "NG-WP-02", "NG-WP-03", "NG-WP-05", "NG-WP-08"],
+      "phase": 3,
+      "acceptance_gate": "G7"
+    },
+    {
+      "selectors": ["MODE-025..MODE-026"],
+      "primary_work_package": "NG-WP-04",
+      "supporting_work_packages": ["NG-WP-01", "NG-WP-03", "NG-WP-05", "NG-WP-08"],
+      "phase": 3,
+      "required_approvers": "PO, MO, SA, SY, SO"
+    },
+    {
+      "selectors": ["MODE-027"],
+      "primary_work_package": "NG-WP-04",
+      "supporting_work_packages": ["NG-WP-01", "NG-WP-03", "NG-WP-05", "NG-WP-08"],
+      "phase": 3,
+      "required_approvers": "MO, SA, SY, SO, CM"
+    },
+    {
+      "selectors": ["SEC-001..SEC-002"],
+      "primary_design": "security/NIST_REQUIREMENT_ASSESSMENT_MATRIX.md",
+      "primary_work_package": "NG-WP-00",
+      "supporting_work_packages": ["NG-WP-06", "NG-WP-08"],
+      "phase": 0,
+      "acceptance_gate": "G0",
+      "supporting_phases": [6, 8],
+      "supporting_gates": ["G5", "G9"]
+    },
+    {
+      "selectors": ["SEC-022..SEC-023"],
+      "primary_design": "security/NIST_REQUIREMENT_ASSESSMENT_MATRIX.md",
+      "primary_work_package": "NG-WP-06",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 8
+    },
+    {
+      "selectors": ["SEC-003..SEC-006", "SEC-010"],
+      "primary_work_package": "NG-WP-01",
+      "supporting_work_packages": ["NG-WP-02", "NG-WP-04", "NG-WP-06", "NG-WP-08"],
+      "phase": 1
+    },
+    {
+      "selectors": ["SEC-007", "SEC-011", "SEC-019"],
+      "supporting_work_packages": ["NG-WP-04", "NG-WP-06", "NG-WP-08"]
+    },
+    {
+      "selectors": ["VNV-001"],
+      "supporting_phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "supporting_gates": ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8"]
+    },
+    {
+      "selectors": ["VNV-002", "VNV-012"],
+      "primary_work_package": "NG-WP-00",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 0,
+      "acceptance_gate": "G0",
+      "supporting_phases": [1, 2, 3, 4, 5, 6, 7, 8],
+      "supporting_gates": ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"]
+    },
+    {
+      "selectors": ["VNV-003..VNV-004"],
+      "phase": 2,
+      "acceptance_gate": "G3",
+      "supporting_phases": [8],
+      "supporting_gates": ["G9"]
+    },
+    {
+      "selectors": ["VNV-005..VNV-006"],
+      "phase": 2,
+      "acceptance_gate": "G4",
+      "supporting_phases": [7, 8],
+      "supporting_gates": ["G8", "G9"]
+    },
+    {
+      "selectors": ["VNV-007"],
+      "primary_work_package": "NG-WP-06",
+      "supporting_work_packages": ["NG-WP-08"],
+      "phase": 6,
+      "acceptance_gate": "G5",
+      "supporting_phases": [8],
+      "supporting_gates": ["G9"]
+    },
+    {
+      "selectors": ["VNV-008"],
+      "phase": 3,
+      "acceptance_gate": "G7",
+      "supporting_phases": [8],
+      "supporting_gates": ["G9"]
+    },
+    {
+      "selectors": ["VNV-009"],
+      "phase": 5,
+      "acceptance_gate": "G6",
+      "supporting_phases": [7, 8],
+      "supporting_gates": ["G8", "G9"]
+    },
+    {
+      "selectors": ["VNV-010"],
+      "phase": 7,
+      "acceptance_gate": "G4",
+      "supporting_phases": [8],
+      "supporting_gates": ["G8", "G9"]
+    },
+    {
+      "selectors": ["VNV-011"],
+      "phase": 8,
+      "acceptance_gate": "G9"
+    }
+  ]
+}

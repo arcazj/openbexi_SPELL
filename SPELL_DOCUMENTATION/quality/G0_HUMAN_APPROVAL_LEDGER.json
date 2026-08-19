@@ -1,0 +1,81 @@
+{
+  "schema_version": "ng-spell-g0-owner-approval-record/4",
+  "status": "OWNER_SCOPE_APPROVED_IMPLEMENTATION_AUTHORIZED",
+  "gate_ids": [
+    "G0",
+    "V04-GATE-0"
+  ],
+  "scope_profile": {
+    "profile_id": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+    "candidate": "Candidate A - Typed Simulator Driver and Context Foundation",
+    "candidate_b_disposition": "DEFERRED",
+    "local_only": true,
+    "synthetic_data_only": true,
+    "cui_allowed": false,
+    "operational_use_allowed": false,
+    "external_effects_allowed": false,
+    "gcs_or_spacecraft_connectivity_allowed": false
+  },
+  "approval": {
+    "owner_name": "JC Arcaz",
+    "owner_role": "Project owner",
+    "recorded_date": "2026-07-18",
+    "source": "Direct project-owner instruction in this project conversation",
+    "authorization_text": "Revise v0.4 to a local-only, synthetic non-CUI simulator engineering gate. I, JC Arcaz, am the project owner and approve Candidate A, its exclusions, budgets, and test plan. Remove organization-only approval requirements without making operational or compliance claims.",
+    "decision": "APPROVE_CANDIDATE_A_LOCAL_ENGINEERING_SCOPE",
+    "worker_isolation_decision": "BOUNDED_NON_EXECUTING_IR_AND_STRICT_MTLS_CREDENTIAL_SEPARATION",
+    "worker_isolation_residual_risk": "For this local synthetic scope, a shared development network route may exist; no product call path or usable driver credential may be available to the worker, and driver authentication must fail closed.",
+    "cryptographic_signature": null,
+    "identity_verification": "DIRECT_USER_INSTRUCTION_NOT_CRYPTOGRAPHICALLY_VERIFIED"
+  },
+  "compatibility_disposition": {
+    "decision_reference": "V04-OWNER-20260718",
+    "basis": "The project owner's approval of Candidate A and its exclusions approves the scope-disposition policy used to assign authoritative manual artifacts either to the exact Candidate A v0.4 lifecycle slice or to Deferred/EXCLUDE.",
+    "in_scope_policy": "Only artifacts required by the exact nine-RPC typed simulator host, context, execution-attachment, lifecycle, configuration, capacity, identity, journal, persistence, read-only projection, packaging, and engineering-evidence boundary may target v0.4.",
+    "deferred_policy": "All language execution, procedure routing, telemetry, telecommand, operational, connected, mission, broader GUI/development, and other future behavior is Deferred/EXCLUDE and is not advertised by v0.4.",
+    "gate_0_evidence_policy": "Every row requires exact source identity/span, effect class or explicit excluded ambiguity, safe behavior and disposition, target phase, unique planned test identity, errata disposition, and reconciled counts. Deferred/EXCLUDE rows require static source and negative-scope evidence, not executable fixtures, semantic oracles, or results.",
+    "technical_validation_required": true,
+    "owner_row_by_row_source_review_claimed": false,
+    "implementation_claim": false,
+    "operational_authorization": false,
+    "compliance_determination": false
+  },
+  "baseline_binding": {
+    "binding_kind": "SHA256_FILE_MANIFEST",
+    "base_product_commit": "7bccbb4eb096b22d0d1f2f765d5172f6dde244f1",
+    "tag": null,
+    "artifacts": {
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/IMPLEMENTATION_ALLOCATION_RULES.json": "a9132a8a295f2e8a63e658e422b6ba51acfabba98cc57063137e1ca230ad6218",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/COMPATIBILITY_LEDGER.json": "f1d4e20383c81a1109e93b39e2aac04f04b2366e91eae613170488a6acf8458f",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/COMPATIBILITY_SOURCE_INVENTORY.json": "5c51f1b06f45003cadfe417e9bffc559b381f1e8a20e2bc9c6f7fc160c09c0b7",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.4.json": "2de37c751c084fad96d1bf1c3842deab57bb697920d0cc0bc15b206a46aee1f5",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/V04_COMPATIBILITY_TECHNICAL_REVIEW.json": "65a0be691ae96814f3fd295ef28f35cd2e17e19ab7b604b45688f89aecc9ed29",
+      "SPELL_DOCUMENTATION_REVIEW.md": "78c419f898bbc719e9e1134f8e57aa0352a07cd2b4d21644658f3f74237c56ad",
+      "SPELL_v0.4_Pre-Implementation.md": "f94a3ea39647d2662c74085edf1345210c33d618340e67b4d1ecd5ac28c9a86a",
+      "Test_and_Integration.md": "a70dfe251e98287f712e7e533b9834380094c573bca177861cda34cb107e5cc1"
+    },
+    "manifest_sha256": "37461f54a11cf822e8aa4480bfd9ff0ab56f73d8cd38c1592b715ae9f341e7ca",
+    "note": "Content digests provide deterministic change detection only; this is not a cryptographic signature or a signed Git baseline."
+  },
+  "retained_engineering_gates": [
+    "scope-and-exclusion-enforcement",
+    "synthetic-simulator-only-resolution",
+    "bounded-ir-and-mtls-credential-separation",
+    "fail-closed-driver-authentication",
+    "typed-contract-and-lifecycle-integrity",
+    "operation-idempotency-and-no-resend-certainty",
+    "migration-and-rollback",
+    "secret-and-supply-chain-hygiene",
+    "v0.3-regression",
+    "evidence-bound-release-acceptance"
+  ],
+  "claims": {
+    "scope_approved": true,
+    "implementation_authorized": true,
+    "release_accepted": false,
+    "operational_authorization": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "approval_record_sha256": "7871d6b133075af5ad160b107cdfc07abc345d3f5c492716aaf127c07889cb06"
+}

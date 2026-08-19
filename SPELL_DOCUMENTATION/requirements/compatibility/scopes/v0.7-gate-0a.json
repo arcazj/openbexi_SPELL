@@ -1,0 +1,248 @@
+{
+  "schema_version": "ng-spell-v07-gate-0a-scope/1",
+  "gate_id": "V07-GATE-0A",
+  "status": "PASS",
+  "target_increment": "v0.7",
+  "target_release": "v0.7.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "proposal_date": "2026-08-16",
+    "approval_date": "2026-08-16",
+    "authorization": "V07_OBS_001_THROUGH_V07_OBS_009",
+    "owner_request": "resume and finish up asap v0.6 asap and move forward to finis up v0.7 asap. you have all aprrovals.",
+    "precondition": "ANNOTATED_V0_6_0_ACCEPTED_RELEASE_TAG_VERIFIED",
+    "owner_approval_recorded": true
+  },
+  "approval_mechanics": {
+    "pass_validator_marker": "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+    "required_owner_approval_marker": "V07-GATE-0A OWNER-APPROVAL: APPROVED",
+    "required_marker_location": "STANDALONE_LINE_IN_SPELL_V0_7_PRE_IMPLEMENTATION_MD",
+    "marker_present": true,
+    "required_scope_status_after_approval": "PASS",
+    "required_authorization_after_approval": "EXPLICIT_BOUNDED_WORK_PACKAGE_ID_LIST",
+    "authorized_work_package_ids": [
+      "V07-OBS-001",
+      "V07-OBS-002",
+      "V07-OBS-003",
+      "V07-OBS-004",
+      "V07-OBS-005",
+      "V07-OBS-006",
+      "V07-OBS-007",
+      "V07-OBS-008",
+      "V07-OBS-009"
+    ],
+    "automatic_approval_from_request_or_tool_success": false
+  },
+  "accepted_baseline": {
+    "tag_ref": "refs/tags/v0.6.0",
+    "tag_object_type": "tag",
+    "tag_object_id": "b6dc64dc8fb6cfe9845f454904a078ec6f3c0919",
+    "raw_tag_object_sha256": "b08b3e66b0018a6f559b696cdd478b639f5ecbabc750b9049c85a8f8a17dd8a4",
+    "peeled_release_commit": "05ec783a6e54a76e0548bdd536c18538f6bff51b",
+    "qualified_source_commit": "8d9db4b6acc443ca6309cdfb12b5d4f9b2fef213",
+    "candidate_commit": "0ea26105e72d7830de4a265989ed7d9074ffbe09",
+    "source_fingerprint_sha256": "3c0245d5f9716969ef04dcf114bb8448a883f18dc801d8ccbcee06396363d3e1",
+    "evidence_fingerprint_sha256": "33e05aca329c5b3d66ebf1184327c1482294599ce7874b9d625de38365447376",
+    "product_package_sha256": "50bb87ef5dec937c259d1082ba77990a1e34cadd509c7559190969b79bde6cac",
+    "work_package_evidence_sha256": "16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538",
+    "tagged_blobs": {
+      "SPELL_v0.6_Release.md": {
+        "object_id": "c265d6bdb77d71c286d169205d0de35e4c0fdcff",
+        "sha256": "9eb9121470f7cdf097f55917bdcead7748b0257209ff8adfa957d7ca1bb4a7da"
+      },
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.6-gate-0b.json": {
+        "object_id": "ae71f4b678ea24148f3f4441aa5c22100458bab2",
+        "sha256": "0deef3794c7dd34ef9995f95d33f2688aebfa198b96579e655273603555205bc"
+      },
+      "artifacts/v0.6/release-qualification.json": {
+        "object_id": "968fff577d936ca3ce27990fb338e9e20f5a2fdd",
+        "sha256": "cbff6f30fca8708260a0a94bf60f3834455dee9cfa2021b5ae4dd2ec83b4c98f"
+      },
+      "artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz": {
+        "object_id": "e748945e218057ae14351b88d5e25d59ca043289",
+        "sha256": "b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c"
+      },
+      "artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz.sha256": {
+        "object_id": "0563fda5c3227de831eaeef1ef1c6e67f5bc0835",
+        "sha256": "7240872d3058796e7496eb9f0a44b44295a1246c6c991545aae4fb9b2ec23520"
+      }
+    },
+    "accepted_artifact_pair": {
+      "archive_path": "artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz",
+      "archive_sha256": "b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c",
+      "sidecar_path": "artifacts/v0.6/openbexi-spell-v0.6.0.tar.gz.sha256",
+      "sidecar_sha256": "7240872d3058796e7496eb9f0a44b44295a1246c6c991545aae4fb9b2ec23520",
+      "sidecar_ascii": "b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c  openbexi-spell-v0.6.0.tar.gz"
+    }
+  },
+  "authorization_contracts": {
+    "directory": "contracts/v07",
+    "matrix_count": 6,
+    "file_count": 7,
+    "files_sha256": {
+      "manifest.json": "df1c8060cf6ec8259d2949ac6ec14f7aebca7ceba041bb274fdbec6c354d1a7d",
+      "time_and_sample_identity.json": "08a36552d311c6cb6297a493197480a5fbe2df0153ac4e4c63ddf9c0d66d58cd",
+      "condition_engine.json": "5373bbe93f0b19656cd266dc0341f03df11e02e4e7a1038e8b64ff30a253ef1b",
+      "waitfor_and_scheduling.json": "53cfb3d168765495ee46b2383dfd14dca79154ac59eed3fd857953cf14119f79",
+      "resource_and_lookup_reads.json": "07c93d6960f312eb8c31832f455ae874ac6b54b05cbc85df038f5acd8be16eb8",
+      "limits_and_alarm_state.json": "e42c7da301fb340f0e8cada67806a620194802f77658bc8029df2857a0cf4977",
+      "cursor_streams.json": "e18f62e3cb949ddeab7c0533712d0f6666f6b9eef59b78e6255bd3c963a41c8d"
+    }
+  },
+  "compatibility_delta": {
+    "accepted_ir_versions": [
+      "0.3"
+    ],
+    "new_ir_versions": [],
+    "claimed_construct_ids": [],
+    "claimed_artifact_ids": [],
+    "compatibility_ledger_rows_added": 0,
+    "v0_6_scope_rows_changed": 0
+  },
+  "proposed_work_packages": [
+    {
+      "work_package_id": "V07-OBS-001",
+      "title": "Typed simulator driver time and provenance",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "DETERMINISTIC_SIMULATOR_DRIVER_TIME_SOURCE_PROVENANCE_UNCERTAINTY_SKEW_AND_EXPLICIT_HOST_FALLBACK",
+      "planned_test_ids": [
+        "V07-OBS-001-UNIT",
+        "V07-OBS-001-CONTRACT",
+        "V07-OBS-001-CLOCK",
+        "V07-OBS-001-RECOVERY",
+        "V07-OBS-001-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-002",
+      "title": "Typed GetTM samples and atomic raw/engineering projection",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "SIMULATOR_GETTM_CURRENT_NEXT_ATOMIC_SAMPLE_IDENTITY_RAW_ENGINEERING_METADATA_ACQUISITION_RECEIVE_TIME_SOURCE_VALIDITY_QUALITY_FRESHNESS_AND_SEQUENCE",
+      "planned_test_ids": [
+        "V07-OBS-002-UNIT",
+        "V07-OBS-002-INTEGRATION",
+        "V07-OBS-002-ATOMIC",
+        "V07-OBS-002-QUALITY",
+        "V07-OBS-002-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-003",
+      "title": "Bounded declarative Verify condition engine",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "TYPED_VERIFY_NESTED_AND_OR_DOCUMENTED_COMPARISONS_TOLERANCE_RETRIES_TIMEOUT_DELAY_COMPOSITE_RESULT_AND_TM_TO_TM_WITHOUT_CODE_EVALUATION",
+      "planned_test_ids": [
+        "V07-OBS-003-UNIT",
+        "V07-OBS-003-MATRIX",
+        "V07-OBS-003-CLOCK",
+        "V07-OBS-003-RECOVERY",
+        "V07-OBS-003-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-004",
+      "title": "Deterministic telemetry WaitFor",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "RELATIVE_ABSOLUTE_AND_TM_WAITFOR_WITH_MONOTONIC_DEADLINES_QUALITY_FRESHNESS_CANCELLATION_DISCONNECT_AND_ONE_DURABLE_OUTCOME",
+      "planned_test_ids": [
+        "V07-OBS-004-UNIT",
+        "V07-OBS-004-INTEGRATION",
+        "V07-OBS-004-CLOCK",
+        "V07-OBS-004-RACE",
+        "V07-OBS-004-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-005",
+      "title": "Telemetry-conditioned durable procedure scheduling",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "QUALITY_AND_FRESHNESS_GATED_TELEMETRY_SCHEDULES_WITH_DURABLE_IDENTITY_CANCELLATION_RESTART_RECOVERY_AND_EXACTLY_ONE_START_OUTCOME",
+      "planned_test_ids": [
+        "V07-OBS-005-UNIT",
+        "V07-OBS-005-INTEGRATION",
+        "V07-OBS-005-CLOCK",
+        "V07-OBS-005-RACE",
+        "V07-OBS-005-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-006",
+      "title": "Typed simulator resource and lookup reads",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "BOUNDED_TYPED_SIMULATOR_GETRESOURCE_MEMORYLOOKUP_AND_TMTCLOOKUP_CATALOG_QUERY_READS_WITH_NO_GENERIC_STRING_FILTER_OR_MUTATION",
+      "planned_test_ids": [
+        "V07-OBS-006-UNIT",
+        "V07-OBS-006-INTEGRATION",
+        "V07-OBS-006-BOUNDARY",
+        "V07-OBS-006-RECOVERY",
+        "V07-OBS-006-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-007",
+      "title": "Read-only telemetry limits and alarm state",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "READ_ONLY_GETLIMITS_AND_ISALARMED_WITH_SAMPLE_IDENTITY_QUALITY_FRESHNESS_SEQUENCE_AND_NO_LIMIT_OR_ALARM_MUTATION",
+      "planned_test_ids": [
+        "V07-OBS-007-UNIT",
+        "V07-OBS-007-MATRIX",
+        "V07-OBS-007-QUALITY",
+        "V07-OBS-007-RECOVERY",
+        "V07-OBS-007-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-008",
+      "title": "Durable telemetry snapshot and cursor streams",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "AUTHORIZATION_SCOPED_SNAPSHOT_CURSOR_STREAMS_WITH_CONTIGUOUS_SEQUENCE_GAP_RESYNCHRONIZATION_BACKPRESSURE_CANCELLATION_DISCONNECT_AND_RESTART",
+      "planned_test_ids": [
+        "V07-OBS-008-UNIT",
+        "V07-OBS-008-INTEGRATION",
+        "V07-OBS-008-BACKPRESSURE",
+        "V07-OBS-008-RECONNECT",
+        "V07-OBS-008-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V07-OBS-009",
+      "title": "Cross-feature read-only observation acceptance",
+      "status": "IMPLEMENTATION_AUTHORIZED",
+      "capability_boundary": "INTEGRATED_TIME_GETTM_VERIFY_WAITFOR_SCHEDULE_RESOURCE_LOOKUP_LIMIT_ALARM_STREAM_SEMANTIC_BROWSER_ACCESSIBILITY_LOAD_FAULT_RECOVERY_AND_SECURITY_ACCEPTANCE",
+      "planned_test_ids": [
+        "V07-OBS-009-SEMANTIC-GOLDEN",
+        "V07-OBS-009-BROWSER",
+        "V07-OBS-009-ACCESSIBILITY",
+        "V07-OBS-009-FAULT-RECOVERY",
+        "V07-OBS-009-LOAD-SECURITY"
+      ]
+    }
+  ],
+  "claims": {
+    "v0_6_release_accepted": true,
+    "v0_7_program_proposed": true,
+    "v0_7_implementation_authorized": true,
+    "v0_7_implementation_claimed_by_gate": false,
+    "v0_7_release_accepted": false,
+    "observation_constructs_implemented": false,
+    "product_artifacts_implemented": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "SCOPE_BEYOND_V07_OBS_001_THROUGH_V07_OBS_009",
+    "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+    "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_OR_EXTERNAL_EFFECT_ROUTE",
+    "HOST_CLOCK_REPRESENTED_AS_DRIVER_OR_GCS_TIME_OR_HIDDEN_TIME_UNCERTAINTY",
+    "TELEMETRY_RESOURCE_LOOKUP_LIMIT_OR_ALARM_MUTATION",
+    "ARBITRARY_CODE_SOURCE_EXPRESSION_FUNCTION_SHELL_OR_GENERIC_FILTER_EVALUATION",
+    "UNBOUNDED_QUERY_SUBSCRIPTION_BUFFER_CURSOR_RETRY_OR_CONDITION_GRAPH",
+    "CONTINUITY_ACROSS_UNACKNOWLEDGED_GAP_OR_SUCCESS_FROM_STALE_INVALID_MISSING_OR_UNCERTAIN_DATA",
+    "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
+    "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
+    "IMPLEMENTATION_RELEASE_DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_SIGNATURE_CLAIM"
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "schema_version": "ng-spell-v05-gate-0b-scope/1",
+  "gate_id": "V05-GATE-0B",
+  "status": "PASS",
+  "target_increment": "v0.5",
+  "target_release": "v0.5.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_SIMULATOR",
+  "decision": {
+    "owner": "JC Arcaz",
+    "decision_date": "2026-08-13",
+    "authorization": "V05_IR_001_RELEASE_CLOSEOUT_ONLY",
+    "owner_request": "execute 1, 2, 3, 4, 5. when done finish up and tag v0.5.",
+    "tag_resolution": "REQUESTED_V0_5_RESOLVES_TO_ANNOTATED_SEMVER_TAG_V0_5_0",
+    "precondition": "V05_IR_001_CANDIDATE_QUALIFICATION_PASS"
+  },
+  "immutable_inputs": {
+    "accepted_v0_4_0": {
+      "tag_ref": "refs/tags/v0.4.0",
+      "tag_object_type": "tag",
+      "tag_object_id": "86390c90e8d5f96f872be43274cbc9d789a34c2d",
+      "raw_tag_object_sha256": "ae7030aa54ad9c69761ae764c4edd2535b47ae842a2f4f5b4c20aad859fca663",
+      "peeled_commit": "4546d313a2d8f50504b2bc602d56b3b459ca7597",
+      "tagged_files_sha256": {
+        "SPELL_v0.4_Release.md": "6c3288a3a83d679e82713f09613a640117817fc9cbd05fdf4853a5db64202aa8",
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/COMPATIBILITY_LEDGER.json": "f1d4e20383c81a1109e93b39e2aac04f04b2366e91eae613170488a6acf8458f",
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.4.json": "2de37c751c084fad96d1bf1c3842deab57bb697920d0cc0bc15b206a46aee1f5"
+      }
+    },
+    "gate_0a": {
+      "commit": "d13397f51241c6bac10289ea21b69aafff66b1fb",
+      "parent": "4546d313a2d8f50504b2bc602d56b3b459ca7597",
+      "tree": "0aa6bcf78e0f42d39f8fae795bcc5a2ba34cb3c9",
+      "files": {
+        "SPELL_v0.5_Pre-Implementation.md": {
+          "blob": "24e765d0e6507efb8e6c48ce5493d5f951cbf1a8",
+          "sha256": "6a66c9cdafa98bf4647149a24f200cac992346f69222e0c7bae54e7e1e3b7630"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0a.json": {
+          "blob": "94ee01dba224450982a1354df26f1b1c5087fd9d",
+          "sha256": "ce7bcb626d22f6e7ff03a3b019d3e388afc71b666d4bbc1178290e486f7b15a7"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0a.py": {
+          "blob": "12a50c5a8bb94a95ce9a0e69edfe3e84c0e8d7a2",
+          "sha256": "b814a8d61a80c107c94f2c7ed61188073c997dbf1d1a723a45a0f0be79773d40"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v05_gate_0a.py": {
+          "blob": "3e816e899d5867ca1c90bd1795572e66b268f0d5",
+          "sha256": "c9dca6428fa9655198e1ffc99b3f8aab178ef4e3d3cbe71b7abfe285d9c20860"
+        }
+      }
+    },
+    "candidate": {
+      "commit": "aefa658ce01d49a7879d0471b50425ac3bcf9e2d",
+      "parent": "d13397f51241c6bac10289ea21b69aafff66b1fb",
+      "tree": "958c43e867228b536fd21c0da59d5530e9fe155b",
+      "changed_paths": [
+        {
+          "path": "backend/ir_v03.py",
+          "status": "A",
+          "blob": "87f202e9e3ff192e348c2aea9f7009ea7fc95841",
+          "sha256": "2726774ed5873e0c0c1eeaffa7b3713c708ac7f61a6fa93e544a8dbc8c79963c"
+        },
+        {
+          "path": "backend/procedure_parser.py",
+          "status": "M",
+          "blob": "cf6fdf5645d3818e8b7b2c7abdca796d4d1c506b",
+          "sha256": "69df9a20e068368a5e9d48c95d157c2fb6740352a53683ed52cf1cad681719be"
+        },
+        {
+          "path": "backend/supervisor.py",
+          "status": "M",
+          "blob": "6b903d97c7777cd163b776fe5c0a2bebc1c2721c",
+          "sha256": "5e731f1a64170b0e891f91511c3cab3cb68614a5f8b92d557b33bd623fde9b04"
+        },
+        {
+          "path": "backend/tests/test_driver_isolation.py",
+          "status": "M",
+          "blob": "d829838cbd1b0186adb7a075e9c9edfb661c321c",
+          "sha256": "4e59af01b1e34f003e4b813356495d9928ac3a0160b401ed144a352afca4b5de"
+        },
+        {
+          "path": "backend/tests/test_ir_boundaries.py",
+          "status": "A",
+          "blob": "750b3640615e6aa19d3d40914f966cccb63e59d8",
+          "sha256": "6067392eea3b8fbd7038042c7b082ad16afdff98b5546128356ae60c912a57f0"
+        },
+        {
+          "path": "backend/tests/test_ir_v03.py",
+          "status": "A",
+          "blob": "e142c9b67dadbad71d62207542a7c395f896f9c6",
+          "sha256": "5ba90700aa243707da70e42a1fec091b4da19a83417c68e424963cbb11aa41af"
+        },
+        {
+          "path": "backend/tests/test_procedure_parser.py",
+          "status": "M",
+          "blob": "a9f3c22d2362e83d810b4476d2435407ca2a01ab",
+          "sha256": "38f5c536f5665b216c4ccbc88fd4ae941ce945c93eea64acac18df38cbdc6d4f"
+        },
+        {
+          "path": "backend/tests/test_worker_expressions.py",
+          "status": "M",
+          "blob": "fe97a2f57e7ec85093b893526030afbfeff59fb3",
+          "sha256": "43a8b44044ad99862f1df1d4fe920fc1d8a12c62ca65d021008b33b14727195d"
+        },
+        {
+          "path": "backend/worker.py",
+          "status": "M",
+          "blob": "513fb00afea31b948e6cdcfed3c2911c2eff42e5",
+          "sha256": "f7ccbcb149df6a551ffd6106e97cc381cf0fbb0ff995dd3c5ce5dd528375fcf5"
+        }
+      ]
+    },
+    "qualification_source": {
+      "commit": "ef26e53f5ecccabef1fff03ec86d71b0c93edd2b",
+      "parent": "05a1c89c21b500270476b172d86d0758945d23d7",
+      "tree": "f646a40bcd70ec9ebc28f3ebf3783e54c1c8f9a1",
+      "classification": "TEST_COMPATIBILITY_CORRECTION_ONLY",
+      "correction": {
+        "path": "backend/tests/test_driver_isolation.py",
+        "status": "M",
+        "blob": "60ed5164ffe190ccbb5cee91ffe619eba7c8c9c2",
+        "sha256": "d0eca2c56705068027b910991719971838d5f84033806f9a0ff9de0f7b3e0756"
+      },
+      "product_behavior_changed": false,
+      "implementation_identity_changed": false,
+      "scope_expanded": false
+    }
+  },
+  "qualified_work_package": {
+    "work_package_id": "V05-IR-001",
+    "title": "Existing v0.3 IR fail-closed validation hardening",
+    "status": "IMPLEMENTED",
+    "accepted_ir_version": "0.3",
+    "release_disposition": "QUALIFIED_FOR_RELEASE_CLOSEOUT",
+    "identity_results": [
+      "V05-IR-001-UNIT",
+      "V05-IR-001-PARSER",
+      "V05-IR-001-SUPERVISOR",
+      "V05-IR-001-WORKER",
+      "V05-IR-001-COMPAT",
+      "V05-IR-001-ADVERSARIAL"
+    ],
+    "qualification_contract": {
+      "manifest_path": "artifacts/v0.5/work-package/qualification.json",
+      "manifest_schema": "spell.v05.candidate-qualification/1",
+      "manifest_sha256": "86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9",
+      "validator_path": "scripts/validate_candidate_evidence_v05.py",
+      "python_version": "3.13.14",
+      "suite_ids": [
+        "backend_sqlite",
+        "backend_postgresql",
+        "driver_host",
+        "tooling"
+      ],
+      "postgresql_environment_variables": [
+        "SPELL_TEST_DATABASE_URL",
+        "SPELL_MIGRATION_TEST_DATABASE_URL"
+      ],
+      "postgresql_zero_skips": true,
+      "identity_environments": [
+        "sqlite",
+        "postgresql"
+      ],
+      "waivers_allowed": false
+    },
+    "compatibility_delta": {
+      "accepted_ir_versions": [
+        "0.3"
+      ],
+      "new_ir_versions": [],
+      "claimed_construct_ids": [],
+      "claimed_artifact_ids": [],
+      "compatibility_ledger_rows_added": 0,
+      "v0_4_scope_rows_changed": 0
+    }
+  },
+  "release_closeout_authorization": {
+    "status": "AUTHORIZED",
+    "release_version": "0.5.0",
+    "tag_name": "v0.5.0",
+    "tag_object_type": "annotated",
+    "permitted_actions": [
+      "RECORD_V05_IR_001_IMPLEMENTED",
+      "PUBLISH_CANONICAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+      "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+      "SET_PRODUCT_VERSION_METADATA_TO_0_5_0",
+      "CREATE_DETERMINISTIC_RELEASE_PACKAGE_AND_SUPPLY_CHAIN_EVIDENCE",
+      "COMMIT_RELEASE_CLOSEOUT",
+      "CREATE_ANNOTATED_V0_5_0_TAG"
+    ],
+    "additional_product_work_authorized": false
+  },
+  "claims": {
+    "v0_4_release_accepted": true,
+    "gate_0a_immutable_authorization_verified": true,
+    "v05_ir_001_implemented": true,
+    "release_closeout_authorized": true,
+    "v0_5_release_accepted_by_gate": false,
+    "new_language_surface_claimed": false,
+    "new_public_contract_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false
+  },
+  "explicit_exclusions": [
+    "V0_5_SCOPE_BEYOND_V05_IR_001",
+    "SECOND_PRODUCT_WORK_PACKAGE",
+    "NEW_LANGUAGE_CONSTRUCTS_OR_COMPATIBILITY_ARTIFACTS",
+    "IR_VERSION_CHANGE_OR_MIGRATION",
+    "PERSISTED_IR_REWRITE",
+    "UNRESTRICTED_PYTHON_OR_SOURCE_EXECUTION",
+    "PUBLIC_API_DATABASE_SCHEMA_FRONTEND_DEPENDENCY_OR_DRIVER_CONTRACT_CHANGE",
+    "DRIVER_GCS_SPACECRAFT_OR_EXTERNAL_EFFECT_ROUTING",
+    "LIGHTWEIGHT_OR_SECONDARY_V0_5_TAG",
+    "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_SIGNATURE_CLAIM"
+  ]
+}
