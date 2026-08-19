@@ -6,6 +6,30 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-19 - v0.10 Reconstruction And v0.11 Release Ordering
+
+The owner directed restoration of the complete v0.10 and v0.11 work, followed
+by GitHub publication, and approved the recommendation to close the releases
+in order. History inspection found no clean v0.10 release commit: a later
+working-tree snapshot mixed v0.10 reference-runner work with v0.11 command
+runtime work. v0.10 was therefore reconstructed from the accepted `v0.9.0`
+tag instead of relabeling the mixed snapshot.
+
+The reconstructed v0.10 product candidate is
+`8377760be59033b3372512ad812c43cd6d2f7e29`. It contains the 195-example,
+257-variant reference adapter, one bundled procedure, complete supporting
+backend/frontend tests and browser evidence, and no v0.11 product path. The
+strict release policy pins all eight mandatory legacy references while
+excluding their PDF/ZIP bytes from product images and packages. Acceptance
+requires committed qualification and deterministic package evidence plus the
+validated annotated tag `v0.10.0`, with no accepted exception.
+
+v0.11 remains the next planned release and must be constructed from the
+accepted v0.10 tag. Earlier mutable main-line v0.11 work is not imported into
+the v0.10 release tree and cannot be used as v0.10 release evidence. This
+ordering restores both versions without allowing v0.11 code or claims to leak
+backward into v0.10.
+
 ## 2026-08-19 - GitHub Delivery Default
 
 The owner directed that completed repository changes always be committed and
@@ -42,9 +66,10 @@ operational use.
 
 The owner directed all root-level version-specific release Markdown records to
 move under `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/` and requested
-the resulting documentation changes be committed and pushed to GitHub. The 24
-matching `SPELL_v*.md` planning, gate, implementation, and release records for
-v0.1 through v0.11 were moved. Their canonical index is
+the resulting documentation changes be committed and pushed to GitHub. The
+v0.10 release tree retains 22 applicable `SPELL_v*.md` planning, gate,
+implementation, and release records through v0.10. Later v0.11 records are
+deliberately absent from this earlier release boundary. Their canonical index is
 [`releases/README.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md).
 
 Cross-version records remain at the repository root. Documentation links follow
@@ -68,11 +93,10 @@ the legacy folder. The unique legacy file
 trees contain 100 generated files, one legacy manual, and zero cross-tree
 content duplicates.
 
-The later owner-supplied `SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf` is also a
-valid, distinct legacy manual and was retained. The local
-`SPELL_DOCUMENTATION/SPELL2.6.10-src.zip` remains external evidence under its
-explicit `.gitignore` rule and is not represented as a committed GitHub file.
-The versioned legacy tree therefore contains two manuals.
+The later source-reference baseline superseded that inventory state. The
+versioned legacy tree now contains seven distinct manuals plus the read-only
+`SPELL2.6.10-src.zip`, all hash-pinned as mandatory source inputs. None is
+copied into product images or release packages.
 
 ## 2026-08-19 - Strengthened v0.10 Gate And v0.11 Direction
 
@@ -92,10 +116,10 @@ and placeholder material remains explicitly classified as a semantic
 adaptation; the project does not claim arbitrary Python or verbatim execution
 of those fragments.
 
-After that prerequisite, the owner direction authorizes the bounded v0.11
-simulator telecommand scope in `PROJECT_ROADMAP.md`. The gate and local
-compatibility decisions are recorded in
-[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md).
+After that prerequisite, the owner direction identifies the bounded v0.11
+simulator telecommand scope in `PROJECT_ROADMAP.md`. The v0.10 release tree
+retains it as future scope only; its later gate and implementation records must
+be created on a branch based on accepted v0.10.
 The scope includes catalog-backed `BuildTC`/`Send`, all 26 documented command
 statements in Examples 57 through 77, durable confirmation and settlement,
 deterministic timing and verification, failure policy, recovery, effect
@@ -103,11 +127,9 @@ certainty, and no-resend behavior. It excludes any operational driver, GCS,
 spacecraft, credential, browser mutation route, deployment, compliance, or
 release authorization.
 
-The resulting mutable-worktree implementation boundary, completed local
-qualification, and recorded non-release exclusions are recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). This later
-status note does not rewrite the authorization decision above or claim an
-accepted release.
+Later mutable main-line v0.11 work does not rewrite the authorization decision
+above and is not evidence for v0.10. It is deliberately absent from this
+release tree and must be requalified from the accepted v0.10 endpoint.
 
 ## 2026-08-19 - v0.10 Reference Example Adapter Direction And Local Result
 
@@ -130,8 +152,9 @@ The Language Reference contains fragments, pseudocode, output illustrations,
 and intentionally invalid examples. v0.10 therefore proves a deterministic
 semantic-adaptation profile, not verbatim PDF-snippet execution or general
 SPELL 2.4.4 parser compatibility. External effects are simulator projections;
-telecommand dispatch remains disabled. These are mutable working-tree/local
-results only. No v0.10 candidate freeze, package, release commit, tag,
+telecommand dispatch remains disabled. The later reconstruction freezes product
+candidate `8377760be59033b3372512ad812c43cd6d2f7e29`; package and acceptance
+remain conditional on the v0.10 qualification and annotated-tag gates. No
 deployment approval, compliance determination, or operational authorization is
 claimed.
 

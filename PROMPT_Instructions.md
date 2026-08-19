@@ -68,30 +68,27 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.9.0 is the accepted local synthetic non-CUI baseline. Annotated tag
+SPELL v0.9.0 is the accepted predecessor to the reconstructed v0.10 candidate. Annotated tag
 object `b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
 `a8caa957179f8df301f9863e421e3fd7127e5318`; strict release validation passed
-with no accepted exceptions. v0.10 is an owner-directed mutable-worktree
-implementation of the bounded Language Reference Example Adapter recorded in
-[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). v0.11 is the
-owner-authorized mutable-worktree simulator telecommand increment governed by
-[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md) and
-recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). Its final
-local qualification commands, results, and exclusions are complete. These
-local implementations are not candidate
-freezes, accepted releases, deployment approvals, compliance results, or
-operational authorizations.
+with no accepted exceptions. v0.10 product candidate
+`8377760be59033b3372512ad812c43cd6d2f7e29` implements the bounded Language
+Reference Example Adapter recorded in
+[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md).
+It becomes accepted only when the committed qualification, deterministic
+package, and annotated `v0.10.0` tag pass the v0.10 release validator. v0.11 is
+future roadmap scope and is absent from this tree; it requires a new branch
+from the accepted v0.10 tag and a separate entry gate.
 
-For v0.10 and v0.11 work, the applicable manuals under
+For v0.10 and planned v0.11 work, the applicable manuals under
 `SPELL_DOCUMENTATION/`, including the 195-example Language Reference 2.4.4,
 are the behavioral reference baseline. The generated matrices and version
 records provide derived traceability and evidence. Preserve distinct proof for
 every identified variant, including both Example 60 `Send` forms. Do not weaken
 tests, silently ignore conflicting modifiers, infer success from transport or
 loading, or automatically resend an effect-possible or effect-unknown
-operation. v0.11 remains deterministic and simulator-only with
-supervisor-owned durable confirmation and settlement.
+operation. Any later v0.11 design must remain deterministic and simulator-only
+with supervisor-owned durable confirmation and settlement.
 
 At the v0.9 candidate source-freeze boundary, SPELL v0.8.0 was the accepted
 local synthetic non-CUI simulator engineering baseline. Annotated tag object

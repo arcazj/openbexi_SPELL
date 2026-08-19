@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.9.0 baseline and bounded v0.10/v0.11 working-tree implementations |
-| Update type | Accepted-release status plus non-release v0.10 verification and v0.11 implementation closeout scope |
+| Document revision | Accepted v0.9.0 baseline, reconstructed v0.10 release candidate, and planned v0.11 boundary |
+| Update type | v0.10 source restoration and strict release closeout; v0.11 retained as future scope only |
 | Updated | 2026-08-19 |
 | Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
@@ -16,10 +16,10 @@
 | v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
-| v0.10 current status | Reference Example Adapter implemented and locally verified in the mutable worktree; no v0.10 candidate freeze, package, release commit, or tag |
-| v0.11 current status | Simulator-only `BuildTC`/`Send` implementation locally qualified in the mutable worktree with recorded non-release exclusions; no v0.11 candidate freeze, package, release commit, or tag |
+| v0.10 current status | Product candidate reconstructed at `8377760be59033b3372512ad812c43cd6d2f7e29`; acceptance requires committed qualification/package evidence and validated annotated tag `v0.10.0` |
+| v0.11 current status | Planned next increment only; no v0.11 source, contract, evidence, package, or release record is present in the v0.10 tree |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | v0.9.0 is the accepted baseline; bounded v0.10 and simulator-only v0.11 changes exist only in the mutable worktree and are not released |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.10 adds only the bounded reference runner, IR `0.10`, catalog retirement support, and associated UI/API behavior; v0.11 remains unimplemented in this tree |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -51,10 +51,10 @@ implementation, version-scoped tooling, and exact product inventory were frozen
 together. At that boundary, canonical candidate qualification had not yet run;
 Gate 0B, Final qualification, packaging, release, and tag validation were
 pending. That historical boundary was later superseded by the validated
-`v0.9.0` tag. The v0.10 adapter and v0.11 simulator telecommand implementation
-described below exist only in the mutable worktree; neither has a release
-endpoint. The v0.11 local closeout record is complete and records every
-environment-selected or intentionally inapplicable release-only check.
+`v0.9.0` tag. The v0.10 adapter is reconstructed as a release candidate and is
+governed by `contracts/v10/release_policy.json`; its annotated tag is the only
+acceptance endpoint. v0.11 is retained below as future simulator-only planning
+and is not implementation-authorized by this roadmap.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -375,13 +375,12 @@ Goal: make every numbered example in SPELL Language Reference 2.4.4 selectable
 from one runnable procedure and prove its independently authored semantic
 adaptation against deterministic simulator oracles.
 
-Current disposition: implemented and locally verified on 2026-08-19 in the
-mutable working tree. The canonical local result is 195 PASS with zero failed,
-skipped, expected-failed, or unresolved examples; the strengthened traceability
-gate contains 257 independently asserted variant subcases across those 195
-examples. Public API and desktop/mobile browser execution are also local
-evidence. This is not a candidate freeze, package, accepted release, or
-annotated-tag endpoint.
+Current disposition: reconstructed product candidate
+`8377760be59033b3372512ad812c43cd6d2f7e29`. The canonical result is 195 PASS
+with zero failed, skipped, expected-failed, or unresolved examples; the
+strengthened traceability gate contains 257 independently asserted variant
+subcases. Acceptance remains conditional on the source-bound qualification,
+deterministic package, and annotated `v0.10.0` tag validators.
 
 Required properties:
 
@@ -409,20 +408,20 @@ compatibility. The previously planned auxiliary-service mutation tranche is
 deferred; simulated effects in this adapter do not authorize or implement live
 service or telecommand routes.
 
-Exit gate: the contract, generator, single procedure, qualification artifact,
-worker/API tests, and real browser proof all pass without waiver.
+Exit gate: the contract, generator, single procedure, complete backend and
+environment-selected tests, frontend/build, worker/API tests, product image,
+documentation, deterministic package, and real browser proof all pass without
+waiver; the annotated tag targets the final release commit.
 
 ### v0.11 - Simulator Telecommand Semantics
 
 Goal: implement the documented `BuildTC` and `Send` surface in a simulator with
 no operational route.
 
-Current disposition: the authorized simulator-only implementation is locally
-qualified in the mutable working tree. Exact multi-suite commands, counts,
-skips, non-applicable historical release checks, and the cold-cache offline
-build limitation are recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). This is not a
-candidate freeze, package, accepted release, or annotated-tag endpoint.
+Current disposition: planned next increment only. v0.11 must branch from the
+validated `v0.10.0` tag, re-run document-impact analysis across every mandatory
+source reference, and pass a separately recorded entry gate before product
+edits begin. No v0.11 implementation or qualification claim belongs to v0.10.
 
 Required properties:
 
@@ -440,14 +439,14 @@ Required properties:
   crash-boundary recovery, canonical-state integrity checks, and reconciliation
   without dispatching a second command.
 
-Exit gate result: command-corpus, confirmation, duplicate-child, stage,
+Exit gate: command-corpus, confirmation, duplicate-child, stage,
 cancellation, crash-boundary, uncertainty, reconciliation, and no-resend tests
 pass against deterministic simulators. The strengthened 195-example/257-variant
 v0.10 gate, current product regression, frontend, browser, build, and image
-checks pass, including all 19 environment-selected PostgreSQL and Docker-Compose
-tests. The implementation record preserves nine historical v0.5-v0.9
-current-root release/package validators as explicit non-v0.11 closeout
-boundaries rather than relabeling them as passes.
+checks must pass, including every environment-selected PostgreSQL and
+Docker-Compose test. A version-scoped v0.11 release framework must replace any
+historical validator that still assumes an older current-root version; older
+evidence must not be relabeled.
 
 ### v0.12 - Read-Only Legacy Observation
 

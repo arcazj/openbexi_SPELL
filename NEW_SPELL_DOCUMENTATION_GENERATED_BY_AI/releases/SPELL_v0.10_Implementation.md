@@ -1,5 +1,22 @@
 # SPELL v0.10 Reference Example Runner
 
+## Record Status
+
+| Field | Value |
+| --- | --- |
+| Accepted predecessor | SPELL v0.9.0 at annotated tag `v0.9.0` |
+| Reconstructed product candidate | `8377760be59033b3372512ad812c43cd6d2f7e29` |
+| Product version | `0.10.0` |
+| Release policy | `contracts/v10/release_policy.json` |
+| Release disposition | Conditional: accepted only when committed qualification/package evidence and annotated tag `v0.10.0` pass `scripts.validate_release_evidence_v10` |
+| Accepted exceptions | None permitted |
+| Operational authorization | None |
+| Updated | 2026-08-19 |
+
+This record is part of the v0.10 release candidate. It does not claim v0.11
+source, a live Ground Control System, spacecraft commanding, deployment
+approval, compliance, or a cryptographic signature.
+
 ## Scope
 
 v0.10 provides a deterministic semantic-adaptation runner for all 195 numbered
@@ -32,6 +49,23 @@ The reference includes fragments, pseudocode, output illustrations, known
 syntax omissions, and intentionally wrong code. Consequently, this increment
 claims deterministic semantic adaptation, not verbatim execution of PDF text.
 No reference text is passed to `exec`, `eval`, imports, a shell, or a network.
+
+## Documentation Impact
+
+Every file under `SPELL_DOCUMENTATION/` is a mandatory read-only source input
+for this release and future work. The Language Reference 2.4.4 is the primary
+v0.10 syntax and example authority. The Driver and Server manuals constrain
+service, lifecycle, context, and execution concepts; the GUI and Development
+Environment manuals constrain the selectable runner and authoring workflows;
+the two earlier manuals are supplementary compatibility references. The
+legacy source ZIP is evidence only: no legacy code is copied into the product.
+
+Generated documentation may interpret these sources but cannot silently
+override them. Ambiguity, obsolete behavior, deliberate incompatibility, and
+safety strengthening require an explicit decision and test. The exact eight
+source hashes are pinned in `contracts/v10/release_policy.json`; the same
+policy requires all eight to remain in `SPELL_DOCUMENTATION/` while excluding
+them from product images and release packages.
 
 ## Runtime Boundary
 
@@ -75,6 +109,13 @@ Delivery requires all of the following with no waiver:
 - The menu path routes index `194` to Example 195 and records its catalog
   provenance assertion.
 - Summary is exactly 195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, 0 unresolved.
+- The complete backend inventory passes, and all 16 PostgreSQL-selected plus
+  all three Docker-Compose-selected tests pass separately with no unresolved
+  environment skip.
+- All 112 frontend tests, the production build, Chromium, and the mobile
+  browser project pass against the real loopback stack.
+- Product image, documentation, source-bound qualification, deterministic
+  package, sidecar, and annotated-tag validation pass with no exception.
 
 Canonical per-example evidence is `artifacts/v0.10/reference-examples.json`;
 variant coverage is bound by the generated variant matrix and its qualification
@@ -120,5 +161,9 @@ success-only JSON and PNG captures are under
 `artifacts/v0.10/browser-e2e/results/`.
 
 The browser menu remains usable with 195 choices through its option filter.
-This increment grants no spacecraft, mission-network, live commanding,
-deployment, compliance, or operational authority.
+The machine-readable release result is
+`artifacts/v0.10/release-qualification.json`; package identity and exclusions
+are recorded separately in `artifacts/v0.10/release-manifest.json`. The
+annotated tag is the immutable acceptance endpoint. This increment grants no
+spacecraft, mission-network, live commanding, deployment, compliance, or
+operational authority.

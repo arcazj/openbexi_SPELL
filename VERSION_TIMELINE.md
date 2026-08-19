@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.9.0 baseline and v0.10/v0.11 working-tree records |
-| Update type | Accepted-release binding plus bounded, non-release v0.10 results and v0.11 implementation closeout status |
+| Document revision | Accepted v0.9.0 baseline, reconstructed v0.10 candidate, and planned v0.11 boundary |
+| Update type | v0.10 immutable candidate and conditional release closeout; correction of v0.11 to future scope in this tree |
 | Updated | 2026-08-19 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
 | Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
@@ -17,8 +17,8 @@
 | v0.8 status | Accepted 2026-08-18 at annotated tag `v0.8.0`; nine work packages implemented and qualified; no accepted exceptions |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and all later release endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | v0.9 current status | Accepted 2026-08-19 at annotated tag `v0.9.0`; Final qualification, package, and strict tag validation passed with no accepted exceptions |
-| v0.10 current status | One-procedure/195-example bounded adapter implemented and locally verified in the mutable worktree on 2026-08-19; no candidate freeze, release commit, or tag |
-| v0.11 current status | Simulator-only `BuildTC`/`Send` scope implemented and locally qualified in the mutable worktree on 2026-08-19 with recorded non-release exclusions; no candidate freeze, release commit, or tag |
+| v0.10 current status | Product candidate reconstructed at commit `8377760be59033b3372512ad812c43cd6d2f7e29`; release acceptance is conditional on committed evidence, deterministic package, and validated annotated tag `v0.10.0` |
+| v0.11 current status | Planned next increment only; the v0.10 tree contains no v0.11 source, contract, qualification, package, or tag |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -81,8 +81,8 @@ Conventions:
 | v0.9 Gate 0A | SPELL Development Environment planning authorization | Owner request `start and complete asap V0.9` recorded 2026-08-18; exact time not retained | Explicit owner approval, nine-package/45-identity contract binding, and Gate validator PASS recorded 2026-08-18 | Same calendar day; exact elapsed time and active effort unknown | `V09-DEV-001` through `V09-DEV-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
 | v0.9 candidate source freeze | Bounded development-environment implementation and version-scoped qualification/release tooling | Gate 0A commit `92f3b4b82908d44e28b9506749e498386a428c27`; exact implementation start time not retained | Candidate source and exact product inventory frozen 2026-08-18; canonical qualification had not yet run | Elapsed time and active effort unknown | Gate 0B, Final, package, release commit, and tag were pending at freeze; later acceptance only by validated annotated tag |
 | v0.9 | Bounded SPELL Development Environment | Candidate commit `060001baf423fb82f27041f6b842630370c1a786` at 2026-08-19 04:12:37 EDT | Annotated tag `v0.9.0` at 2026-08-19 05:56:44 EDT | Candidate-to-tag 1h 44m 07s; qualified-source-to-tag 52m 28s; release-commit-to-tag 2m 21s; total active engineering effort unknown | Exact Git intervals; strict release validation passed with no accepted exceptions |
-| v0.10 working tree | SPELL 2.4.4 Reference Example Adapter | Owner request recorded 2026-08-19; exact request time not retained | Local implementation and verification completed 2026-08-19; no immutable endpoint | Same calendar day; exact elapsed time and active effort unknown | Mutable source and local evidence: 195/195 bounded adaptations, 257 variant subcases, plus backend, frontend, and browser checks; not an accepted release |
-| v0.11 working tree | Simulator Telecommand Semantics | Owner authorization recorded 2026-08-19 after the strengthened v0.10 entry gate; exact start time not retained | Local implementation and qualification completed 2026-08-19; no immutable endpoint | Same calendar day; exact elapsed time and active effort unknown | Mutable simulator-only source; 197 focused and 1,544 full-backend tests passed, with exact exclusions recorded; no candidate, accepted release, release commit, or tag |
+| v0.10 candidate | SPELL 2.4.4 Reference Example Adapter | Owner request recorded 2026-08-19; exact request time not retained | Product candidate reconstructed at `8377760be59033b3372512ad812c43cd6d2f7e29`; final tag endpoint conditional | Same calendar day; exact elapsed time and active effort unknown | 195/195 bounded adaptations and 257/257 variants; strict release qualification and package/tag gates required before acceptance |
+| v0.11 planned | Simulator Telecommand Semantics | May begin only from an accepted `v0.10.0` tag after a separate document-impact and entry-gate record | No implementation endpoint in the v0.10 tree | Not applicable | Roadmap scope only; no source, evidence, release, or operational claim |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
@@ -90,40 +90,33 @@ Conventions:
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
 
-## 2026-08-19 - v0.11 Working-Tree Implementation And Local Qualification
+## v0.11 - Planned After Accepted v0.10
 
-| Field | Value |
-| --- | --- |
-| Entry authority | `V11-GATE-0A PASS` after the 195-example/257-variant v0.10 traceability gate |
-| Implemented scope | Closed catalog-backed `BuildTC`/`Send`; typed command, sequence, group, and block expansion; critical confirmation; deterministic scheduling, release, load-only, timeout, delayed telemetry verification, tolerance and adjustable-limit intent; separate per-element stages and certainty; cancellation, recovery, reconciliation, and no automatic resend |
-| Command compatibility boundary | The 26 documented command statements in Examples 57 through 77 are represented by closed parser/IR/runtime forms; malformed, pseudocode, placeholder, and intentionally invalid source remains a hash-bound semantic adaptation rather than verbatim execution |
-| Closeout result | Local PASS with recorded boundaries: v0.10 195/195 examples and 257/257 variants; v0.11 197 focused passes; 1,544 backend passes plus 16/16 dedicated PostgreSQL passes; 112 frontend and 2/2 real-browser passes; image/runtime/documentation checks passed |
-| Immutable status | Mutable working tree only; no v0.11 candidate commit, package, release commit, or annotated tag |
-| Operational authorization or compliance determination | None |
+v0.11 is retained as future simulator-only telecommand scope. It has no start,
+implementation, qualification, package, release commit, or tag in the v0.10
+tree. A later v0.11 branch must begin from the accepted `v0.10.0` tag and record
+its own mandatory-document impact, entry authority, exact code boundary,
+qualification, package, and immutable endpoint. Roadmap text is not evidence
+that `BuildTC` or `Send` is implemented.
 
-The exact commands, durations, hashes, all 19 environment-selected passes, nine inapplicable
-historical release/package validators, and cold-cache offline-build limitation
-are recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). Elapsed time
-and active engineering effort remain unknown.
-
-## 2026-08-19 - v0.10 Working-Tree Implementation And Local Verification
+## 2026-08-19 - v0.10 Candidate Reconstruction And Release Closeout
 
 | Field | Value |
 | --- | --- |
 | Owner direction | Revisit v0.10 around the 195 numbered SPELL Language Reference 2.4.4 examples; expose one selectable procedure; implement and execute as soon as possible with approvals granted |
 | Implemented scope | One production-catalog runner, a hash-pinned 195-example contract, a generated 257-subcase variant matrix, closed IR `0.10`, deterministic semantic adapters and oracles, catalog retirement, and searchable desktop/mobile prompt behavior |
-| Local result | 195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, 0 unresolved, with 257 independently asserted variant subcases; Example 195 proves bundled TM/TC catalog lookup provenance and values; focused backend, frontend build/unit, and real Chromium/Pixel 7 checks passed |
+| Product candidate | `8377760be59033b3372512ad812c43cd6d2f7e29` |
+| Result boundary | 195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, 0 unresolved, with 257 independently asserted variant subcases; Example 195 proves bundled TM/TC catalog lookup provenance and values; complete release results are authoritative only in `artifacts/v0.10/release-qualification.json` |
 | Claim boundary | Semantic adaptations, not verbatim execution of PDF fragments or general SPELL 2.4.4 parser compatibility; no live command dispatch |
-| Immutable status | Mutable working tree only; no v0.10 candidate commit, package, release commit, or annotated tag |
+| Immutable status | Candidate commit exists; acceptance remains conditional on deterministic package evidence and annotated tag `v0.10.0` passing the v0.10 validator |
 | Operational authorization or compliance determination | None |
 
 The exact local evidence is recorded in
 [`Test_and_Integration.md`](Test_and_Integration.md) and
 [`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). Elapsed time
 and active engineering effort are unknown because the request time and a
-continuous work log are not retained. Local PASS results must not be
-represented as release acceptance.
+continuous work log are not retained. The annotated tag, not an uncommitted or
+partial test result, is the release-acceptance endpoint.
 
 ## 2026-08-19 - v0.9.0 Accepted
 

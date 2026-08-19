@@ -5,10 +5,10 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted product release | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
-| Current working-tree state | Strengthened v0.10 variant gate and bounded v0.11 simulator telecommand implementation locally qualified in the mutable worktree; no v0.10 or v0.11 release commit or tag |
+| Accepted predecessor | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
+| Current release state | Reconstructed v0.10 product candidate `8377760be59033b3372512ad812c43cd6d2f7e29`; acceptance conditional on committed qualification/package evidence and annotated tag `v0.10.0` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
-| v0.11 owner direction | Begin only after the 195-example variant gate passes; implement and test the roadmap-defined simulator-only `BuildTC`/`Send` scope and update all relevant Markdown |
+| v0.11 direction | Planned next release only; begin from accepted v0.10 after a separate mandatory-document impact and entry gate |
 | Date | Updated 2026-08-19 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
@@ -17,7 +17,7 @@
 
 ### Scope And Claim Boundary
 
-The v0.10 working tree implements one production-catalog procedure with a
+The v0.10 candidate implements one production-catalog procedure with a
 searchable 195-entry prompt and a closed `ReferenceExample` instruction. Each
 number is bound to a hash-pinned, independently authored semantic adaptation
 and exact simulator oracle. This proves the bounded adaptation profile; it does
@@ -43,9 +43,10 @@ provenance, types, directions, filter bounds, and a `NOT_FOUND` negative lookup.
 The canonical 195-result record is
 [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json).
 
-These are mutable working-tree and local execution results. No v0.10 candidate
-freeze, release package, accepted tag, deployment approval, compliance result,
-or operational authorization is claimed.
+Product candidate `8377760be59033b3372512ad812c43cd6d2f7e29` freezes this
+runtime scope. Release qualification, package, and tag remain separate gates;
+no deployment approval, compliance result, or operational authorization is
+claimed.
 
 ### Strengthened Variant Gate
 
@@ -62,21 +63,15 @@ malformed, output-only, placeholder, negative, and pseudocode fragments use
 explicit hash-bound semantic adaptations and are not represented as arbitrary
 Python or verbatim executable snippets.
 
-## Version 0.11 Simulator Telecommand Working-Tree Closeout
+## Version 0.11 Planned Simulator Telecommand Gate
 
 ### Scope And Entry Decision
 
-`V11-GATE-0A PASS` in
-[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
-authorizes the roadmap-defined deterministic simulator scope after the
-strengthened v0.10 gate. The accepted release baseline remains v0.9.0.
-
-The authorized implementation is locally qualified in the mutable working tree. It uses
-closed typed contracts, deterministic no-real-wait timing and telemetry
-evaluation, supervisor-owned durable intent and settlement, and simulator-only
-providers. It has no live GCS route, driver credential, spacecraft connection,
-or operational authority. Exact final closeout results are recorded in the
-implementation record.
+The roadmap identifies a deterministic simulator-only `BuildTC`/`Send` scope
+after v0.10. It is not implemented or authorized by the v0.10 tree. A later
+v0.11 branch must start from the validated `v0.10.0` tag, inventory every
+mandatory reference document, record compatibility and safety decisions, and
+pass a separate Gate 0A before product changes.
 
 ### Required Evidence
 
@@ -89,20 +84,16 @@ implementation record.
 | Certainty | Separate stages and dispositions; no transport-success inference, load-only success inflation, blind resend, or success after uncertainty |
 | Integration | Public API execution of both Example 60 forms, full backend/scripts regression, frontend tests/build, and product-image contract availability |
 
-`PromptUser` decides only whether the procedure may continue after a settled
+Any future `PromptUser` design may decide only whether the procedure continues after a settled
 failure. `OnFailure` remains authoritative for remaining element progression.
 No prompt changes a settled result or permits resend. All no-answer and
 uncertain cases fail closed.
 
-The completed local gate records 197 focused v0.11 passes, 1,544 complete
-backend passes, all 19 environment-selected PostgreSQL/Compose selections, 112
-frontend passes, a production build, 2/2 real-browser passes, and product-image/documentation
-checks. The exact commands and the intentionally separate historical
-release-only tooling disposition are maintained in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). The 195
-example outcomes and 257 variant subcases remain separate evidence dimensions; neither
-permits raw invalid or pseudocode snippets to be represented as verbatim
-executable Python or unrestricted SPELL source.
+The 195 v0.10 example outcomes and 257 variant subcases remain separate
+evidence dimensions and become inherited regression gates, not v0.11 feature
+evidence. Historical release validators must retain their original version
+meaning; v0.11 needs new version-scoped release controls rather than relabeled
+v0.5-v0.9 results.
 
 ## Version 0.9 Gate 0A Test Plan And Candidate Preparation
 

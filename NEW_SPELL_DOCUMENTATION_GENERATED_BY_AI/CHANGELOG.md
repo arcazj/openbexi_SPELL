@@ -19,18 +19,15 @@ history remains in the parent project and is not duplicated as document history.
   subcases. Raw malformed, pseudocode, output-only, placeholder, negative, and
   intentionally invalid fragments remain semantic adaptations rather than
   verbatim executable source.
-- Applied the Draft's effect-certainty and recovery principles to the parent
-  project's simulator-only v0.11 `BuildTC`/`Send` implementation: typed catalog
-  expansion, deterministic timing and telemetry verification, separate
-  per-element stages, critical confirmation, cancellation, recovery,
+- Applied the Draft's effect-certainty and recovery principles to planned v0.11
+  `BuildTC`/`Send` scope without claiming implementation. The future gate must
+  keep typed catalog expansion, separate stages, critical confirmation,
   reconciliation, and no automatic resend after a possible or unknown effect.
-- Preserved `0.1.0-draft.1` as the generated specification version and v0.9.0 as
-  the parent project's accepted product baseline. The v0.10/v0.11 source and
-  evidence remain mutable working-tree material; v0.11 local qualification,
-  exact commands, results, and non-release exclusions are recorded in
-  `releases/SPELL_v0.11_Implementation.md`.
-- Made no live GCS, spacecraft, operational, deployment, compliance, candidate,
-  release, or accepted-baseline claim.
+- Preserved `0.1.0-draft.1` as the generated specification version, v0.9.0 as
+  the accepted predecessor, and v0.10 as the reconstructed conditional release
+  candidate. v0.11 source and evidence are absent from the v0.10 tree.
+- Made no live GCS, spacecraft, operational, deployment, compliance, v0.11
+  implementation, or v0.11 release claim.
 
 ## 0.1.0-draft.1 - 2026-07-18
 
