@@ -1,0 +1,58 @@
+<testsuites id="" name="" tests="20" failures="0" skipped="0" errors="0" time="13.153622">
+<testsuite name="data-services.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.69" errors="0">
+<testcase name="operates the bounded data workspace with keyboard navigation" classname="data-services.spec.ts" time="1.69">
+</testcase>
+</testsuite>
+<testsuite name="development-workspace.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="chromium" tests="7" failures="0" skipped="0" time="9.493" errors="0">
+<testcase name="authenticates the signed JWT before opening the development shell" classname="development-workspace.spec.ts" time="0.73">
+</testcase>
+<testcase name="supports rectangular editing and remains accessible and contained" classname="development-workspace.spec.ts" time="2.142">
+</testcase>
+<testcase name="filters every pinned catalog family and inserts a text reference only" classname="development-workspace.spec.ts" time="0.811">
+</testcase>
+<testcase name="preserves unsaved drafts and sends exact file and folder check paths" classname="development-workspace.spec.ts" time="1.92">
+</testcase>
+<testcase name="uses authoritative workspace status for selected commits, diffs, and base refresh" classname="development-workspace.spec.ts" time="0.726">
+</testcase>
+<testcase name="recovers and applies a retained raw import operation" classname="development-workspace.spec.ts" time="0.467">
+</testcase>
+<testcase name="operates lifecycle, strict exchange, external changes, and distinct-subject release duties" classname="development-workspace.spec.ts" time="2.697">
+</testcase>
+</testsuite>
+<testsuite name="driver-projection.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.984" errors="0">
+<testcase name="distinguishes every bounded driver fault state without a mutation route" classname="driver-projection.spec.ts" time="1.984">
+</testcase>
+</testsuite>
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.024" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="3.024">
+</testcase>
+</testsuite>
+<testsuite name="data-services.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.478" errors="0">
+<testcase name="operates the bounded data workspace with keyboard navigation" classname="data-services.spec.ts" time="1.478">
+</testcase>
+</testsuite>
+<testsuite name="development-workspace.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="mobile" tests="7" failures="0" skipped="0" time="10.001" errors="0">
+<testcase name="authenticates the signed JWT before opening the development shell" classname="development-workspace.spec.ts" time="0.529">
+</testcase>
+<testcase name="supports rectangular editing and remains accessible and contained" classname="development-workspace.spec.ts" time="2.364">
+</testcase>
+<testcase name="filters every pinned catalog family and inserts a text reference only" classname="development-workspace.spec.ts" time="0.561">
+</testcase>
+<testcase name="preserves unsaved drafts and sends exact file and folder check paths" classname="development-workspace.spec.ts" time="2.348">
+</testcase>
+<testcase name="uses authoritative workspace status for selected commits, diffs, and base refresh" classname="development-workspace.spec.ts" time="0.758">
+</testcase>
+<testcase name="recovers and applies a retained raw import operation" classname="development-workspace.spec.ts" time="0.595">
+</testcase>
+<testcase name="operates lifecycle, strict exchange, external changes, and distinct-subject release duties" classname="development-workspace.spec.ts" time="2.846">
+</testcase>
+</testsuite>
+<testsuite name="driver-projection.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.228" errors="0">
+<testcase name="distinguishes every bounded driver fault state without a mutation route" classname="driver-projection.spec.ts" time="2.228">
+</testcase>
+</testsuite>
+<testsuite name="operator-workspace.spec.ts" timestamp="2026-08-19T08:40:31.696Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.767" errors="0">
+<testcase name="operates the dense v0.6 workspace on desktop and mobile" classname="operator-workspace.spec.ts" time="2.767">
+</testcase>
+</testsuite>
+</testsuites>
