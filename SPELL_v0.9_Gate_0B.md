@@ -7,21 +7,21 @@
 | --- | --- |
 | Version target | SPELL v0.9.0 |
 | Gate | `V09-GATE-0B` |
-| Gate status | `PENDING_CANDIDATE`; no release closeout authorization yet |
+| Gate status | `PASS`; exact v0.9 release closeout authorized |
 | Record date | 2026-08-18 |
 | Accepted product baseline | Annotated tag `v0.8.0`; release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
 | Gate 0A authorization | Commit `92f3b4b82908d44e28b9506749e498386a428c27`; `V09-DEV-001` through `V09-DEV-009` |
-| Candidate source | Exact source and product inventory frozen; candidate commit pending |
-| Canonical candidate evidence | Pending at `artifacts/v0.9/work-package/qualification.json` |
+| Candidate source | Commit `060001baf423fb82f27041f6b842630370c1a786`; tree `92689552d1dccdcbba53563306bdfbc505269b8a`; sole parent `92f3b4b82908d44e28b9506749e498386a428c27` |
+| Canonical candidate evidence | `artifacts/v0.9/work-package/qualification.json`; SHA-256 `a1820154709f3893e88d32e772af6ced0a1635b379d108592a9635dc5b54b16e` |
 | Required result inventory | Nine work packages; 45 exact test identities; zero mapped skips, failures, accepted failures, or waivers |
 | Release tag requested | One annotated semantic-version tag: `v0.9.0` |
 | Project owner | JC Arcaz |
 
 Owner request: `start and complete asap V0.9`
 
-Gate 0B decision: `PENDING_CANONICAL_V09_CANDIDATE_QUALIFICATION`
+Gate 0B decision: `V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT_ONLY`
 
-Release closeout authorization: `NOT_YET_AUTHORIZED`
+Release closeout authorization: `AUTHORIZED`
 
 Release acceptance by Gate 0B: No
 
@@ -69,9 +69,7 @@ release commit. It binds four governance records plus the nine exact
 ## Exact Work-Package Results
 
 <!-- V09_GATE_0B_PACKAGE_DISPOSITIONS_BEGIN -->
-Each package remains `PENDING_QUALIFICATION`. On Gate 0B activation, every row
-must change to `IMPLEMENTED_AND_QUALIFIED` and every listed identity must have
-one or more concrete passing proof nodes.
+All nine exact work packages are `IMPLEMENTED_AND_QUALIFIED`. Every listed identity has one or more concrete passing proof nodes; no mapped identity is skipped, failed, accepted as failed, or waived.
 <!-- V09_GATE_0B_PACKAGE_DISPOSITIONS_END -->
 
 | Work package | Exact required identities |
@@ -157,7 +155,5 @@ gate=PASS work_packages=9 identities=45 failed=0 skipped=0 claimed_constructs=0 
 ## Current Finding
 
 <!-- V09_GATE_0B_CURRENT_FINDING_BEGIN -->
-`V09-GATE-0B PENDING_CANDIDATE` records the exact release-closeout contract but
-does not authorize closeout. Candidate freeze, canonical evidence, independent
-validation, 45 passing identities, and reviewed delta binding remain required.
+`V09-GATE-0B PASS` authorizes release closeout for exactly `V09-DEV-001` through `V09-DEV-009`. It does not itself accept the release, authorize deployment or operational use, or make a compliance or cryptographic-signature claim.
 <!-- V09_GATE_0B_CURRENT_FINDING_END -->

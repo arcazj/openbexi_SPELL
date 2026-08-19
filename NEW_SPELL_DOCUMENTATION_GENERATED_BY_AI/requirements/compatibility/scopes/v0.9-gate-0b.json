@@ -1,424 +1,1091 @@
 {
-    "schema_version":  "ng-spell-v09-gate-0b-scope/1",
-    "gate_id":  "V09-GATE-0B",
-    "status":  "PENDING_CANDIDATE",
-    "target_increment":  "v0.9",
-    "target_release":  "v0.9.0",
-    "scope_profile":  "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
-    "decision":  {
-                     "owner":  "JC Arcaz",
-                     "decision_date":  "2026-08-18",
-                     "authorization":  "PENDING_V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT",
-                     "owner_request":  "start and complete asap V0.9",
-                     "gate_0a_owner_approval_reaffirmed":  true,
-                     "tag_resolution":  "REQUESTED_V0_9_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_9_0",
-                     "precondition":  "CANONICAL_V09_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
-                 },
-    "immutable_inputs":  {
-                             "accepted_v0_8_0":  {
-                                                     "tag_ref":  "refs/tags/v0.8.0",
-                                                     "tag_object_type":  "tag",
-                                                     "tag_object_id":  "0dcf4f539fd1a9036fe4db4bc159cde04c35cfae",
-                                                     "raw_tag_object_sha256":  "c609c25cb8987222df0b143f71aa792140171acffd454e31a760c16fb263eede",
-                                                     "peeled_release_commit":  "d6e01222de3bf52013279e48a099b6ae7ded121d",
-                                                     "qualified_source_commit":  "d80c4d43969018633bc17650a23412b7274e58ea",
-                                                     "tagged_files_sha256":  {
-                                                                                 "SPELL_v0.8_Release.md":  "37735796cd6b3ee968950c447382aea4ede28255244e772975b06d12ee5592cd",
-                                                                                 "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.8-gate-0b.json":  "0e3e3fc2eea47d243f67cdc802a14d93e9053c1cf4f75fc1ab0c300392d36d0c",
-                                                                                 "artifacts/v0.8/release-qualification.json":  "82e90f0d3a9481423d948d83559bde56ff332833f14ab2d01a8089ebf6a5e50e"
-                                                                             }
-                                                 },
-                             "gate_0a":  {
-                                             "commit":  "92f3b4b82908d44e28b9506749e498386a428c27",
-                                             "parent":  "d6e01222de3bf52013279e48a099b6ae7ded121d",
-                                             "tree":  "e6b90f1e277f905a1d885008262916d86d6cdceb",
-                                             "validator_output":  "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
-                                             "owner_marker":  "V09-GATE-0A OWNER-APPROVAL: APPROVED",
-                                             "files":  {
-                                                           "SPELL_v0.9_Pre-Implementation.md":  {
-                                                                                                    "blob":  "c4265214447c052ac2054c404ff70494475d9217",
-                                                                                                    "sha256":  "9ed958fa2141e950defc5dd36e4c3fcfc4dc0f5bd2763340c6d32cb29a612511"
-                                                                                                },
-                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.9-gate-0a.json":  {
-                                                                                                                                                               "blob":  "409ff99af6219a49bce4d9772dac977d503e60b1",
-                                                                                                                                                               "sha256":  "c333f458bfb3eb965f59f6d2718eb317bf79c716b89596d746e30b72f6fb8e00"
-                                                                                                                                                           },
-                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0a.py":  {
-                                                                                                                                                 "blob":  "c6390654db14f14f28fcbd33db260f04ae04479c",
-                                                                                                                                                 "sha256":  "247825a429c572a9eed2984e144039ebfd9e75cad19ac776274b065cc92a176b"
-                                                                                                                                             },
-                                                           "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v09_gate_0a.py":  {
-                                                                                                                                                      "blob":  "a60ee97871396ba48a4a62749b3db7be0e322c5d",
-                                                                                                                                                      "sha256":  "da818362a3e6e7549d329101fb569a637b75aa79f47f4c300134245f622e59a8"
-                                                                                                                                                  }
-                                                       },
-                                             "contracts":  {
-                                                               "contracts/v09/manifest.json":  {
-                                                                                                   "blob":  "65b01182d097e4654513ee9ab1c25d95886addf6",
-                                                                                                   "sha256":  "ce27b6b7d84ffbb3663ebee85befa89d1a765adfe2fc5fab7de24401e0d6c6de"
-                                                                                               },
-                                                               "contracts/v09/project_workspace.json":  {
-                                                                                                            "blob":  "afee3f966331398c797349855834897a2eb5bbed",
-                                                                                                            "sha256":  "1972deab80d78fde2760004fd0a545b62dd2cbc530ea2a12ee29f2d81f32745c"
-                                                                                                        },
-                                                               "contracts/v09/language_services.json":  {
-                                                                                                            "blob":  "3126e8b84482c8464a979282bc899102980d83da",
-                                                                                                            "sha256":  "628abeade69458149217bd30f5fff8f5810c708fc11eb08ba0d3a1c4379cf97a"
-                                                                                                        },
-                                                               "contracts/v09/dictionary_catalog_authoring.json":  {
-                                                                                                                       "blob":  "3fa350ae854674dc9df78f32b7113eb7940f0604",
-                                                                                                                       "sha256":  "30976e5b93d40437ed42b2e38371b39603ae81b82be3a703e453083d30b5a090"
-                                                                                                                   },
-                                                               "contracts/v09/semantic_checks.json":  {
-                                                                                                          "blob":  "8c61c7da3fd68600a8f2d858eadf5360407c976f",
-                                                                                                          "sha256":  "8cb4fc54b147e54a77d615bd3070068de2f70729d9887664df26557bbf8b8a66"
-                                                                                                      },
-                                                               "contracts/v09/import_export_external_changes.json":  {
-                                                                                                                         "blob":  "d2e8afe12af27e378352dd2c8311939eb2ae5539",
-                                                                                                                         "sha256":  "6faf3897cdd2baecf193320c42f273c925e783acfeec9bc8fffcda3af039efbd"
-                                                                                                                     },
-                                                               "contracts/v09/collaboration_history.json":  {
-                                                                                                                "blob":  "d22fa8e18b5633d0d884abf9a6588e4cd850c502",
-                                                                                                                "sha256":  "fd7c0b5d6ee82ed57b9d23ac816428503987482ff6a53d29a941099b2308ed32"
-                                                                                                            },
-                                                               "contracts/v09/immutable_bundles.json":  {
-                                                                                                            "blob":  "45b881f5c443baed01482d8a3f48a30903a6a46b",
-                                                                                                            "sha256":  "232ab4a2094db8ee1a7bf840401a153b297f9c6e5d3c1924cb0c44e63889637e"
-                                                                                                        },
-                                                               "contracts/v09/promotion_registry.json":  {
-                                                                                                             "blob":  "d1ac7775b389b50c3b6c3e15019fd1597e314c23",
-                                                                                                             "sha256":  "1e98e28770047af36899c1db6b4db1355f70503ffd030f155f1de680d83f6972"
-                                                                                                         }
-                                                           }
-                                         },
-                             "candidate":  {
-                                               "binding_status":  "PENDING_SOURCE_FREEZE",
-                                               "commit":  null,
-                                               "parent":  "92f3b4b82908d44e28b9506749e498386a428c27",
-                                               "tree":  null,
-                                               "changed_paths":  [
-
-                                                                 ]
-                                           }
-                         },
-    "qualification_contract":  {
-                                   "status":  "PENDING_CANONICAL_EVIDENCE",
-                                   "manifest_path":  "artifacts/v0.9/work-package/qualification.json",
-                                   "manifest_schema":  "spell.v09.candidate-qualification/1",
-                                   "manifest_sha256":  null,
-                                   "validator_path":  "scripts/validate_candidate_evidence_v09.py",
-                                   "validator_success_shape":  {
-                                                                   "gate":  "PASS",
-                                                                   "schema_version":  "spell.v09.candidate-qualification/1",
-                                                                   "source_commit":  null,
-                                                                   "suites":  10,
-                                                                   "test_ids":  45,
-                                                                   "tests_minimum":  1
-                                                               },
-                                   "python_version":  "3.13.14",
-                                   "suite_ids":  [
-                                                     "backend_sqlite",
-                                                     "backend_postgresql",
-                                                     "backend_docker_host",
-                                                     "backend_v09_soak",
-                                                     "driver_host",
-                                                     "tooling",
-                                                     "frontend_vitest",
-                                                     "frontend_build",
-                                                     "frontend_playwright_mocked",
-                                                     "frontend_playwright_live"
-                                                 ],
-                                   "postgresql_environment_variables":  [
-                                                                            "SPELL_TEST_DATABASE_URL",
-                                                                            "SPELL_MIGRATION_TEST_DATABASE_URL"
-                                                                        ],
-                                   "mapped_test_ids_skipped":  [
-
-                                                               ],
-                                   "accepted_failures":  [
-
-                                                         ],
-                                   "waivers":  [
-
-                                               ],
-                                   "waivers_allowed":  false
-                               },
-    "qualified_work_packages":  [
-                                    {
-                                        "work_package_id":  "V09-DEV-001",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-001-CONTRACT",
-                                                         "V09-DEV-001-PROJECT-LIFECYCLE",
-                                                         "V09-DEV-001-WORKSPACE-RACE",
-                                                         "V09-DEV-001-BROWSER",
-                                                         "V09-DEV-001-SECURITY"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-002",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-002-PARSER-GOLDEN",
-                                                         "V09-DEV-002-EDITOR",
-                                                         "V09-DEV-002-COMPLETION",
-                                                         "V09-DEV-002-NON-EXECUTION",
-                                                         "V09-DEV-002-DETERMINISM"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-003",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-003-SCHEMA",
-                                                         "V09-DEV-003-DICTIONARY",
-                                                         "V09-DEV-003-CATALOG",
-                                                         "V09-DEV-003-REFERENCE",
-                                                         "V09-DEV-003-SECURITY"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-004",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-004-UNIT",
-                                                         "V09-DEV-004-PROJECT-CHECK",
-                                                         "V09-DEV-004-CANCELLATION",
-                                                         "V09-DEV-004-PROBLEMS",
-                                                         "V09-DEV-004-RECOVERY"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-005",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-005-IMPORT-EXPORT",
-                                                         "V09-DEV-005-EXTERNAL-CHANGE",
-                                                         "V09-DEV-005-CASE-CONFLICT",
-                                                         "V09-DEV-005-PATH-SECURITY",
-                                                         "V09-DEV-005-PROVENANCE"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-006",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-006-HISTORY",
-                                                         "V09-DEV-006-DIFF",
-                                                         "V09-DEV-006-CONFLICT",
-                                                         "V09-DEV-006-COLLABORATION-RACE",
-                                                         "V09-DEV-006-SECURITY"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-007",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-007-CANONICALIZATION",
-                                                         "V09-DEV-007-REPRODUCIBILITY",
-                                                         "V09-DEV-007-TAMPER",
-                                                         "V09-DEV-007-RETENTION",
-                                                         "V09-DEV-007-SECURITY"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-008",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-008-STATE-MACHINE",
-                                                         "V09-DEV-008-AUTHORIZATION",
-                                                         "V09-DEV-008-TRANSACTION-AUDIT",
-                                                         "V09-DEV-008-ROLLBACK-WITHDRAWAL",
-                                                         "V09-DEV-008-PINNING"
-                                                     ]
-                                    },
-                                    {
-                                        "work_package_id":  "V09-DEV-009",
-                                        "status":  "PENDING_QUALIFICATION",
-                                        "test_ids":  [
-                                                         "V09-DEV-009-SEMANTIC-GOLDEN",
-                                                         "V09-DEV-009-INTEGRATION",
-                                                         "V09-DEV-009-BROWSER-MATRIX",
-                                                         "V09-DEV-009-OFFLINE-PACKAGE",
-                                                         "V09-DEV-009-FAULT-RECOVERY"
-                                                     ]
-                                    }
-                                ],
-    "reviewed_surface_delta":  {
-                                   "review_status":  "PENDING_CANDIDATE_BINDING_AND_QUALIFICATION",
-                                   "development_surface":  {
-                                                               "api_version":  "v1",
-                                                               "route_prefix":  "/api/v1/development",
-                                                               "classification":  "BOUNDED_AUTHENTICATED_LOCAL_DEVELOPMENT_ENVIRONMENT",
-                                                               "feature_families":  [
-                                                                                        "PROJECT_WORKSPACE_AND_RESOURCE_LIFECYCLE",
-                                                                                        "NON_EXECUTING_LANGUAGE_SERVICES",
-                                                                                        "DICTIONARY_AND_CATALOG_AUTHORING",
-                                                                                        "SEMANTIC_CHECKS_AND_PROBLEMS",
-                                                                                        "SAFE_IMPORT_EXPORT_AND_EXTERNAL_CHANGE",
-                                                                                        "LOCAL_HISTORY_AND_COLLABORATION",
-                                                                                        "IMMUTABLE_VALIDATED_BUNDLES",
-                                                                                        "LOCAL_SIMULATOR_PROMOTION_REGISTRY"
-                                                                                    ],
-                                                               "service_boundary_files":  [
-                                                                                              "backend/development_domain.py",
-                                                                                              "backend/development_analysis.py",
-                                                                                               "backend/development_models.py",
-                                                                                               "backend/development_service.py",
-                                                                                               "backend/development_api.py",
-                                                                                               "backend/procedure_parser.py",
-                                                                                               "backend/app.py"
-                                                                                          ],
-                                                               "frontend_surface_files":  [
-                                                                                              "frontend/development.html",
-                                                                                              "frontend/vite.config.ts",
-                                                                                              "frontend/src/development/main.tsx",
-                                                                                              "frontend/src/development/DevelopmentApp.tsx",
-                                                                                              "frontend/src/development/DevelopmentWorkspace.tsx",
-                                                                                              "frontend/src/development/api.ts",
-                                                                                              "frontend/src/development/types.ts"
-                                                                                          ],
-                                                               "frontend_entrypoint":  "/development.html",
-                                                               "authorization_before_lookup_or_body_read":  true,
-                                                               "transactional_audit_outbox":  true,
-                                                               "procedure_language_services_are_non_executing":  true,
-                                                               "browser_has_no_direct_database_or_filesystem_access":  true,
-                                                               "arbitrary_expression_evaluation":  false,
-                                                               "broad_public_api_compatibility_claimed":  false
-                                                           },
-                                   "accepted_boundaries":  {
-                                                               "accepted_v08_artifacts_immutable":  true,
-                                                               "gate_0a_contract_blobs_immutable":  true,
-                                                               "legacy_driver_protocol_bytes_unchanged":  true,
-                                                               "legacy_ir_serialized_bytes_unchanged":  true,
-                                                               "live_driver_or_external_effect_route_added":  false
-                                                           },
-                                   "database_schema":  {
-                                                           "migration_versions":  [
-                                                                                      "0008_development_environment"
-                                                                                  ],
-                                                           "migration_files":  [
-                                                                                   "backend/migrations/versions/v0008_development_environment.py"
-                                                                               ],
-                                                           "new_tables_by_migration":  {
-                                                                                           "0008_development_environment":  [
-                                                                                                                                "development_projects",
-                                                                                                                                "development_resources",
-                                                                                                                                "development_idempotency",
-                                                                                                                                "development_audit_events",
-                                                                                                                                "development_outbox",
-                                                                                                                                "development_analysis_jobs",
-                                                                                                                                "development_problems",
-                                                                                                                                "development_library_cache",
-                                                                                                                                "development_history_revisions",
-                                                                                                                                "development_history_reviews",
-                                                                                                                                "development_conflicts",
-                                                                                                                                "development_import_provenance",
-                                                                                                                                "development_dictionary_artifacts",
-                                                                                                                                "development_catalog_snapshots",
-                                                                                                                                "development_presence",
-                                                                                                                                "development_bundles",
-                                                                                                                                "development_catalog_entries",
-                                                                                                                                "development_promotion_decisions",
-                                                                                                                                "development_runtime_pins"
-                                                                                                                            ]
-                                                                                       },
-                                                           "existing_tables_rewritten_by_migrations":  [
-
-                                                                                                       ],
-                                                           "sqlite_and_postgresql_required":  true,
-                                                           "rollback_and_upgrade_proof_required":  true,
-                                                           "broad_database_compatibility_claimed":  false
-                                                       },
-                                   "dependencies":  {
-                                                        "new_python_runtime_dependencies":  [
-
-                                                                                            ],
-                                                        "new_frontend_runtime_dependencies":  [
-
-                                                                                              ],
-                                                        "driver_implementation_version":  "0.4.0",
-                                                        "live_driver_or_external_effect_route_added":  false
-                                                    },
-                                   "compatibility_ledger":  {
-                                                                "claimed_construct_ids":  [
-
-                                                                                          ],
-                                                                "claimed_artifact_ids":  [
-
-                                                                                         ],
-                                                                "compatibility_ledger_rows_added":  0,
-                                                                "v0_8_scope_rows_changed":  0,
-                                                                "broad_compatibility_claimed":  false
-                                                            }
-                               },
-    "release_closeout_authorization":  {
-                                           "status":  "PENDING_GATE_0B_PASS",
-                                           "release_version":  "0.9.0",
-                                           "tag_name":  "v0.9.0",
-                                           "tag_object_type":  "annotated",
-                                           "permitted_actions_after_pass":  [
-                                                                                "RECORD_V09_DEV_001_THROUGH_V09_DEV_009_IMPLEMENTED",
-                                                                                "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
-                                                                                "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
-                                                                                "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
-                                                                                "CREATE_DETERMINISTIC_V0_9_RELEASE_PACKAGE",
-                                                                                "COMMIT_RELEASE_CLOSEOUT",
-                                                                                "CREATE_ONE_ANNOTATED_V0_9_0_TAG"
-                                                                            ],
-                                           "additional_product_work_authorized":  false
-                                       },
-    "activation_requirements":  {
-                                    "required_rebindings":  [
-                                                                "/immutable_inputs/candidate/binding_status",
-                                                                "/immutable_inputs/candidate/commit",
-                                                                "/immutable_inputs/candidate/tree",
-                                                                "/immutable_inputs/candidate/changed_paths",
-                                                                "/qualification_contract/status",
-                                                                "/qualification_contract/manifest_sha256",
-                                                                "/qualification_contract/validator_success_shape/source_commit",
-                                                                "/reviewed_surface_delta/review_status"
-                                                            ],
-                                    "required_status_transitions":  {
-                                                                        "/status":  "PASS",
-                                                                        "/decision/authorization":  "V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT_ONLY",
-                                                                        "/immutable_inputs/candidate/binding_status":  "BOUND",
-                                                                        "/qualification_contract/status":  "PASS",
-                                                                        "/reviewed_surface_delta/review_status":  "REVIEWED_AND_QUALIFIED",
-                                                                        "/release_closeout_authorization/status":  "AUTHORIZED",
-                                                                        "/qualified_work_packages/*/status":  "IMPLEMENTED_AND_QUALIFIED"
-                                                                    },
-                                    "candidate_validator_must_pass":  true,
-                                    "all_45_mapped_test_ids_must_pass":  true,
-                                    "mapped_test_id_skips_allowed":  false,
-                                    "waivers_allowed":  false
-                                },
-    "claims":  {
-                   "gate_0a_immutable_authorization_verified":  true,
-                   "v0_9_work_packages_implemented":  false,
-                   "v0_9_candidate_qualified":  false,
-                   "release_closeout_authorized":  false,
-                   "v0_9_release_accepted_by_gate":  false,
-                   "broad_language_or_compatibility_claimed":  false,
-                   "operational_authorization":  false,
-                   "deployment_approval":  false,
-                   "compliance_determination":  false,
-                   "cryptographic_signature_verified":  false,
-                   "v0_8_release_accepted":  true
-               },
-    "explicit_exclusions":  [
-                                "SCOPE_BEYOND_V09_DEV_001_THROUGH_V09_DEV_009",
-                                "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
-                                "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_DRIVER_MUTATION_OR_EXTERNAL_EFFECT_ROUTE",
-                                "ARBITRARY_SOURCE_PYTHON_EXPRESSION_TEMPLATE_FUNCTION_SHELL_NATIVE_BYTECODE_PICKLE_EXECUTABLE_IMPORT_OR_GENERIC_FILTER_EVALUATION",
-                                "DIRECT_BROWSER_OR_WORKER_DATABASE_OBJECT_ADMIN_HOST_FILESYSTEM_SECRET_CREDENTIAL_OR_UNRESTRICTED_NETWORK_ACCESS",
-                                "ABSOLUTE_TRAVERSAL_SYMLINK_REPARSE_DEVICE_ALTERNATE_DATA_STREAM_URL_OR_UNBOUNDED_FILE_ACCESS",
-                                "UNBOUNDED_PROJECT_RESOURCE_DIAGNOSTIC_HISTORY_BUNDLE_QUERY_TRANSACTION_RETRY_QUOTA_OR_RETENTION",
-                                "SILENT_COERCION_AMBIGUOUS_FORMAT_BEST_EFFORT_CORRUPTION_RECOVERY_LAST_WRITER_WINS_OR_PARTIAL_WRITE_SUCCESS",
-                                "AMBIGUOUS_EXTERNAL_CHANGE_CONFLICT_PROMOTION_OR_ROLLBACK_RESOLUTION",
-                                "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
-                                "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
-                                "LIGHTWEIGHT_SECONDARY_OR_V0_9_ALIAS_TAG",
-                                "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
-                            ]
+  "schema_version": "ng-spell-v09-gate-0b-scope/1",
+  "gate_id": "V09-GATE-0B",
+  "status": "PASS",
+  "target_increment": "v0.9",
+  "target_release": "v0.9.0",
+  "scope_profile": "LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT",
+  "decision": {
+    "owner": "JC Arcaz",
+    "decision_date": "2026-08-18",
+    "authorization": "V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT_ONLY",
+    "owner_request": "start and complete asap V0.9",
+    "gate_0a_owner_approval_reaffirmed": true,
+    "tag_resolution": "REQUESTED_V0_9_RESOLVES_TO_ONE_ANNOTATED_SEMVER_TAG_V0_9_0",
+    "precondition": "CANONICAL_V09_CANDIDATE_QUALIFICATION_AND_GATE_0B_VALIDATOR_PASS"
+  },
+  "immutable_inputs": {
+    "accepted_v0_8_0": {
+      "tag_ref": "refs/tags/v0.8.0",
+      "tag_object_type": "tag",
+      "tag_object_id": "0dcf4f539fd1a9036fe4db4bc159cde04c35cfae",
+      "raw_tag_object_sha256": "c609c25cb8987222df0b143f71aa792140171acffd454e31a760c16fb263eede",
+      "peeled_release_commit": "d6e01222de3bf52013279e48a099b6ae7ded121d",
+      "qualified_source_commit": "d80c4d43969018633bc17650a23412b7274e58ea",
+      "tagged_files_sha256": {
+        "SPELL_v0.8_Release.md": "37735796cd6b3ee968950c447382aea4ede28255244e772975b06d12ee5592cd",
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.8-gate-0b.json": "0e3e3fc2eea47d243f67cdc802a14d93e9053c1cf4f75fc1ab0c300392d36d0c",
+        "artifacts/v0.8/release-qualification.json": "82e90f0d3a9481423d948d83559bde56ff332833f14ab2d01a8089ebf6a5e50e"
+      }
+    },
+    "gate_0a": {
+      "commit": "92f3b4b82908d44e28b9506749e498386a428c27",
+      "parent": "d6e01222de3bf52013279e48a099b6ae7ded121d",
+      "tree": "e6b90f1e277f905a1d885008262916d86d6cdceb",
+      "validator_output": "gate=PASS authorized_work_packages=9 proposed_work_packages=9 claimed_constructs=0 claimed_artifacts=0",
+      "owner_marker": "V09-GATE-0A OWNER-APPROVAL: APPROVED",
+      "files": {
+        "SPELL_v0.9_Pre-Implementation.md": {
+          "blob": "c4265214447c052ac2054c404ff70494475d9217",
+          "sha256": "9ed958fa2141e950defc5dd36e4c3fcfc4dc0f5bd2763340c6d32cb29a612511"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.9-gate-0a.json": {
+          "blob": "409ff99af6219a49bce4d9772dac977d503e60b1",
+          "sha256": "c333f458bfb3eb965f59f6d2718eb317bf79c716b89596d746e30b72f6fb8e00"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0a.py": {
+          "blob": "c6390654db14f14f28fcbd33db260f04ae04479c",
+          "sha256": "247825a429c572a9eed2984e144039ebfd9e75cad19ac776274b065cc92a176b"
+        },
+        "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v09_gate_0a.py": {
+          "blob": "a60ee97871396ba48a4a62749b3db7be0e322c5d",
+          "sha256": "da818362a3e6e7549d329101fb569a637b75aa79f47f4c300134245f622e59a8"
+        }
+      },
+      "contracts": {
+        "contracts/v09/manifest.json": {
+          "blob": "65b01182d097e4654513ee9ab1c25d95886addf6",
+          "sha256": "ce27b6b7d84ffbb3663ebee85befa89d1a765adfe2fc5fab7de24401e0d6c6de"
+        },
+        "contracts/v09/project_workspace.json": {
+          "blob": "afee3f966331398c797349855834897a2eb5bbed",
+          "sha256": "1972deab80d78fde2760004fd0a545b62dd2cbc530ea2a12ee29f2d81f32745c"
+        },
+        "contracts/v09/language_services.json": {
+          "blob": "3126e8b84482c8464a979282bc899102980d83da",
+          "sha256": "628abeade69458149217bd30f5fff8f5810c708fc11eb08ba0d3a1c4379cf97a"
+        },
+        "contracts/v09/dictionary_catalog_authoring.json": {
+          "blob": "3fa350ae854674dc9df78f32b7113eb7940f0604",
+          "sha256": "30976e5b93d40437ed42b2e38371b39603ae81b82be3a703e453083d30b5a090"
+        },
+        "contracts/v09/semantic_checks.json": {
+          "blob": "8c61c7da3fd68600a8f2d858eadf5360407c976f",
+          "sha256": "8cb4fc54b147e54a77d615bd3070068de2f70729d9887664df26557bbf8b8a66"
+        },
+        "contracts/v09/import_export_external_changes.json": {
+          "blob": "d2e8afe12af27e378352dd2c8311939eb2ae5539",
+          "sha256": "6faf3897cdd2baecf193320c42f273c925e783acfeec9bc8fffcda3af039efbd"
+        },
+        "contracts/v09/collaboration_history.json": {
+          "blob": "d22fa8e18b5633d0d884abf9a6588e4cd850c502",
+          "sha256": "fd7c0b5d6ee82ed57b9d23ac816428503987482ff6a53d29a941099b2308ed32"
+        },
+        "contracts/v09/immutable_bundles.json": {
+          "blob": "45b881f5c443baed01482d8a3f48a30903a6a46b",
+          "sha256": "232ab4a2094db8ee1a7bf840401a153b297f9c6e5d3c1924cb0c44e63889637e"
+        },
+        "contracts/v09/promotion_registry.json": {
+          "blob": "d1ac7775b389b50c3b6c3e15019fd1597e314c23",
+          "sha256": "1e98e28770047af36899c1db6b4db1355f70503ffd030f155f1de680d83f6972"
+        }
+      }
+    },
+    "candidate": {
+      "binding_status": "BOUND",
+      "commit": "060001baf423fb82f27041f6b842630370c1a786",
+      "parent": "92f3b4b82908d44e28b9506749e498386a428c27",
+      "tree": "92689552d1dccdcbba53563306bdfbc505269b8a",
+      "changed_paths": [
+        {
+          "path": ".dockerignore",
+          "status": "M",
+          "blob": "d5f3650875467d20fa7559b6222ce1eeda4b2f26",
+          "sha256": "c11964f877bac8e951a1fff68eac480ece4148e730b1882e12b52778e1b73d70"
+        },
+        {
+          "path": ".env.example",
+          "status": "M",
+          "blob": "09496213a2feac71155bad3ad11acce08f7aedfb",
+          "sha256": "398917fe5c8132f8ec1854b5e8160343f40c7ab1ed9de41900e288fc993071e2"
+        },
+        {
+          "path": ".gitignore",
+          "status": "M",
+          "blob": "f6e4b0f89aa1c5a21568fd0080d486ef4c024344",
+          "sha256": "360face0960c962c937adaba9c5b3a0e0b7ee43f6703197923781957e0ba1a50"
+        },
+        {
+          "path": "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v09_gate_0b.py",
+          "status": "A",
+          "blob": "9ce6bbd5ce1e083abb03676aa52e67d1d285018f",
+          "sha256": "859a6f3814cffaa134c5bf4f46f335053d4f5350da8f79dd4aa2981aa05f9a4e"
+        },
+        {
+          "path": "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0b.py",
+          "status": "A",
+          "blob": "aaf85288befd24761883197f2317bdd53bd9080b",
+          "sha256": "d2c0c23d8e9015e580d2bde1d5d4307163611af28385308b9c66cf364bc0a96f"
+        },
+        {
+          "path": "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.9-gate-0b.json",
+          "status": "A",
+          "blob": "9d526ef9af86f536f8d70effb203eb2525b54598",
+          "sha256": "3dec44dc7bbcb84a5c857d3c205f51538414ec0a42144ded78bba6a699484c45"
+        },
+        {
+          "path": "PROJECT_ROADMAP.md",
+          "status": "M",
+          "blob": "d0ea66422f40923d1089833e22de7dea5c36b68e",
+          "sha256": "5873f3f5b912c4afb9c66fa567e8c93a4236ab3701880f2d6308177ca7ffd833"
+        },
+        {
+          "path": "PROMPT_History.md",
+          "status": "M",
+          "blob": "6c3b8fcbd0b45d8ebcbccfaeaf7ac0998ceca81c",
+          "sha256": "876f000e1226e843f112fbc3b462698312159edeb38760f63fb1a86092e610d9"
+        },
+        {
+          "path": "PROMPT_Instructions.md",
+          "status": "M",
+          "blob": "bf9a4e5ed6241afab88a7be15d359ecd7a30239e",
+          "sha256": "71d531877cb50abaf7a31dc827a8126bad74bac2fecf8cd6d720e96d1fab2c81"
+        },
+        {
+          "path": "PROVENANCE.md",
+          "status": "M",
+          "blob": "2ec2d531c22ad240b94450044efef6030ba08b51",
+          "sha256": "b513bafe1adde94d5ee8a50626ce6c8f6931a80864da9fefdd988f196f12d11d"
+        },
+        {
+          "path": "README.md",
+          "status": "M",
+          "blob": "6c3f2dc029cda9e9c6a44fee77f13dcb93348f5d",
+          "sha256": "38028d0d1f47c2137b5682a3f1f5274545490fd483c1222276463ed794b579ff"
+        },
+        {
+          "path": "SPELL_v0.3_Release.md",
+          "status": "M",
+          "blob": "b48c6e05c7e3fe7f767d98650894f67252936868",
+          "sha256": "c00404ad22aab14c2b69f69bd30148b2b0c08b1c97518192bd823b5341aa9b7d"
+        },
+        {
+          "path": "SPELL_v0.9_Gate_0B.md",
+          "status": "A",
+          "blob": "f982a574b8a3d01c4fa47598ef5adc55c2deb921",
+          "sha256": "d419f991bda95cff548795cf0c9339112114f0731d084afcf93e5036494e3bc6"
+        },
+        {
+          "path": "SPELL_v0.9_Release.md",
+          "status": "A",
+          "blob": "60403169fbd2697351a79c400ddf6d61c17f3d81",
+          "sha256": "32b6fe8d8daeabcdd3f297aa0f9fd500b981c6276bca1b5e267ee0d49b97d5c8"
+        },
+        {
+          "path": "Test_and_Integration.md",
+          "status": "M",
+          "blob": "206cd29b32b25563bdd71e58c2857a593ebf56e3",
+          "sha256": "cda4c240a236c335cf07bfc2ce1aee774cdd637fe9c41c958c6215fcae8efe48"
+        },
+        {
+          "path": "VERSION_TIMELINE.md",
+          "status": "M",
+          "blob": "4ad296ece86c3f76893b04f81a6c934187c465e9",
+          "sha256": "411d25dded50c471715417a9d7d4de04432ab22cf7083ea391b321c63d4c929b"
+        },
+        {
+          "path": "artifacts/v0.9/work-package/schema.json",
+          "status": "A",
+          "blob": "0bcd72d56216e2f67ce5966ca5802a6ee14319f3",
+          "sha256": "568269df75b627d66313aaeaea8be8e6f188aa7e370b9d392561487dc43e1597"
+        },
+        {
+          "path": "backend/Dockerfile",
+          "status": "M",
+          "blob": "f8e19c5a35471c7079a5306ea59b98dbd4ab1e4e",
+          "sha256": "58aca1a4b9360b88f509145c24dee0a7238541b7ffdd67a0f4b7ec2fe7e13c2c"
+        },
+        {
+          "path": "backend/__init__.py",
+          "status": "M",
+          "blob": "9e02cb89044e8816918beba02750fc6852be0128",
+          "sha256": "f0d2b331b224878b7b6e88d2a3e82cf107df199997a56c430b576f3755d466f5"
+        },
+        {
+          "path": "backend/app.py",
+          "status": "M",
+          "blob": "28fb5c10873398cc877c65e43061d9048362a98d",
+          "sha256": "d47178af3d4b63144e3a044084247626a26c34b5ec50c40d9b07f2a84a733769"
+        },
+        {
+          "path": "backend/condition_service.py",
+          "status": "M",
+          "blob": "55d0ec14077605578db8e556d9582c6517bb0c20",
+          "sha256": "1ab80f2aca42fc3d2b9160c812956be44d9949e5fb04515ee1af6a6d08e458c9"
+        },
+        {
+          "path": "backend/config.py",
+          "status": "M",
+          "blob": "a48b716bad63f5d2ed3968ff2abbbfaf96145a49",
+          "sha256": "713df27b5f24de3b97ba8d07b74be95d8027d53331674cfb232e307515e6692b"
+        },
+        {
+          "path": "backend/data_backup.py",
+          "status": "M",
+          "blob": "92a7c9699716158e37dc56fff4b90f26dc0a79de",
+          "sha256": "c3eeabf603f369ac4a3bfb96e694232a453995d96421ba05cab89190cc5daa26"
+        },
+        {
+          "path": "backend/development_analysis.py",
+          "status": "A",
+          "blob": "90cf38e95c8bbcdff14d4bd210e711b2e9b8912d",
+          "sha256": "31522c1816ad34bd56d3b9e781b795ee9913c6e2dcf903e14ad2e0d73cc18256"
+        },
+        {
+          "path": "backend/development_api.py",
+          "status": "A",
+          "blob": "550856f1ea7e307f15ee8aee84d92262c3adadbd",
+          "sha256": "d65098dd26f57df73bbd514bab25a2c7e549cb47d566336f3f7f7d3b542c4818"
+        },
+        {
+          "path": "backend/development_bundle_broker.py",
+          "status": "A",
+          "blob": "bf4850077203c6e9997b2b9dabc3b47f023bfbc9",
+          "sha256": "c6c2918b4da5dca138d178f3b655f99cc15af392ff8d9c69c82a613ee4623755"
+        },
+        {
+          "path": "backend/development_bundle_builder.py",
+          "status": "A",
+          "blob": "4d145e88a39cee3eda3f3bec1f33ba72a8984394",
+          "sha256": "923d62cb101dd6689991972468ba3644cc9cd1328edf6f393937caa7a3c0f5f9"
+        },
+        {
+          "path": "backend/development_bundle_protocol.py",
+          "status": "A",
+          "blob": "a1955c8cc6874149dbb1cb43ab54c77096ab9309",
+          "sha256": "09870ce49e0b5d5aff6a71ad06266eb5a6265bb70f7927d2ebc9a2f19af0533e"
+        },
+        {
+          "path": "backend/development_bundle_provenance.py",
+          "status": "A",
+          "blob": "629ea9fb1d6b146de7c391572b53217cbf2d5b55",
+          "sha256": "02d36ff762f857ffc4fa96e1561a2344f9300d9cb5e25d57bf84718395f10e0e"
+        },
+        {
+          "path": "backend/development_bundle_worker.py",
+          "status": "A",
+          "blob": "e6669f983719872927db56f3ed7cf8dede6aa899",
+          "sha256": "2d7bcfbc6b8d459d3a984826060c3cebf09ac1ca32e9bac396f23467755d6dcd"
+        },
+        {
+          "path": "backend/development_domain.py",
+          "status": "A",
+          "blob": "1546ea25069abb415a4a0788a5b5191f48ce1c09",
+          "sha256": "fce5db6e7452d64fe80aa9c30ef5c6a130bd0f4fd7442d0dced3194f96cbb9fb"
+        },
+        {
+          "path": "backend/development_models.py",
+          "status": "A",
+          "blob": "bbacc412dcfd0db274cc72d17b66ee1adaa257cc",
+          "sha256": "8d33106d0a12ae07cca9007a2a34d8106807d9a8204a9ccc6a6498ee971b8870"
+        },
+        {
+          "path": "backend/development_schemas.py",
+          "status": "A",
+          "blob": "17aa98f23c78476f851df4b5330f3dc1f0dec55c",
+          "sha256": "dfdf47a13dcfade85e36fbd3d886d366a65cb17b46445c4418318219598de61c"
+        },
+        {
+          "path": "backend/development_service.py",
+          "status": "A",
+          "blob": "9afe436137a6b2abab2c5711eb63eef157fe9a1b",
+          "sha256": "2b2dd3daeb68a769b4439253df225bd73db5c2394bed5d07ade5919dcffbb0a7"
+        },
+        {
+          "path": "backend/migrations/__init__.py",
+          "status": "M",
+          "blob": "4c60cd1931d1208f2f5aa7efe3854f7aa2cb1c42",
+          "sha256": "af88f5cc1efe1fa3a4f0d2ba7d8ed65ec8278eeff13224c5b6c26f65e246d1fc"
+        },
+        {
+          "path": "backend/migrations/versions/v0008_development_environment.py",
+          "status": "A",
+          "blob": "40552e8396fa4521fd18def63300847396ad0172",
+          "sha256": "01571db60a3c9b98e9d7ec068df74d1a0bb539b37495c005b5e944d49224d3c2"
+        },
+        {
+          "path": "backend/operator_service.py",
+          "status": "M",
+          "blob": "bc38f23a8c8cd814606664973cf771ec3f15ab48",
+          "sha256": "421e3a11f4c7b0236af29fcdc84eed0a7b90cc5e4234aa132fdd74d0db059a08"
+        },
+        {
+          "path": "backend/procedure_parser.py",
+          "status": "M",
+          "blob": "a0a7579575c7ae94ec4439553dffef67356cf765",
+          "sha256": "7f3fb7c86fdcf0ea0a5a0b10571efcee4189838be2376fb76ccfe9cd668eff66"
+        },
+        {
+          "path": "backend/supervisor.py",
+          "status": "M",
+          "blob": "5d209de199776cce3fbc28310817cebca7c0c2f1",
+          "sha256": "a0b53a31578442b4faf0fe6c92e73a56eacf3e6734cec14c52f49430f50aa6e0"
+        },
+        {
+          "path": "backend/tests/conftest.py",
+          "status": "M",
+          "blob": "67197302336a8d5af7cde8cc67bcf659c77a3dec",
+          "sha256": "903281d5a57a836f48f4421a4cc210e800d2e71a8c939a14e20f4f2961d37d32"
+        },
+        {
+          "path": "backend/tests/migration_support.py",
+          "status": "M",
+          "blob": "28804d029b81e859fd84ebc41f0319e9d6910d9d",
+          "sha256": "818ea864329abed0e573501df8d25728e844d0048086c579aca875505820b8a2"
+        },
+        {
+          "path": "backend/tests/test_api_execution.py",
+          "status": "M",
+          "blob": "aa126f9fd0649722f1d7383e051241be8a38d528",
+          "sha256": "3c6514a3dcb2f60e75846dc594ebc027d57ab988f2bfe0fedd0d38da96cfb849"
+        },
+        {
+          "path": "backend/tests/test_backup_rollback.py",
+          "status": "M",
+          "blob": "158b022ef929f08b74fbb97ebb68ad4a19c663e8",
+          "sha256": "775b84f35473b3c9b72c37eb7e810bc2df087e9c878d08a4ad5168e84bd68b79"
+        },
+        {
+          "path": "backend/tests/test_data_migration_recovery_v08.py",
+          "status": "M",
+          "blob": "29b93e8069f9d5d9a67a07a415b8f7984e48f2bd",
+          "sha256": "b516347cc64a2a93644aee222c2e6b062907102a7fff3eafa07948eaadb44f73"
+        },
+        {
+          "path": "backend/tests/test_development_api_v09.py",
+          "status": "A",
+          "blob": "f7c2b0fa031195903d48c6bb5405f2d02d9fc4f2",
+          "sha256": "e53f94fa87a8e986c46c9e1826e606991ec6b5a02db91e242d407c2479d33c93"
+        },
+        {
+          "path": "backend/tests/test_development_authoring_v09.py",
+          "status": "A",
+          "blob": "1575ca89f45f6a45de14fdfd344b8aabd82f4f75",
+          "sha256": "465094da6829af30ea8fec9f02e5fe952ec6b57cf022d355b25963757dbdd204"
+        },
+        {
+          "path": "backend/tests/test_development_backup_v09.py",
+          "status": "A",
+          "blob": "ea1799dd7685c54260ce966e932989fa0e9d88f9",
+          "sha256": "1cda25c3ae7dcd56aa233bd94621437b4b51016df7d3b2160c7c2b0537ce5297"
+        },
+        {
+          "path": "backend/tests/test_development_bundle_builder_v09.py",
+          "status": "A",
+          "blob": "e98434ac5134e197b7f2302148289d5e98e665fd",
+          "sha256": "dac639ae10955c3626458af01d1b5553f0bd19bbf122220ebdf790a3f5c815f5"
+        },
+        {
+          "path": "backend/tests/test_development_history_external_v09.py",
+          "status": "A",
+          "blob": "c45d9ff5edf76fade59623c14a8b2d8737205d07",
+          "sha256": "5b38b8926bc89cb142b26eb75c7b22dc197e26e58f091dfc20132289e33a2f8f"
+        },
+        {
+          "path": "backend/tests/test_development_language_cache_v09.py",
+          "status": "A",
+          "blob": "9127554d1999a226cf54c59446f809e9d9016c63",
+          "sha256": "32fffb3f25877138498852f74cc9f1ee278bf52e3010d47e338268d799caf77c"
+        },
+        {
+          "path": "backend/tests/test_development_migration_v09.py",
+          "status": "A",
+          "blob": "02f9f1a2f20ce5929a111a6fba4df691b277f5ce",
+          "sha256": "931192388953dba9361d8c35c7fd6620a3d392a34665249992910bee8cc8ff28"
+        },
+        {
+          "path": "backend/tests/test_development_postgresql_v09.py",
+          "status": "A",
+          "blob": "e3530b964ed59b99089d488f55bfed7b237f39d7",
+          "sha256": "97b77d304e77a9b4ce47bb99a5409fb08e8e1a1beca9ff300b1378908be22d44"
+        },
+        {
+          "path": "backend/tests/test_development_runtime_race_v09.py",
+          "status": "A",
+          "blob": "0ac1864143598db26febaa9238bd64f83021fb34",
+          "sha256": "a03aedee23abfe487cf4f8059590abb7820f749977ce1217072826f627825a69"
+        },
+        {
+          "path": "backend/tests/test_development_service_v09.py",
+          "status": "A",
+          "blob": "5cd8af5736592a911c5cf58ba107b3cd844a10af",
+          "sha256": "6d66d2397499a1711689dc9b6f27876bc963111aa6be0ed29c3665fd23923862"
+        },
+        {
+          "path": "backend/tests/test_driver_isolation.py",
+          "status": "M",
+          "blob": "22184b74f13bbff3f72eeb19375e0bdc77248e4d",
+          "sha256": "e436e18c76511bd79acdbcc6036a6033746f0a063d51e1452d0f3efba7ba544e"
+        },
+        {
+          "path": "backend/tests/test_migrations.py",
+          "status": "M",
+          "blob": "4612ad0985992f6250eefeb5073ef3ffa42e34f5",
+          "sha256": "055ec6b0359739247a690970964872e1d9aebd286a81272954f29f9f021f4126"
+        },
+        {
+          "path": "backend/tests/test_v07_telemetry_schedule_routes.py",
+          "status": "M",
+          "blob": "251bae6c00b55b54c4cfca8ee5d4099e1d7fe7b0",
+          "sha256": "eb3e187379c544ed5eef905ecccaa35606ae424757d0fc7ac8168af5dba7ed76"
+        },
+        {
+          "path": "backend/version.py",
+          "status": "M",
+          "blob": "8bdb8a99dd4611411b5982ce443aa01ea60f0383",
+          "sha256": "94ae14ff134373e0eb958d56622a259758b82a6d5c199585f2887666c916f12a"
+        },
+        {
+          "path": "compose.yaml",
+          "status": "M",
+          "blob": "481418a59912f898f8c29708224d6b4f63d25f47",
+          "sha256": "dfd48422e967c233b55424674175e357710e93342a7e00784e1dc9986e1895cf"
+        },
+        {
+          "path": "frontend/README.md",
+          "status": "M",
+          "blob": "1a5fd85d8aa68720e348b59c3f54336dcb64bbea",
+          "sha256": "f4133eb1cde8204ac292c225f0754cb4f468fab76d966a9cba1a86a65191cddc"
+        },
+        {
+          "path": "frontend/development.html",
+          "status": "A",
+          "blob": "d50ff965bf50606bc041f7267e9a02b8c4cdb05b",
+          "sha256": "eb1120a7635e77871b565c83f35214d9e2b8f994652a6ecd0da95e0170a77ce8"
+        },
+        {
+          "path": "frontend/e2e/development-workspace-real.spec.ts",
+          "status": "A",
+          "blob": "531f615b97039650c8db633d9174cca335e25fc8",
+          "sha256": "cd2ffee47613b5cecb2fbb11ec775d948623053b362c734539e5027868fed6ca"
+        },
+        {
+          "path": "frontend/e2e/development-workspace.spec.ts",
+          "status": "A",
+          "blob": "1dde7b2f4f6c7137d61637926c2c09d6d7598dbb",
+          "sha256": "750516caf9aab12909678efd8d2499cf88506fc0d5b7872e41f4ac7c0073482b"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "status": "M",
+          "blob": "83f4e9bc598a8ad849fd7a14728f1b6078646f8f",
+          "sha256": "26f3f6642249ef1e0899de4736183cf299f97d73484c537cec5890eeacf9218f"
+        },
+        {
+          "path": "frontend/package.json",
+          "status": "M",
+          "blob": "3b367e647ed0bc001a0847c623d6b787d69c6456",
+          "sha256": "dcc4ca7dd9575f872fd01938e5ddaaaca4cde8e1bd4ecc5c90f95b16051a6788"
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "status": "M",
+          "blob": "8ca6020732aa04119a2343f397f80164e183fd19",
+          "sha256": "d153791227a541375decf20d8c534cb5247bd04372b3594e2fefa7fe60798418"
+        },
+        {
+          "path": "frontend/src/api.ts",
+          "status": "M",
+          "blob": "a4c26e67a22c731b78d1c1a2b702438dc92e062f",
+          "sha256": "fab2fce9a7d8099a7944df654cb0068721f22d5f23ce73aa122558299c8949f1"
+        },
+        {
+          "path": "frontend/src/components/AccessTokenGate.tsx",
+          "status": "M",
+          "blob": "1d29c06497584ba12f2e316cfddfd5408d06ad9a",
+          "sha256": "795ff93ead78de7e2985daaa711f2c46861493e3b1892d5487294c463aa5b7e9"
+        },
+        {
+          "path": "frontend/src/development/ActivityPanel.tsx",
+          "status": "A",
+          "blob": "3c1c4ce418be0e16d7d80af2d7391bfc00b89f8d",
+          "sha256": "bdd3cafc698766614da09f3eb1dabeb745e94478c2ee4d876899967d25db81fe"
+        },
+        {
+          "path": "frontend/src/development/CodeEditor.tsx",
+          "status": "A",
+          "blob": "0079aa9f04bcda65a66f17f1607b2a3d2a3e189d",
+          "sha256": "0b4c7ffc67a3a20afe071577c15b860049ee766dcd5565a3d02dd1b6a52a6b84"
+        },
+        {
+          "path": "frontend/src/development/DevelopmentApp.tsx",
+          "status": "A",
+          "blob": "e6c23ccdf69ce04e99afbb745c7dbead0c9d5b68",
+          "sha256": "c1d4811421bc90aa8017bca1c96fc8059e77477d22be05ae79d42b5f19b217a4"
+        },
+        {
+          "path": "frontend/src/development/DevelopmentWorkspace.tsx",
+          "status": "A",
+          "blob": "326f01d4bd7d7e947fc0f37773a9bc7c2f0adf1e",
+          "sha256": "bbb3224f729148991a44775420d09e9c1aabf55dffc65f95279c448309eed909"
+        },
+        {
+          "path": "frontend/src/development/ProblemsPanel.tsx",
+          "status": "A",
+          "blob": "be34c28d1fe0f5f811dee08f31571780a13c561c",
+          "sha256": "16724d2b23d6f7be909a8ed7aa13f80be775f06634b4806f6267af3d17e23dff"
+        },
+        {
+          "path": "frontend/src/development/ProjectManifestDialog.tsx",
+          "status": "A",
+          "blob": "f59d434f04db7c00316376e872c2ed6006b46378",
+          "sha256": "5d7b86956041977339e5005a8ed1326c20db6e66be4a9228d1446de69cd0c2cf"
+        },
+        {
+          "path": "frontend/src/development/ResourceExplorer.tsx",
+          "status": "A",
+          "blob": "916ded5ee85001fdb0d75b7e60c55dc0197b7500",
+          "sha256": "e406b2bc11bcd736c688405b9b01a72b845374165ec39250f139530c90fc0ff2"
+        },
+        {
+          "path": "frontend/src/development/StructuredEditors.tsx",
+          "status": "A",
+          "blob": "91c6d7a602b2b7f72de5aec687c51efed603c6da",
+          "sha256": "e7ebcf429fe89282dde0863713c07d8b59fcf4f4a172da082c97fc153a519753"
+        },
+        {
+          "path": "frontend/src/development/api.ts",
+          "status": "A",
+          "blob": "aa79b0d757916b58153cef9ae9957bcfc6a58ace",
+          "sha256": "ace5764cd777ac5b4c4e430a4c36efc8b9e1d56b7c406d32327a0c44fc5edd34"
+        },
+        {
+          "path": "frontend/src/development/development.test.tsx",
+          "status": "A",
+          "blob": "b6d129a7d5ef2802dc76b646b6489145c1735ab9",
+          "sha256": "98b90299f506784ccfb750658b78f3b187a4b7e3ff1add9c31125d8c0f145110"
+        },
+        {
+          "path": "frontend/src/development/main.tsx",
+          "status": "A",
+          "blob": "055029caa02c702a9ead91844167e8ebf7c09be7",
+          "sha256": "b7638169bfe845cf394f3cddfcc928fd46937fb5561553156bb075b76dcfcbef"
+        },
+        {
+          "path": "frontend/src/development/styles.css",
+          "status": "A",
+          "blob": "c4c0a748516090e1eeadf8899f46c8ab755b39b6",
+          "sha256": "d5d7f6652ab8cd1165d8f59d059d9bf259575903d18d86f976522900209937c6"
+        },
+        {
+          "path": "frontend/src/development/types.ts",
+          "status": "A",
+          "blob": "72bccfef2ec77a1c9749526f3e021bd61449fcba",
+          "sha256": "202853b991997ca73942439b78ce2a2e464af400982ce045268d92707056df70"
+        },
+        {
+          "path": "frontend/src/useExecutionStream.test.tsx",
+          "status": "M",
+          "blob": "abea626202462680347109cd72bab6d35c1706f0",
+          "sha256": "77f58c410a8753757258a5d4ad93a86848878f47af925ea0ab66c91f99dd0b42"
+        },
+        {
+          "path": "frontend/src/useExecutionStream.ts",
+          "status": "M",
+          "blob": "97390fbc957380970a5ac169d8ae7247ee483e06",
+          "sha256": "c6034832dc74c437a1cad57ebfd214addc11a85a67f476afb496c7c4ff9cb99f"
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "status": "M",
+          "blob": "67350730b5dbd1e6ebff2b10fb78a6fab0b5bd55",
+          "sha256": "2c5b2202ce41b72229da996c0362fa14dbb2f43191d9c0de3801c852ac8a9eca"
+        },
+        {
+          "path": "pyproject.toml",
+          "status": "M",
+          "blob": "fe82f0985b33dbfae18f6a5c7eecbac484113bc3",
+          "sha256": "d264d594efffa0c92c81f88a445d52e0087799ba9dbce8de9dd966e9c0735785"
+        },
+        {
+          "path": "scripts/audit_supply_chain_v09.ps1",
+          "status": "A",
+          "blob": "2c60aa4c31d880ca5c12889bca2e78a87e942a9a",
+          "sha256": "4508c2c5bed369941c2c08b9802335eb18c703e384dff08e3e6cb94ee9821c4d"
+        },
+        {
+          "path": "scripts/build_reproducible_v09.py",
+          "status": "A",
+          "blob": "6018be8a1f57951d05bfd3b1596e2421f40094eb",
+          "sha256": "f6d15e0fb5872d0b40000a24c5511085128a411a0d9c310d7f311b17ec4dca28"
+        },
+        {
+          "path": "scripts/create_release_qualification_v09.py",
+          "status": "A",
+          "blob": "e23fd8ff745fea0fc0390f7f987f2a8636c3cc7f",
+          "sha256": "1188ef6f98c1b1d4b0f02653610238068ad415aecce82162b68efabc78d0b181"
+        },
+        {
+          "path": "scripts/generate_sbom_v09.ps1",
+          "status": "A",
+          "blob": "2aabf1e9738409f2388f70f579147a79f60e37d1",
+          "sha256": "e5cc7aaea6b641638c1d33ae37dac9e4479bc33ef2eed93179924004dd6d6324"
+        },
+        {
+          "path": "scripts/package-v04.Dockerfile.dockerignore",
+          "status": "M",
+          "blob": "d339421d7af187e053c805d4571d297d5d237d11",
+          "sha256": "69ac5da9467967300748ef5ee4b9e850809e7ae783bddfc21ed08e2a44c181eb"
+        },
+        {
+          "path": "scripts/package-v09.Dockerfile",
+          "status": "A",
+          "blob": "64f116f353d28402ca8b1e23de635f9be77f603a",
+          "sha256": "5664aa67c57b2f002803b24fdb261a166631d453325bd64e1a842c59d3c9f01e"
+        },
+        {
+          "path": "scripts/package-v09.Dockerfile.dockerignore",
+          "status": "A",
+          "blob": "c6d7907c5c8d777000bd012d6078b4093f8a1768",
+          "sha256": "4831674a187d0a578bc732ff7caf2d33803054e474a777679cc8c438fbbfaa27"
+        },
+        {
+          "path": "scripts/package_release_v09.ps1",
+          "status": "A",
+          "blob": "dbd6a4a96ba7b14029bd1ba04947b5067f940b51",
+          "sha256": "909c1c48e3e83509568a815bf0f00008f34a9939e8595cc62efd8eae6a1b8100"
+        },
+        {
+          "path": "scripts/qualification-v09.Dockerfile",
+          "status": "A",
+          "blob": "3fde146aaecd167cd882ddb9c7ed44712d43e612",
+          "sha256": "33465e088e77189ac831805fc9dd218eef270164b1926ef55ddcf2eb2811e326"
+        },
+        {
+          "path": "scripts/qualification-v09.Dockerfile.dockerignore",
+          "status": "A",
+          "blob": "54da5ba7b82e37cc421102643bb31d14d5597a2d",
+          "sha256": "1149ecdecf9dba26bcfe7ddf3c7763832ec8e5d194ef58753511e3a4a3241d1a"
+        },
+        {
+          "path": "scripts/qualify_candidate_v09.ps1",
+          "status": "A",
+          "blob": "64e235820d94f76e87d334359e56f1fea0d229ab",
+          "sha256": "1470a3046a8c70d69ce8854a39bac85f11c7c4a3eee1c6a81ad98304f09d602c"
+        },
+        {
+          "path": "scripts/qualify_release_v09.ps1",
+          "status": "A",
+          "blob": "e6fe62cc50864ee51d6048abc0d249fd55d9a5e4",
+          "sha256": "29143bdd976c5e06a29f28327fb3d4d2f862543b438b003e892c6c851b879f1c"
+        },
+        {
+          "path": "scripts/seed_observation_v07.py",
+          "status": "M",
+          "blob": "e9c3cc1fdb52c7f5912026a1b0378b7938317373",
+          "sha256": "90b0fa1d0f8c8d2fa1967243ce67924aa29834345870a2a96bc9303be6581243"
+        },
+        {
+          "path": "scripts/source_fingerprint_v09.py",
+          "status": "A",
+          "blob": "05a406d746c7adb0bfdce4c74f2e4c5d8a10093d",
+          "sha256": "ab5df3fb75acbfad8effe819cbe44f9652c39a1aaa1e284712e31c5bfe202083"
+        },
+        {
+          "path": "scripts/supply_chain_v04.py",
+          "status": "M",
+          "blob": "06ea2421df391d4fb25fdd75f65dc88be72016f4",
+          "sha256": "da4074cb3f55850e139376ffb009e5f6679617faa38cac73fc824ba04dd645fe"
+        },
+        {
+          "path": "scripts/tests/test_create_release_qualification_v09.py",
+          "status": "A",
+          "blob": "e9f5bc87b8ac93656077113d62fd48718599267f",
+          "sha256": "86c09bedeb27f5d0cacc59e83c43bb48d2cd3180f64a4aafc0bd8b9f404e7028"
+        },
+        {
+          "path": "scripts/tests/test_markdown_preview_v09.py",
+          "status": "A",
+          "blob": "a3aab404ecf6f1bcf95e67d04b3907cdf4870e2c",
+          "sha256": "856b82732bb900fadae9b833cf0e43d66b7fc41abce8a201b7b7c56f209d8934"
+        },
+        {
+          "path": "scripts/tests/test_qualification_image_v09.py",
+          "status": "A",
+          "blob": "5c8f1af71694b0e116e74a08854bf12689edb8c0",
+          "sha256": "c0df663623ff165b873bd12a1cc097e64e29d77f9956fba1d98f9923e33f13d9"
+        },
+        {
+          "path": "scripts/tests/test_qualify_release_v09.py",
+          "status": "A",
+          "blob": "4648b4acbeeef4c5ca24575e053f180d3ac79cce",
+          "sha256": "7185ee2bb8af3cdb74c901168e6e91e44041a26aa3d1b3ff246f7d8ce259c833"
+        },
+        {
+          "path": "scripts/tests/test_release_v09.py",
+          "status": "A",
+          "blob": "ad33de820e1ab16b010db7c7b3f964fb76cf5226",
+          "sha256": "0c3f14e370778640c195199d1d980d06a9a874fe1b1122e24f719dfad6b654ab"
+        },
+        {
+          "path": "scripts/tests/test_seed_observation_v07.py",
+          "status": "M",
+          "blob": "0e19ffc5069ea188221e0772d3f5ee9d82b2a6ef",
+          "sha256": "fa921950a4ecacb4077e0236b9b7b80fa369c2aac4990109ef1047a637f4289c"
+        },
+        {
+          "path": "scripts/tests/test_source_fingerprint_v09.py",
+          "status": "A",
+          "blob": "4fcbb882ca43555a947cfe66bc75f3f8c83cab0c",
+          "sha256": "cfc2610d757222ef1a823d171863e94af0e14321c5b5751a5b3b598ccaeaf0fd"
+        },
+        {
+          "path": "scripts/tests/test_supply_chain_v04.py",
+          "status": "M",
+          "blob": "a7104f16ebdb19cc5a8f544fdd719b239bed197c",
+          "sha256": "10b268f3e3f0034f8be2f88efadf0b38e02020e16413fb7cd4d31d204b292f6a"
+        },
+        {
+          "path": "scripts/tests/test_v09_offline_package.py",
+          "status": "A",
+          "blob": "25bce46148f6916435a6930def28c59b69330055",
+          "sha256": "08f557fa60358df785aa7afb03c943ad7b87262253490e7bd0fb5cfa2fb6dbd0"
+        },
+        {
+          "path": "scripts/tests/test_validate_candidate_evidence_v09.py",
+          "status": "A",
+          "blob": "a36435bb22d7c68d6ac5ab3906c0ef17128110f8",
+          "sha256": "08e1fa8921b71c746e0c261849048fc472eceba4a9dccbb9ba6ecc5df2f903e5"
+        },
+        {
+          "path": "scripts/tests/test_validate_release_evidence_v09.py",
+          "status": "A",
+          "blob": "3dd2bb7bd06d05507fc3c6207b98fcc66a3f598f",
+          "sha256": "e425710de4fb31ac32ce5d808d3ea34d9f60bb6543c66b54cd65b58bdd0c518a"
+        },
+        {
+          "path": "scripts/validate_candidate_evidence_v09.py",
+          "status": "A",
+          "blob": "e0dbde0f138a675ab0a2fe2fed2b6eae13101368",
+          "sha256": "75ba442038ad249c4bfa7d3304f240282d7b057fadd8530dc428487ba850b55b"
+        },
+        {
+          "path": "scripts/validate_markdown_v09.py",
+          "status": "A",
+          "blob": "70ac8310ebfdc8dfc2f5bc3f5762925dd429ae26",
+          "sha256": "5b6630803b60919cc24b3ec46a7774dd79165df976e0fc8de78deba0c31c9e46"
+        },
+        {
+          "path": "scripts/validate_release_evidence_v09.py",
+          "status": "A",
+          "blob": "cc571991a533d41f9cbe5310285f80ff6bba0f1e",
+          "sha256": "de1c500c2808d1531f1fd0a03de9ea69c9b54661b4c0f4725d3ff8a122bc1490"
+        }
+      ]
+    }
+  },
+  "qualification_contract": {
+    "status": "PASS",
+    "manifest_path": "artifacts/v0.9/work-package/qualification.json",
+    "manifest_schema": "spell.v09.candidate-qualification/1",
+    "manifest_sha256": "a1820154709f3893e88d32e772af6ced0a1635b379d108592a9635dc5b54b16e",
+    "validator_path": "scripts/validate_candidate_evidence_v09.py",
+    "validator_success_shape": {
+      "gate": "PASS",
+      "schema_version": "spell.v09.candidate-qualification/1",
+      "source_commit": "060001baf423fb82f27041f6b842630370c1a786",
+      "suites": 10,
+      "test_ids": 45,
+      "tests_minimum": 1
+    },
+    "python_version": "3.13.14",
+    "suite_ids": [
+      "backend_sqlite",
+      "backend_postgresql",
+      "backend_docker_host",
+      "backend_v09_soak",
+      "driver_host",
+      "tooling",
+      "frontend_vitest",
+      "frontend_build",
+      "frontend_playwright_mocked",
+      "frontend_playwright_live"
+    ],
+    "postgresql_environment_variables": [
+      "SPELL_TEST_DATABASE_URL",
+      "SPELL_MIGRATION_TEST_DATABASE_URL"
+    ],
+    "mapped_test_ids_skipped": [],
+    "accepted_failures": [],
+    "waivers": [],
+    "waivers_allowed": false
+  },
+  "qualified_work_packages": [
+    {
+      "work_package_id": "V09-DEV-001",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-001-CONTRACT",
+        "V09-DEV-001-PROJECT-LIFECYCLE",
+        "V09-DEV-001-WORKSPACE-RACE",
+        "V09-DEV-001-BROWSER",
+        "V09-DEV-001-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-002",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-002-PARSER-GOLDEN",
+        "V09-DEV-002-EDITOR",
+        "V09-DEV-002-COMPLETION",
+        "V09-DEV-002-NON-EXECUTION",
+        "V09-DEV-002-DETERMINISM"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-003",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-003-SCHEMA",
+        "V09-DEV-003-DICTIONARY",
+        "V09-DEV-003-CATALOG",
+        "V09-DEV-003-REFERENCE",
+        "V09-DEV-003-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-004",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-004-UNIT",
+        "V09-DEV-004-PROJECT-CHECK",
+        "V09-DEV-004-CANCELLATION",
+        "V09-DEV-004-PROBLEMS",
+        "V09-DEV-004-RECOVERY"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-005",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-005-IMPORT-EXPORT",
+        "V09-DEV-005-EXTERNAL-CHANGE",
+        "V09-DEV-005-CASE-CONFLICT",
+        "V09-DEV-005-PATH-SECURITY",
+        "V09-DEV-005-PROVENANCE"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-006",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-006-HISTORY",
+        "V09-DEV-006-DIFF",
+        "V09-DEV-006-CONFLICT",
+        "V09-DEV-006-COLLABORATION-RACE",
+        "V09-DEV-006-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-007",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-007-CANONICALIZATION",
+        "V09-DEV-007-REPRODUCIBILITY",
+        "V09-DEV-007-TAMPER",
+        "V09-DEV-007-RETENTION",
+        "V09-DEV-007-SECURITY"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-008",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-008-STATE-MACHINE",
+        "V09-DEV-008-AUTHORIZATION",
+        "V09-DEV-008-TRANSACTION-AUDIT",
+        "V09-DEV-008-ROLLBACK-WITHDRAWAL",
+        "V09-DEV-008-PINNING"
+      ]
+    },
+    {
+      "work_package_id": "V09-DEV-009",
+      "status": "IMPLEMENTED_AND_QUALIFIED",
+      "test_ids": [
+        "V09-DEV-009-SEMANTIC-GOLDEN",
+        "V09-DEV-009-INTEGRATION",
+        "V09-DEV-009-BROWSER-MATRIX",
+        "V09-DEV-009-OFFLINE-PACKAGE",
+        "V09-DEV-009-FAULT-RECOVERY"
+      ]
+    }
+  ],
+  "reviewed_surface_delta": {
+    "review_status": "REVIEWED_AND_QUALIFIED",
+    "development_surface": {
+      "api_version": "v1",
+      "route_prefix": "/api/v1/development",
+      "classification": "BOUNDED_AUTHENTICATED_LOCAL_DEVELOPMENT_ENVIRONMENT",
+      "feature_families": [
+        "PROJECT_WORKSPACE_AND_RESOURCE_LIFECYCLE",
+        "NON_EXECUTING_LANGUAGE_SERVICES",
+        "DICTIONARY_AND_CATALOG_AUTHORING",
+        "SEMANTIC_CHECKS_AND_PROBLEMS",
+        "SAFE_IMPORT_EXPORT_AND_EXTERNAL_CHANGE",
+        "LOCAL_HISTORY_AND_COLLABORATION",
+        "IMMUTABLE_VALIDATED_BUNDLES",
+        "LOCAL_SIMULATOR_PROMOTION_REGISTRY"
+      ],
+      "service_boundary_files": [
+        "backend/development_domain.py",
+        "backend/development_analysis.py",
+        "backend/development_models.py",
+        "backend/development_service.py",
+        "backend/development_api.py",
+        "backend/procedure_parser.py",
+        "backend/app.py"
+      ],
+      "frontend_surface_files": [
+        "frontend/development.html",
+        "frontend/vite.config.ts",
+        "frontend/src/development/main.tsx",
+        "frontend/src/development/DevelopmentApp.tsx",
+        "frontend/src/development/DevelopmentWorkspace.tsx",
+        "frontend/src/development/api.ts",
+        "frontend/src/development/types.ts"
+      ],
+      "frontend_entrypoint": "/development.html",
+      "authorization_before_lookup_or_body_read": true,
+      "transactional_audit_outbox": true,
+      "procedure_language_services_are_non_executing": true,
+      "browser_has_no_direct_database_or_filesystem_access": true,
+      "arbitrary_expression_evaluation": false,
+      "broad_public_api_compatibility_claimed": false
+    },
+    "accepted_boundaries": {
+      "accepted_v08_artifacts_immutable": true,
+      "gate_0a_contract_blobs_immutable": true,
+      "legacy_driver_protocol_bytes_unchanged": true,
+      "legacy_ir_serialized_bytes_unchanged": true,
+      "live_driver_or_external_effect_route_added": false
+    },
+    "database_schema": {
+      "migration_versions": [
+        "0008_development_environment"
+      ],
+      "migration_files": [
+        "backend/migrations/versions/v0008_development_environment.py"
+      ],
+      "new_tables_by_migration": {
+        "0008_development_environment": [
+          "development_projects",
+          "development_resources",
+          "development_idempotency",
+          "development_audit_events",
+          "development_outbox",
+          "development_analysis_jobs",
+          "development_problems",
+          "development_library_cache",
+          "development_history_revisions",
+          "development_history_reviews",
+          "development_conflicts",
+          "development_import_provenance",
+          "development_dictionary_artifacts",
+          "development_catalog_snapshots",
+          "development_presence",
+          "development_bundles",
+          "development_catalog_entries",
+          "development_promotion_decisions",
+          "development_runtime_pins"
+        ]
+      },
+      "existing_tables_rewritten_by_migrations": [],
+      "sqlite_and_postgresql_required": true,
+      "rollback_and_upgrade_proof_required": true,
+      "broad_database_compatibility_claimed": false
+    },
+    "dependencies": {
+      "new_python_runtime_dependencies": [],
+      "new_frontend_runtime_dependencies": [],
+      "driver_implementation_version": "0.4.0",
+      "live_driver_or_external_effect_route_added": false
+    },
+    "compatibility_ledger": {
+      "claimed_construct_ids": [],
+      "claimed_artifact_ids": [],
+      "compatibility_ledger_rows_added": 0,
+      "v0_8_scope_rows_changed": 0,
+      "broad_compatibility_claimed": false
+    }
+  },
+  "release_closeout_authorization": {
+    "status": "AUTHORIZED",
+    "release_version": "0.9.0",
+    "tag_name": "v0.9.0",
+    "tag_object_type": "annotated",
+    "permitted_actions_after_pass": [
+      "RECORD_V09_DEV_001_THROUGH_V09_DEV_009_IMPLEMENTED",
+      "PUBLISH_CANONICAL_FINAL_QUALIFICATION_EVIDENCE_AND_HASHES",
+      "UPDATE_RELEASE_VERSION_PROVENANCE_HISTORY_AND_TEST_RECORDS",
+      "CREATE_VERSION_SCOPED_SBOMS_AND_SUPPLY_CHAIN_EVIDENCE",
+      "CREATE_DETERMINISTIC_V0_9_RELEASE_PACKAGE",
+      "COMMIT_RELEASE_CLOSEOUT",
+      "CREATE_ONE_ANNOTATED_V0_9_0_TAG"
+    ],
+    "additional_product_work_authorized": false
+  },
+  "activation_requirements": {
+    "required_rebindings": [
+      "/immutable_inputs/candidate/binding_status",
+      "/immutable_inputs/candidate/commit",
+      "/immutable_inputs/candidate/tree",
+      "/immutable_inputs/candidate/changed_paths",
+      "/qualification_contract/status",
+      "/qualification_contract/manifest_sha256",
+      "/qualification_contract/validator_success_shape/source_commit",
+      "/reviewed_surface_delta/review_status"
+    ],
+    "required_status_transitions": {
+      "/status": "PASS",
+      "/decision/authorization": "V09_DEV_001_THROUGH_V09_DEV_009_RELEASE_CLOSEOUT_ONLY",
+      "/immutable_inputs/candidate/binding_status": "BOUND",
+      "/qualification_contract/status": "PASS",
+      "/reviewed_surface_delta/review_status": "REVIEWED_AND_QUALIFIED",
+      "/release_closeout_authorization/status": "AUTHORIZED",
+      "/qualified_work_packages/*/status": "IMPLEMENTED_AND_QUALIFIED"
+    },
+    "candidate_validator_must_pass": true,
+    "all_45_mapped_test_ids_must_pass": true,
+    "mapped_test_id_skips_allowed": false,
+    "waivers_allowed": false
+  },
+  "claims": {
+    "gate_0a_immutable_authorization_verified": true,
+    "v0_9_work_packages_implemented": true,
+    "v0_9_candidate_qualified": true,
+    "release_closeout_authorized": true,
+    "v0_9_release_accepted_by_gate": false,
+    "broad_language_or_compatibility_claimed": false,
+    "operational_authorization": false,
+    "deployment_approval": false,
+    "compliance_determination": false,
+    "cryptographic_signature_verified": false,
+    "v0_8_release_accepted": true
+  },
+  "explicit_exclusions": [
+    "SCOPE_BEYOND_V09_DEV_001_THROUGH_V09_DEV_009",
+    "NON_LOCAL_NON_SYNTHETIC_CUI_CLASSIFIED_PRODUCTION_OR_OPERATIONAL_DATA",
+    "LIVE_GCS_SPACECRAFT_MISSION_NETWORK_TELEMETRY_TELECOMMAND_DRIVER_MUTATION_OR_EXTERNAL_EFFECT_ROUTE",
+    "ARBITRARY_SOURCE_PYTHON_EXPRESSION_TEMPLATE_FUNCTION_SHELL_NATIVE_BYTECODE_PICKLE_EXECUTABLE_IMPORT_OR_GENERIC_FILTER_EVALUATION",
+    "DIRECT_BROWSER_OR_WORKER_DATABASE_OBJECT_ADMIN_HOST_FILESYSTEM_SECRET_CREDENTIAL_OR_UNRESTRICTED_NETWORK_ACCESS",
+    "ABSOLUTE_TRAVERSAL_SYMLINK_REPARSE_DEVICE_ALTERNATE_DATA_STREAM_URL_OR_UNBOUNDED_FILE_ACCESS",
+    "UNBOUNDED_PROJECT_RESOURCE_DIAGNOSTIC_HISTORY_BUNDLE_QUERY_TRANSACTION_RETRY_QUOTA_OR_RETENTION",
+    "SILENT_COERCION_AMBIGUOUS_FORMAT_BEST_EFFORT_CORRUPTION_RECOVERY_LAST_WRITER_WINS_OR_PARTIAL_WRITE_SUCCESS",
+    "AMBIGUOUS_EXTERNAL_CHANGE_CONFLICT_PROMOTION_OR_ROLLBACK_RESOLUTION",
+    "UNREVIEWED_IR_LANGUAGE_API_SCHEMA_DEPENDENCY_MIGRATION_OR_COMPATIBILITY_CHANGE",
+    "IMPLEMENTATION_OUTSIDE_EXACT_AUTHORIZED_WORK_PACKAGE_AND_CONTRACT_BOUNDARIES",
+    "LIGHTWEIGHT_SECONDARY_OR_V0_9_ALIAS_TAG",
+    "DEPLOYMENT_OPERATIONAL_COMPLIANCE_OR_CRYPTOGRAPHIC_SIGNATURE_CLAIM"
+  ]
 }
