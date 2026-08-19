@@ -32,9 +32,22 @@ from .ir_v08 import (
     data_operation_required_fields,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
+from .ir_v11 import (
+    IR_VERSION as V11_IR_VERSION,
+    V11ValidationError,
+    telecommand_dependency_variables,
+    validate_ir_v11,
+)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
+V10_LANGUAGE_PROFILE = "spell-lrm244-adapter/0.10"
+V11_LANGUAGE_PROFILE = "spell-telecommand-simulator/0.11"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -80,6 +93,14 @@ V08_DATA_CALLS = frozenset(
         "DeleteFile",
     }
 )
+
+
+def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V11_IR_VERSION:
+        return V11_LANGUAGE_PROFILE
+    if ir_version == V10_IR_VERSION:
+        return V10_LANGUAGE_PROFILE
+    return f"spell-restricted-ast/{ir_version}"
 
 
 @dataclass(frozen=True)
@@ -143,6 +164,8 @@ class ProcedureCatalog:
         "GetTM",
         "Verify",
         "WaitFor",
+        "ReferenceExample",
+        "Send",
         *V08_DATA_CALLS,
     }
 
@@ -386,7 +409,11 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V08_IR_VERSION
+            V11_IR_VERSION
+            if compiler.uses_v11
+            else V10_IR_VERSION
+            if compiler.uses_v10
+            else V08_IR_VERSION
             if compiler.uses_v08
             else V07_IR_VERSION
             if compiler.uses_v07
@@ -396,7 +423,11 @@ class ProcedureCatalog:
         )
         try:
             validated_ir = (
-                validate_ir_v08(ir_version, steps)
+                validate_ir_v11(ir_version, steps)
+                if compiler.uses_v11
+                else validate_ir_v10(ir_version, steps)
+                if compiler.uses_v10
+                else validate_ir_v08(ir_version, steps)
                 if compiler.uses_v08
                 else validate_ir_v07(ir_version, steps)
                 if compiler.uses_v07
@@ -409,6 +440,8 @@ class ProcedureCatalog:
             V06ValidationError,
             V07ValidationError,
             V08ValidationError,
+            V10ValidationError,
+            V11ValidationError,
         ) as exc:
             diagnostic = ProcedureDiagnostic(
                 code="SPELL105",
@@ -478,9 +511,11 @@ class _Compiler:
         "GetTM",
         "Verify",
         "WaitFor",
+        "ReferenceExample",
+        "Send",
         *V08_DATA_CALLS,
     }
-    _reserved_calls = {*_step_calls, "ARGS", "UserAction", "Label"}
+    _reserved_calls = {*_step_calls, "ARGS", "UserAction", "Label", "BuildTC"}
 
     def __init__(self, source_name: str):
         self.source_name = source_name
@@ -488,6 +523,7 @@ class _Compiler:
         self.types: dict[str, str] = {}
         self.opaque_types: dict[str, str] = {}
         self.opaque_declared_variables: set[str] = set()
+        self.telecommand_variables: set[str] = set()
         self.steps: list[dict[str, Any]] = []
         self.serialized_ir_bytes = 2
         self.branch_counter = 0
@@ -497,6 +533,8 @@ class _Compiler:
         self.uses_v06 = False
         self.uses_v07 = False
         self.uses_v08 = False
+        self.uses_v10 = False
+        self.uses_v11 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -549,6 +587,9 @@ class _Compiler:
                 "verify",
                 "wait_for",
                 "data_operation",
+                "reference_example",
+                "build_tc",
+                "send_tc",
             }
             for step in self.steps
         ):
@@ -725,6 +766,9 @@ class _Compiler:
         self.uses_v06 = True
 
     def _validate_user_action_targets(self) -> None:
+        telecommand_dependencies = (
+            telecommand_dependency_variables(self.steps) if self.uses_v11 else frozenset()
+        )
         for definition in self.user_actions:
             for operation in definition["handler"]:
                 if operation["op"] != "SET_LITERAL":
@@ -735,6 +779,18 @@ class _Compiler:
                         self.functions.get(name, ast.Constant(value=None)),
                         "SPELL803",
                         "UserAction cannot mutate a FileHandle variable",
+                    )
+                if name in self.telecommand_variables:
+                    self._reject(
+                        self.functions.get(name, ast.Constant(value=None)),
+                        "SPELL803",
+                        "UserAction cannot mutate a telecommand item",
+                    )
+                if name in telecommand_dependencies:
+                    self._reject(
+                        self.functions.get(name, ast.Constant(value=None)),
+                        "SPELL803",
+                        "UserAction cannot mutate a telecommand dependency",
                     )
                 if self.types.get(name) != operation["declared_type"]:
                     self._reject(
@@ -766,7 +822,10 @@ class _Compiler:
                 continue
             seen_executable = True
             if isinstance(statement, ast.Assign):
-                self._compile_assignment(statement, guard)
+                if self._is_build_tc_assignment(statement):
+                    self._compile_v11_build_assignment(statement, guard)
+                else:
+                    self._compile_assignment(statement, guard)
             elif isinstance(statement, ast.AugAssign):
                 self._compile_augmented_assignment(statement, guard)
             elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
@@ -781,6 +840,14 @@ class _Compiler:
                     "SPELL103",
                     "only declarations, assignments, steps, if/else, bounded range loops, and local calls are allowed",
                 )
+
+    @staticmethod
+    def _is_build_tc_assignment(node: ast.Assign) -> bool:
+        return (
+            isinstance(node.value, ast.Call)
+            and isinstance(node.value.func, ast.Name)
+            and node.value.func.id == "BuildTC"
+        )
 
     def _compile_declaration(self, node: ast.AnnAssign) -> None:
         if not isinstance(node.target, ast.Name) or not isinstance(node.annotation, ast.Name):
@@ -811,6 +878,8 @@ class _Compiler:
             self._reject(node, "SPELL306", "assignment requires one simple variable target")
         target = node.targets[0]
         self._validate_variable_name(target, target.id)
+        if target.id in self.telecommand_variables:
+            self._reject(target, "SPELL913", "telecommand item can only be replaced by BuildTC")
         if target.id in self.opaque_declared_variables:
             self._reject(target, "SPELL718", "FileHandle variable cannot be assigned as a scalar")
         declared_type = self._declared_type(target)
@@ -993,6 +1062,12 @@ class _Compiler:
         call: ast.Call,
         guard: dict[str, Any] | None,
     ) -> None:
+        if name == "Send":
+            self._compile_v11_send(node, call, guard)
+            return
+        if name == "ReferenceExample":
+            self._compile_v10_step(node, call, guard)
+            return
         if name in V08_DATA_CALLS:
             self._compile_v08_step(node, name, call, guard)
             return
@@ -1014,6 +1089,7 @@ class _Compiler:
                 "warning_delay",
                 "response_timeout",
                 "no_controller_grace",
+                "target",
             },
             "StartProc": {"procedure", "args", "blocking", "visible", "automatic"},
         }
@@ -1079,6 +1155,7 @@ class _Compiler:
                 "warning_delay",
                 "response_timeout",
                 "no_controller_grace",
+                "target",
             }
             if not (set(values) & v06_keywords):
                 choices = self._literal_string_list(
@@ -1150,6 +1227,18 @@ class _Compiler:
             step["question"] = self._typed_argument(
                 values["question"], {"str"}, "Prompt question"
             )
+            if "target" in values:
+                if spec.prompt_type != "LIST" or spec.list_mode != "INDEX":
+                    self._reject(
+                        values["target"],
+                        "SPELL901",
+                        "Prompt target requires a LIST prompt in INDEX mode",
+                    )
+                step["response_target"] = self._v07_target(
+                    values["target"], "int", "Prompt"
+                )
+                step["response_target_type"] = "int"
+                self.uses_v10 = True
             self.uses_v06 = True
         else:
             child_reference = self._literal_required_string(
@@ -1172,6 +1261,593 @@ class _Compiler:
             step.update(spec.as_ir_fields())
             self.uses_v06 = True
         self._append(node, name.lower(), guard=guard, **step)
+
+    _V11_MODIFIER_ALIASES = {
+        "Time": "time",
+        "time": "time",
+        "ReleaseTime": "release_time",
+        "release_time": "release_time",
+        "LoadOnly": "load_only",
+        "load_only": "load_only",
+        "Confirm": "confirm",
+        "confirm": "confirm",
+        "ConfirmCritical": "confirm_critical",
+        "confirm_critical": "confirm_critical",
+        "Group": "group",
+        "Block": "block",
+        "Timeout": "timeout_seconds",
+        "timeout_seconds": "timeout_seconds",
+        "addInfo": "additional_info",
+        "additional_info": "additional_info",
+        "SendDelay": "send_delay_seconds",
+        "send_delay_seconds": "send_delay_seconds",
+        "verify": "verification",
+        "AdjLimits": "adjust_limits",
+        "adjust_limits": "adjust_limits",
+        "Delay": "verification_delay_seconds",
+        "verification_delay_seconds": "verification_delay_seconds",
+        "Tolerance": "tolerance",
+        "tolerance": "tolerance",
+        "OnFailure": "on_failure",
+        "on_failure": "on_failure",
+        "PromptUser": "prompt_user",
+        "prompt_user": "prompt_user",
+        "PerCommand": "per_command",
+        "per_command": "per_command",
+    }
+    _V11_BOOLEAN_MODIFIERS = {
+        "load_only",
+        "confirm",
+        "confirm_critical",
+        "group",
+        "block",
+        "adjust_limits",
+        "prompt_user",
+    }
+    _V11_DURATION_MODIFIERS = {
+        "timeout_seconds",
+        "send_delay_seconds",
+        "verification_delay_seconds",
+        "tolerance",
+    }
+    _V11_ARGUMENT_SYMBOLS = {
+        "LONG",
+        "STRING",
+        "BOOLEAN",
+        "TIME",
+        "FLOAT",
+        "ENG",
+        "RAW",
+        "DEC",
+        "HEX",
+        "OCT",
+        "BIN",
+        "ValueType",
+        "ValueFormat",
+        "Radix",
+        "Units",
+        "eq",
+        "neq",
+        "lt",
+        "le",
+        "gt",
+        "ge",
+        "Timeout",
+        "Tolerance",
+    }
+
+    def _v11_call_values(
+        self,
+        call: ast.Call,
+        *,
+        positional: tuple[str, ...],
+        allowed: set[str],
+        label: str,
+    ) -> dict[str, ast.AST]:
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        if len(call.args) > len(positional):
+            self._reject(call, "SPELL408", f"too many positional arguments for {label}")
+        values: dict[str, ast.AST] = {}
+        for keyword in call.keywords:
+            assert keyword.arg is not None
+            if keyword.arg in values:
+                self._reject(keyword.value, "SPELL410", f"duplicate argument {keyword.arg}")
+            values[keyword.arg] = keyword.value
+        unknown = set(values) - allowed
+        if unknown:
+            self._reject(call, "SPELL409", f"unsupported keyword for {label}: {sorted(unknown)[0]}")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+        return values
+
+    def _v11_literal_data(self, node: ast.AST, label: str) -> Any:
+        def convert(item: ast.AST, depth: int = 0) -> Any:
+            if depth > 8:
+                self._reject(item, "SPELL914", f"{label} exceeds the nesting limit")
+            if isinstance(item, ast.Constant) and item.value is not Ellipsis:
+                value = item.value
+                if value is None or type(value) in {bool, int, float, str}:
+                    if type(value) is int and value.bit_length() > MAX_INTEGER_BITS:
+                        self._reject(
+                            item,
+                            "SPELL914",
+                            f"{label} integer exceeds the {MAX_INTEGER_BITS}-bit safety limit",
+                        )
+                    if type(value) is float and not math.isfinite(value):
+                        self._reject(item, "SPELL914", f"{label} must be finite")
+                    return value
+            if isinstance(item, ast.Name) and item.id in self._V11_ARGUMENT_SYMBOLS:
+                return item.id
+            if isinstance(item, (ast.List, ast.Tuple)):
+                if len(item.elts) > 64:
+                    self._reject(item, "SPELL914", f"{label} exceeds the 64-entry limit")
+                return [convert(value, depth + 1) for value in item.elts]
+            if isinstance(item, ast.Dict):
+                if len(item.keys) > 64 or any(key is None for key in item.keys):
+                    self._reject(item, "SPELL914", f"{label} has invalid or excessive entries")
+                result: dict[str, Any] = {}
+                for key_node, value_node in zip(item.keys, item.values):
+                    assert key_node is not None
+                    key = convert(key_node, depth + 1)
+                    if type(key) is not str or not key or key in result:
+                        self._reject(key_node, "SPELL914", f"{label} keys must be unique text")
+                    result[key] = convert(value_node, depth + 1)
+                return result
+            if isinstance(item, ast.UnaryOp) and isinstance(item.op, (ast.UAdd, ast.USub)):
+                value = convert(item.operand, depth + 1)
+                if type(value) in {int, float}:
+                    return value if isinstance(item.op, ast.UAdd) else -value
+            self._reject(item, "SPELL914", f"{label} must be bounded literal data")
+
+        value = convert(node)
+        try:
+            encoded = json.dumps(
+                value,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+                allow_nan=False,
+            ).encode("ascii")
+        except (RecursionError, TypeError, UnicodeError, ValueError):
+            self._reject(node, "SPELL914", f"{label} must be finite JSON-compatible data")
+        if len(encoded) > 64_000:
+            self._reject(node, "SPELL914", f"{label} exceeds the 64000-byte limit")
+        return value
+
+    def _v11_duration(self, node: ast.AST, label: str) -> float | int:
+        constants = {"SECOND": 1, "MINUTE": 60, "HOUR": 3600, "DAY": 86400}
+
+        def bounded(value: float | int, item: ast.AST) -> float | int:
+            if type(value) is int and value.bit_length() > MAX_INTEGER_BITS:
+                self._reject(
+                    item,
+                    "SPELL915",
+                    f"{label} integer exceeds the {MAX_INTEGER_BITS}-bit safety limit",
+                )
+            try:
+                finite = math.isfinite(float(value))
+            except OverflowError:
+                finite = False
+            if not finite:
+                self._reject(item, "SPELL915", f"{label} must be finite")
+            return value
+
+        def evaluate(item: ast.AST) -> float | int:
+            if isinstance(item, ast.Constant) and type(item.value) in {int, float}:
+                return bounded(item.value, item)
+            if isinstance(item, ast.Name) and item.id in constants:
+                return constants[item.id]
+            if isinstance(item, ast.UnaryOp) and isinstance(item.op, (ast.UAdd, ast.USub)):
+                value = evaluate(item.operand)
+                return bounded(
+                    value if isinstance(item.op, ast.UAdd) else -value,
+                    item,
+                )
+            if isinstance(item, ast.BinOp):
+                left = evaluate(item.left)
+                right = evaluate(item.right)
+                if isinstance(item.op, ast.Add):
+                    return bounded(left + right, item)
+                if isinstance(item.op, ast.Sub):
+                    return bounded(left - right, item)
+                if isinstance(item.op, ast.Mult):
+                    return bounded(left * right, item)
+                if isinstance(item.op, ast.Div) and right != 0:
+                    try:
+                        return bounded(left / right, item)
+                    except OverflowError:
+                        self._reject(item, "SPELL915", f"{label} must be finite")
+            self._reject(item, "SPELL915", f"{label} must use numeric time constants only")
+
+        value = evaluate(node)
+        if value < 0 or value > 31_536_000:
+            self._reject(node, "SPELL915", f"{label} is outside the accepted duration range")
+        return value
+
+    def _v11_time(self, node: ast.AST, label: str) -> str | float | int:
+        if isinstance(node, ast.Constant) and type(node.value) is str:
+            self._validate_persistable_string(node, node.value, label)
+            if not node.value or len(node.value) > 80:
+                self._reject(node, "SPELL915", f"{label} must be 1 through 80 characters")
+            return node.value
+        if isinstance(node, ast.Constant) and type(node.value) in {int, float}:
+            if type(node.value) is int and node.value.bit_length() > MAX_INTEGER_BITS:
+                self._reject(
+                    node,
+                    "SPELL915",
+                    f"{label} integer exceeds the {MAX_INTEGER_BITS}-bit safety limit",
+                )
+            try:
+                finite = math.isfinite(float(node.value))
+            except OverflowError:
+                finite = False
+            if not finite or node.value < 0:
+                self._reject(node, "SPELL915", f"{label} must be non-negative and finite")
+            return node.value
+        if isinstance(node, ast.Name) and node.id in {"NOW", "TODAY"}:
+            return node.id
+        if isinstance(node, ast.BinOp) and isinstance(node.left, ast.Name):
+            if node.left.id not in {"NOW", "TODAY"} or not isinstance(node.op, (ast.Add, ast.Sub)):
+                self._reject(node, "SPELL915", f"{label} has an unsupported clock expression")
+            offset = self._v11_duration(node.right, label)
+            sign = "+" if isinstance(node.op, ast.Add) else "-"
+            return f"{node.left.id}{sign}{float(offset):g}s"
+        self._reject(node, "SPELL915", f"{label} must be an absolute string, number, NOW, or TODAY")
+
+    @staticmethod
+    def _v11_modifier_conflict(modifiers: dict[str, Any]) -> str | None:
+        if modifiers.get("load_only") is True and "verification" in modifiers:
+            return "LoadOnly conflicts with verification"
+        if modifiers.get("load_only") is True and "release_time" in modifiers:
+            return "LoadOnly conflicts with ReleaseTime"
+        if modifiers.get("adjust_limits") is True and "verification" not in modifiers:
+            return "AdjLimits requires verification"
+        return None
+
+    def _v11_per_command(self, node: ast.AST) -> dict[str, dict[str, Any]]:
+        if not isinstance(node, ast.Dict) or any(key is None for key in node.keys):
+            self._reject(node, "SPELL916", "PerCommand modifier must be an object")
+        if len(node.keys) > 16:
+            self._reject(node, "SPELL916", "PerCommand exceeds the 16-entry limit")
+        result: dict[str, dict[str, Any]] = {}
+        for key_node, override_node in zip(node.keys, node.values):
+            assert key_node is not None
+            if not isinstance(key_node, ast.Constant) or type(key_node.value) is not str:
+                self._reject(
+                    key_node,
+                    "SPELL916",
+                    "PerCommand keys must be non-empty literal strings",
+                )
+            key = key_node.value
+            if not key or key in result:
+                self._reject(
+                    key_node,
+                    "SPELL916",
+                    "PerCommand keys must be unique non-empty strings",
+                )
+            self._validate_persistable_string(key_node, key, "PerCommand key")
+            if not isinstance(override_node, ast.Dict) or any(
+                item is None for item in override_node.keys
+            ):
+                self._reject(
+                    override_node,
+                    "SPELL916",
+                    "PerCommand overrides must be modifier objects",
+                )
+            override: dict[str, Any] = {}
+            for name_node, value_node in zip(
+                override_node.keys, override_node.values
+            ):
+                assert name_node is not None
+                if (
+                    not isinstance(name_node, ast.Constant)
+                    or type(name_node.value) is not str
+                ):
+                    self._reject(
+                        name_node,
+                        "SPELL916",
+                        "PerCommand modifier names must be literal strings",
+                    )
+                source_name = name_node.value
+                canonical_name = self._V11_MODIFIER_ALIASES.get(source_name)
+                if canonical_name is None:
+                    self._reject(
+                        name_node,
+                        "SPELL916",
+                        f"unsupported PerCommand modifier {source_name}",
+                    )
+                if canonical_name in {"group", "block", "per_command"}:
+                    self._reject(
+                        name_node,
+                        "SPELL916",
+                        f"PerCommand does not accept {canonical_name}",
+                    )
+                if canonical_name in override:
+                    self._reject(
+                        name_node,
+                        "SPELL410",
+                        f"duplicate PerCommand modifier {canonical_name}",
+                    )
+                override[canonical_name] = self._v11_modifier_value(
+                    canonical_name, value_node
+                )
+            result[key] = override
+        return result
+
+    def _v11_modifier_value(self, name: str, node: ast.AST) -> Any:
+        if name in self._V11_BOOLEAN_MODIFIERS:
+            value = self._literal_value(node, None, f"{name} modifier")
+            if type(value) is not bool:
+                self._reject(node, "SPELL916", f"{name} modifier must be Boolean")
+            return value
+        if name in self._V11_DURATION_MODIFIERS:
+            return self._v11_duration(node, f"{name} modifier")
+        if name in {"time", "release_time"}:
+            return self._v11_time(node, f"{name} modifier")
+        if name == "on_failure":
+            if isinstance(node, ast.Name):
+                value = node.id
+            else:
+                value = self._literal_value(node, None, "OnFailure modifier")
+            if value not in {"ABORT", "CANCEL", "CONTINUE"}:
+                self._reject(node, "SPELL916", "OnFailure must be ABORT, CANCEL, or CONTINUE")
+            return value
+        if name == "verification":
+            value = self._v11_literal_data(node, "verification modifier")
+            if type(value) is not list or not 1 <= len(value) <= 8:
+                self._reject(node, "SPELL916", "verification must contain 1 through 8 conditions")
+            return value
+        if name == "per_command":
+            return self._v11_per_command(node)
+        value = self._v11_literal_data(node, f"{name} modifier")
+        if type(value) is not dict:
+            self._reject(node, "SPELL916", f"{name} modifier must be an object")
+        return value
+
+    def _v11_modifiers(self, values: dict[str, ast.AST]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for source_name, canonical_name in self._V11_MODIFIER_ALIASES.items():
+            if source_name not in values:
+                continue
+            if canonical_name in result:
+                self._reject(values[source_name], "SPELL410", f"duplicate modifier {canonical_name}")
+            result[canonical_name] = self._v11_modifier_value(
+                canonical_name, values[source_name]
+            )
+
+        def source_node(canonical_name: str) -> ast.AST:
+            return next(
+                values[source_name]
+                for source_name, target_name in self._V11_MODIFIER_ALIASES.items()
+                if target_name == canonical_name and source_name in values
+            )
+
+        conflict = self._v11_modifier_conflict(result)
+        if conflict is not None:
+            culprit = (
+                "load_only"
+                if conflict.startswith("LoadOnly")
+                else "adjust_limits"
+            )
+            self._reject(source_node(culprit), "SPELL916", conflict)
+        global_values = {
+            key: value for key, value in result.items() if key != "per_command"
+        }
+        for override in result.get("per_command", {}).values():
+            effective = {**global_values, **override}
+            conflict = self._v11_modifier_conflict(effective)
+            if conflict is not None:
+                self._reject(source_node("per_command"), "SPELL916", conflict)
+        return result
+
+    def _v11_command_reference(self, node: ast.AST, label: str) -> Any:
+        if isinstance(node, ast.Constant) and type(node.value) is str and node.value:
+            self._validate_persistable_string(node, node.value, label)
+            return node.value
+        if isinstance(node, ast.Name):
+            self._validate_variable_name(node, node.id)
+            if self.types.get(node.id) != "str":
+                self._reject(node, "SPELL917", f"{label} must name a string or telecommand item")
+            return {
+                "expr": (
+                    "telecommand_item"
+                    if node.id in self.telecommand_variables
+                    else "variable"
+                ),
+                "name": node.id,
+            }
+        self._reject(node, "SPELL917", f"{label} must be a string or telecommand item")
+
+    def _compile_v11_build_assignment(
+        self,
+        node: ast.Assign,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        if len(node.targets) != 1 or not isinstance(node.targets[0], ast.Name):
+            self._reject(node, "SPELL912", "BuildTC assignment requires one simple target")
+        target = node.targets[0]
+        self._validate_variable_name(target, target.id)
+        if target.id in self.opaque_declared_variables:
+            self._reject(target, "SPELL912", "BuildTC cannot replace a FileHandle")
+        declaration = target.id not in self.types
+        if declaration:
+            if guard is not None:
+                self._reject(node, "SPELL912", "first BuildTC assignment must be unconditional")
+            self.types[target.id] = "str"
+        elif self.types[target.id] != "str" or target.id not in self.telecommand_variables:
+            self._reject(target, "SPELL912", "BuildTC target is already used by another type")
+
+        call = node.value
+        assert isinstance(call, ast.Call)
+        allowed = {"command", "args", *self._V11_MODIFIER_ALIASES}
+        values = self._v11_call_values(
+            call,
+            positional=("command",),
+            allowed=allowed,
+            label="BuildTC",
+        )
+        if "command" not in values:
+            self._reject(call, "SPELL411", "missing BuildTC argument command")
+        command = self._v11_command_reference(values["command"], "BuildTC command")
+        if isinstance(command, dict):
+            self._reject(values["command"], "SPELL912", "BuildTC command must resolve from a name")
+        arguments = (
+            self._v11_literal_data(values["args"], "BuildTC args")
+            if "args" in values
+            else {}
+        )
+        if type(arguments) not in {dict, list}:
+            self._reject(values.get("args", call), "SPELL914", "BuildTC args must be a list or object")
+        modifiers = self._v11_modifiers(values)
+        self.telecommand_variables.add(target.id)
+        self.uses_v11 = True
+        self.uses_v06 = True
+        if declaration:
+            self._append(
+                node,
+                "variable_set",
+                name=target.id,
+                declared_type="str",
+                expression={"expr": "literal", "value": ""},
+                declaration=True,
+            )
+        self._append(
+            node,
+            "build_tc",
+            guard=guard,
+            command=command,
+            arguments=arguments,
+            modifiers=modifiers,
+            target=target.id,
+            target_type="str",
+            target_declaration=declaration,
+        )
+
+    def _compile_v11_send(
+        self,
+        node: ast.Expr,
+        call: ast.Call,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        selectors = {"command", "sequence", "group"}
+        allowed = {"args", *selectors, *self._V11_MODIFIER_ALIASES}
+        values = self._v11_call_values(
+            call,
+            positional=(),
+            allowed=allowed,
+            label="Send",
+        )
+        selected = selectors & set(values)
+        if len(selected) != 1:
+            self._reject(call, "SPELL918", "Send requires exactly one of command, sequence, or group")
+        selector_name = next(iter(selected))
+        selector_node = values[selector_name]
+        if selector_name == "group":
+            if not isinstance(selector_node, (ast.List, ast.Tuple)) or not 1 <= len(selector_node.elts) <= 16:
+                self._reject(selector_node, "SPELL918", "Send group must contain 1 through 16 items")
+            selector_value = [
+                self._v11_command_reference(item, "Send group item")
+                for item in selector_node.elts
+            ]
+        else:
+            selector_value = self._v11_command_reference(
+                selector_node, f"Send {selector_name}"
+            )
+        arguments = (
+            self._v11_literal_data(values["args"], "Send args")
+            if "args" in values
+            else {}
+        )
+        if type(arguments) not in {dict, list}:
+            self._reject(values.get("args", call), "SPELL914", "Send args must be a list or object")
+        if selector_name != "command" and arguments:
+            self._reject(values["args"], "SPELL918", "Send args are accepted only with command")
+        modifiers = self._v11_modifiers(values)
+        if "group" in modifiers and (
+            modifiers["group"] is not True or selector_name != "group"
+        ):
+            self._reject(
+                values.get("Group", values.get("group", call)),
+                "SPELL918",
+                "Group modifier must be True and is only valid with a group selector",
+            )
+        if modifiers.get("block") is True and selector_name != "group":
+            self._reject(
+                values.get("Block", call),
+                "SPELL918",
+                "Block=True is only valid with a group selector",
+            )
+        if (
+            selector_name == "command"
+            and type(selector_value) is dict
+            and selector_value.get("expr") == "telecommand_item"
+            and "args" in values
+        ):
+            self._reject(
+                values["args"],
+                "SPELL918",
+                "Send args cannot accompany a prebuilt telecommand item",
+            )
+        self.uses_v11 = True
+        self.uses_v06 = True
+        self._append(
+            node,
+            "send_tc",
+            guard=guard,
+            selector={"kind": selector_name, "value": selector_value},
+            arguments=arguments,
+            modifiers=modifiers,
+        )
+
+    def _compile_v10_step(
+        self,
+        node: ast.Expr,
+        call: ast.Call,
+        guard: dict[str, Any] | None,
+    ) -> None:
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        positional = ("example",)
+        allowed = {"example", "target"}
+        if len(call.args) > len(positional):
+            self._reject(call, "SPELL408", "too many positional arguments for ReferenceExample")
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        if set(values) - allowed:
+            self._reject(call, "SPELL409", "unsupported keyword for ReferenceExample")
+        for key, value in zip(positional, call.args):
+            if key in values:
+                self._reject(call, "SPELL410", f"duplicate argument {key}")
+            values[key] = value
+        missing = allowed - set(values)
+        if missing:
+            self._reject(
+                call,
+                "SPELL411",
+                f"missing ReferenceExample argument {sorted(missing)[0]}",
+            )
+        example = self._typed_argument(
+            values["example"], {"int"}, "ReferenceExample number"
+        )
+        if type(example) is int and not 1 <= example <= 195:
+            self._reject(
+                values["example"],
+                "SPELL902",
+                "ReferenceExample number must be 1 through 195",
+            )
+        target = self._v07_target(values["target"], "str", "ReferenceExample")
+        self.uses_v10 = True
+        self.uses_v06 = True
+        self._append(
+            node,
+            "reference_example",
+            guard=guard,
+            example=example,
+            target=target,
+            target_type="str",
+        )
 
     def _compile_v07_step(
         self,
@@ -1682,6 +2358,12 @@ class _Compiler:
             return {"expr": "literal", "value": node.value}, type(node.value).__name__
         if isinstance(node, ast.Name):
             self._validate_variable_name(node, node.id)
+            if node.id in self.telecommand_variables:
+                self._reject(
+                    node,
+                    "SPELL913",
+                    "telecommand item can only be used as a BuildTC or Send selector",
+                )
             if node.id in self.opaque_declared_variables:
                 self._reject(
                     node,
@@ -1857,6 +2539,7 @@ class _Compiler:
         if name.startswith("__") or name in self._step_calls or name in {
             "ARGS",
             "IVARS",
+            "BuildTC",
             "Call",
             "range",
         }:

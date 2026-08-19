@@ -95,6 +95,7 @@ from .procedure_parser import (
     Procedure,
     ProcedureCatalog,
     ProcedureValidationError,
+    language_profile_for_ir,
 )
 from .schemas import (
     CommandCreate,
@@ -795,7 +796,7 @@ def create_app(
                 item = procedure.summary()
                 item.update(
                     {
-                        "version": IR_VERSION,
+                        "version": procedure.ir_version,
                         "entrypoint": procedure.path.name,
                         "source": procedure.source,
                         "steps": list(procedure.steps),
@@ -836,7 +837,7 @@ def create_app(
         }
         return {
             "valid": True,
-            "subset_version": subset_version,
+            "subset_version": language_profile_for_ir(procedure.ir_version),
             "sha256": procedure.sha256,
             "steps": list(procedure.steps),
             "variables": variables,
