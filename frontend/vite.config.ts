@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { resolve } from "node:path";
 
 const apiProxy = {
   "/api": {
@@ -11,6 +12,14 @@ const apiProxy = {
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: {
+        console: resolve(process.cwd(), "index.html"),
+        development: resolve(process.cwd(), "development.html"),
+      },
+    },
+  },
   server: {
     host: "127.0.0.1",
     port: 5173,

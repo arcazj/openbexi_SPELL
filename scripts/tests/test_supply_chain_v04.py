@@ -137,6 +137,12 @@ def test_current_v04_inputs_are_version_hash_and_image_locked() -> None:
     assert result.grpc_version == "1.82.1"
     assert result.tls_version == "50.0.0"
 
+    compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    assert compose.count(supply_chain_v04.LOCAL_COMPOSE_BUILD_IMAGE) == 3
+    assert supply_chain_v04.COMPOSE_IMAGE.findall(compose).count(
+        supply_chain_v04.LOCAL_COMPOSE_BUILD_IMAGE
+    ) == len(supply_chain_v04.LOCAL_COMPOSE_BUILD_SERVICES)
+
 
 @pytest.mark.parametrize(
     "mutation",

@@ -11,8 +11,9 @@ from fastapi.testclient import TestClient
 from backend.app import create_app
 from backend.auth import AuthConfig, issue_local_dev_token
 from backend.config import Settings
-from backend.database import Base, create_database
-from backend.migrations import schema_migrations
+from backend.database import create_database
+from backend.development_bundle_builder import InProcessDualBundleBuilder
+from backend.tests.migration_support import reset_test_database
 
 
 @pytest.fixture
@@ -75,9 +76,7 @@ def client(tmp_path: Path, procedures_dir: Path, auth_config: AuthConfig):
     )
     if os.getenv("SPELL_TEST_DATABASE_URL"):
         engine, _ = create_database(database_url)
-        with engine.begin() as connection:
-            schema_migrations.drop(connection, checkfirst=True)
-            Base.metadata.drop_all(connection)
+        reset_test_database(engine)
         engine.dispose()
     migration_backups = tmp_path / "migration-backups"
     migration_backups.mkdir()
@@ -90,7 +89,13 @@ def client(tmp_path: Path, procedures_dir: Path, auth_config: AuthConfig):
         websocket_keepalive_seconds=0.1,
         v0007_backup_directory=migration_backups,
     )
-    with TestClient(create_app(settings, auth_config=auth_config)) as test_client:
+    with TestClient(
+        create_app(
+            settings,
+            auth_config=auth_config,
+            development_bundle_builder=InProcessDualBundleBuilder(),
+        )
+    ) as test_client:
         yield test_client
 
 

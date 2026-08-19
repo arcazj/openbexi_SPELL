@@ -48,9 +48,19 @@ export function getAccessToken(): string | null {
   }
 }
 
+export function normalizeAccessToken(token: string): string {
+  const trimmed = token.trim();
+  const normalized = /^Bearer\s+/i.test(trimmed)
+    ? trimmed.replace(/^Bearer\s+/i, "").trim()
+    : trimmed;
+  if (normalized.split(".").length !== 3) {
+    throw new Error("Enter a signed JWT with three segments.");
+  }
+  return normalized;
+}
+
 export function setAccessToken(token: string): void {
-  const normalized = token.trim();
-  if (normalized.split(".").length !== 3) throw new Error("Enter a signed JWT with three segments.");
+  const normalized = normalizeAccessToken(token);
   window.sessionStorage.setItem(ACCESS_TOKEN_KEY, normalized);
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
@@ -60,8 +70,7 @@ export function clearAccessToken(): void {
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
-export function accessTokenExpiresAtMs(): number | null {
-  const token = getAccessToken();
+export function accessTokenExpiresAtMs(token = getAccessToken()): number | null {
   if (!token) return null;
   try {
     const payloadSegment = token.split(".")[1];
@@ -75,6 +84,27 @@ export function accessTokenExpiresAtMs(): number | null {
   } catch {
     return null;
   }
+}
+
+const MAX_BROWSER_TIMER_MS = 2_147_000_000;
+
+export function scheduleAt(deadlineMs: number, callback: () => void): () => void {
+  let timer: number | null = null;
+  let cancelled = false;
+  const arm = () => {
+    if (cancelled) return;
+    const remainingMs = deadlineMs - Date.now();
+    if (remainingMs <= 0) {
+      callback();
+      return;
+    }
+    timer = window.setTimeout(arm, Math.min(remainingMs, MAX_BROWSER_TIMER_MS));
+  };
+  arm();
+  return () => {
+    cancelled = true;
+    if (timer !== null) window.clearTimeout(timer);
+  };
 }
 
 export function accessTokenSubject(): string {
@@ -143,6 +173,30 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+export async function authenticateAccessToken(token: string): Promise<string> {
+  const normalized = normalizeAccessToken(token);
+  const response = await fetch(`${API_ROOT}/procedures`, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${normalized}`,
+    },
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as unknown;
+    const detail = typeof body === "object" && body !== null && "detail" in body
+      ? body.detail
+      : null;
+    const message = response.status === 401
+      ? "The backend rejected this signed JWT."
+      : typeof detail === "string"
+        ? detail
+        : `Authentication check failed (${response.status}).`;
+    throw new ApiError(message, response.status, body);
+  }
+  setAccessToken(normalized);
+  return normalized;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -732,7 +786,7 @@ export const api = {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.8.0"),
+      version: String(raw.version ?? "0.9.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,
@@ -1343,7 +1397,6 @@ export function telemetryWebsocketUrl(
   return `${scheme}//${window.location.host}${API_ROOT}/telemetry-events/ws?${query.toString()}`;
 }
 
-export function websocketProtocols(): string[] {
-  const token = getAccessToken();
+export function websocketProtocols(token = getAccessToken()): string[] {
   return token ? ["spell-auth", token] : ["spell-auth"];
 }

@@ -20,6 +20,7 @@ from backend.condition_engine import (
     TypedScalar,
 )
 from backend.condition_models import VerifyOperation, WaitForOperation
+from backend.development_models import DevelopmentRuntimePin
 from backend.models import Execution
 
 
@@ -218,6 +219,14 @@ def test_telemetry_schedule_create_list_get_cancel_is_controller_bound(
     assert created["arguments"] == {"mode": "telemetry-route"}
     assert created["automatic"] is True
     assert created["background_allowed"] is True
+    assert created["bundle_digest"]
+    with client.app.state.session_factory() as session:
+        assert session.scalar(
+            select(DevelopmentRuntimePin).where(
+                DevelopmentRuntimePin.runtime_kind == "SCHEDULE",
+                DevelopmentRuntimePin.runtime_id == created["schedule_id"],
+            )
+        ) is None
 
     replay = client.post(
         "/api/v1/telemetry-schedules",

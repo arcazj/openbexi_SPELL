@@ -4,19 +4,19 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.8.0 baseline and v0.9 Gate 0A authorization |
-| Update type | Accepted-release status, strict v0.8 bindings, and bounded v0.9 development-environment planning authorization |
+| Document revision | Accepted v0.8.0 baseline and v0.9 candidate source freeze |
+| Update type | Accepted-release status, strict v0.8 bindings, and bounded v0.9 source-freeze status |
 | Updated | 2026-08-18 |
-| Current accepted product baseline | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Accepted product baseline at v0.9 source freeze | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.6 status | Accepted at annotated tag `v0.6.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 1,626 concrete tests, 1,620 passes, six exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.7 status | Accepted at annotated tag `v0.7.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
-| v0.9 status | `V09-GATE-0A PASS`; `V09-DEV-001` through `V09-DEV-009` and 45 planned proof identities authorized; no implementation, candidate, qualification, or release claim |
+| v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | Accepted v0.8 fixes the bounded local data model and Data Service surface; v0.9 Gate 0A itself changes no product behavior or dependency |
+| Runtime, API, schema, frontend, dependency, or driver change | At source freeze, accepted v0.8 remained the product baseline; bounded v0.9 development API, migration, and separate frontend changes were not yet a qualified candidate or accepted release |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -43,9 +43,13 @@ commit. This acceptance remains limited to `V08-DATA-001` through
 `start and complete asap V0.9` and the subsequent
 [`V09-GATE-0A`](SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
 local synthetic non-CUI development-environment work packages and 45 planned
-proof identities. Gate 0A claims zero implemented constructs or runtime
-artifacts; implementation, qualification, Gate 0B, packaging, release, and tag
-validation remain pending.
+proof identities. At the authorization event, Gate 0A claimed zero implemented
+constructs or runtime artifacts. At candidate source freeze, the bounded
+implementation, version-scoped tooling, and exact product inventory were frozen
+together. At that boundary, canonical candidate qualification had not yet run;
+Gate 0B, Final qualification, packaging, release, and tag validation were
+pending. Later acceptance is authoritative only through the strictly validated
+annotated tag and committed evidence.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -224,11 +228,14 @@ v0.2, v0.3, v0.4, v0.5, v0.6, v0.7, and v0.8 are accepted product releases. v0.1
 baseline that was later approved only for the bounded v0.2 entry scope. v0.3.1
 is the prepared documentation set described above. Every later version number
 is a planning label until its applicable gate is approved. Annotated tag
-`v0.8.0` fixes the current accepted baseline. Final qualification, four SBOMs,
+At the v0.9 source-freeze boundary, `v0.8.0` fixed the accepted baseline. Final qualification, four SBOMs,
 supply-chain validation, deterministic packaging, release-evidence validation,
 and strict annotated-tag validation passed. v0.9 has passed its bounded Gate
-0A for nine exact work packages and 45 planned proof identities. It has no
-implementation, candidate, qualification, Gate 0B, or release claim.
+0A for nine exact work packages and 45 planned proof identities. Its authorized
+implementation, tooling, and exact product inventory were frozen together in
+candidate source. At that boundary, canonical candidate qualification had not
+yet run; Gate 0B, Final, package, release commit, and tag were pending. Later
+acceptance is authoritative only through the strictly validated annotated tag.
 
 | Version | Theme | Type | Status | Intended outcome | Required entry gate |
 | --- | --- | --- | --- | --- | --- |
@@ -242,7 +249,7 @@ implementation, candidate, qualification, Gate 0B, or release claim.
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Accepted at annotated tag `v0.7.0`; no accepted exceptions | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`, and annotated tag `v0.7.0` passed. |
 | v0.8 | Data and Local Service Compatibility | Product | Accepted at annotated tag `v0.8.0`; no accepted exceptions | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`, and annotated tag `v0.8.0` passed. |
-| v0.9 | SPELL Development Environment | Product | `V09-GATE-0A PASS`; nine work packages and 45 planned proof identities authorized; implementation pending | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Accepted v0.8.0 baseline plus hash-bound project, language-service, authoring, bundle, promotion, migration, security, and offline acceptance contracts. |
+| v0.9 | SPELL Development Environment | Product | Candidate source and exact product inventory frozen; canonical qualification was pending at freeze; later acceptance only by validated annotated tag | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Accepted v0.8.0 baseline plus hash-bound project, language-service, authoring, bundle, promotion, migration, security, and offline acceptance contracts. |
 | v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
 | v0.11 | Simulator Telecommand Semantics | Product | Candidate | Implement `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, time/load intent, per-element stages, certainty, and reconciliation. | Accepted simulator services, explicit no-resend/confirmation model, command corpus, and exhaustive fault tests. |
 | v0.12 | Read-Only Legacy Observation | Product | Candidate | Compare an isolated legacy test environment to the proven typed simulator APIs with structurally zero command authority. | Accepted read-only simulator contracts, version-specific evidence, golden traces, and a read-only enforcement plan. |
@@ -788,9 +795,12 @@ Current disposition: [`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md)
 authorizes exactly `V09-DEV-001` through `V09-DEV-009` and their 45 planned
 proof identities under scope profile
 `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. The gate claims zero
-implemented constructs and zero runtime artifacts. Implementation, candidate
-qualification, Gate 0B, Final evidence, packaging, release, and acceptance are
-pending.
+implemented constructs and zero runtime artifacts at its authorization-time
+boundary. At candidate source freeze, the bounded implementation, canonical
+v0.9 qualification/release tooling, and exact product inventory were frozen
+together. At that boundary, canonical candidate qualification had not yet run;
+Gate 0B, Final evidence, packaging, release, and acceptance were pending. Later
+acceptance is authoritative only through the strictly validated annotated tag.
 
 Required properties:
 

@@ -20,10 +20,10 @@ operator control take priority over convenience or visual novelty. The project
 must reduce operational risk; a local simulator result must never be presented
 as operational qualification.
 
-## Current Baseline And Candidate
+## Source-Freeze Baseline And Candidate
 
-SPELL v0.8.0 is the accepted local synthetic non-CUI simulator engineering
-baseline. Annotated tag object
+At the v0.9 candidate source-freeze boundary, SPELL v0.8.0 was the accepted
+local synthetic non-CUI simulator engineering baseline. Annotated tag object
 `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` peels to release commit
 `d6e01222de3bf52013279e48a099b6ae7ded121d`. The cumulative accepted product is
 built from new first-party code and provides:
@@ -48,8 +48,10 @@ built from new first-party code and provides:
   ordered WebSocket events.
 - React and strict TypeScript real-time 2D operator console. Java, Eclipse,
   SWT, and Three.js are not runtime dependencies.
-- Signed short-lived JWT identity, server-enforced viewer/operator/admin roles,
-  loopback reverse-proxy ingress, and an internal backend/database network.
+- Signed JWT identity, server-enforced viewer/operator/admin roles, loopback
+  reverse-proxy ingress, and an internal backend/database network. Default and
+  qualification credentials are short-lived; the narrowly bounded local
+  session exception below remains finite and loopback-only.
 - Hash-locked Python dependencies, npm integrity locking, reproducible source
   packages, version-scoped backend/driver/frontend/proxy CycloneDX SBOMs, and
   dependency audit gates.
@@ -57,11 +59,18 @@ built from new first-party code and provides:
 The owner request `start and complete asap V0.9` is recorded on 2026-08-18.
 `V09-GATE-0A PASS` authorizes exactly `V09-DEV-001` through `V09-DEV-009` and
 their 45 planned proof identities under
-`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. This is planning and
-implementation-entry authorization only. It claims zero implemented product
-constructs, runtime artifacts, candidate evidence, qualification results,
-release, deployment, compliance, cryptographic signatures, or operational
-authority. No current release provides a legacy or live Ground
+`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. Final Gate 0A commit
+`92f3b4b82908d44e28b9506749e498386a428c27` has sole parent accepted v0.8.0
+release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`. At its authorization-time
+boundary, Gate 0A claims zero implemented product constructs or runtime
+artifacts. At v0.9 candidate source freeze, the bounded implementation,
+version-scoped qualification/release tooling, and exact product inventory were
+frozen together for one candidate commit. Canonical candidate qualification
+had not yet run at that boundary, and Gate 0B, Final qualification, packaging,
+the release commit, and the annotated tag were pending. Later v0.9 acceptance
+is authoritative only through its strictly validated annotated tag;
+the source-freeze record itself claims no release, deployment, compliance,
+cryptographic-signature, or operational authority. No accepted release provides a legacy or live Ground
 Control System client, spacecraft or mission-network connection, externally
 effective command, production identity, high availability, deployment
 approval, compliance determination, mission authority, or operational
@@ -160,8 +169,17 @@ version series.
   and close an expired session with code `4401`. The frontend must close its
   socket and erase session credentials on logout, and a `4401` close must erase
   the stored token and return the operator to session access.
-- Development token issuance must be disabled by default, explicitly enabled,
-  loopback-only, short-lived, and unavailable through a general HTTP endpoint.
+- Development token issuance must be disabled by default and in every running
+  service, explicitly invoked through a one-shot transient issuer, loopback-only,
+  and unavailable through a general HTTP endpoint. Default and qualification
+  tokens must be short-lived.
+- The sole owner-requested local-session exception may issue one effectively
+  long-lived token into an ignored local file under `var/` only. Issuer
+  configuration and the signing secret stay in the ignored local `.env`; the
+  token must remain loopback-only, carry a finite `exp` (never be expiry-free),
+  and be created by the one-shot transient issuer while service-side issuance
+  stays disabled. Never print, log, commit, package, or retain its token or
+  signing-secret bytes in evidence; secret rotation invalidates it.
 - Do not embed tokens or signing secrets in frontend builds, source, examples,
   logs, reports, packages, screenshots, or commits.
 - Expose only the loopback reverse proxy in the local Compose profile. The
@@ -226,16 +244,22 @@ version series.
   requires the distinct exact confirmation `LOCAL_SYNTHETIC_NON_CUI_ONLY`.
   The Gate 0A validator is
   `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0a.py`.
-  Before candidate work, implement and bind version-scoped canonical producers
-  and validators named `scripts/qualify_candidate_v09.ps1`,
+  The prepared version-scoped canonical producers and validators are
+  `scripts/qualify_candidate_v09.ps1`,
   `scripts/validate_candidate_evidence_v09.py`,
   `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v09_gate_0b.py`,
   `scripts/qualify_release_v09.ps1`, `scripts/generate_sbom_v09.ps1`,
   `scripts/audit_supply_chain_v09.ps1`,
   `scripts/create_release_qualification_v09.py`,
   `scripts/package_release_v09.ps1`, and
-  `scripts/validate_release_evidence_v09.py`. These reserved names describe
-  the required flow; their mention is not an implementation or evidence claim.
+  `scripts/validate_release_evidence_v09.py`. At candidate source freeze, set
+  `PRODUCT_INVENTORY_FROZEN = True` only after the complete product test
+  inventory, selectors, allowed skips, suite totals, inventory hashes, and
+  mapped identities have been collected from stable tests and independently
+  reviewed together. The v0.9 candidate source meets that precondition. Any
+  subsequent product-test, selector, skip, total, hash, or proof-map change
+  invalidates the freeze and requires a fresh joint collection before another
+  candidate; both candidate and Final runners must fail closed otherwise.
   Inspect source, package bytes, and all four images for secrets, excluded
   manuals or archives, generated journals, and runtime generator tooling.
 - Preserve unrelated user changes. Do not rewrite or discard them to obtain a
@@ -293,11 +317,14 @@ Scale verification with risk, but every product release must include:
   idempotency, concurrency, late-message, and audit-integrity tests.
 - Frontend unit tests, strict TypeScript production build, desktop/mobile real
   browser workflows, keyboard control, responsive containment, and Axe checks.
-- Documentation integrity for every changed tracked Markdown file: strict UTF-8,
+- Documentation integrity for every tracked Markdown file: strict UTF-8,
   balanced fences and controlled HTML markers, valid GFM table delimiters with
-  unambiguous block separation, resolvable repository-local links, and a real
-  preview-engine check for representative table- and link-heavy documents.
-  Never autoformat validator-owned marker blocks after they are bound.
+  unambiguous block separation, resolvable repository-local paths and heading
+  fragments, and rendering through the hash-locked real CommonMark plus GFM
+  preview engine. Validate same-document anchors, URL decoding, duplicate
+  heading suffixes, explicit HTML IDs, and safe parent paths that remain inside
+  the repository. Never autoformat validator-owned marker blocks after they are
+  bound.
 - Canonical replay, latency, throughput, concurrency, and sustained soak tests
   against version-specific budgets. These are engineering gates, not
   operational SLOs.

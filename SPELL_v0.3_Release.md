@@ -85,7 +85,8 @@ local engineering measurements, not operational SLOs.
 - Typed-language validation console screenshot (not retained as a versioned artifact)
 - [Desktop as-run report](artifacts/v0.2/desktop-as-run-report.png)
 - [Mobile recovered prompt](artifacts/v0.2/mobile-recovered-prompt.png)
-- [Session access gate](artifacts/v0.3/session-access.png)
+- Session access gate capture: `artifacts/v0.3/session-access.png` (local external
+  evidence that was never versioned and is excluded from source packages)
 - [Backend image SBOM](artifacts/sbom/backend.cdx.json)
 - [Proxy runtime image SBOM](artifacts/sbom/proxy.cdx.json)
 - [Frontend builder image SBOM](artifacts/sbom/frontend.cdx.json)

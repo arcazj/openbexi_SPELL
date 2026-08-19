@@ -70,9 +70,21 @@ function emptyStore() {
   return configureStore({ reducer: { console: consoleSlice.reducer } });
 }
 
-function Harness({ authenticated }: { authenticated: boolean }) {
-  useExecutionStream(authenticated);
+function Harness({ accessToken }: { accessToken: string | null }) {
+  useExecutionStream(accessToken);
   return null;
+}
+
+function currentToken(): string | null {
+  return window.sessionStorage.getItem("openbexi.spell.access-token");
+}
+
+function expiringToken(expiresAt: Date): string {
+  const payload = btoa(JSON.stringify({ exp: expiresAt.getTime() / 1000 }))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return `header.${payload}.signature`;
 }
 
 function activeSocket(): FakeWebSocket {
@@ -100,14 +112,14 @@ describe("execution stream authentication lifecycle", () => {
     const store = testStore();
     const view = render(
       <Provider store={store}>
-        <Harness authenticated />
+        <Harness accessToken={currentToken()} />
       </Provider>,
     );
     const socket = activeSocket();
 
     view.rerender(
       <Provider store={store}>
-        <Harness authenticated={false} />
+        <Harness accessToken={null} />
       </Provider>,
     );
 
@@ -118,7 +130,7 @@ describe("execution stream authentication lifecycle", () => {
     const store = testStore();
     render(
       <Provider store={store}>
-        <Harness authenticated />
+        <Harness accessToken={currentToken()} />
       </Provider>,
     );
     const socket = activeSocket();
@@ -144,7 +156,7 @@ describe("execution stream authentication lifecycle", () => {
     const store = testStore();
     render(
       <Provider store={store}>
-        <Harness authenticated />
+        <Harness accessToken={currentToken()} />
       </Provider>,
     );
     const socket = activeSocket();
@@ -172,7 +184,7 @@ describe("execution stream authentication lifecycle", () => {
     );
     render(
       <Provider store={emptyStore()}>
-        <Harness authenticated />
+        <Harness accessToken={currentToken()} />
       </Provider>,
     );
 
@@ -180,6 +192,45 @@ describe("execution stream authentication lifecycle", () => {
 
     expect(window.sessionStorage.getItem("openbexi.spell.access-token")).toBeNull();
     expect(FakeWebSocket.instances).toHaveLength(0);
+  });
+
+  it("does not let a replaced token's old deadline clear a later token", () => {
+    const now = new Date("2026-07-14T00:00:00Z");
+    vi.setSystemTime(now);
+    const oldToken = expiringToken(new Date(now.getTime() + 5_000));
+    const laterToken = expiringToken(new Date(now.getTime() + 10_000));
+    window.sessionStorage.setItem("openbexi.spell.access-token", oldToken);
+    const store = testStore();
+    const view = render(<Provider store={store}><Harness accessToken={oldToken} /></Provider>);
+    const oldSocket = activeSocket();
+
+    window.sessionStorage.setItem("openbexi.spell.access-token", laterToken);
+    view.rerender(<Provider store={store}><Harness accessToken={laterToken} /></Provider>);
+
+    expect(oldSocket.close).toHaveBeenCalledOnce();
+    expect(FakeWebSocket.instances[1]?.protocols).toEqual(["spell-auth", laterToken]);
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(currentToken()).toBe(laterToken);
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(currentToken()).toBeNull();
+  });
+
+  it("replaces a later deadline with an earlier token deadline", () => {
+    const now = new Date("2026-07-14T00:00:00Z");
+    vi.setSystemTime(now);
+    const oldToken = expiringToken(new Date(now.getTime() + 10_000));
+    const earlierToken = expiringToken(new Date(now.getTime() + 3_000));
+    window.sessionStorage.setItem("openbexi.spell.access-token", oldToken);
+    const store = emptyStore();
+    const view = render(<Provider store={store}><Harness accessToken={oldToken} /></Provider>);
+
+    window.sessionStorage.setItem("openbexi.spell.access-token", earlierToken);
+    view.rerender(<Provider store={store}><Harness accessToken={earlierToken} /></Provider>);
+
+    act(() => vi.advanceTimersByTime(2_999));
+    expect(currentToken()).toBe(earlierToken);
+    act(() => vi.advanceTimersByTime(1));
+    expect(currentToken()).toBeNull();
   });
 });
 

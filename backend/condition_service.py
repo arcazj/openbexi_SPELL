@@ -310,12 +310,14 @@ class ConditionService:
         *,
         snapshot_provider: SnapshotProvider,
         execution_starter: ExecutionStarter | None = None,
+        development_runtime_pin: Callable[..., dict[str, Any] | None] | None = None,
         monotonic_ns: Callable[[], int] = time.monotonic_ns,
         monotonic_epoch_provider: Callable[[], str] = _default_monotonic_epoch,
     ) -> None:
         self.session_factory = session_factory
         self.snapshot_provider = snapshot_provider
         self.execution_starter = execution_starter
+        self.development_runtime_pin = development_runtime_pin
         self._monotonic_ns = monotonic_ns
         self._monotonic_epoch_provider = monotonic_epoch_provider
         self._lock = threading.RLock()
@@ -1568,6 +1570,7 @@ class ConditionService:
         retry_interval_seconds: str | int | float | Decimal,
         controller_execution_id: str,
         procedure_catalog_id: str,
+        procedure_id: str | None = None,
         procedure_revision: int,
         bundle_digest: str,
         context_id: str,
@@ -1577,6 +1580,7 @@ class ConditionService:
         visible: bool,
         created_by: str,
         idempotency_key: str,
+        development_bundle_digest: str | None = None,
     ) -> dict[str, Any]:
         policy = self._validate_policy(policy)
         if type(start_snapshot_cursor) is not int or start_snapshot_cursor < 0:
@@ -1591,6 +1595,23 @@ class ConditionService:
             controller_execution_id, "controller_execution_id"
         )
         procedure_catalog_id = _identifier(procedure_catalog_id, "procedure_catalog_id")
+        if procedure_id is not None and (
+            not isinstance(procedure_id, str)
+            or not procedure_id
+            or len(procedure_id.encode("utf-8")) > 200
+            or any(ord(character) < 0x20 for character in procedure_id)
+        ):
+            raise ConditionServiceValidationError(
+                "procedure_id must be bounded text"
+            )
+        if development_bundle_digest is not None:
+            development_bundle_digest = _digest(
+                development_bundle_digest, "development_bundle_digest"
+            )
+        if development_bundle_digest is not None and procedure_id is None:
+            raise ConditionServiceValidationError(
+                "procedure_id is required for development runtime admission"
+            )
         context_id = _identifier(context_id, "context_id")
         created_by = _identifier(created_by, "created_by")
         idempotency_key = _idempotency_key(idempotency_key)
@@ -1618,8 +1639,10 @@ class ConditionService:
             "retry_interval_ns": retry_interval_ns,
             "controller_execution_id": controller_execution_id,
             "procedure_catalog_id": procedure_catalog_id,
+            "procedure_id": procedure_id,
             "procedure_revision": procedure_revision,
             "bundle_digest": bundle_digest,
+            "development_bundle_digest": development_bundle_digest,
             "context_id": context_id,
             "arguments_digest": arguments_digest,
             "automatic": automatic,
@@ -1643,6 +1666,29 @@ class ConditionService:
                     raise ConditionServiceConflictError(
                         "idempotency key was used for another telemetry schedule"
                     )
+                if (
+                    self.development_runtime_pin is not None
+                    and development_bundle_digest is not None
+                ):
+                    try:
+                        pinned = self.development_runtime_pin(
+                            session,
+                            runtime_kind="SCHEDULE",
+                            runtime_id=existing.id,
+                            procedure_id=procedure_id,
+                            bundle_digest=development_bundle_digest,
+                            inherited_runtime_kind=None,
+                            inherited_runtime_id=None,
+                        )
+                    except Exception as exc:
+                        raise ConditionServiceConflictError(
+                            "development runtime admission failed"
+                        ) from exc
+                    if pinned is None:
+                        raise ConditionServiceConflictError(
+                            "development procedure is not currently promoted"
+                        )
+                    session.commit()
                 return self._schedule_dict(existing)
             clock = self._clock_reading(session)
             now = clock.database_time
@@ -1681,6 +1727,28 @@ class ConditionService:
                 updated_at=now,
             )
             session.add(row)
+            if (
+                self.development_runtime_pin is not None
+                and development_bundle_digest is not None
+            ):
+                try:
+                    pinned = self.development_runtime_pin(
+                        session,
+                        runtime_kind="SCHEDULE",
+                        runtime_id=schedule_id,
+                        procedure_id=procedure_id,
+                        bundle_digest=development_bundle_digest,
+                        inherited_runtime_kind=None,
+                        inherited_runtime_id=None,
+                    )
+                except Exception as exc:
+                    raise ConditionServiceConflictError(
+                        "development runtime admission failed"
+                    ) from exc
+                if pinned is None:
+                    raise ConditionServiceConflictError(
+                        "development procedure is not currently promoted"
+                    )
             session.commit()
             return self._schedule_dict(row)
 

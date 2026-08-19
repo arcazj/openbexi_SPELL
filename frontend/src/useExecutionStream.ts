@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import {
   accessTokenExpiresAtMs,
   clearAccessToken,
+  scheduleAt,
   websocketProtocols,
   websocketUrl,
 } from "./api";
@@ -24,8 +25,9 @@ export function eventRequiresProjectionResync(eventType: string): boolean {
     || eventType === "operator.control_loss_requested";
 }
 
-export function useExecutionStream(authenticated: boolean): void {
+export function useExecutionStream(accessToken: string | null): void {
   const dispatch = useAppDispatch();
+  const authenticated = Boolean(accessToken);
   const executionId = useAppSelector((state) => state.console.execution?.id ?? null);
   const lastSequence = useAppSelector(
     (state) => state.console.execution?.last_sequence ?? 0,
@@ -44,7 +46,7 @@ export function useExecutionStream(authenticated: boolean): void {
       return;
     }
     authenticationInvalidatedRef.current = false;
-    const expiresAtMs = accessTokenExpiresAtMs();
+    const expiresAtMs = accessTokenExpiresAtMs(accessToken);
     if (expiresAtMs === null) return;
     const expireSession = () => {
       authenticationInvalidatedRef.current = true;
@@ -59,9 +61,8 @@ export function useExecutionStream(authenticated: boolean): void {
       expireSession();
       return;
     }
-    const expiryTimer = window.setTimeout(expireSession, remainingMs);
-    return () => window.clearTimeout(expiryTimer);
-  }, [authenticated, dispatch]);
+    return scheduleAt(expiresAtMs, expireSession);
+  }, [accessToken, authenticated, dispatch]);
 
   useEffect(() => {
     if (!authenticated || !executionId) return;
@@ -164,7 +165,7 @@ export function useExecutionStream(authenticated: boolean): void {
       if (cancelled || authenticationInvalidatedRef.current) return;
       const candidate = new WebSocket(
         websocketUrl(activeExecutionId, sequenceRef.current),
-        websocketProtocols(),
+        websocketProtocols(accessToken),
       );
       socket = candidate;
       socketRef.current = candidate;
@@ -229,5 +230,5 @@ export function useExecutionStream(authenticated: boolean): void {
       socket?.close();
       if (socketRef.current === socket) socketRef.current = null;
     };
-  }, [authenticated, dispatch, executionId]);
+  }, [accessToken, authenticated, dispatch, executionId]);
 }

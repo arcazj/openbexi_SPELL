@@ -32,7 +32,7 @@ from backend.migrations.versions import (
     v0006_observation_conditions,
     v0007_data_local_service,
 )
-from backend.tests.migration_support import run_migrations
+from backend.tests.migration_support import reset_test_database, run_migrations
 
 
 DRIVER_TABLES = tuple(
@@ -72,25 +72,7 @@ def crash_after_first_v0007_sqlite_ddl(
 
 
 def reset_migration_database(engine) -> None:
-    with engine.begin() as connection:
-        for table in reversed(DATA_TABLES):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
-        for table in reversed(CONDITION_TABLES):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
-        for table in reversed(OBSERVATION_TABLES):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
-        for table in reversed(OPERATOR_TABLES):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
-        for table in reversed(DRIVER_TABLES):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
-        for table in (
-            "schema_migrations",
-            "prompts",
-            "commands",
-            "events",
-            "executions",
-        ):
-            connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table} CASCADE")
+    reset_test_database(engine)
 
 
 def assert_driver_schema_contract(engine) -> None:
@@ -525,11 +507,16 @@ def canonical_v03_snapshot(engine) -> dict[str, list[dict[str, object]]]:
 
 
 def migrate_to_v0007_predecessor(engine, monkeypatch) -> None:
+    v0007_index = next(
+        index
+        for index, migration in enumerate(migration_runner.MIGRATIONS)
+        if migration.VERSION == v0007_data_local_service.VERSION
+    )
     with monkeypatch.context() as migration_scope:
         migration_scope.setattr(
             migration_runner,
             "MIGRATIONS",
-            migration_runner.MIGRATIONS[:-1],
+            migration_runner.MIGRATIONS[:v0007_index],
         )
         assert migration_runner.run_migrations(engine) == tuple(
             migration.VERSION for migration in migration_runner.MIGRATIONS
@@ -552,9 +539,10 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
         "0005_observation_projection",
         "0006_observation_conditions",
         "0007_data_local_service",
+        "0008_development_environment",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0007_data_local_service"
+    assert database_version(engine) == "0008_development_environment"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -579,9 +567,10 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0005_observation_projection",
         "0006_observation_conditions",
         "0007_data_local_service",
+        "0008_development_environment",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0007_data_local_service"
+    assert database_version(engine) == "0008_development_environment"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -646,7 +635,7 @@ def test_v0007_preflight_requires_safe_backup_directory_before_ddl(
     assert migration_runner.run_migrations(
         engine,
         v0007_backup_directory=backup_directory,
-    ) == ("0007_data_local_service",)
+    ) == ("0007_data_local_service", "0008_development_environment")
     assert list(backup_directory.iterdir()) == []
 
 
@@ -723,7 +712,7 @@ def test_v0007_sqlite_hard_exit_rolls_back_first_ddl(
         assert migration_runner.run_migrations(
             reopened,
             v0007_backup_directory=backup_directory,
-        ) == ("0007_data_local_service",)
+        ) == ("0007_data_local_service", "0008_development_environment")
     finally:
         reopened.dispose()
 
@@ -820,6 +809,36 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
     engine = postgresql_migration_engine()
     reset_migration_database(engine)
 
+    with engine.begin() as connection:
+        connection.exec_driver_sql("CREATE TABLE reset_guard_sentinel (id INTEGER)")
+    configured_url = engine.url
+    engine.url = configured_url.set(database="spell_test")
+    try:
+        with pytest.raises(
+            RuntimeError,
+            match="PostgreSQL test reset requires the exact dedicated test database",
+        ):
+            reset_migration_database(engine)
+    finally:
+        engine.url = configured_url
+    assert "reset_guard_sentinel" in inspect(engine).get_table_names(schema="public")
+
+    blocker = engine.connect()
+    blocker_transaction = blocker.begin()
+    blocker.exec_driver_sql("LOCK TABLE reset_guard_sentinel IN ACCESS SHARE MODE")
+    blocker_pid = blocker.scalar(text("SELECT pg_backend_pid()"))
+    assert blocker_transaction.is_active
+    try:
+        reset_migration_database(engine)
+    finally:
+        blocker.invalidate()
+        blocker.close()
+    with engine.connect() as connection:
+        assert connection.scalar(
+            text("SELECT COUNT(*) FROM pg_stat_activity WHERE pid = :pid"),
+            {"pid": blocker_pid},
+        ) == 0
+
     assert run_migrations(engine) == (
         "0001_initial",
         "0002_execution_variables",
@@ -828,12 +847,27 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0005_observation_projection",
         "0006_observation_conditions",
         "0007_data_local_service",
+        "0008_development_environment",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0007_data_local_service"
+    assert database_version(engine) == "0008_development_environment"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
+
+    reset_migration_database(engine)
+    assert inspect(engine).get_table_names(schema="public") == []
+    assert run_migrations(engine) == (
+        "0001_initial",
+        "0002_execution_variables",
+        "0003_driver_foundation",
+        "0004_operator_workspace",
+        "0005_observation_projection",
+        "0006_observation_conditions",
+        "0007_data_local_service",
+        "0008_development_environment",
+    )
+    assert database_version(engine) == "0008_development_environment"
 
 
 @pytest.mark.skipif(

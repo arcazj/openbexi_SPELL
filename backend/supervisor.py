@@ -218,6 +218,7 @@ class Supervisor:
             | None
         ) = None,
         data_repository: Any | None = None,
+        development_runtime_pin: Callable[..., dict[str, Any] | None] | None = None,
     ):
         self.session_factory = session_factory
         self.catalog = catalog
@@ -246,6 +247,7 @@ class Supervisor:
         self.observation_anchor_provider = observation_anchor_provider
         self.data_runtime = data_runtime
         self.data_repository = data_repository
+        self.development_runtime_pin = development_runtime_pin
         if operator_service is not None:
             if operator_service.prompt_settlement_sink is None:
                 operator_service.prompt_settlement_sink = self.dispatch_prompt_settlement
@@ -260,6 +262,33 @@ class Supervisor:
         if operator_service.prompt_settlement_sink is None:
             operator_service.prompt_settlement_sink = self.dispatch_prompt_settlement
         self._start_operator_bridge()
+
+    def _pin_development_execution(
+        self,
+        session: Session,
+        *,
+        execution_id: str,
+        procedure: Procedure,
+        inherited_runtime_kind: str | None,
+        inherited_runtime_id: str | None,
+    ) -> None:
+        callback = self.development_runtime_pin
+        if callback is None or procedure.bundle_digest is None:
+            raise ConflictError("development runtime admission is unavailable")
+        try:
+            result = callback(
+                session,
+                runtime_kind="EXECUTION",
+                runtime_id=execution_id,
+                procedure_id=procedure.id,
+                bundle_digest=procedure.bundle_digest,
+                inherited_runtime_kind=inherited_runtime_kind,
+                inherited_runtime_id=inherited_runtime_id,
+            )
+        except Exception as exc:
+            raise ConflictError("development runtime admission failed") from exc
+        if result is None:
+            raise ConflictError("development procedure is not currently promoted")
 
     @staticmethod
     def _v08_admission_binding(
@@ -386,6 +415,8 @@ class Supervisor:
         depth: int = 0,
         ownership_mode: str = "CONTROL_LOST",
         operator_settings: dict[str, Any] | None = None,
+        runtime_pin_parent_kind: str | None = None,
+        runtime_pin_parent_id: str | None = None,
     ) -> Execution:
         if role not in {"operator", "admin"}:
             raise AuthorizationError("operator role required")
@@ -410,6 +441,10 @@ class Supervisor:
             or not predecessor_execution_id
         ):
             raise ConflictError("predecessor execution identity is invalid")
+        if (runtime_pin_parent_kind is None) != (runtime_pin_parent_id is None):
+            raise ConflictError("runtime pin predecessor is incomplete")
+        if runtime_pin_parent_kind not in {None, "SCHEDULE", "STARTPROC"}:
+            raise ConflictError("runtime pin predecessor kind is invalid")
         operator_settings = operator_settings or {}
         if not isinstance(operator_settings, dict):
             raise ConflictError("operator settings must be a finite JSON object")
@@ -457,6 +492,7 @@ class Supervisor:
             or depth != 0
             or ownership_mode != "CONTROL_LOST"
             or operator_settings
+            or runtime_pin_parent_kind is not None
         ):
             creation_request_hash = canonical_hash(
                 {
@@ -473,6 +509,8 @@ class Supervisor:
                     "depth": depth,
                     "ownership_mode": ownership_mode,
                     "operator_settings": operator_settings,
+                    "runtime_pin_parent_kind": runtime_pin_parent_kind,
+                    "runtime_pin_parent_id": runtime_pin_parent_id,
                 }
             )
         published: list[dict[str, Any]] = []
@@ -495,6 +533,14 @@ class Supervisor:
                 stored_hash = created_event.payload.get("request_hash") if created_event else None
                 if stored_hash != creation_request_hash:
                     raise ConflictError("creation idempotency key was used for another request")
+                if procedure.bundle_digest is not None:
+                    self._pin_development_execution(
+                        session,
+                        execution_id=existing.id,
+                        procedure=procedure,
+                        inherited_runtime_kind=runtime_pin_parent_kind,
+                        inherited_runtime_id=runtime_pin_parent_id,
+                    )
                 if existing.ir_version == V08_IR_VERSION:
                     repository = self.data_repository
                     if repository is None:
@@ -539,6 +585,14 @@ class Supervisor:
             )
             session.add(execution)
             session.flush()
+            if procedure.bundle_digest is not None:
+                self._pin_development_execution(
+                    session,
+                    execution_id=execution.id,
+                    procedure=procedure,
+                    inherited_runtime_kind=runtime_pin_parent_kind,
+                    inherited_runtime_id=runtime_pin_parent_id,
+                )
             config_hash = configuration_hash(procedure, context_id)
             created_event = self._add_event(
                 session,

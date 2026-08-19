@@ -9,7 +9,7 @@ import re
 import stat
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Callable
 
 from .ir_v03 import IR_VERSION, IRValidationError, validate_ir_v03
 from .ir_v06 import (
@@ -114,9 +114,10 @@ class Procedure:
     steps: tuple[dict[str, Any], ...]
     ir_version: str = IR_VERSION
     user_actions: tuple[dict[str, Any], ...] = ()
+    bundle_digest: str | None = None
 
     def summary(self) -> dict[str, Any]:
-        return {
+        result = {
             "id": self.id,
             "name": self.name,
             "description": self.description,
@@ -125,6 +126,9 @@ class Procedure:
             "ir_version": self.ir_version,
             "action_count": len(self.user_actions),
         }
+        if self.bundle_digest is not None:
+            result["bundle_digest"] = self.bundle_digest
+        return result
 
 
 class ProcedureCatalog:
@@ -142,23 +146,36 @@ class ProcedureCatalog:
         *V08_DATA_CALLS,
     }
 
-    def __init__(self, directory: Path):
+    def __init__(
+        self,
+        directory: Path,
+        promoted_loader: Callable[[], list[Procedure]] | None = None,
+    ):
         self.directory = directory
+        self._promoted_loader = promoted_loader
+
+    def attach_promoted_loader(
+        self,
+        promoted_loader: Callable[[], list[Procedure]],
+    ) -> None:
+        self._promoted_loader = promoted_loader
 
     def list(self) -> list[Procedure]:
-        if not self.directory.exists():
-            return []
-        root = self._catalog_root()
         paths: list[Path] = []
-        for directory, child_directories, filenames in os.walk(root, followlinks=False):
-            parent = Path(directory)
-            for child in child_directories:
-                self._reject_reparse_path(parent / child, expect_directory=True)
-            for filename in filenames:
-                path = parent / filename
-                if filename.endswith(".spell.py"):
-                    paths.append(self._validated_catalog_path(path))
+        if self.directory.exists():
+            root = self._catalog_root()
+            for directory, child_directories, filenames in os.walk(root, followlinks=False):
+                parent = Path(directory)
+                for child in child_directories:
+                    self._reject_reparse_path(parent / child, expect_directory=True)
+                for filename in filenames:
+                    path = parent / filename
+                    if filename.endswith(".spell.py"):
+                        paths.append(self._validated_catalog_path(path))
         procedures = [self.parse(path) for path in sorted(paths)]
+        if self._promoted_loader is not None:
+            procedures.extend(self._promoted_loader())
+        procedures.sort(key=lambda item: item.id.encode("utf-8"))
         seen: dict[str, str] = {}
         for procedure in procedures:
             identity = procedure.id.casefold()

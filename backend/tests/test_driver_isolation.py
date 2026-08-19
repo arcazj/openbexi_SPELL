@@ -115,6 +115,9 @@ def test_compose_physically_separates_gateway_and_server_credentials() -> None:
         "spell-driver-client-credentials:/run/spell-driver-client-source:ro",
         "spell-data:/var/lib/openbexi-spell/data",
         "spell-migration-backups:/var/lib/openbexi-spell/migration-backups",
+        "spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests",
+        "spell-bundle-builder-response-a:/var/lib/openbexi-spell/builder/responses-a",
+        "spell-bundle-builder-response-b:/var/lib/openbexi-spell/builder/responses-b",
     ]
 
     assert initializer["network_mode"] == "none"
@@ -141,6 +144,71 @@ def test_compose_physically_separates_gateway_and_server_credentials() -> None:
     assert '"--host", "0.0.0.0"' not in backend_dockerfile
     assert "\nUSER 10002:10002\n" in driver_dockerfile
     assert "\nSTOPSIGNAL SIGINT\n" in driver_dockerfile
+
+
+def test_compose_statically_isolates_independent_bundle_builders() -> None:
+    compose = _compose()
+    services = compose["services"]
+    backend = services["backend"]
+    workers = {
+        "builder-a": services["bundle-builder-a"],
+        "builder-b": services["bundle-builder-b"],
+    }
+    assert {backend["image"], *(worker["image"] for worker in workers.values())} == {
+        "openbexi-spell-backend:${SPELL_IMAGE_TAG:-local}"
+    }
+    assert all("build" not in worker for worker in workers.values())
+    assert backend["depends_on"]["bundle-builder-a"]["condition"] == "service_healthy"
+    assert backend["depends_on"]["bundle-builder-b"]["condition"] == "service_healthy"
+
+    expected_responses = {
+        "builder-a": "spell-bundle-builder-response-a",
+        "builder-b": "spell-bundle-builder-response-b",
+    }
+    for worker_id, worker in workers.items():
+        assert worker["entrypoint"] == [
+            "python",
+            "-m",
+            "backend.development_bundle_worker",
+        ]
+        assert worker["network_mode"] == "none"
+        assert worker["user"] == "10001:10001"
+        assert worker["read_only"] is True
+        assert worker["cap_drop"] == ["ALL"]
+        assert worker["security_opt"] == ["no-new-privileges:true"]
+        assert worker["pids_limit"] == 32
+        assert worker["mem_limit"] == "512m"
+        assert float(worker["cpus"]) == 0.5
+        assert worker["tmpfs"] == ["/tmp:size=32m,noexec,nosuid,nodev"]
+        assert worker["environment"]["SPELL_BUNDLE_BUILDER_WORKER_ID"] == worker_id
+        assert not any(
+            name.startswith(("DATABASE_", "SPELL_JWT_", "SPELL_DRIVER_"))
+            for name in worker["environment"]
+        )
+        volumes = {
+            (_volume_source(value), _volume_target(value), value.endswith(":ro"))
+            for value in worker["volumes"]
+        }
+        assert volumes == {
+            (
+                "spell-bundle-builder-requests",
+                "/var/lib/openbexi-spell/builder/requests",
+                True,
+            ),
+            (
+                expected_responses[worker_id],
+                "/var/lib/openbexi-spell/builder/responses",
+                False,
+            ),
+        }
+        assert not any("docker.sock" in value for value in worker["volumes"])
+
+    dockerfile = (ROOT / "backend/Dockerfile").read_text(encoding="utf-8")
+    from backend.development_bundle_provenance import BASE_IMAGE_REFERENCE
+
+    assert dockerfile.splitlines()[0] == f"FROM {BASE_IMAGE_REFERENCE}"
+    assert "COPY backend /app/backend" in dockerfile
+    assert f'org.opencontainers.image.base.name="{BASE_IMAGE_REFERENCE}"' in dockerfile
 
 
 def test_gateway_consumes_credentials_before_the_application_accepts_work() -> None:
@@ -494,6 +562,165 @@ def _inspect_container(container_id: str) -> dict[str, Any]:
         timeout=30,
     )
     return json.loads(result.stdout)[0]
+
+
+def test_live_bundle_builders_are_networkless_independent_and_reproducible() -> None:
+    if os.environ.get("SPELL_RUN_COMPOSE_RUNTIME_TESTS") != "1":
+        pytest.skip("set SPELL_RUN_COMPOSE_RUNTIME_TESTS=1 for Docker inspection")
+    if shutil.which("docker") is None:
+        pytest.skip("Docker CLI is unavailable")
+
+    project = f"spell-v09-bundle-builders-{uuid.uuid4().hex[:12]}"
+    try:
+        _docker_compose(project, ["build", "backend"])
+        _docker_compose(
+            project,
+            [
+                "up",
+                "--detach",
+                "--no-build",
+                "--wait",
+                "--wait-timeout",
+                "90",
+                "bundle-builder-a",
+                "bundle-builder-b",
+            ],
+        )
+        container_ids = {
+            service: _docker_compose(
+                project, ["ps", "--quiet", service]
+            ).stdout.strip()
+            for service in ("bundle-builder-a", "bundle-builder-b")
+        }
+        assert all(container_ids.values())
+        inspected = {
+            service: _inspect_container(container_id)
+            for service, container_id in container_ids.items()
+        }
+        assert len({value["Image"] for value in inspected.values()}) == 1
+        expected_response = {
+            "bundle-builder-a": "response-a",
+            "bundle-builder-b": "response-b",
+        }
+        descriptor_digests = set()
+        for service, container in inspected.items():
+            host = container["HostConfig"]
+            assert container["State"]["Running"] is True
+            assert container["State"]["Health"]["Status"] == "healthy"
+            assert container["Config"]["User"] == "10001:10001"
+            assert host["NetworkMode"] == "none"
+            assert host["ReadonlyRootfs"] is True
+            assert host["CapDrop"] == ["ALL"]
+            assert host.get("CapAdd") in (None, [])
+            assert host["SecurityOpt"] == ["no-new-privileges:true"]
+            assert host["PidsLimit"] == 32
+            assert host["Memory"] == 512 * 1024 * 1024
+            assert host["NanoCpus"] == 500_000_000
+            networks = container["NetworkSettings"]["Networks"]
+            assert set(networks) in (set(), {"none"})
+            if networks:
+                no_network = networks["none"]
+                for field in (
+                    "IPAddress",
+                    "Gateway",
+                    "GlobalIPv6Address",
+                    "MacAddress",
+                ):
+                    assert no_network.get(field) in (None, "")
+            mounts = {
+                mount["Destination"]: (mount["Name"], mount["RW"])
+                for mount in container["Mounts"]
+                if mount["Type"] == "volume"
+            }
+            assert set(mounts) == {
+                "/var/lib/openbexi-spell/builder/requests",
+                "/var/lib/openbexi-spell/builder/responses",
+            }
+            assert mounts["/var/lib/openbexi-spell/builder/requests"][1] is False
+            response_name = mounts["/var/lib/openbexi-spell/builder/responses"][0]
+            assert expected_response[service] in response_name
+            assert mounts["/var/lib/openbexi-spell/builder/responses"][1] is True
+            environment = container["Config"].get("Env") or []
+            assert not any(
+                item.startswith(("DATABASE_URL=", "SPELL_JWT_", "SPELL_DRIVER_"))
+                for item in environment
+            )
+            probe = _docker_exec(
+                container_ids[service],
+                [
+                    "python",
+                    "-c",
+                    (
+                        "from pathlib import Path; "
+                        "assert Path('/app/backend/Dockerfile').is_file(); "
+                        "from backend.development_bundle_provenance import toolchain_digest; "
+                        "print(toolchain_digest())"
+                    ),
+                ],
+            )
+            descriptor_digests.add(probe.stdout.strip())
+            denied = _docker_exec(
+                container_ids[service],
+                [
+                    "python",
+                    "-c",
+                    (
+                        "import socket; s=socket.socket(); s.settimeout(0.2); "
+                        "s.connect(('192.0.2.1', 9))"
+                    ),
+                ],
+                check=False,
+            )
+            assert denied.returncode != 0
+        assert len(descriptor_digests) == 1
+
+        client_code = """
+import hashlib, json, os
+from pathlib import Path
+from backend.development_bundle_broker import DualContainerBundleBroker
+from backend.tests.test_development_bundle_builder_v09 import _request
+broker = DualContainerBundleBroker(
+    request_directory=Path(os.environ["SPELL_BUNDLE_REQUEST_DIR"]),
+    response_directories={
+        "builder-a": Path(os.environ["SPELL_BUNDLE_RESPONSE_A_DIR"]),
+        "builder-b": Path(os.environ["SPELL_BUNDLE_RESPONSE_B_DIR"]),
+    },
+    timeout_seconds=30,
+)
+first = broker.build(_request())
+second = broker.build(_request())
+assert first == second
+print(json.dumps({
+    "bundle_sha256": hashlib.sha256(first.bundle_bytes).hexdigest(),
+    "byte_length": len(first.bundle_bytes),
+    "toolchain_digest": first.toolchain_digest,
+}, sort_keys=True))
+"""
+        result = _docker_compose(
+            project,
+            [
+                "run",
+                "--rm",
+                "--no-deps",
+                "--user",
+                "10001:10001",
+                "--entrypoint",
+                "python",
+                "backend",
+                "-c",
+                client_code,
+            ],
+        )
+        proof = json.loads(result.stdout.strip().splitlines()[-1])
+        assert proof["byte_length"] > 0
+        assert proof["bundle_sha256"]
+        assert proof["toolchain_digest"] in descriptor_digests
+    finally:
+        _docker_compose(
+            project,
+            ["down", "--volumes", "--remove-orphans"],
+            check=False,
+        )
 
 
 def _backend_api(
