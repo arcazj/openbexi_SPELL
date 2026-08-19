@@ -97,9 +97,9 @@ identity, Gate 0A scope, or any compatibility claim.
 ## Qualification Evidence
 
 Canonical work-package evidence is stored at
-[`qualification.json`](artifacts/v0.5/work-package/qualification.json). Its
+[`qualification.json`](../../artifacts/v0.5/work-package/qualification.json). Its
 independent validator is
-[`validate_candidate_evidence_v05.py`](scripts/validate_candidate_evidence_v05.py).
+[`validate_candidate_evidence_v05.py`](../../scripts/validate_candidate_evidence_v05.py).
 Gate 0B invokes that validator in a separate locked-Python process, requires
 one strict JSON success line, and independently checks the evidence digest and
 security-critical bindings.
@@ -185,11 +185,11 @@ Gate 0B does not authorize:
 ## Gate Tooling
 
 The machine-readable scope is
-[`v0.5-gate-0b.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0b.json).
+[`v0.5-gate-0b.json`](../requirements/compatibility/scopes/v0.5-gate-0b.json).
 The gate validator and its focused mutation tests are:
 
-- [`validate_v05_gate_0b.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0b.py)
-- [`test_validate_v05_gate_0b.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v05_gate_0b.py)
+- [`validate_v05_gate_0b.py`](../quality/tools/validate_v05_gate_0b.py)
+- [`test_validate_v05_gate_0b.py`](../quality/tools/test_validate_v05_gate_0b.py)
 
 ```powershell
 C:\Users\arcaz\AppData\Local\OpenBEXI\release-toolchain\python-3.13.14-embed-amd64\python.exe NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0b.py

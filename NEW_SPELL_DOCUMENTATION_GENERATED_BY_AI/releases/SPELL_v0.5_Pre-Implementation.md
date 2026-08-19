@@ -148,7 +148,7 @@ Gate 0A does not authorize:
 ## Baseline And Gate Evidence
 
 The machine-readable scope is
-[`v0.5-gate-0a.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0a.json).
+[`v0.5-gate-0a.json`](../requirements/compatibility/scopes/v0.5-gate-0a.json).
 It binds this accepted baseline:
 
 | Baseline item | Bound value |
@@ -173,8 +173,8 @@ Gate 0A makes no signature claim.
 
 Gate tooling:
 
-- [`validate_v05_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0a.py)
-- [`test_validate_v05_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v05_gate_0a.py)
+- [`validate_v05_gate_0a.py`](../quality/tools/validate_v05_gate_0a.py)
+- [`test_validate_v05_gate_0a.py`](../quality/tools/test_validate_v05_gate_0a.py)
 
 ```powershell
 .venv\Scripts\python.exe NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v05_gate_0a.py

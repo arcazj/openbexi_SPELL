@@ -51,15 +51,15 @@ mobile projects.
 The Playwright flow exercises keyboard activation for pause and resume, prompt
 crash and recovery, report display, safe abort, responsive layout, and actual
 offline/reconnect resynchronization. The complete acceptance disposition is in
-[`Test_and_Integration.md`](Test_and_Integration.md).
+[`Test_and_Integration.md`](../../Test_and_Integration.md).
 
 ## Evidence
 
-- [Desktop as-run report](artifacts/v0.2/desktop-as-run-report.png)
-- [Mobile recovered prompt](artifacts/v0.2/mobile-recovered-prompt.png)
-- [Python CycloneDX SBOM](artifacts/v0.2/python-sbom.cdx.json)
-- [Node CycloneDX SBOM](artifacts/v0.2/node-sbom.cdx.json)
-- [Provenance and dependency review](PROVENANCE.md)
+- [Desktop as-run report](../../artifacts/v0.2/desktop-as-run-report.png)
+- [Mobile recovered prompt](../../artifacts/v0.2/mobile-recovered-prompt.png)
+- [Python CycloneDX SBOM](../../artifacts/v0.2/python-sbom.cdx.json)
+- [Node CycloneDX SBOM](../../artifacts/v0.2/node-sbom.cdx.json)
+- [Provenance and dependency review](../../PROVENANCE.md)
 
 ## Accepted Exceptions
 

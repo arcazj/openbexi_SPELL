@@ -17,7 +17,7 @@
 JC Arcaz approved Candidate A, its exclusions, local engineering budgets, and
 the test plan for the scope profile above. The exact instruction and file
 manifest are recorded in
-[`G0_HUMAN_APPROVAL_LEDGER.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/G0_HUMAN_APPROVAL_LEDGER.json).
+[`G0_HUMAN_APPROVAL_LEDGER.json`](../quality/G0_HUMAN_APPROVAL_LEDGER.json).
 The SHA-256 bindings are integrity evidence, not a cryptographic signature.
 Scope approval does not bypass the remaining technical entry criterion, accept
 a release, make a compliance claim, or permit connection to a GCS, spacecraft,
@@ -87,7 +87,7 @@ operational integration.
    staleness, lifecycle stage, and certainty. No browser driver-control
    mutation is in scope.
 12. Establish the documentation-conformance baseline in
-    [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md) and require
+    [`SPELL_DOCUMENTATION_REVIEW.md`](../../SPELL_DOCUMENTATION_REVIEW.md) and require
     a populated exhaustive ledger before v0.4 gate approval. It must count and
     classify language constructs/public names/types/outcomes, server
     configuration, driver contracts, operator/development workflows and views,
@@ -480,7 +480,7 @@ credential and does not create a host-published route.
   same source produces the same descriptor and package bytes twice.
 - Retain legacy archives and the supplied PDFs as read-only external evidence.
   Use the page-complete review in
-  [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md), but do not
+  [`SPELL_DOCUMENTATION_REVIEW.md`](../../SPELL_DOCUMENTATION_REVIEW.md), but do not
   copy legacy code, package uncleared PDFs, or reproduce weakly typed/insecure
   wire contracts in the Apache-2.0 implementation.
 
@@ -526,7 +526,7 @@ credential and does not create a host-published route.
 
 The detailed `V04-REQ-*` to `V04-*` mapping, planned environments, performance
 budgets, and release gates are authoritative in
-[`Test_and_Integration.md`](Test_and_Integration.md). All v0.4 results remain
+[`Test_and_Integration.md`](../../Test_and_Integration.md). All v0.4 results remain
 `Planned` until implementation is authorized and the tests are actually run.
 
 The following properties are non-waivable:
@@ -613,7 +613,7 @@ Implementation remains blocked until all of the following are recorded:
 1. Recorded owner approval of this bounded Candidate A scope and exclusions.
 2. Resolution of every local Candidate A design decision in the table above.
 3. Completion of the v0.4 history entry and deterministic baseline manifest under
-   [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md),
+   [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`](../README.md),
    documentation-conformance baseline, context/configuration/capability
    contract, requirements, test matrix, threat model, rollback, and
    non-waivable gates, bound to the recorded project-owner decision.

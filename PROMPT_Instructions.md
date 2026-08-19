@@ -20,7 +20,29 @@ operator control take priority over convenience or visual novelty. The project
 must reduce operational risk; a local simulator result must never be presented
 as operational qualification.
 
-## Source-Freeze Baseline And Candidate
+## Accepted Baseline And Active Worktree
+
+SPELL v0.9.0 is the accepted local synthetic non-CUI baseline. Annotated tag
+object `b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`; strict release validation passed
+with no accepted exceptions. v0.10 is an owner-directed mutable-worktree
+implementation of the bounded Language Reference Example Adapter recorded in
+[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). v0.11 is the
+owner-authorized mutable-worktree simulator telecommand increment governed by
+[`SPELL_v0.11_Pre-Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md) and
+recorded in
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). Its final
+local qualification commands, results, and exclusions are complete. These
+local implementations are not candidate
+freezes, accepted releases, deployment approvals, compliance results, or
+operational authorizations.
+
+For v0.10 and v0.11 work, the 195-example documentation set is the traceability
+source of truth. Preserve distinct proof for every identified variant, including
+both Example 60 `Send` forms. Do not weaken tests, silently ignore conflicting
+modifiers, infer success from transport or loading, or automatically resend an
+effect-possible or effect-unknown operation. v0.11 remains deterministic and
+simulator-only with supervisor-owned durable confirmation and settlement.
 
 At the v0.9 candidate source-freeze boundary, SPELL v0.8.0 was the accepted
 local synthetic non-CUI simulator engineering baseline. Annotated tag object
@@ -42,6 +64,9 @@ built from new first-party code and provides:
   DB/IMP exchange, typed `ARGS`/`IVARS`, durable shared data, virtual-root
   files, authenticated data APIs, transactional audit/outbox settlement,
   migration and recovery, and the Data Service console workspace.
+- A separate bounded development workspace with project editing, semantic
+  checks, import/export, history/conflict handling, reproducible immutable
+  bundles, authenticated review, and simulator-only promotion/withdrawal.
 - SQLite development storage and PostgreSQL 18 target storage with ordered,
   versioned migrations.
 - Versioned REST mutations and snapshots plus authenticated, downstream-only,

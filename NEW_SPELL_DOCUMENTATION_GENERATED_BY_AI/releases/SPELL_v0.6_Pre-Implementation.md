@@ -102,7 +102,7 @@ Gate 0A does not authorize or claim:
 ## Accepted Baseline Evidence
 
 The machine-readable scope is
-[`v0.6-gate-0a.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.6-gate-0a.json).
+[`v0.6-gate-0a.json`](../requirements/compatibility/scopes/v0.6-gate-0a.json).
 It binds the accepted v0.5.0 release independently of mutable working files:
 
 | Baseline item | Bound value |
@@ -132,8 +132,8 @@ the machine authorization list is never accepted.
 
 Gate tooling:
 
-- [`validate_v06_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v06_gate_0a.py)
-- [`test_validate_v06_gate_0a.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v06_gate_0a.py)
+- [`validate_v06_gate_0a.py`](../quality/tools/validate_v06_gate_0a.py)
+- [`test_validate_v06_gate_0a.py`](../quality/tools/test_validate_v06_gate_0a.py)
 
 ```powershell
 .venv\Scripts\python.exe NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v06_gate_0a.py

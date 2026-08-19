@@ -128,7 +128,7 @@ Gate 0A does not authorize or claim:
 ## Accepted Baseline Evidence
 
 The machine-readable scope is
-[`v0.8-gate-0a.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.8-gate-0a.json).
+[`v0.8-gate-0a.json`](../requirements/compatibility/scopes/v0.8-gate-0a.json).
 It binds the accepted v0.7.0 release through raw Git objects rather than mutable
 working files:
 

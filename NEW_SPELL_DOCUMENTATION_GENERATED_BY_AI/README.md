@@ -62,6 +62,8 @@ silently invented: they are assigned an owner and gate in
 9. Use [requirements/TRACEABILITY_MATRIX.md](requirements/TRACEABILITY_MATRIX.md)
    and [quality/VERIFICATION_AND_VALIDATION.md](quality/VERIFICATION_AND_VALIDATION.md)
    to evaluate completeness.
+10. Use [releases/README.md](releases/README.md) to locate version-specific
+    planning, gate, implementation, and release records.
 
 ## Repository Map
 
@@ -95,6 +97,12 @@ silently invented: they are assigned an owner and gate in
 - [requirements/IMPLEMENTATION_ALLOCATION.csv](requirements/IMPLEMENTATION_ALLOCATION.csv):
   generated 366-row allocation and planned evidence relation; not approval or
   implementation evidence.
+
+### Release Records
+
+- [releases/README.md](releases/README.md): index of the version-specific
+  planning, gate, implementation, and release records moved from the repository
+  root into this documentation tree.
 
 ### Architecture
 

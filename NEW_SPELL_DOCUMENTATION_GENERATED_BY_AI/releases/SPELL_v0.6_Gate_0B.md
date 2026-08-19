@@ -238,13 +238,13 @@ This pending gate does not claim or authorize:
 ## Gate Tooling
 
 Machine scope:
-[`v0.6-gate-0b.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.6-gate-0b.json)
+[`v0.6-gate-0b.json`](../requirements/compatibility/scopes/v0.6-gate-0b.json)
 
 Validator:
-[`validate_v06_gate_0b.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v06_gate_0b.py)
+[`validate_v06_gate_0b.py`](../quality/tools/validate_v06_gate_0b.py)
 
 Focused tests:
-[`test_validate_v06_gate_0b.py`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/test_validate_v06_gate_0b.py)
+[`test_validate_v06_gate_0b.py`](../quality/tools/test_validate_v06_gate_0b.py)
 
 ```powershell
 C:\Users\arcaz\AppData\Local\OpenBEXI\release-toolchain\python-3.13.14-embed-amd64\python.exe NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/tools/validate_v06_gate_0b.py

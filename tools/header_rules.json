@@ -1,0 +1,29 @@
+{
+  "commented_only": true,
+  "required": [
+    "NAME",
+    "DESCRIPTION",
+    "FILE",
+    "SPACECRAFT"
+  ],
+  "fields": {
+    "NAME": {
+      "pattern": "^.+$"
+    },
+    "DESCRIPTION": {
+      "pattern": "^.+$"
+    },
+    "FILE": {
+      "must_match_filename": true,
+      "allowed_extensions": [
+        ".py",
+        ".spell"
+      ]
+    },
+    "SPACECRAFT": {
+      "type": "csv",
+      "item_pattern": "^[A-Za-z0-9_\\-]+$",
+      "allow_numbers": true
+    }
+  }
+}

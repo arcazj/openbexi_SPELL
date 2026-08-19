@@ -1,0 +1,32 @@
+{
+  "mandatory": [
+    {
+      "name": "PROC",
+      "pattern": "^\\s*PROC\\s*=\\s*\".+\"$",
+      "desc": "Procedure name (strict)"
+    },
+    {
+      "name": "VERSION",
+      "pattern": "^\\s*VERSION\\s*=\\s*\"\\d+(\\.\\d+)*\"$",
+      "desc": "Version (strict)"
+    },
+    {
+      "name": "AUTHOR",
+      "pattern": "^\\s*AUTHOR\\s*=\\s*\".+\"$",
+      "desc": "Author (strict)"
+    },
+    {
+      "name": "PURPOSE",
+      "pattern": "^\\s*PURPOSE\\s*=\\s*\".+\"$",
+      "desc": "Purpose (strict)"
+    },
+    {
+      "name": "DATE",
+      "pattern": "^\\s*DATE\\s*=\\s*\"\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2}(:\\d{2})?)?\"$",
+      "desc": "ISO date (strict)"
+    }
+  ],
+  "formatting": {
+    "header_window_lines": 60
+  }
+}

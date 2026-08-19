@@ -11,6 +11,34 @@ No live spacecraft or operational GCS connection is in scope until the specific
 adapter, environment, effect class, procedures, organization, and operational
 authority pass their independent gates.
 
+## Current Bounded v0.10/v0.11 Application
+
+The parent project's 2026-08-19 mutable working tree applies this strategy to
+two bounded increments without changing this Draft specification's status.
+v0.10 has 195 numbered example outcomes and a separate 257-subcase variant
+matrix; every identified form requires its own assertion and trace. Hash-bound
+semantic adaptations are required for malformed, pseudocode, output-only,
+placeholder, negative, and intentionally invalid source. They are not evidence
+of verbatim snippet execution or unrestricted Python/SPELL compatibility.
+
+The simulator-only v0.11 `BuildTC`/`Send` gate covers the 26 command
+statements in Examples 57 through 77; typed arguments; command, sequence, group,
+and block expansion; duplicate-child identity; critical confirmation;
+deterministic `Time`, `ReleaseTime`, `SendDelay`, per-element timeout, delayed
+verification, tolerance, and adjustable-limit behavior; separate transport,
+loading, release, acknowledgement, onboard execution, verification,
+disposition, and certainty; cancellation; bounded checkpoint recovery;
+reconciliation; uncertainty; and no automatic resend.
+
+Focused suite success is insufficient. The final record must retain exact
+commands, counts, skips, limitations, artifact identity, built-image contract
+availability, and full regression/frontend/build results from one consistent
+working-tree state. Direct public-API extremes fail with bounded typed
+diagnostics rather than raw runtime exceptions. Completed local evidence and
+non-release exclusions are recorded in
+`../releases/SPELL_v0.11_Implementation.md`; no local result becomes an accepted
+release without an immutable release endpoint and its independent gates.
+
 ## Evidence Contract
 
 Every result used for a release decision shall record:

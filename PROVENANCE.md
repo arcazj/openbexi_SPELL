@@ -2,14 +2,41 @@
 
 ## Record Status
 
-This record retains the bounded SPELL v0.5.0 through v0.7.0 provenance, records
-the accepted v0.8.0 release, binds the v0.9 Gate 0A planning authorization, and
-distinguishes the v0.9 candidate source freeze from immutable candidate
-evidence.
-At v0.9 candidate source freeze, SPELL v0.8.0 was the accepted local-only,
-synthetic, non-CUI simulator engineering baseline at annotated tag `v0.8.0`, tag object
-`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, and release commit
-`d6e01222de3bf52013279e48a099b6ae7ded121d`.
+This record retains the bounded SPELL v0.5.0 through v0.8.0 provenance, records
+the accepted v0.9.0 release, and distinguishes historical v0.9 Gate/source-
+freeze claims from the later immutable release endpoint. SPELL v0.9.0 is the
+accepted local-only, synthetic, non-CUI simulator engineering baseline at
+annotated tag `v0.9.0`, tag object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c`, and release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`. v0.10 evidence described below
+is mutable local implementation evidence, not an accepted release.
+
+The v0.10 reference-example adapter is independently authored against the
+existing clean-room compatibility inventory for `SPELL - Language Reference -
+2.4.4`. The external authority is identified by SHA-256
+`ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3`;
+the PDF and extracted example bodies are not copied into product source or the
+backend image. The tracked matrix retains titles, page references, source-span
+hashes, compatibility identities, ambiguity decisions, independently authored
+adaptations, and executable oracles. Runtime code never evaluates or imports
+reference text. Simulator projections remain local and non-operational, and
+telecommand adaptations record `live_dispatch=false`. This establishes
+traceable semantic-adaptation evidence only, not copyright ownership, verbatim
+source compatibility, arbitrary Python support, operational authorization, or
+general SPELL 2.4.4 conformance.
+
+The v0.11 simulator telecommand implementation is new first-party code derived
+from the documented behavior in the same hash-pinned Language Reference and the
+hash-pinned SPELL Driver Development Manual 2.4.4. It uses independently
+authored typed contracts under `contracts/v11`, a bundled synthetic catalog,
+closed parser/IR/runtime code, and deterministic simulator providers. No legacy
+source archive, proprietary driver implementation, manual body, credential,
+endpoint, or operational command path is copied or packaged. The implementation
+creates local working-tree compatibility evidence only; it does not establish
+ownership of legacy documentation, general SPELL conformance, deployment or
+mission suitability, or an accepted v0.11 release.
+Its implementation, local qualification, and non-release boundary are recorded in
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256
@@ -283,7 +310,7 @@ by v0.4 qualification and packaging.
 
 The v0.5 closeout binds exact audit results, image identities, evidence
 fingerprints, package hashes, exceptions, and the project-owner decision in
-canonical artifacts and [`SPELL_v0.5_Release.md`](SPELL_v0.5_Release.md).
+canonical artifacts and [`SPELL_v0.5_Release.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.5_Release.md).
 The verified annotated `v0.5.0` tag activated the conditional owner acceptance
 recorded in the release commit; no post-tag documentation commit was required.
 

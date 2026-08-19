@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.8.0 baseline and v0.9 candidate source freeze |
-| Update type | Accepted-release status, strict v0.8 bindings, and bounded v0.9 source-freeze status |
-| Updated | 2026-08-18 |
-| Accepted product baseline at v0.9 source freeze | SPELL v0.8.0, tag `v0.8.0`, tag object `0dcf4f539fd1a9036fe4db4bc159cde04c35cfae`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d` |
+| Document revision | Accepted v0.9.0 baseline and bounded v0.10/v0.11 working-tree implementations |
+| Update type | Accepted-release status plus non-release v0.10 verification and v0.11 implementation closeout scope |
+| Updated | 2026-08-19 |
+| Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -15,8 +15,11 @@
 | v0.7 status | Accepted at annotated tag `v0.7.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,041 concrete tests, 2,034 passes, seven exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
+| v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
+| v0.10 current status | Reference Example Adapter implemented and locally verified in the mutable worktree; no v0.10 candidate freeze, package, release commit, or tag |
+| v0.11 current status | Simulator-only `BuildTC`/`Send` implementation locally qualified in the mutable worktree with recorded non-release exclusions; no v0.11 candidate freeze, package, release commit, or tag |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | At source freeze, accepted v0.8 remained the product baseline; bounded v0.9 development API, migration, and separate frontend changes were not yet a qualified candidate or accepted release |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.9.0 is the accepted baseline; bounded v0.10 and simulator-only v0.11 changes exist only in the mutable worktree and are not released |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -32,24 +35,26 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.8.0 is now the accepted product baseline. Its annotated tag object
-`0dcf4f539fd1a9036fe4db4bc159cde04c35cfae` peels to release commit
-`d6e01222de3bf52013279e48a099b6ae7ded121d`. Final validation,
+SPELL v0.9.0 is now the accepted product baseline. Its annotated tag object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`. Final validation,
 supply-chain/SBOM checks, deterministic packaging, release-evidence validation,
 and annotated tagging passed with no accepted exceptions. The verified tag
 activated the conditional owner acceptance without a post-tag documentation
-commit. This acceptance remains limited to `V08-DATA-001` through
-`V08-DATA-009` and provides no operational authorization. The owner request
+commit and provides no operational authorization. The earlier owner request
 `start and complete asap V0.9` and the subsequent
-[`V09-GATE-0A`](SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
+[`V09-GATE-0A`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
 local synthetic non-CUI development-environment work packages and 45 planned
 proof identities. At the authorization event, Gate 0A claimed zero implemented
 constructs or runtime artifacts. At candidate source freeze, the bounded
 implementation, version-scoped tooling, and exact product inventory were frozen
 together. At that boundary, canonical candidate qualification had not yet run;
 Gate 0B, Final qualification, packaging, release, and tag validation were
-pending. Later acceptance is authoritative only through the strictly validated
-annotated tag and committed evidence.
+pending. That historical boundary was later superseded by the validated
+`v0.9.0` tag. The v0.10 adapter and v0.11 simulator telecommand implementation
+described below exist only in the mutable worktree; neither has a release
+endpoint. The v0.11 local closeout record is complete and records every
+environment-selected or intentionally inapplicable release-only check.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -248,469 +253,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.5 | Core Language and Deterministic Runtime | Product | Accepted at annotated tag `v0.5.0` for `V05-IR-001` only | Harden validation of existing IR 0.3; the broader language/runtime outcome remains Candidate scope outside Gates 0A/0B. | Final 1,096-test qualification, four SBOMs, supply-chain audit, deterministic package, release commit `e7b6bb9`, and annotated tag `v0.5.0` passed. |
 | v0.6 | Durable Operator Workspace and Procedure Composition | Product | Accepted at annotated tag `v0.6.0`; no accepted exceptions | Add documented context/catalog/instance workflows, control leases and states, full durable prompts, monitoring, source/log/debug views, relative/absolute scheduling, safe user actions, and `StartProc`. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `b2d2bb30fe3ec781d8dcca434d3f0b90f8f31e2a776331c5ef20b36c8ae2864c`, release commit `05ec783a6e54a76e0548bdd536c18538f6bff51b`, and annotated tag `v0.6.0` passed. |
 | v0.7 | Simulator Read-Only Observation and Condition Engine | Product | Accepted at annotated tag `v0.7.0`; no accepted exceptions | Implement driver time, `GetTM`, `Verify`, telemetry `WaitFor`/scheduling, raw/engineering items, resource/lookup reads, limits/alarm state, and cursor streams against a deterministic simulator. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `90761e0b42cc6f88313380cb72c752437a17f8fe300b8f65c02b865dcbe71aa2`, release commit `cf18e9d887ba0476cbcc3d8194e321332a3ae864`, and annotated tag `v0.7.0` passed. |
-| v0.8 | Data and Local Service Compatibility | Product | Accepted at annotated tag `v0.8.0`; no accepted exceptions | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Final nine-suite qualification, four SBOMs, supply-chain audit, deterministic archive SHA-256 `87cd104d3c7a92764b3b848a0424f8fddb8522e0b7d8ae6e93310b2ce7e42deb`, release commit `d6e01222de3bf52013279e48a099b6ae7ded121d`, and annotated tag `v0.8.0` passed. |
-| v0.9 | SPELL Development Environment | Product | Candidate source and exact product inventory frozen; canonical qualification was pending at freeze; later acceptance only by validated annotated tag | Build the separate web project/editor/dictionary/catalog/Problems/semantic-check/collaboration workspace and immutable simulator promotion flow. | Accepted v0.8.0 baseline plus hash-bound project, language-service, authoring, bundle, promotion, migration, security, and offline acceptance contracts. |
-| v0.10 | Simulator Auxiliary Service Mutations | Product | Candidate | Add separately gated simulator event, ground-parameter, resource, limit/alarm, display-intent, and optional ranging tranches. | Read-only simulator conformance plus a capability-specific effect, authorization, certainty, rollback, and audit gate. |
-| v0.11 | Simulator Telecommand Semantics | Product | Candidate | Implement `BuildTC` and `Send` with typed expansion, sequences/groups/blocks, critical preflight, time/load intent, per-element stages, certainty, and reconciliation. | Accepted simulator services, explicit no-resend/confirmation model, command corpus, and exhaustive fault tests. |
-| v0.12 | Read-Only Legacy Observation | Product | Candidate | Compare an isolated legacy test environment to the proven typed simulator APIs with structurally zero command authority. | Accepted read-only simulator contracts, version-specific evidence, golden traces, and a read-only enforcement plan. |
-| v0.13 | Controlled Non-Operational Procedure Control | Product | Candidate | Add audited legacy procedure control in an explicitly approved non-operational environment; no spacecraft command authority. | Accepted v0.12 observation and dedicated control-lease, failure, rollback, and environment safety plan. |
-| v0.14 | Bounded Adapter Migration | Product | Candidate | Migrate one specifically approved adapter capability per tranche with conformance, certainty, security, load, and rollback evidence. | Accepted capability contract and separate environment/effect authorization for each tranche. |
-| v0.15+ | Parallel Pilot Readiness | Product | Candidate | Progress from read-only shadow to supervised non-commanding pilots; consider commanding only through separate authorization with rapid rollback. | Prior phase acceptance, operational evidence, governance, workload budgets, and explicit pilot authorization. |
-
-## Delivered Foundation
-
-### v0.1 - Pre-Implementation Baseline
-
-**Outcome:** documentation-only planning contract delivered on 2026-07-12 and
-later approved only for the bounded v0.2 entry scope.
-
-Delivered foundations:
-
-- Inventoried supplied legacy Core, COTS, GUI, manuals, interfaces, licensing,
-  capabilities, and evidence gaps.
-- Defined the target control plane, worker, driver host, driver gateway,
-  persistence, telemetry projection, compatibility adapter, and web-console
-  responsibilities.
-- Defined state, command, prompt, telemetry, telecommand, checkpoint, recovery,
-  as-run, security, and migration models.
-- Established stable requirements, risk register, test families, phased
-  delivery, rollback direction, and explicit decisions required before product
-  work.
-- Confirmed that the Development Environment manual was absent from the
-  originally supplied v0.1 evidence and that the supplied legacy tests were
-  insufficient as a rewrite oracle. The manual was supplied separately and
-  reviewed on 2026-07-17; that later evidence does not rewrite the v0.1 fact.
-
-Primary record:
-[`SPELL_v0.1_Pre-Implementation.md`](SPELL_v0.1_Pre-Implementation.md).
-
-### v0.2 - Simulator Vertical Slice
-
-**Outcome:** first executable release accepted for local simulator development
-on 2026-07-12, with documented exceptions.
-
-Delivered foundations:
-
-- FastAPI control plane, isolated procedure worker, SQL persistence boundary,
-  REST mutations, ordered WebSocket replay, and React/TypeScript 2D console.
-- Restricted non-executing procedure subset for logs, simulated telemetry,
-  waits, and durable prompts.
-- Idempotent revision-guarded control, atomic checkpoints, crash recovery,
-  prompt races, abort, reconnect/resync, and as-run reconstruction.
-- SQLite and PostgreSQL verification, desktop/mobile browser workflows,
-  accessibility checks, SBOMs, and provenance review.
-
-The accepted exceptions included provisional authentication, incomplete
-outbound isolation, unhashed Python artifacts, security residuals, and
-unexecuted performance/soak targets. v0.3 addressed these within the bounded
-simulator architecture.
-
-Primary record: [`SPELL_v0.2_Release.md`](SPELL_v0.2_Release.md).
-
-### v0.3 - Simulator Hardening and Language Foundation
-
-**Outcome:** accepted local simulator engineering release on 2026-07-16.
-
-Delivered foundations:
-
-- Ordered SQLite/PostgreSQL migrations and durable variable/control recovery.
-- Signed short-lived JWT identity, server-enforced roles, loopback-only ingress,
-  and internal-only backend/database networking.
-- Typed variables, safe expressions, conditions, bounded loops, bounded local
-  calls, exact source identity, structured diagnostics, and bounded data IR.
-- Transient source validation, responsive operator workflows, authenticated
-  WebSocket expiry, and complete command settlement across failure paths.
-- Hash-locked dependencies, audits, distinct image SBOMs, fingerprint-bound
-  performance evidence, and reproducible packaging.
-
-Primary records:
-[`SPELL_v0.3_Pre-Implementation.md`](SPELL_v0.3_Pre-Implementation.md) and
-[`SPELL_v0.3_Release.md`](SPELL_v0.3_Release.md).
-
-### v0.3.1 - Roadmap and Timeline Records
-
-**Outcome:** documentation set prepared on 2026-07-17; formal release not
-claimed.
-
-Scope is limited to:
-
-- This living project roadmap.
-- [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md), including evidence-qualified
-  durations for v0.1 through v0.3.
-
-This patch does not change the accepted v0.3.0 product, runtime version, API,
-database schema, dependencies, qualification evidence, release archive, or
-operational authorization. A v0.3.1 tag and release commit are not claimed by
-this document unless they are created separately.
-
-## v0.4 Scope Decision
-
-JC Arcaz, the project owner, approved Candidate A as the bounded local-only,
-synthetic non-CUI v0.4 product scope together with its exclusions, engineering
-budgets, and test plan. That owner decision satisfies the only human-approval
-role in this local gate. At the gate revision, implementation remained blocked until the
-source-grounded compatibility review, deterministic Gate 0 validation, exact
-manifest binding, dependency and generator locks, and intended-change-set
-checks passed. Those criteria and Gates 1-5 later passed, and v0.4.0 is now
-accepted. Broader next-generation organization, mission, protected-data,
-deployment, and compliance decisions remain outside this gate and are not
-claims made by the owner decision.
-
-Combining Candidate A with Candidate B would materially increase migration,
-recovery, UI, and verification risk. The draft therefore defers Candidate B
-rather than silently combining the two.
-
-The `NG-WP-00` through `NG-WP-08` packages below are also cross-version
-planning units. Their addition to this roadmap does not place RBAC startup, web
-or backend modernization, controller handover, the GUI User Manual, NIST evidence,
-HA/DR, or integrated acceptance into v0.4 without a revised and approved v0.4
-pre-implementation gate.
-
-### Candidate A - Typed Simulator Driver and Context Foundation
-
-**Status:** Accepted at annotated tag `v0.4.0`; Final 74/74 tests and 209/209
-assertions passed with no accepted exceptions.
-
-This direction is explicitly carried forward by the accepted v0.3 planning
-record and is the architectural prerequisite for later documented simulator
-language, operator, and driver-service conformance.
-
-Intended deliverables:
-
-- A versioned protobuf/gRPC lifecycle contract with deterministic generated
-  code, bounded typed messages, explicit compatibility rules, and stable
-  server-profile, driver-host-generation, context-generation, execution,
-  execution-attachment-generation, driver-binding, and operation identity.
-- One bundled deterministic simulator driver in a separate non-root, read-only
-  host with no published port, project-database access, public route, mission
-  route, or arbitrary endpoint configuration.
-- Separate host, context-binding, execution-attachment, capability setup/cleanup,
-  and operation lifecycles with typed handshake, health, cancellation, and
-  reconciliation behavior only.
-- Typed host-profile, context-binding, and execution-attachment configuration
-  with explicit precedence, schema versions, separate immutable
-  digests/generations, out-of-band secret references, and named host/per-context
-  capacity.
-- Mutual service authentication, granular service/method/modifier/mutability/
-  stream capabilities, least privilege, and a supervisor-owned gateway. The
-  browser and procedure worker receive no usable driver identity.
-- Stable operation identity, structured errors, deadlines, generation fencing,
-  immutable attempt history, lexicographic attempt/stage progress, retained
-  certainty evidence, durable reconciliation, and no automatic resend of
-  `EFFECT_POSSIBLE` or `EFFECT_UNKNOWN` work.
-- A private bounded simulator-host idempotency journal for restart deduplication
-  without project-database access; full/corrupt storage fails closed, IDs are
-  generation-bound and never reused, and the control plane remains canonical.
-- Persist-before-publish driver audit state, authenticated read-only API/2D
-  console projection, simulator conformance fixtures, and fault injection at
-  every lifecycle boundary.
-- Ordered SQLite/PostgreSQL migrations and version-isolated qualification,
-  SBOM, audit, and reproducible-package evidence.
-- An approved next-generation design and documentation-conformance baseline
-  that inventories every documented
-  language construct/public name/type/outcome, server configuration, driver
-  contract/status, operator/development workflow/view, build/deployment
-  concept, example, ambiguity, safe deviation, target phase, and test without
-  implementing those services.
-
-Minimum exit evidence:
-
-- Contract compatibility, deterministic generation, malformed/oversized input,
-  capability mismatch, and explicit unsupported-service tests.
-- Exact nine-RPC descriptor/handshake allowlisting, absence of all future
-  service capabilities/payloads, and proof that v0.3 `Telemetry` produces zero
-  execution-correlated driver activity against a baselined active host.
-- Context/execution binding, configuration precedence/digest, setup/cleanup
-  order, capacity exhaustion, and host-versus-procedure-state separation tests.
-- Mutual-identity, rotation, secret-canary, topology, network-matrix, and
-  direct-browser/worker denial tests under the approved worker-isolation model.
-- Driver/API/database crash and partition tests across acceptance, dispatch,
-  simulator effect, persistence, publication, cancellation, late response,
-  restart, and shutdown boundaries.
-- Proof that each operation/attempt identity produces one durable disposition,
-  that `EFFECT_POSSIBLE` and `EFFECT_UNKNOWN` are visible and enter
-  reconciliation, and that a new attempt is never authorized without
-  authoritative `NO_EFFECT` evidence.
-- Fresh/populated/repeat/failure/rollback migration tests on SQLite and
-  PostgreSQL, plus complete v0.3 regression, real-browser, accessibility,
-  performance, audit, distinct-SBOM, install/disable/upgrade/rollback/uninstall,
-  declared-platform, and reproducible-package gates.
-
-Explicit exclusions:
-
-- All telemetry and telecommand driver services, high-rate subscriptions, and
-  routing of existing `Telemetry` or other procedure steps through the host.
-- New procedure syntax or SDK calls, live/legacy GCS access, spacecraft or
-  mission connectivity, arbitrary endpoints, externally effective operations,
-  or operational deployment claims.
-
-Entry-gate state:
-
-- Satisfied: project-owner approval of Candidate A as the sole v0.4 scope, its
-  exclusions, local budgets, and test plan.
-- Satisfied: bounded non-executing IR and strict mTLS credential separation,
-  with the shared local development route treated as an approved synthetic-
-  scope residual risk and authentication required to fail closed.
-- Outside this gate: organization-only next-generation decisions, proposed ADR
-  acceptance, mission/protected-data/deployment decisions, and role-based
-  sign-offs other than the project owner.
-- Satisfied: exhaustive source-grounded compatibility and errata validation,
-  including independent review and exact count/digest reconciliation.
-- Satisfied: exact manifest binding and pinned Python 3.13 Gate 0 qualification.
-- Satisfied at release: dependency/generator locks, the intended product change
-  set, every approved Gate 1-5 result, release commit
-  `4546d313a2d8f50504b2bc602d56b3b459ca7597`, and annotated tag `v0.4.0`.
-
-### Candidate B - Durable Operator Decisions
-
-**Status:** Deferred from v0.4 and assigned to the broader documented prompt
-and operator-control scope proposed for v0.6.
-
-This candidate is motivated by complex prompt-driven procedures: v0.3 prompts
-block and audit a response, but the selected value cannot become typed procedure
-state or drive later deterministic control flow.
-
-Intended deliverables:
-
-- Statically typed prompt-result binding for bounded choice and confirmation
-  prompts while preserving existing unbound prompt behavior.
-- Atomic persistence of prompt outcome, actor, typed value, variable
-  checkpoint, and selected branch.
-- Deterministic recovery and replay across competing responses, disconnect,
-  process loss, and restart.
-- Only a successfully answered bounded choice or confirmation becomes procedure
-  data. Non-answer outcomes remain execution-control outcomes and are never
-  assigned to a procedure variable in this candidate.
-- Complete as-run reconstruction of prompt, response, variable, source line,
-  and chosen branch.
-
-Minimum exit evidence:
-
-- Parser, IR-version, type, bound, and backward-compatibility tests.
-- Crash and race tests at reservation, response, checkpoint, branch, and
-  publication boundaries proving one durable outcome.
-- Authorization, idempotency, revision, reconnect, recovery, and report tests.
-- Accessible desktop/mobile real-backend execution of a prompt-rich procedure.
-- Complete v0.3 regression, migration, browser, audit, and package gates.
-
-Explicit exclusions:
-
-- Arbitrary free-form data types, secrets/password prompts, persistent
-  authoring, new timeout/cancel/controller-loss policies, long-procedure flow
-  redesign, live integrations, externally effective commands, and operational
-  claims unless separately approved.
-
-## Next-Generation Governed Work Packages
-
-The following packages translate the new implementation priorities into
-measurable planning units. They span the phases in
-[`quality/IMPLEMENTATION_ROADMAP.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/IMPLEMENTATION_ROADMAP.md)
-and are not silently added to candidate v0.4. Each remains Candidate or Blocked
-until its central requirements, owner, dependencies, exclusions, tests, and
-entry gate are approved. A package result is valid only for the exact artifact,
-configuration, environment, and evidence digest recorded at its gate.
-
-### Experimental Pre-Gate Activity
-
-| ID | Status | Bounded result | Explicit non-result |
-| --- | --- | --- | --- |
-| `NG-PROT-001` | Prepared in the working tree; not a product work package or release | Pure startup-policy evaluation for the three primary roles, safe multi-role selection, principal-scoped capability narrowing, restrictive policy, bounded decision/session/reauthentication expiry, deterministic audit-event candidates, and fail-closed invalid input; 63 focused Python 3.13 tests and the complete current regression passed on 2026-07-18 | No runtime authority, lease, fence, API/frontend/auth integration, durable audit, NIST claim, `MODE` acceptance, `NG-WP` completion, G0 approval, deployment approval, or operational authorization |
-| `NG-PROT-002` | Prepared in the working tree; bounded continuation only | Authenticates the unchanged accepted v0.3 local JWT shape inside the experimental boundary; provisionally maps `viewer` to Monitoring and `operator` to Controller, denies `admin`, has no Developer mapping, consumes only server-owned policy/scope fixtures, preserves exact authorization time, derives a role-sensitive purpose-separated session surrogate, and records mapping provenance in a non-durable audit candidate; 96 combined experimental Python 3.13 tests, 209 complete backend tests, and 13 unchanged frontend tests passed on 2026-07-18; one PostgreSQL-only test skipped and the frontend production build succeeded | Not an authoritative identity/policy adapter or signed session bootstrap; no product route, token-policy/schema change, runtime or repository authority, lease, fence, durable audit, cache contract, NIST claim, `MODE` acceptance, `SEC` acceptance, `NG-WP` completion, G0 approval, deployment approval, or operational authorization; pre-evaluation authentication failures still lack an audit candidate |
-
-The prototypes may inform later broader work, but they shall not be wired into
-the v0.4 product or expanded into another integration prototype. Local Gate G0
-passes; the mandatory next step is implementation and qualification of the
-exact Candidate A boundary. Broader identity, handover, mission, compliance,
-deployment, and organization-approval work remains outside this v0.4 gate.
-
-### NG-WP-00 Gate Readiness
-
-| Evidence area | Current result | Remaining gate condition |
-| --- | --- | --- |
-| Central requirement register | 366 unique, contiguous broader-spec IDs remain traceable | Informational for v0.4; per-row organization approval is not required by the local gate |
-| Per-ID implementation allocation | 366 rows remain digest-bound and are generated as `OUTSIDE_LOCAL_V04_GATE` | No local blocker; the rows remain available for later broader work |
-| Documentation/source checks | Seven unique supplied-source hashes, 304-page reconciliation, and exhaustive-catalog review pass | Retain deterministic validation and exact source bindings |
-| Phase-entry decisions | Ten organization/mission/deployment decisions remain in the broader register | Outside the local synthetic non-CUI v0.4 gate |
-| Accountability | Broader-spec role codes and composite owner rows remain recorded | Outside the local gate; JC Arcaz is the only required approval role |
-| Architecture and compatibility | Exhaustive seven-source disposition catalog covers all 195 Language Reference examples; review and exact count/digest reconciliation pass for 1,682 rows | Owner-record manifest binding passes |
-| G0 disposition | Owner scope decision, compatibility review, manifest, and Python 3.13 qualification pass | `PASS`; authorizes bounded product engineering only, with no release, operational, deployment, or compliance claim |
-
-The controlling evidence is
-[`quality/G0_READINESS_PACKAGE.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/G0_READINESS_PACKAGE.md)
-and its generated
-[`G0_READINESS_REPORT.json`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/G0_READINESS_REPORT.json).
-The recorded project-owner decision, passing technical validation, and exact
-deterministic file manifest establish the local `PASS` result. The manifest is
-integrity evidence, not a signature.
-
-| ID | Candidate outcome | Depends on | Measurable gate |
-| --- | --- | --- | --- |
-| `NG-WP-00` | Approve the next-generation specification delta and allocate every central requirement family to implementation and evidence. | Named approvers, closed entry decisions, compatibility rows, and complete allocation/approval of `MODE-023..MODE-027` and registered `DOC-011` | Record exact per-family counts; map 100 percent of central IDs to owner, design, package, phase, test/result target, and gate; report zero orphan, duplicate, missing, or unapproved normative rows; sign G0. |
-| `NG-WP-01` | Start each authenticated web session from server-evaluated RBAC and attributes without treating role, selected mode, or controller lease as the same authority. | `NG-WP-00`, `MODE-023`, `MODE-024`, `MODE-027`, IdP/session policy, approved role/attribute/domain/environment/mode matrix | Test every approved single-role and multi-role matrix row and negative row; prove the baseline single-role mapping opens Controller in Execution, Monitoring in Monitoring, and Developer in Edit, while Controller without a valid lease remains visibly non-authorizing. Prove browser-inferred or client-selected roles cannot elevate access, excluded capabilities do not merge, revocation is effective, no startup response grants a lease, and every allow/deny/mode decision is audited. |
-| `NG-WP-02` | Modernize the Python backend around authoritative PostgreSQL transactions, typed internal services, REST mutations, WebSocket projections, migrations, audit, and isolated execution/driver boundaries. | `NG-WP-00`, state/schema/API decisions, identity/secrets, migration and rollback design | Contract, migration, contention, restart, authorization, idempotency, durability, audit-correlation, isolation, and rollback suites pass; browsers/workers have no direct database, driver, or GCS route. |
-| `NG-WP-03` | Modernize the responsive web UI for Execution, Monitoring, Edit, and Replay workflows, real-time state, navigation, accessibility, and Git promotion. | `NG-WP-01`, `NG-WP-02`, approved workflows, API/event schemas, browser/workload profile | Supported viewport/browser, WCAG 2.2 AA, role/mode negative, stale/gap/reconnect, load, Git promotion/rollback, and representative mission-operator acceptance pass. |
-| `NG-WP-04` | Implement normal controller handover as a secure two-party transaction with complete audit; keep forced takeover as a distinct break-glass path. | `NG-WP-01`, `NG-WP-02`, approved `MODE-025..MODE-027`, lease/fence state model, client proof, step-up policy, durable audit | Two distinct authenticated principals complete current-holder approval and subsequent request-bound acknowledgement by the named requester; one transaction terminalizes the old grant, creates the new active lease and higher fence, changes authoritative modes, preserves unresolved effects, and rejects stale/replayed decisions. Model, race, failover, cancellation, and revocation tests pass, and every attempt has a correlated tamper-evident audit chain for both actors, each decision, and the old/new authority. |
-| `NG-WP-05` | Finalize and accept the existing Draft GUI User Manual source and accessible PDF for the accepted web application. | Produced `DOC-011` Draft artifacts, stable accepted `NG-WP-03` and `NG-WP-04` workflows, exact build identity, and approved audience/classification/publication path | The controlled source and `SPELL_GUI_USER_MANUAL.pdf` bind to the exact accepted product/specification versions and digests. A coverage matrix documents 100 percent of approved critical startup, mode, handover, execution, monitoring, Edit/Git, prompt, alarm, degraded/recovery, and support workflows. Link/metadata/accessibility checks, rendered-page inspection, secret/CUI scan, screenshot-to-build verification, digesting, and representative operator sign-off pass with no critical documentation defect. |
-| `NG-WP-06` | Build deployment-specific NIST SP 800-171 Rev. 3 implementation and SP 800-171A Rev. 3 assessment evidence. | Governing applicability and operated-on-behalf decisions, CUI boundary/flows, SSP, ODPs, responsibility/evidence owners, assessment plan, exact deployed baseline | All 17 families, every pinned SP 800-171 requirement, and every applicable 171A determination statement have authority, implementation, owner, method, evidence digest, result, and finding/POA&M/risk disposition; zero unresolved applicability or ODP row remains for the asserted scope. SP 800-172 Rev. 3 remains conditional on agency selection, and evidence alone makes no compliance claim. |
-| `NG-WP-07` | Qualify reliability, recovery, fault isolation, graceful degradation, HA/DR where approved, capacity protection, and operational runbooks. | `NG-WP-02`, approved workload/topology, `REL-PAR-*`, RPO/RTO, capacity and degradation decisions | The approved process/host/network/identity/clock/storage/database/site/upgrade/restore failure matrix passes; safety invariants hold; measured service and recovery results meet the approved profile; no mandatory reliability finding remains unresolved. |
-| `NG-WP-08` | Run integrated testing, V&V, documentation acceptance, and the evidence-bound release decision. | All in-scope package results, approved fixtures/environments/workload/evidence schema, named acceptance roles | Bidirectional traceability covers 100 percent of approved requirements through design, implementation, test, result, finding, and approval; required unit, contract, integration, model/property, fault, security, browser, accessibility, performance, recovery, manual, and operator suites pass; G0 through G9 and every required sign-off record pass, block, or an authorized time-bounded exception. |
-
-`NG-WP-00` is the first dependency for the broader next-generation work-package
-sequence. The Draft central register states the role-based startup and two-party
-request/approval/acknowledgement handover contract in `MODE-023..MODE-027`; its
-366 rows retain their broader approval requirements before `NG-WP-01` or
-`NG-WP-04` can enter implementation. Those requirements do not block the bounded
-local Candidate A gate. The candidate compatibility catalog now inventories all
-seven supplied sources, all 304 pages, all 195 Language Reference examples, and
-assigns every artifact to v0.4 or Deferred/`EXCLUDE`. It remains a Gate 0
-technical input until deterministic reconciliation, independent source review,
-and exact digest binding pass; Deferred rows are not implementation, executable-
-fixture, semantic-conformance, operational, or compliance evidence. `DOC-011`
-is registered and allocated, and its Draft
-deliverable is produced as controlled `web/SPELL_GUI_USER_MANUAL.md`, a tagged
-`web/SPELL_GUI_USER_MANUAL-0.1.0-draft.1.pdf`, four concept figures, print CSS, and
-reproducible renderer tools. This resolves the missing atomic obligation and
-Draft-deliverable gap.
-
-The Draft manual has no accepted product-build binding or representative
-operator acceptance. `NG-WP-05` therefore remains a later gate for reconciling
-the manual with accepted `NG-WP-03` and `NG-WP-04` behavior, binding it to the
-exact candidate build and digests, completing publication checks, and obtaining
-the required operator and document approvals.
-
-Package ordering is dependency-driven: `NG-WP-01` and `NG-WP-02` follow G0;
-the web UI and handover follow the accepted authorization/backend contracts;
-the final manual follows accepted UI behavior; NIST and reliability evidence
-accumulate across increments; `NG-WP-08` closes only after every in-scope
-package and requirement-family row has an evidence disposition.
-
-## Proposed Post-v0.4 Sequence
-
-The complete manual review changed the order: documented simulator behavior is
-implemented and proven before any legacy connection. Version numbers remain
-candidate labels until each pre-implementation gate is approved.
-
-### v0.5 - Core Language And Deterministic Runtime
-
-Goal: establish the documented source and execution vocabulary on the bounded
-v0.3 IR without unrestricted Python.
-
-#### Current Gates 0A And 0B
-
-`V05-GATE-0A PASS` authorizes only `V05-IR-001`, a strict independent
-validator/canonicalizer for the existing IR 0.3 contract plus parser
-postvalidation, supervisor persisted-IR preflight before generation or process
-creation, worker preflight before `worker.started` or effect, persisted-byte
-compatibility without migration, and six focused test identities. The gate is
-bound to annotated tag `v0.4.0` and release commit
-`4546d313a2d8f50504b2bc602d56b3b459ca7597`.
-
-This authorization adds no language construct, IR version, API, schema,
-frontend, dependency, driver, source-to-IR reparse/integrity feature, or
-operational scope. Gate 0A itself did not claim implementation. The authorized
-work subsequently produced candidate commit
-`aefa658ce01d49a7879d0471b50425ac3bcf9e2d`. Gate 0B records the candidate and
-all six required identities as qualified and authorizes release closeout for
-that work package only. The canonical work-package validator passes candidate
-`aefa658` against qualification correction/source `ef26e53`, evidence SHA-256
-`86fd7847829b91ea0c2e2328eb9385bae51be8510b3b299e2ff58e49c998c9e9`, four
-suites, six identities, and 949 concrete tests. The `ef26e53` delta changes
-only Docker inspection test timeout metadata. Product metadata is now `0.5.0`,
-while procedure IR 0.3, API v1, report schema 0.3, and the unchanged driver
-implementation identity `0.4.0` remain stable.
-
-Gate 0B was not by itself final release acceptance. The later supply-chain
-result, four SBOMs, deterministic package and sidecar, Final validation,
-release commit, and annotated tag passed, so `v0.5.0` is now accepted. The
-remaining bullets in this section are still candidate release properties
-beyond Gates 0A/0B and require a later entry decision.
-
-Candidate release properties beyond Gates 0A/0B:
-
-- Declare a safe Python 3 compatibility profile for expressions, collections,
-  conditions, bounded loops/functions, and stable source-line diagnostics.
-- Add typed `TIME`/`NOW` constructs, deterministic clocks, common modifier
-  configuration, and distinct failure/false/operator/control outcomes.
-- Add `Display`, `Notify`, `Step`, `DisplayStep`, `Pause`, `Abort`, `Finish`,
-  safe scope-resolved `Goto`, `DataContainer`, `Var`, `ARGS`, `IVARS`, and
-  `PROC` compatibility.
-- Map documented procedure states to explicit durable modern states; do not
-  confuse them with driver-host health.
-- Preserve original failure/false evidence when compatibility `SKIP` changes
-  control flow; never invent external success, automatically `RESEND` after a
-  possible effect, or suppress canonical audit because `Notify=False` hides
-  optional presentation.
-
-Exit gate: the claimed construct/function/modifier rows pass parser, IR,
-checkpoint, restart, source-identity, errata, and golden-trace tests.
-
-### v0.6 - Durable Operator Workspace And Procedure Composition
-
-Goal: preserve the documented context, catalog, multi-instance, control,
-prompt, monitoring, scheduling, source, log, and subprocedure workflows in the
-simulator-only 2D workspace.
-
-Current disposition: the owner explicitly approved the exact bounded scope in
-[`SPELL_v0.6_Pre-Implementation.md`](SPELL_v0.6_Pre-Implementation.md).
-`V06-GATE-0A PASS` authorized the following work packages. Candidate commit
-`0ea26105e72d7830de4a265989ed7d9074ffbe09` and canonical evidence SHA-256
-`16bfa10273d8934c297d20535b848df9396c4d6e9b2382f41d3bedd7b76fc538`
-now bind ten passing suites and all 45 required identities. `V06-GATE-0B PASS`
-records all nine work packages as `IMPLEMENTED_AND_QUALIFIED` and authorizes
-release closeout. Final qualification, four v0.6 SBOMs, supply-chain evidence,
-the deterministic package and committed sidecar, and release-evidence
-validation passed. Annotated tag `v0.6.0` now fixes release commit
-`05ec783a6e54a76e0548bdd536c18538f6bff51b` as the accepted v0.6.0 release
-with no accepted exceptions.
-
-| Planned identity | Bounded requirement and acceptance focus |
-| --- | --- |
-| `V06-OP-001` | Context selection/attachment, immutable catalog resolution, procedure properties/history, stable multi-instance identity, and Master view |
-| `V06-OP-002` | `C/M/B` modes, read-only monitoring, durable control leases, fencing, loss behavior, and authorized reacquisition |
-| `V06-OP-003` | Approved state/command/safe-point matrix for run, step, step-over, pause, skip, goto, reload, background, stop, abort, recover, and deliberate kill rejection |
-| `V06-OP-004` | Typed durable `Prompt` family, validation/defaults/warnings, commit/reset/abort, setting scope, one outcome, and controller-loss recovery |
-| `V06-OP-005` | Durable relative and absolute schedules with validation, cancellation, restart recovery, and exactly one start disposition |
-| `V06-OP-006` | Source/text/as-run/support-log views, outline/search/navigation, breakpoints/run-to-line, typed inspection, safe-state audited edits, and bounded non-evaluating console |
-| `V06-OP-007` | Durable named user actions limited to allowlisted safe-point behavior, with authorization, idempotency, and audit |
-| `V06-OP-008` | Immutable `StartProc` library resolution and durable parent-child identity, depth/cycle limits, crash handling, and restart recovery |
-| `V06-OP-009` | Cross-feature desktop/mobile workflows, competing control, prompt/schedule races, disconnect/restart, recovery, certainty preservation, and arbitrary-code-execution rejection |
-
-Required properties:
-
-- Context selection/attachment, procedure catalog/properties/history, stable
-  instance identity, Master view, `C/M/B` ownership, and strictly read-only
-  monitor mode.
-- Approved state/command matrix for run, step, step-over, pause, skip, goto,
-  reload, abort, recover, background, stop, and any deliberately rejected kill.
-- Full documented `Prompt` type family with validation, defaults, warning
-  timers, commit/reset/abort, context-versus-execution settings, one durable
-  outcome, controller-loss pause, and lease reacquisition.
-- Relative/absolute scheduling; source/text/as-run/support-log views; outline,
-  search, and nested procedure navigation.
-- Breakpoints, run-to-line, typed variable/`ARGS`/`IVARS`/shared-data
-  inspection, safe-state-limited audited edits, and a bounded inspection
-  console; expression/function evaluation and arbitrary procedure-scope shell
-  execution remain forbidden.
-- Durable named user actions that invoke only allowlisted safe-point behavior,
-  never arbitrary asynchronous Python.
-- Immutable procedure-library resolution and durable `StartProc` parent-child
-  state with depth, cycle, crash, and restart rules.
-
-Exit gate: desktop/mobile operator workflows, competing control, prompt races,
-disconnect/restart, scheduling, inspection/edit safety, user actions, and
-parent-child recovery match the approved manual behavior matrix without
-arbitrary code execution. `SKIP` and any hard termination retain original
-failure/effect certainty; no kill action implies a clean external state.
-
-### v0.7 - Simulator Read-Only Observation And Condition Engine
-
-Goal: implement the documented read-only TM and driver-time contract against
-the bundled deterministic simulator.
-
-Current disposition: [`V07-GATE-0A PASS`](SPELL_v0.7_Pre-Implementation.md)
-authorizes implementation of exactly `V07-OBS-001` through `V07-OBS-009` and
-their 45 planned proof identities. The manifest and six planning matrices under
-`contracts/v07` are hash-bound authorization inputs. Candidate
+| v0.8 | Data and Local Service Compatibility | Product | Accepted at annotated tag `v0.8.0`; no accepted exceptions | Add documented dictionaries, databases, shared data, virtual-root files, immutable dependencies, and durable local state. | Final nine-suite qualifi…8972 tokens truncated…ts. Candidate
 `82b497227aff097db9d4c3ff56adf56d76d892ca` implements those nine packages,
 including the additive read-only driver service, durable observation and
 condition state, procedure broker, APIs, frontend, and qualification tooling.
@@ -791,16 +334,15 @@ backup/restore, and migration tests pass for the claimed APIs.
 Goal: deliver the documented offline development workflows as a separate web
 surface and controlled promotion pipeline.
 
-Current disposition: [`V09-GATE-0A PASS`](SPELL_v0.9_Pre-Implementation.md)
-authorizes exactly `V09-DEV-001` through `V09-DEV-009` and their 45 planned
-proof identities under scope profile
-`LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`. The gate claims zero
-implemented constructs and zero runtime artifacts at its authorization-time
-boundary. At candidate source freeze, the bounded implementation, canonical
-v0.9 qualification/release tooling, and exact product inventory were frozen
-together. At that boundary, canonical candidate qualification had not yet run;
-Gate 0B, Final evidence, packaging, release, and acceptance were pending. Later
-acceptance is authoritative only through the strictly validated annotated tag.
+Current disposition: accepted at annotated tag `v0.9.0`, object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c`, which peels to release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`. The earlier
+[`V09-GATE-0A PASS`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) authorized exactly
+`V09-DEV-001` through `V09-DEV-009` and their 45 planned proof identities under
+scope profile `LOCAL_SYNTHETIC_NON_CUI_DEVELOPMENT_ENVIRONMENT`; its historical
+zero-implementation claim remains true at the gate event. Candidate, Gate 0B,
+Final, packaging, and strict annotated-tag validation subsequently passed with
+no accepted exceptions.
 
 Required properties:
 
@@ -819,44 +361,85 @@ Exit gate: authoring accessibility, language-service non-execution,
 project/dictionary compatibility, collaboration, promotion, installation, and
 offline-package tests pass on the declared platform/browser matrix.
 
-### v0.10 - Simulator Auxiliary Service Mutations
+### v0.10 - SPELL 2.4.4 Reference Example Adapter
 
-Goal: add GCS-oriented non-command service families one approved effect class
-at a time, using only deterministic simulators.
+Goal: make every numbered example in SPELL Language Reference 2.4.4 selectable
+from one runnable procedure and prove its independently authored semantic
+adaptation against deterministic simulator oracles.
+
+Current disposition: implemented and locally verified on 2026-08-19 in the
+mutable working tree. The canonical local result is 195 PASS with zero failed,
+skipped, expected-failed, or unresolved examples; the strengthened traceability
+gate contains 257 independently asserted variant subcases across those 195
+examples. Public API and desktop/mobile browser execution are also local
+evidence. This is not a candidate freeze, package, accepted release, or
+annotated-tag endpoint.
 
 Required properties:
 
-- Separate tranches for `Event`, `SetGroundParameter`, `SetResource`, limit and
-  alarm changes, external display intents, optional memory report/image
-  operations, and optional ranging.
-- Stable operation identity, capability-specific authorization, explicit stage
-  and certainty, reconciliation, audit, rollback, and no generic retries.
-- Driver facts and criticality remain separate from supervisor-owned prompts,
-  authorization, persistence, retry policy, and publication.
+- Exactly one bundled procedure with a searchable typed menu for Examples
+  1 through 195 and durable index-to-example routing.
+- A hash-pinned 195-row contract binding the reference authority, source spans,
+  compatibility identities, semantic families, adaptations, expected effects,
+  and success criteria.
+- A generated 257-subcase variant matrix covering all 195 examples, including
+  independent assertions and traces for every documented form and all 46
+  multi-variant examples.
+- Closed IR and runtime operations with no `exec`, `eval`, arbitrary import,
+  shell, network, or live command dispatch.
+- Exact expected-effect coverage for every PASS, including assertion and trace
+  references; Example 195 must query real bundled TM and TC catalog entries and
+  prove catalog provenance, filter bounds, types, directions, and a negative
+  lookup.
+- Direct adapter, worker, public API, and desktop/mobile menu verification with
+  195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, and 0 unresolved.
 
-Exit gate: each service has an independent conformance/fault/security gate; one
-accepted service never implies acceptance of another.
+This profile adapts semantic intent because the reference includes fragments,
+pseudocode, output-only illustrations, and intentionally invalid examples. It
+does not claim verbatim execution of PDF snippets or general SPELL 2.4.4 parser
+compatibility. The previously planned auxiliary-service mutation tranche is
+deferred; simulated effects in this adapter do not authorize or implement live
+service or telecommand routes.
+
+Exit gate: the contract, generator, single procedure, qualification artifact,
+worker/API tests, and real browser proof all pass without waiver.
 
 ### v0.11 - Simulator Telecommand Semantics
 
 Goal: implement the documented `BuildTC` and `Send` surface in a simulator with
 no operational route.
 
+Current disposition: the authorized simulator-only implementation is locally
+qualified in the mutable working tree. Exact multi-suite commands, counts,
+skips, non-applicable historical release checks, and the cold-cache offline
+build limitation are recorded in
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md). This is not a
+candidate freeze, package, accepted release, or annotated-tag endpoint.
+
 Required properties:
 
 - Catalog-backed typed arguments and stable expansion of a logical command into
   ordered uniquely identified elements, including sequences, groups, and blocks.
 - Explicit preflight/critical confirmation, global versus per-command
-  modifiers, time/release/load-only intent, delays, closed-loop verification,
-  and per-element stages.
+  modifiers, time/release/load-only intent, no-real-wait logical scheduling,
+  per-element timeouts, delayed closed-loop verification, tolerance and
+  adjustable-limit intent, and per-element stages.
 - Separate transport, loading, release, acknowledgement, onboard execution,
   verification, disposition, effect certainty, and provider-native detail.
 - No transport-success inference, no `LoadOnly` success inflation, and no
   automatic resend or false success after uncertainty.
+- Durable intent and confirmation, bounded checkpoints, cancellation,
+  crash-boundary recovery, canonical-state integrity checks, and reconciliation
+  without dispatching a second command.
 
-Exit gate: command-corpus, confirmation, duplicate-child, stage, cancellation,
-crash-boundary, uncertainty, reconciliation, and no-resend tests pass entirely
-against deterministic simulators.
+Exit gate result: command-corpus, confirmation, duplicate-child, stage,
+cancellation, crash-boundary, uncertainty, reconciliation, and no-resend tests
+pass against deterministic simulators. The strengthened 195-example/257-variant
+v0.10 gate, current product regression, frontend, browser, build, and image
+checks pass, including all 19 environment-selected PostgreSQL and Docker-Compose
+tests. The implementation record preserves nine historical v0.5-v0.9
+current-root release/package validators as explicit non-v0.11 closeout
+boundaries rather than relabeling them as passes.
 
 ### v0.12 - Read-Only Legacy Observation
 

@@ -28,7 +28,7 @@ creates the annotated `v0.4.0` tag over the fixed release commit.
 
 The owner-approved Candidate A scope is defined by
 [`SPELL_v0.4_Pre-Implementation.md`](SPELL_v0.4_Pre-Implementation.md) and its
-test allocation in [`Test_and_Integration.md`](Test_and_Integration.md). The
+test allocation in [`Test_and_Integration.md`](../../Test_and_Integration.md). The
 candidate is limited to:
 
 - one typed, versioned `spell.driver.v1` infrastructure-lifecycle contract;

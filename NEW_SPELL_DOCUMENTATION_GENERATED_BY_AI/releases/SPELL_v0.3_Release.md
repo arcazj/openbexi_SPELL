@@ -73,25 +73,25 @@ connection, operational command, or mission use.
 | Reproducible package | Two immutable-input builds plus a current-context drift check with identical SHA-256 |
 
 The complete test mapping, environment, and measurement boundaries are in
-[`Test_and_Integration.md`](Test_and_Integration.md). Performance results are
+[`Test_and_Integration.md`](../../Test_and_Integration.md). Performance results are
 local engineering measurements, not operational SLOs.
 
 ## Evidence
 
-- [Combined qualification index](artifacts/v0.3/qualification.json)
-- [Quick qualification component](artifacts/v0.3/qualification-quick.json)
-- [Soak qualification component](artifacts/v0.3/qualification-soak.json)
-- [Native browser stream component](artifacts/v0.3/qualification-browser-stream.json)
+- [Combined qualification index](../../artifacts/v0.3/qualification.json)
+- [Quick qualification component](../../artifacts/v0.3/qualification-quick.json)
+- [Soak qualification component](../../artifacts/v0.3/qualification-soak.json)
+- [Native browser stream component](../../artifacts/v0.3/qualification-browser-stream.json)
 - Typed-language validation console screenshot (not retained as a versioned artifact)
-- [Desktop as-run report](artifacts/v0.2/desktop-as-run-report.png)
-- [Mobile recovered prompt](artifacts/v0.2/mobile-recovered-prompt.png)
+- [Desktop as-run report](../../artifacts/v0.2/desktop-as-run-report.png)
+- [Mobile recovered prompt](../../artifacts/v0.2/mobile-recovered-prompt.png)
 - Session access gate capture: `artifacts/v0.3/session-access.png` (local external
   evidence that was never versioned and is excluded from source packages)
-- [Backend image SBOM](artifacts/sbom/backend.cdx.json)
-- [Proxy runtime image SBOM](artifacts/sbom/proxy.cdx.json)
-- [Frontend builder image SBOM](artifacts/sbom/frontend.cdx.json)
-- [SBOM checksum manifest](artifacts/sbom/SHA256SUMS)
-- [Provenance and dependency review](PROVENANCE.md)
+- [Backend image SBOM](../../artifacts/sbom/backend.cdx.json)
+- [Proxy runtime image SBOM](../../artifacts/sbom/proxy.cdx.json)
+- [Frontend builder image SBOM](../../artifacts/sbom/frontend.cdx.json)
+- [SBOM checksum manifest](../../artifacts/sbom/SHA256SUMS)
+- [Provenance and dependency review](../../PROVENANCE.md)
 
 The release archive is `artifacts/openbexi-spell-v0.3.tar.gz`; its external
 `.sha256` sidecar records the final digest without creating a self-referential
