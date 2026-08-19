@@ -18,9 +18,10 @@ legacy public language and driver interfaces:
 | `SPELL - Language Reference - 2.4.4.pdf` | 2.4.4 | `ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3` |
 | `SPELL - Driver Development Manual - 2.4.4.pdf` | 2.4.4 | `057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5` |
 
-The source bytes remain at `../../SPELL-DOCUMENTATION/` and are not copied
-into this repository without distribution clearance. Hash mismatch is a
-document-control failure.
+The source bytes are stored unchanged at `../../SPELL_DOCUMENTATION/` and are
+mandatory references for forward implementation and delivery decisions. They
+are not copied into this generated documentation tree, runtime images, or
+release packages. Hash mismatch is a document-control failure.
 
 Modern documents may clarify implementation, typing, security, persistence,
 concurrency, and recovery. They shall not silently redefine an authority's

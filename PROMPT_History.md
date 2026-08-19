@@ -6,6 +6,38 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-19 - GitHub Delivery Default
+
+The owner directed that completed repository changes always be committed and
+pushed to the configured GitHub repository when GitHub has not already been
+updated. The durable workflow is to validate the intended scope, stage it
+deliberately, commit it clearly, push the current branch, and verify that the
+remote branch resolves to the local commit. Any remaining worktree change or
+publication blocker must be reported.
+
+This delivery default does not turn a normal GitHub push into an accepted
+release, deployment authorization, compliance result, or operational approval.
+Those states continue to require their explicit release gates and evidence.
+
+## 2026-08-19 - SPELL Documentation Forward Reference Baseline
+
+The owner directed that all documents under `SPELL_DOCUMENTATION/` be used as
+the reference baseline for moving forward with SPELL coding and delivery, and
+that this rule be made explicit in the durable project instructions and other
+affected documentation.
+
+The resulting authority model separates domains. The manuals define the source
+behavior and concepts that future work must address. The AI-generated
+documentation is a controlled, traceable modern interpretation and may not
+silently replace, weaken, omit, or contradict those sources. Approved code,
+contracts, and tests define the implemented modern behavior, while immutable
+release records and validated tags continue to define release status. Ambiguity,
+obsolete mechanisms, unsafe behavior, or intentional incompatibility requires
+an explicit compatibility or architecture decision and corresponding test
+evidence. This direction does not authorize copying legacy code, packaging the
+manuals with the product, live connectivity, deployment, compliance, or
+operational use.
+
 ## 2026-08-19 - Release Record Consolidation
 
 The owner directed all root-level version-specific release Markdown records to

@@ -12,10 +12,13 @@ repository. The current project roadmap identifies a candidate v0.4 typed
 simulator driver/context foundation. `OD-001` requires the product owner to map
 the phases below to release numbers after this specification gate is accepted.
 
-This repository is the authoritative design source for next-generation scope.
-Its current status remains Draft: authority here means that implementation
-planning shall trace to this specification, not that a phase, product release,
-deployment, compliance assertion, or operational connection is approved.
+Every document under the parent repository's `SPELL_DOCUMENTATION/` directory
+is a mandatory source reference for next-generation scope. This generated
+repository is the controlled derived design source: implementation planning
+shall trace through this specification to the applicable manuals and explicit
+compatibility decisions. Its current status remains Draft; neither source nor
+derived-design authority means that a phase, product release, deployment,
+compliance assertion, or operational connection is approved.
 
 The local-only synthetic non-CUI v0.4 Candidate A gate is a bounded profile of
 this roadmap. JC Arcaz is its sole required approval role. The organization,

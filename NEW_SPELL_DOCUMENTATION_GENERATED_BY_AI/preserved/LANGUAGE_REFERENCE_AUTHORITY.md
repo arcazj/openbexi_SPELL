@@ -5,12 +5,12 @@
 | Field | Value |
 | --- | --- |
 | Title | SPELL - Language Reference - Version 2.4.4 |
-| Local evidence | [SPELL - Language Reference - 2.4.4.pdf](../../SPELL-DOCUMENTATION/SPELL%20-%20Language%20Reference%20-%202.4.4.pdf) |
+| Local evidence | [SPELL - Language Reference - 2.4.4.pdf](../../SPELL_DOCUMENTATION/SPELL%20-%20Language%20Reference%20-%202.4.4.pdf) |
 | Pages reviewed | 118 of 118 |
 | SHA-256 | `ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3` |
 | Authority domain | Language syntax, public functions, modifiers, constants, results, actions, and procedure-visible semantics |
-| Editorial state | Unchanged external evidence |
-| Redistribution | Not decided by this repository |
+| Editorial state | Unchanged versioned source reference |
+| Product packaging | Excluded |
 
 This PDF remains the authoritative definition of the SPELL language baseline.
 The generated documentation does not rewrite it. Python 2 examples, ambiguous

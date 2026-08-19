@@ -33,6 +33,13 @@ Descriptive diagrams, examples, notes, and rationale do not override a `shall`
 requirement. A conflict is resolved using `SOURCE_AUTHORITY.md`, then recorded as
 a controlled change.
 
+Every document under the parent repository's `SPELL_DOCUMENTATION/` directory
+is a mandatory source-reference input. This generated specification is a
+controlled interpretation of that source baseline. A requirement or
+descriptive document may modernize an implementation mechanism or establish a
+safe incompatibility only when the source identity, conflict, disposition, and
+verification evidence are recorded together.
+
 `requirements/SYSTEM_REQUIREMENTS.md` is the sole atomic product-requirement
 register. Detailed documents may use `shall` to elaborate an allocated central
 requirement, but that wording cannot create a new obligation. Every normative

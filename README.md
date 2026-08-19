@@ -5,6 +5,13 @@ validating, and executing bounded satellite procedures. It combines a FastAPI
 control plane, isolated procedure workers, PostgreSQL persistence, a React and
 TypeScript operator console, and deterministic simulator services.
 
+Every document under `SPELL_DOCUMENTATION/` is a required source reference for
+future SPELL planning, coding, testing, and delivery. The AI-generated
+documentation translates those sources into controlled modern requirements and
+designs; it does not independently replace or weaken the documented behavior.
+Conflicts and deliberate safety-driven deviations require explicit traceability,
+decision, and test evidence.
+
 The current source tree reports product version `0.11.0`. The latest accepted,
 immutable release is **v0.9.0** at annotated tag `v0.9.0`. The v0.10 and v0.11
 increments are implemented and locally qualified in the mutable source tree,
@@ -319,8 +326,8 @@ integration record.
 | `contracts/` | Versioned machine-readable behavior, compatibility, and gate contracts |
 | `artifacts/` | Qualification, release, browser, SBOM, and reference-example evidence |
 | `scripts/` | Build, qualification, audit, packaging, token, and evidence tools |
-| `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` | AI-generated requirements, architecture, security, web, assurance, and version-specific release records |
-| `SPELL_DOCUMENTATION/` | Versioned legacy SPELL manuals; explicitly ignored source archives may also be retained locally |
+| `SPELL_DOCUMENTATION/` | Mandatory source-reference manuals for future SPELL coding and delivery; legacy source archives remain read-only evidence |
+| `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` | Controlled AI-generated interpretation: requirements, architecture, security, web, assurance, and version-specific release records |
 | `tools/` | Standalone legacy SPELL Procedure Compliance Auditor and its own documentation |
 
 The compliance auditor is a separate tool. Its usage, policies, cases, and
@@ -328,6 +335,10 @@ output schema are documented in [tools/README.md](tools/README.md); they do not
 define the root project README.
 
 ## Documentation
+
+The manuals under `SPELL_DOCUMENTATION/` are the forward source-reference
+baseline. Generated documents and implementation artifacts must trace relevant
+behavior, intentional exclusions, and safety strengthening back to them.
 
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): product scope, release status, gates,
   guardrails, and future sequence.
@@ -341,10 +352,20 @@ define the root project README.
   reviewed source authority, precedence, and evidence hashes.
 - [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md):
   index of version-specific planning, gate, implementation, and release records.
+- [SPELL - Language Reference - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Language%20Reference%20-%202.4.4.pdf):
+  primary reference for language syntax and procedure-visible behavior.
+- [SPELL - Driver Development Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Driver%20Development%20Manual%20-%202.4.4.pdf):
+  primary reference for driver services and lifecycle concepts.
+- [SPELL - Server Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Server%20Manual%20-%202.4.4.pdf):
+  source reference for server, context, executor, and configuration concepts.
+- [SPELL - GUI User Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20GUI%20User%20Manual%20-%202.4.4.pdf):
+  source reference for operator workflows and visible behavior.
+- [SPELL - Development Environment Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Development%20Environment%20Manual%20-%202.4.4.pdf):
+  source reference for authoring and development workflows.
 - [SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf](SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf):
-  retained legacy SPELL language manual.
+  supplementary earlier SPELL language manual.
 - [SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf](SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf):
-  retained legacy SPELL development manual.
+  supplementary earlier SPELL development environment manual.
 - [PROVENANCE.md](PROVENANCE.md): source, build, dependency, and release
   provenance records.
 - [PROMPT_History.md](PROMPT_History.md): retained project prompt and decision

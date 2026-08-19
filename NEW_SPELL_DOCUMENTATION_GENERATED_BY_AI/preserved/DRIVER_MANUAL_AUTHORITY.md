@@ -5,12 +5,12 @@
 | Field | Value |
 | --- | --- |
 | Title | SPELL - Driver Development Manual - Version 2.4.4 |
-| Local evidence | [SPELL - Driver Development Manual - 2.4.4.pdf](../../SPELL-DOCUMENTATION/SPELL%20-%20Driver%20Development%20Manual%20-%202.4.4.pdf) |
+| Local evidence | [SPELL - Driver Development Manual - 2.4.4.pdf](../../SPELL_DOCUMENTATION/SPELL%20-%20Driver%20Development%20Manual%20-%202.4.4.pdf) |
 | Pages reviewed | 45 of 45 |
 | SHA-256 | `057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5` |
 | Authority domain | GCS-independent services, lifecycle intent, configuration, telemetry, telecommand, events, resources, time, and related interface vocabulary |
-| Editorial state | Unchanged external evidence |
-| Redistribution | Not decided by this repository |
+| Editorial state | Unchanged versioned source reference |
+| Product packaging | Excluded |
 
 This PDF remains the authoritative functional driver reference. The generated
 documentation preserves its service intent while modernizing typing, process

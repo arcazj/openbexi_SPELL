@@ -71,8 +71,10 @@ That historical gate authorized bounded Candidate A product edits but did not
 itself make a release, operational, deployment, or compliance claim. The later
 v0.4.0 release tag is the accepted product result.
 
-On 2026-07-17, all 304 pages in the seven PDFs under
-`SPELL-DOCUMENTATION/` were reviewed. The evidence inventory, conformance
+On 2026-07-17, all 304 pages in the historical seven-PDF source set were
+reviewed. The five available 2.4.4 behavioral manuals are now versioned under
+`SPELL_DOCUMENTATION/` with two supplementary earlier manuals. The evidence
+inventory, conformance
 policy, documented behavior map, safety deviations, and roadmap consequences
 are recorded in
 [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md). That review
@@ -93,14 +95,17 @@ implementation blueprint. The specification is `0.1.0-draft.1`; only its
 Candidate A-applicable technical boundaries are v0.4 gate inputs. It is not an
 approved product baseline or operational authorization.
 
-For next-generation planning, that repository is the authoritative design
-source for implementation scope, requirement IDs, architecture, security,
-reliability, and acceptance. Its authority prevents this roadmap from inventing
-an alternative design. Its Draft status remains controlling for the broader
-next-generation program. The bounded v0.4 Candidate A gate uses the project-
-owner decision and its own technical evidence; organization, mission,
-assessment, deployment, and authorizing-official approvals are outside that
-local gate. No compliance, deployment, or operational connection is asserted.
+For next-generation planning and delivery, every manual under
+`SPELL_DOCUMENTATION/` is a mandatory source reference for the behavior and
+concepts future work must address. The generated repository is the controlled,
+derived design source for implementation scope, requirement IDs, architecture,
+security, reliability, and acceptance. It may safely modernize mechanisms, but
+it cannot silently override, omit, or weaken the source references. Its Draft
+status remains controlling for the broader next-generation program. The bounded
+v0.4 Candidate A gate uses the project-owner decision and its own technical
+evidence; organization, mission, assessment, deployment, and
+authorizing-official approvals are outside that local gate. No compliance,
+deployment, or operational connection is asserted.
 
 After the owner requested that development move forward on 2026-07-18,
 `NG-PROT-001` and its bounded continuation `NG-PROT-002` were prepared within
@@ -137,6 +142,9 @@ passed; the partial checkpoints are not the current gate disposition.
 The following records remain authoritative when this roadmap conflicts with a
 detailed requirement, test, or release result:
 
+- [`SPELL_DOCUMENTATION/`](SPELL_DOCUMENTATION/) as the mandatory source
+  reference for documented SPELL language, driver, server, operator, and
+  development behavior that future work must address.
 - [`PROMPT_Instructions.md`](PROMPT_Instructions.md) for durable architecture,
   safety, repository, and release rules.
 - [`PROMPT_History.md`](PROMPT_History.md) for approved owner requests and
@@ -146,10 +154,10 @@ detailed requirement, test, or release result:
 - [`SPELL_DOCUMENTATION_REVIEW.md`](SPELL_DOCUMENTATION_REVIEW.md) for the
   supplied-manual inventory, compatibility policy, and documented behavior map.
 - [`NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md)
-  as the authoritative design source for next-generation architecture,
-  security, data, web, operations, and verification scope. While it remains
-  Draft, it cannot override an approved release record or authorize
-  implementation or use.
+  as the controlled derived design source for next-generation architecture,
+  security, data, web, operations, and verification scope. It must trace to the
+  source-reference manuals. While it remains Draft, it cannot override an
+  approved release record or authorize implementation or use.
 - Version pre-implementation and release records for the scope and disposition
   of a particular release.
 - Versioned source, migrations, API schemas, lock files, and tagged evidence for

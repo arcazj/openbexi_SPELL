@@ -2,12 +2,19 @@
 
 ## Purpose
 
-This repository is the authoritative design specification for planning and
-implementing the next generation of SPELL. It preserves the language and
-driver concepts that define SPELL while replacing obsolete implementation,
-desktop, deployment, security, and operational assumptions with a blueprint
-intended to become implementation-ready after Gate G0 entry decisions and
-human approval.
+This directory is the controlled, derived design specification for planning and
+implementing the next generation of SPELL. Every document under the parent
+repository's `SPELL_DOCUMENTATION/` directory is a mandatory source-reference
+input. This specification preserves and traces the language, driver, server,
+operator, and development concepts that define SPELL while replacing obsolete
+implementation, desktop, deployment, security, and operational assumptions
+with a blueprint intended to become implementation-ready after Gate G0 entry
+decisions and human approval.
+
+Generated content does not independently supersede the source manuals. Any
+clarification, safety strengthening, unsupported behavior, or migration must be
+recorded through source authority, compatibility disposition, requirements,
+decisions, and verification evidence.
 
 The specification describes a Python-based execution platform, a responsive
 web application, one logical satellite control domain per satellite, concurrent
@@ -33,14 +40,20 @@ accountable human roles in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) accept it.
 | Approval state | Draft; multidisciplinary review required |
 | Local v0.4 Gate G0 readiness | `PASS`; Candidate A scope, exclusions, budgets, and test plan project-owner approved; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
 
-Authoritative scope does not mean approved implementation or operational
+Derived design authority does not mean approved implementation or operational
 authorization: this baseline remains Draft until the accountable human roles
-accept it. Normative words `shall`, `shall not`, `should`, and `may` have the
-meanings defined in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md). Open values are never
-silently invented: they are assigned an owner and gate in
+accept it. It also cannot silently override a source reference under
+`../SPELL_DOCUMENTATION/`. Normative words `shall`, `shall not`, `should`, and
+`may` have the meanings defined in
+[DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md). Open values are never silently
+invented: they are assigned an owner and gate in
 [quality/OPEN_DECISIONS.md](quality/OPEN_DECISIONS.md).
 
 ## Start Here
+
+Before using this map, inventory and read the applicable source manuals under
+[`../SPELL_DOCUMENTATION/`](../SPELL_DOCUMENTATION/) and confirm their identity
+in [SOURCE_AUTHORITY.md](SOURCE_AUTHORITY.md).
 
 1. Read [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) for authority and approval.
 2. Read [SOURCE_AUTHORITY.md](SOURCE_AUTHORITY.md) for source precedence and
