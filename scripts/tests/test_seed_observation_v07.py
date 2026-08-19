@@ -60,6 +60,7 @@ def test_seed_builds_one_exact_real_driver_context_tuple() -> None:
     assert command.configuration.expected_digest == digest
 
     for release_context_id in (
+        "simulator",
         "v08-telemetry-synthetic-context",
         "v09-telemetry-synthetic-context",
     ):

@@ -25,7 +25,10 @@ from .data_models import (
 )
 from .data_values import TypedValueError, strict_json_loads
 from .migrations import MIGRATIONS, database_version, run_migrations
-from .migrations.versions import v0008_development_environment
+from .migrations.versions import (
+    v0008_development_environment,
+    v0009_procedure_catalog_availability,
+)
 from .virtual_file_service import (
     MAXIMUM_FILE_BYTES as MAXIMUM_VIRTUAL_FILE_BYTES,
     MAXIMUM_ROOT_BYTES as MAXIMUM_VIRTUAL_ROOT_BYTES,
@@ -681,6 +684,7 @@ def _verify_sqlite_database(
                 raise BackupCorruptionError("backup database integrity check failed")
             verify_persisted_schema_fingerprint(connection)
             v0008_development_environment.verify(connection)
+            v0009_procedure_catalog_availability.verify(connection)
             references = _virtual_references(connection)
             verify_data_integrity(
                 connection, virtual_file_reader=virtual_file_reader
@@ -732,6 +736,7 @@ def create_sqlite_backup(
                     )
                 verify_persisted_schema_fingerprint(source)
                 v0008_development_environment.verify(source)
+                v0009_procedure_catalog_availability.verify(source)
                 references = _virtual_references(source)
                 expected_identities = frozenset(references)
                 if _provider_inventory(virtual_file_provider) != expected_identities:
@@ -859,6 +864,7 @@ def create_postgresql_backup(
                     )
                 verify_persisted_schema_fingerprint(source)
                 v0008_development_environment.verify(source)
+                v0009_procedure_catalog_availability.verify(source)
                 table_specs = _postgresql_table_specs(source)
                 if [item["name"] for item in table_specs] != names:
                     raise BackupCorruptionError(
@@ -1451,6 +1457,7 @@ def restore_postgresql_backup(
                 )
             verify_persisted_schema_fingerprint(target)
             v0008_development_environment.verify(target)
+            v0009_procedure_catalog_availability.verify(target)
             restored_references = _virtual_references(target)
             if restored_references != expected_references:
                 raise BackupCorruptionError(

@@ -29,6 +29,7 @@ _TOOLCHAIN_STATIC_FILES = (
     "compose.yaml",
     "backend/Dockerfile",
     "backend/requirements.hashes.lock",
+    "contracts/v10/language_reference_example_matrix.json",
 )
 _TOOLCHAIN_EXCLUDED_DIRECTORIES = frozenset({"tests", "__pycache__"})
 

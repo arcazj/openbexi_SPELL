@@ -16,6 +16,8 @@ RUN python -m pip install --require-hashes -r /tmp/requirements.hashes.lock \
 
 COPY backend /app/backend
 COPY compose.yaml /app/compose.yaml
+COPY contracts/v10 /app/contracts/v10
+COPY contracts/v11 /app/contracts/v11
 COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \

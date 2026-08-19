@@ -44,6 +44,11 @@ NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/**
 !NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/compatibility/scopes/v0.5-gate-0b.json
 __pycache__
 *.py[cod]
+**/__pycache__
+**/__pycache__/**
+**/*.pyc
+**/*.pyo
+**/*.pyd
 .pytest_cache
 .ruff_cache
 .coverage

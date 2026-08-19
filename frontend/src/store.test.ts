@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ApiError, api } from "./api";
 import {
   answerPrompt,
   consoleSlice,
@@ -36,7 +37,76 @@ function testStore() {
   return configureStore({ reducer: { console: consoleSlice.reducer } });
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("console state", () => {
+  it("resnapshots and retries a fresh execution ACQUIRE after a revision conflict", async () => {
+    const created = { ...snapshot, revision: 1 };
+    const advanced = { ...snapshot, state: "PROMPTING" as const, revision: 3 };
+    const controlled = { ...advanced, revision: 4 };
+    vi.spyOn(api, "startExecution").mockResolvedValue(created);
+    const control = vi.spyOn(api, "control")
+      .mockRejectedValueOnce(new ApiError("Execution revision changed", 409))
+      .mockResolvedValueOnce({
+        execution: {
+          id: advanced.id,
+          procedure_id: advanced.procedure_id,
+          procedure_name: advanced.procedure_name,
+          context_id: advanced.context_id,
+          state: advanced.state,
+          revision: advanced.revision,
+          last_sequence: advanced.last_sequence,
+          ownership_mode: "C",
+        },
+        control_lease: null,
+      });
+    const getSnapshot = vi.spyOn(api, "snapshot")
+      .mockResolvedValueOnce(advanced)
+      .mockResolvedValueOnce(controlled);
+
+    const result = await testStore().dispatch(startExecution({
+      procedureId: "checkout",
+      contextId: "simulator",
+    })).unwrap();
+
+    expect(control).toHaveBeenNthCalledWith(1, "exec-1", "ACQUIRE", 1, expect.any(Object));
+    expect(control).toHaveBeenNthCalledWith(2, "exec-1", "ACQUIRE", 3, expect.any(Object));
+    expect(getSnapshot).toHaveBeenCalledTimes(2);
+    expect(result).toEqual(controlled);
+  });
+
+  it("does not retry a fresh execution ACQUIRE for non-conflict failures", async () => {
+    vi.spyOn(api, "startExecution").mockResolvedValue(snapshot);
+    const control = vi.spyOn(api, "control").mockRejectedValue(new ApiError("Forbidden", 403));
+    const getSnapshot = vi.spyOn(api, "snapshot");
+
+    await expect(testStore().dispatch(startExecution({
+      procedureId: "checkout",
+      contextId: "simulator",
+    })).unwrap()).rejects.toMatchObject({ name: "ApiError", message: "Forbidden" });
+
+    expect(control).toHaveBeenCalledTimes(1);
+    expect(getSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("bounds fresh execution ACQUIRE revision-conflict retries", async () => {
+    vi.spyOn(api, "startExecution").mockResolvedValue(snapshot);
+    const control = vi.spyOn(api, "control").mockRejectedValue(new ApiError("Conflict", 409));
+    const getSnapshot = vi.spyOn(api, "snapshot")
+      .mockResolvedValueOnce({ ...snapshot, revision: 2 })
+      .mockResolvedValueOnce({ ...snapshot, revision: 3 });
+
+    await expect(testStore().dispatch(startExecution({
+      procedureId: "checkout",
+      contextId: "simulator",
+    })).unwrap()).rejects.toMatchObject({ name: "ApiError", message: "Conflict" });
+
+    expect(control).toHaveBeenCalledTimes(3);
+    expect(getSnapshot).toHaveBeenCalledTimes(2);
+  });
+
   it("tracks validation independently and ignores a superseded response", () => {
     const store = testStore();
     const args = { procedureId: "checkout", source: "Log('ready')" };

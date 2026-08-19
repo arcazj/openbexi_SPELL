@@ -10,6 +10,31 @@ the engineering checks incorporated by `V04-GATE-0`. Proposed ADR acceptance,
 organization role assignment, connected-system review, GUI-manual publication,
 and other broader unchecked items do not block the local gate.
 
+### Mutable v0.10/v0.11 Application Check
+
+This bounded application note does not change the Draft baseline or the
+accepted v0.9.0 product release.
+
+- [x] The v0.10 traceability records distinguish 195 numbered example outcomes
+  from 257 independently asserted variant subcases.
+- [x] Raw malformed, pseudocode, output-only, placeholder, negative, and
+  intentionally invalid reference snippets are labeled as hash-bound semantic
+  adaptations, not verbatim executable source.
+- [x] The implemented v0.11 boundary is simulator-only and separates
+  confirmation, timing, transport, loading, release, acknowledgement, onboard
+  execution, verification, disposition, certainty, cancellation, recovery, and
+  reconciliation.
+- [x] Record exact commands and results from one consistent final working-tree
+  state in `../../SPELL_v0.11_Implementation.md`.
+- [x] Confirm direct public telecommand API extreme numeric inputs fail with
+  bounded typed diagnostics and no raw exception.
+- [x] Confirm the full v0.10 195-example/257-variant gate, v0.11 command corpus,
+  current product regression, frontend/build/browser, and product-image checks;
+  record every platform selection and historical release-only exclusion.
+- [x] Do not claim a v0.10 or v0.11 candidate, accepted release, package, tag,
+  deployment, compliance result, or operational authorization from mutable
+  working-tree evidence.
+
 - [ ] Repository version, source revision, status, approvers and effective date are fixed.
 - [x] All 304 reviewed source pages and seven file hashes reconcile.
 - [ ] The Language Reference and Driver Manual authority records match their exact bytes.

@@ -910,7 +910,7 @@ def test_backend_restart_reuses_same_epoch_with_no_worker_credential_access() ->
             "POST",
             "/api/v1/executions",
             {
-                "procedure_id": "demo",
+                "procedure_id": "language_reference_244",
                 "context_id": "simulator",
                 "reason": "credential restart isolation probe",
                 "idempotency_key": f"restart-isolation-{uuid.uuid4()}",

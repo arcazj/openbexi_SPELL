@@ -61,12 +61,48 @@ from .ir_v08 import (
     validate_file_handle_reference,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
+from .ir_v11 import (
+    IR_VERSION as V11_IR_VERSION,
+    V11ValidationError,
+    ordinary_prompt_id,
+    telecommand_dependency_variables,
+    validate_ir_v11,
+)
 from .models import Command, Event, Execution, Prompt
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
-from .procedure_parser import IR_VERSION, Procedure, ProcedureCatalog
-from .serialization import command_dict, event_dict, execution_dict, prompt_dict
-from .worker import sanitized_worker_environment, worker_main
+from .procedure_parser import (
+    IR_VERSION,
+    Procedure,
+    ProcedureCatalog,
+    language_profile_for_ir,
+)
+from .serialization import (
+    command_dict,
+    event_dict,
+    execution_configuration_hash,
+    execution_dict,
+    prompt_dict,
+)
+from .telecommand_runtime_v11 import (
+    TelecommandRuntimeError,
+    build_item_checkpoint_for_step,
+    confirmation_prompt_id,
+    execute_preflight,
+    failure_prompt_id,
+    failure_prompt_question,
+    prepare_send_request,
+    result_failure_policy,
+    uncertain_replay_result,
+    validate_result_payload as validate_telecommand_result,
+    validate_send_request,
+)
+from .worker import evaluate_expression, sanitized_worker_environment, worker_main
 
 if TYPE_CHECKING:
     from .operator_service import OperatorService
@@ -91,9 +127,22 @@ _LEGACY_EVENT_REFERENCE_NAMESPACE = uuid.uuid5(
 )
 _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
+_TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION}
 )
+_V11_PROMPT_INPUT_KINDS = {
+    "OK": "FIXED_CHOICE",
+    "CANCEL": "FIXED_CHOICE",
+    "OK_CANCEL": "FIXED_CHOICE",
+    "YES": "FIXED_CHOICE",
+    "NO": "FIXED_CHOICE",
+    "YES_NO": "FIXED_CHOICE",
+    "ALPHA": "TEXT",
+    "NUM": "NUMBER",
+    "DATE": "DATE",
+    "LIST": "LIST",
+}
 
 
 def _legacy_event_reference(value: str | None) -> str | None:
@@ -137,14 +186,11 @@ def canonical_hash(value: dict[str, Any]) -> str:
 
 
 def configuration_hash(procedure: Procedure, context_id: str) -> str:
-    return canonical_hash(
-        {
-            "context_id": context_id,
-            "procedure_hash": procedure.sha256,
-            "procedure_subset_version": f"spell-restricted-ast/{procedure.ir_version}",
-            "steps": list(procedure.steps),
-            "user_actions": list(procedure.user_actions),
-        }
+    return execution_configuration_hash(
+        context_id=context_id,
+        procedure_hash=procedure.sha256,
+        ir_version=procedure.ir_version,
+        steps=procedure.steps,
     )
 
 
@@ -230,6 +276,7 @@ class Supervisor:
         self._startproc_watchers: set[tuple[str, str, int]] = set()
         self._observation_requests: set[tuple[str, str, int]] = set()
         self._data_requests: set[tuple[str, str, int]] = set()
+        self._telecommand_requests: set[tuple[str, str, int]] = set()
         self._abort_cleanup_barriers: set[tuple[str, str]] = set()
         self._recovery_pause_pending: set[str] = set()
         self._prompt_settlement_attempts: dict[str, float] = {}
@@ -601,7 +648,9 @@ class Supervisor:
                 {
                     "procedure_id": procedure.id,
                     "procedure_hash": procedure.sha256,
-                    "procedure_subset_version": f"spell-restricted-ast/{procedure.ir_version}",
+                    "procedure_subset_version": language_profile_for_ir(
+                        procedure.ir_version
+                    ),
                     "configuration_hash": config_hash,
                     "request_hash": creation_request_hash,
                     "user_action_count": len(procedure.user_actions),
@@ -2549,6 +2598,25 @@ class Supervisor:
                 if execution.ir_version in _V06_PLUS_IR_VERSIONS
                 else None
             )
+            if (
+                execution.ir_version == V11_IR_VERSION
+                and 0 <= execution.current_step < len(execution.steps)
+                and execution.steps[execution.current_step].get("type") == "send_tc"
+            ):
+                exact_resume_prompt = self._v11_resume_prompt(session, execution)
+                resume_prompts = []
+                operator_resume_prompts = (
+                    [exact_resume_prompt]
+                    if exact_resume_prompt is not None
+                    and exact_resume_prompt.state == "OPEN"
+                    else []
+                )
+                settled_resume_prompt = (
+                    exact_resume_prompt
+                    if exact_resume_prompt is not None
+                    and exact_resume_prompt.state == "SETTLED"
+                    else None
+                )
             all_resume_prompts = [*resume_prompts, *operator_resume_prompts]
             if not all_resume_prompts and settled_resume_prompt is not None:
                 all_resume_prompts.append(settled_resume_prompt)
@@ -2596,7 +2664,11 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v08
+                    validate_ir_v11
+                    if ir_version == V11_IR_VERSION
+                    else validate_ir_v10
+                    if ir_version == V10_IR_VERSION
+                    else validate_ir_v08
                     if ir_version == V08_IR_VERSION
                     else validate_ir_v07
                     if ir_version == V07_IR_VERSION
@@ -2618,6 +2690,8 @@ class Supervisor:
                 V06ValidationError,
                 V07ValidationError,
                 V08ValidationError,
+                V10ValidationError,
+                V11ValidationError,
             ) as exc:
                 rejection = self._add_event(
                     session,
@@ -2832,6 +2906,10 @@ class Supervisor:
                         self._open_prompt(
                             execution_id, handle.generation, message
                         )
+                    elif kind == "prompt_settlement_consumed":
+                        self._ack_consumed_prompt_settlement(
+                            execution_id, handle.generation, message
+                        )
                     elif kind == "safe_point":
                         self._record_worker_safe_point(
                             execution_id, handle.generation, message
@@ -2872,6 +2950,8 @@ class Supervisor:
                         self._handle_observation_request(execution_id, handle, message)
                     elif kind == "data_requested":
                         self._handle_data_request(execution_id, handle, message)
+                    elif kind == "telecommand_requested":
+                        self._handle_telecommand_request(execution_id, handle, message)
                     else:
                         raise ValueError(f"unsupported worker message kind: {kind!r}")
             except Exception as exc:
@@ -2885,6 +2965,55 @@ class Supervisor:
                     f"{type(exc).__name__}: {exc}",
                 )
                 return
+
+    def _ack_consumed_prompt_settlement(
+        self,
+        execution_id: str,
+        generation: int,
+        message: Mapping[str, Any],
+    ) -> None:
+        service = self.operator_service
+        acknowledge = getattr(service, "ack_prompt_settlement_application", None)
+        if acknowledge is None:
+            raise ConflictError("prompt settlement acknowledgement is unavailable")
+        prompt_id = message.get("prompt_id")
+        settlement_id = message.get("settlement_id")
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(
+                session, execution_id, generation
+            )
+            prompt = (
+                session.get(OperatorPrompt, prompt_id)
+                if type(prompt_id) is str
+                else None
+            )
+            if (
+                execution is None
+                or prompt is None
+                or prompt.execution_id != execution_id
+                or prompt.step_index != execution.current_step
+                or prompt.state != "SETTLED"
+                or prompt.settlement_id != settlement_id
+                or prompt.settlement_outcome != message.get("outcome")
+                or canonical_hash({"value": prompt.settled_value})
+                != canonical_hash({"value": message.get("response")})
+            ):
+                raise ConflictError(
+                    "consumed prompt settlement differs from durable state"
+                )
+            revision = execution.revision
+            current_step = execution.current_step
+        try:
+            acknowledge(
+                prompt_id,
+                settlement_id,
+                execution_revision=revision,
+                current_step=current_step,
+            )
+        except TypeError:
+            acknowledge(prompt_id, settlement_id)
+        with self._lock:
+            self._prompt_settlement_attempts.pop(settlement_id, None)
 
     def _record_worker_safe_point(
         self,
@@ -3511,6 +3640,509 @@ class Supervisor:
                 if published is not None:
                     self.hub.publish(execution_id, published)
             handle.control.put({"type": "observation_result", **delivered})
+        return True
+
+    @staticmethod
+    def _telecommand_event(
+        session: Session,
+        execution_id: str,
+        event_type: str,
+        request_id: str,
+    ) -> Event | None:
+        event = session.scalar(
+            select(Event)
+            .where(
+                Event.execution_id == execution_id,
+                Event.event_type == event_type,
+                Event.correlation_id == request_id,
+            )
+            .order_by(Event.sequence.desc())
+            .limit(1)
+        )
+        if event is not None and (
+            type(event.payload) is not dict
+            or event.payload.get("request_id") != request_id
+        ):
+            raise ConflictError("durable telecommand event identity is inconsistent")
+        return event
+
+    def _v11_resume_prompt(
+        self, session: Session, execution: Execution
+    ) -> OperatorPrompt | None:
+        if (
+            execution.ir_version != V11_IR_VERSION
+            or execution.current_step < 0
+            or execution.current_step >= len(execution.steps)
+        ):
+            return None
+        step = execution.steps[execution.current_step]
+        if step.get("type") != "send_tc":
+            return None
+        request, _, preflight = prepare_send_request(
+            execution.id,
+            execution.current_step,
+            step,
+            execution.variables,
+        )
+        requested = self._telecommand_event(
+            session,
+            execution.id,
+            "procedure.telecommand_requested",
+            request["request_id"],
+        )
+        if requested is not None:
+            durable_request = dict(requested.payload)
+            durable_request.pop(_TELECOMMAND_RUNTIME_BINDING_KEY, None)
+            request, _, preflight = validate_send_request(
+                execution.id,
+                execution.current_step,
+                step,
+                execution.variables,
+                durable_request,
+            )
+            settled = self._telecommand_event(
+                session,
+                execution.id,
+                "procedure.telecommand_result",
+                request["request_id"],
+            )
+            if settled is not None:
+                result = validate_telecommand_result(request, settled.payload)
+                policy = result_failure_policy(request, result)
+                if (
+                    policy is not None
+                    and policy["prompt_user"]
+                    and not policy["uncertain"]
+                ):
+                    prompt = session.get(
+                        OperatorPrompt,
+                        failure_prompt_id(
+                            execution.id,
+                            execution.current_step,
+                            result["result_digest"],
+                        ),
+                    )
+                    if prompt is not None and prompt.state in {"OPEN", "SETTLED"}:
+                        return prompt
+        if preflight.confirmation_required:
+            prompt = session.get(
+                OperatorPrompt,
+                confirmation_prompt_id(
+                    execution.id,
+                    execution.current_step,
+                    preflight.plan.plan_digest,
+                ),
+            )
+            if prompt is not None and prompt.state in {"OPEN", "SETTLED"}:
+                return prompt
+        return None
+
+    @staticmethod
+    def _v11_prompt_declaration(
+        step: Mapping[str, Any], variables: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        try:
+            question = evaluate_expression(step.get("question"), dict(variables))
+        except Exception as exc:
+            raise ConflictError(
+                "v0.11 prompt question cannot be authoritatively evaluated"
+            ) from exc
+        if type(question) is not str or not question:
+            raise ConflictError("v0.11 prompt question is invalid")
+        if "prompt_type" not in step:
+            choices = step.get("choices")
+            return {
+                "prompt_type": "LIST",
+                "input_kind": "LIST",
+                "list_mode": "VALUE",
+                "question": question,
+                "options": [
+                    {"value": choice, "label": choice} for choice in choices
+                ],
+                "message_choices": choices,
+                "default": step.get("default"),
+                "legacy": True,
+            }
+        prompt_type = step.get("prompt_type")
+        input_kind = _V11_PROMPT_INPUT_KINDS.get(prompt_type)
+        if input_kind is None:
+            raise ConflictError("v0.11 prompt type is invalid")
+        return {
+            "prompt_type": prompt_type,
+            "input_kind": input_kind,
+            "list_mode": step.get("list_mode"),
+            "question": question,
+            "options": step.get("choices"),
+            "message_choices": step.get("choices"),
+            "default": step.get("default"),
+            "warning_delay_seconds": step.get("warning_delay_seconds"),
+            "response_timeout_seconds": step.get("response_timeout_seconds"),
+            "no_controller_grace_seconds": step.get("no_controller_grace_seconds"),
+            "legacy": False,
+        }
+
+    @classmethod
+    def _v11_prompt_message_matches(
+        cls,
+        execution: Execution,
+        message: Mapping[str, Any],
+    ) -> bool:
+        step_index = execution.current_step
+        if not 0 <= step_index < len(execution.steps):
+            return False
+        step = execution.steps[step_index]
+        if step.get("type") != "prompt":
+            return False
+        variables = dict(execution.variables) if type(execution.variables) is dict else {}
+        variables.setdefault("ARGS", {})
+        try:
+            should_run = (
+                True
+                if step.get("guard") is None
+                else evaluate_expression(step["guard"], variables)
+            )
+        except Exception as exc:
+            raise ConflictError(
+                "v0.11 prompt guard cannot be authoritatively evaluated"
+            ) from exc
+        if should_run is not True:
+            return False
+        declaration = cls._v11_prompt_declaration(step, variables)
+        if (
+            message.get("prompt_id") != ordinary_prompt_id(execution.id, step_index)
+            or message.get("step_index") != step_index
+            or message.get("question") != declaration["question"]
+            or message.get("choices") != declaration["message_choices"]
+            or message.get("default") != declaration["default"]
+        ):
+            return False
+        if declaration["legacy"]:
+            return "prompt_type" not in message
+        return (
+            message.get("prompt_type") == declaration["prompt_type"]
+            and message.get("list_mode") == declaration["list_mode"]
+            and message.get("warning_delay_seconds")
+            == declaration["warning_delay_seconds"]
+            and message.get("response_timeout_seconds")
+            == declaration["response_timeout_seconds"]
+            and message.get("no_controller_grace_seconds")
+            == declaration["no_controller_grace_seconds"]
+        )
+
+    @classmethod
+    def _v11_operator_prompt_matches(
+        cls,
+        execution: Execution,
+        prompt: OperatorPrompt,
+        step_index: int,
+        variables: Mapping[str, Any],
+    ) -> bool:
+        step = execution.steps[step_index]
+        declaration = cls._v11_prompt_declaration(step, variables)
+        expected_id = ordinary_prompt_id(execution.id, step_index)
+        return (
+            prompt.id == expected_id
+            and prompt.execution_id == execution.id
+            and prompt.step_index == step_index
+            and prompt.prompt_type == declaration["prompt_type"]
+            and prompt.input_kind == declaration["input_kind"]
+            and prompt.list_mode == declaration["list_mode"]
+            and prompt.question == declaration["question"]
+            and prompt.options == declaration["options"]
+            and prompt.default_value == declaration["default"]
+            and prompt.legacy_prompt_id
+            == (expected_id if declaration["legacy"] else None)
+        )
+
+    @staticmethod
+    def _telecommand_yes_no_prompt_matches(
+        prompt: OperatorPrompt, question: str
+    ) -> bool:
+        return (
+            prompt.prompt_type == "YES_NO"
+            and prompt.input_kind == "FIXED_CHOICE"
+            and prompt.list_mode is None
+            and prompt.options == ["YES", "NO"]
+            and prompt.default_value == "NO"
+            and prompt.question == question
+            and type(prompt.settled_by) is str
+            and prompt.settled_by == prompt.settled_by.strip()
+            and 1 <= len(prompt.settled_by) <= 200
+            and prompt.settled_by != "operator-reconciler"
+        )
+
+    @staticmethod
+    def _telecommand_confirmation_actor(
+        session: Session,
+        execution_id: str,
+        step_index: int,
+        request: Mapping[str, Any],
+        *,
+        required: bool,
+    ) -> str | None:
+        evidence = request.get("confirmation")
+        if not required:
+            if evidence is not None:
+                raise ConflictError("unexpected telecommand confirmation evidence")
+            return None
+        if type(evidence) is not dict or set(evidence) != {"prompt_id"}:
+            raise ConflictError("durable telecommand confirmation is required")
+        expected_prompt_id = confirmation_prompt_id(
+            execution_id, step_index, request["plan"]["plan_digest"]
+        )
+        prompt = session.get(OperatorPrompt, evidence["prompt_id"])
+        if (
+            evidence["prompt_id"] != expected_prompt_id
+            or prompt is None
+            or prompt.execution_id != execution_id
+            or prompt.step_index != step_index
+            or not Supervisor._telecommand_yes_no_prompt_matches(
+                prompt,
+                "Confirm deterministic simulator telecommand plan "
+                f"{request['plan']['plan_id']}",
+            )
+            or prompt.state != "SETTLED"
+            or type(prompt.settlement_id) is not str
+            or not prompt.settlement_id
+            or prompt.settlement_outcome != "ANSWERED"
+            or prompt.settled_value != "YES"
+            or type(prompt.settled_by) is not str
+            or not prompt.settled_by
+            or prompt.settled_by == "operator-reconciler"
+        ):
+            raise ConflictError("telecommand confirmation settlement is invalid")
+        actor_digest = hashlib.sha256(prompt.settled_by.encode("utf-8")).hexdigest()
+        return f"operator-{actor_digest[:32]}"
+
+    def _handle_telecommand_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        message: dict[str, Any],
+    ) -> None:
+        request_payload = {
+            key: value
+            for key, value in message.items()
+            if key not in {"kind", "generation"}
+        }
+        published: list[dict[str, Any]] = []
+        replay: dict[str, Any] | None = None
+        created = False
+        confirmation_actor: str | None = None
+        service = None
+        preflight = None
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(
+                session, execution_id, handle.generation
+            )
+            step_index = request_payload.get("step_index")
+            if (
+                execution is None
+                or execution.ir_version != V11_IR_VERSION
+                or type(step_index) is not int
+                or step_index != execution.current_step
+                or step_index < 0
+                or step_index >= len(execution.steps)
+            ):
+                raise ConflictError(
+                    "telecommand request does not target the current v0.11 step"
+                )
+            request, service, preflight = validate_send_request(
+                execution_id,
+                step_index,
+                execution.steps[step_index],
+                execution.variables,
+                request_payload,
+            )
+            confirmation_actor = self._telecommand_confirmation_actor(
+                session,
+                execution_id,
+                step_index,
+                request,
+                required=preflight.confirmation_required,
+            )
+            request_id = request["request_id"]
+            requested = self._telecommand_event(
+                session,
+                execution_id,
+                "procedure.telecommand_requested",
+                request_id,
+            )
+            if requested is None:
+                durable_request = {
+                    **request,
+                    _TELECOMMAND_RUNTIME_BINDING_KEY: {
+                        "worker_generation": handle.generation,
+                        "confirmation_actor": confirmation_actor,
+                    },
+                }
+                event = self._add_event(
+                    session,
+                    execution,
+                    "procedure.telecommand_requested",
+                    durable_request,
+                    source="worker",
+                    correlation_id=request_id,
+                )
+                session.commit()
+                published.append(event_dict(event))
+                created = True
+            else:
+                stored_request = dict(requested.payload)
+                binding = stored_request.pop(_TELECOMMAND_RUNTIME_BINDING_KEY, None)
+                request, service, preflight = validate_send_request(
+                    execution_id,
+                    step_index,
+                    execution.steps[step_index],
+                    execution.variables,
+                    stored_request,
+                )
+                if (
+                    type(binding) is not dict
+                    or set(binding) != {"worker_generation", "confirmation_actor"}
+                    or type(binding["worker_generation"]) is not int
+                    or binding["worker_generation"] > handle.generation
+                    or binding["confirmation_actor"] != confirmation_actor
+                ):
+                    raise ConflictError(
+                        "durable telecommand runtime binding is invalid"
+                    )
+
+            settled = self._telecommand_event(
+                session,
+                execution_id,
+                "procedure.telecommand_result",
+                request_id,
+            )
+            if settled is not None:
+                replay = validate_telecommand_result(request, settled.payload)
+            else:
+                key = (execution_id, request_id, handle.generation)
+                if key in self._telecommand_requests:
+                    return
+                self._telecommand_requests.add(key)
+
+        self._publish(execution_id, published)
+        if replay is not None:
+            handle.control.put({"type": "telecommand_result", **replay})
+            return
+
+        threading.Thread(
+            target=self._resolve_telecommand_request,
+            args=(
+                execution_id,
+                handle,
+                request,
+                service,
+                preflight,
+                confirmation_actor,
+                created,
+            ),
+            name=f"spell-telecommand-{execution_id[:8]}-{step_index}",
+            daemon=True,
+        ).start()
+
+    def _resolve_telecommand_request(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+        service: Any,
+        preflight: Any,
+        confirmation_actor: str | None,
+        dispatch_authorized: bool,
+    ) -> None:
+        key = (execution_id, request["request_id"], handle.generation)
+        try:
+            try:
+                if dispatch_authorized:
+                    result = execute_preflight(
+                        request,
+                        service,
+                        preflight,
+                        confirmation_actor=confirmation_actor,
+                    )
+                else:
+                    result = uncertain_replay_result(
+                        request,
+                        service,
+                        preflight,
+                        confirmation_actor=confirmation_actor,
+                    )
+            except Exception:
+                # Once a durable intent exists, an unexpected local failure
+                # cannot prove that no provider effect occurred. Reconcile
+                # without resend.
+                result = uncertain_replay_result(
+                    request,
+                    service,
+                    preflight,
+                    confirmation_actor=confirmation_actor,
+                )
+            self._settle_telecommand_result(
+                execution_id, handle, request, result
+            )
+        except Exception as exc:
+            self._signal_worker_failure(
+                handle,
+                "telecommand settlement failed: "
+                f"{type(exc).__name__}: {exc}",
+            )
+        finally:
+            with self._lock:
+                self._telecommand_requests.discard(key)
+
+    def _settle_telecommand_result(
+        self,
+        execution_id: str,
+        handle: WorkerHandle,
+        request: dict[str, Any],
+        result: dict[str, Any],
+    ) -> bool:
+        canonical = validate_telecommand_result(request, result)
+        published: dict[str, Any] | None = None
+        delivered: dict[str, Any] | None = None
+        with handle.dispatch_lock:
+            with self._lock, self.session_factory() as session:
+                if self._workers.get(execution_id) is not handle:
+                    return False
+                execution = self._require_worker_epoch(
+                    session, execution_id, handle.generation
+                )
+                if (
+                    execution is None
+                    or execution.ir_version != V11_IR_VERSION
+                    or execution.current_step != request["step_index"]
+                ):
+                    return False
+                existing = self._telecommand_event(
+                    session,
+                    execution_id,
+                    "procedure.telecommand_result",
+                    request["request_id"],
+                )
+                if existing is None:
+                    event = self._add_event(
+                        session,
+                        execution,
+                        "procedure.telecommand_result",
+                        canonical,
+                        source="telecommand-simulator",
+                        severity=(
+                            "info" if canonical["outcome"] == "SETTLED" else "warning"
+                        ),
+                        correlation_id=request["request_id"],
+                    )
+                    session.commit()
+                    published = event_dict(event)
+                    delivered = canonical
+                else:
+                    delivered = validate_telecommand_result(
+                        request, existing.payload
+                    )
+            if published is not None:
+                self.hub.publish(execution_id, published)
+            handle.control.put({"type": "telecommand_result", **delivered})
         return True
 
     def _reject_raw_file_handle_worker_message(
@@ -4588,6 +5220,332 @@ class Supervisor:
             checkpoint_variables = message.get("variables")
             if not isinstance(checkpoint_variables, dict):
                 raise ConflictError("worker checkpoint variables are missing or invalid")
+            prior_checkpoint_variables = (
+                dict(execution.variables)
+                if isinstance(execution.variables, dict)
+                else {}
+            )
+            if execution.ir_version == V11_IR_VERSION:
+                current_step = execution.steps[step_index]
+                authoritative_variables = dict(prior_checkpoint_variables)
+                authoritative_variables.setdefault("ARGS", {})
+                try:
+                    guard = current_step.get("guard")
+                    should_run = (
+                        True
+                        if guard is None
+                        else evaluate_expression(guard, authoritative_variables)
+                    )
+                except Exception as exc:
+                    raise ConflictError(
+                        "v0.11 step guard cannot be authoritatively evaluated"
+                    ) from exc
+                if type(should_run) is not bool:
+                    raise ConflictError("v0.11 step guard did not produce a Boolean")
+
+                if current_step.get("type") == "prompt":
+                    if not should_run:
+                        if prompt_resolution is not None:
+                            raise ConflictError(
+                                "skipped v0.11 Prompt includes settlement evidence"
+                            )
+                    else:
+                        expected_prompt_id = ordinary_prompt_id(
+                            execution_id, step_index
+                        )
+                        if (
+                            type(prompt_resolution) is not dict
+                            or prompt_resolution.get("prompt_id")
+                            != expected_prompt_id
+                        ):
+                            raise ConflictError(
+                                "v0.11 Prompt checkpoint requires its exact settlement"
+                            )
+                        durable_prompt = session.get(
+                            OperatorPrompt, expected_prompt_id
+                        )
+                        if (
+                            durable_prompt is None
+                            or not self._v11_operator_prompt_matches(
+                                execution,
+                                durable_prompt,
+                                step_index,
+                                authoritative_variables,
+                            )
+                        ):
+                            raise ConflictError(
+                                "v0.11 Prompt checkpoint does not match its declaration"
+                            )
+                elif (
+                    current_step.get("type") != "send_tc"
+                    and prompt_resolution is not None
+                ):
+                    raise ConflictError(
+                        "non-Prompt v0.11 checkpoint includes prompt settlement evidence"
+                    )
+
+                dependency_names = telecommand_dependency_variables(execution.steps)
+                expected_dependencies = {
+                    name: authoritative_variables[name]
+                    for name in dependency_names
+                    if name in authoritative_variables
+                }
+                dependency_target = (
+                    current_step.get("name")
+                    if current_step.get("type") == "variable_set"
+                    and current_step.get("name") in dependency_names
+                    else None
+                )
+                if dependency_target is not None and should_run:
+                    try:
+                        expected_value = evaluate_expression(
+                            current_step["expression"], authoritative_variables
+                        )
+                    except Exception as exc:
+                        raise ConflictError(
+                            "v0.11 telecommand dependency cannot be evaluated"
+                        ) from exc
+                    declared_type = current_step.get("declared_type")
+                    matches_type = (
+                        type(expected_value) is bool
+                        if declared_type == "bool"
+                        else type(expected_value) is int
+                        if declared_type == "int"
+                        else type(expected_value) in {int, float}
+                        if declared_type == "float"
+                        else type(expected_value) is str
+                        if declared_type == "str"
+                        else False
+                    )
+                    if not matches_type:
+                        raise ConflictError(
+                            "v0.11 telecommand dependency changed type"
+                        )
+                    expected_dependencies[dependency_target] = (
+                        float(expected_value)
+                        if declared_type == "float" and type(expected_value) is int
+                        else expected_value
+                    )
+
+                item_targets = {
+                    candidate["target"]
+                    for candidate in execution.steps
+                    if candidate.get("type") == "build_tc"
+                    and type(candidate.get("target")) is str
+                }
+                declaration_target = (
+                    current_step.get("name")
+                    if current_step.get("type") == "variable_set"
+                    and current_step.get("declaration") is True
+                    and current_step.get("name") in item_targets
+                    else None
+                )
+                build_target = (
+                    current_step.get("target")
+                    if current_step.get("type") == "build_tc"
+                    else None
+                )
+                for name in dependency_names - {build_target}:
+                    expected_present = name in expected_dependencies
+                    submitted_present = name in checkpoint_variables
+                    if expected_present != submitted_present or (
+                        expected_present
+                        and canonical_hash(
+                            {"value": checkpoint_variables.get(name)}
+                        )
+                        != canonical_hash({"value": expected_dependencies[name]})
+                    ):
+                        raise ConflictError(
+                            "v0.11 telecommand dependency checkpoint is not authoritative"
+                        )
+                for target in item_targets:
+                    if target == build_target:
+                        continue
+                    if target == declaration_target:
+                        if checkpoint_variables.get(target) != "":
+                            raise ConflictError(
+                                "telecommand item declaration checkpoint is invalid"
+                            )
+                        continue
+                    if (
+                        (target in checkpoint_variables)
+                        != (target in prior_checkpoint_variables)
+                        or checkpoint_variables.get(target)
+                        != prior_checkpoint_variables.get(target)
+                    ):
+                        raise ConflictError(
+                            "opaque telecommand item changed outside BuildTC"
+                        )
+                if current_step.get("type") in {"build_tc", "send_tc"}:
+                    step_effects = [
+                        effect
+                        for effect in message.get("effects", [])
+                        if effect.get("event_type") == "step.completed"
+                    ]
+                    if len(step_effects) != 1 or step_effects[0].get(
+                        "payload"
+                    ) != {
+                        "step_index": step_index,
+                        "line": current_step["line"],
+                        "step_type": current_step["type"],
+                        "skipped": not should_run,
+                    }:
+                        raise ConflictError(
+                            "v0.11 command checkpoint lacks its exact step evidence"
+                        )
+                    command_effects = [
+                        effect
+                        for effect in message.get("effects", [])
+                        if effect.get("event_type") != "step.completed"
+                    ]
+                    if not should_run:
+                        if (
+                            command_effects
+                            or checkpoint_variables != authoritative_variables
+                            or prompt_resolution is not None
+                        ):
+                            raise ConflictError(
+                                "skipped v0.11 command checkpoint contains effects"
+                            )
+                    elif current_step["type"] == "build_tc":
+                        expected_variables = dict(authoritative_variables)
+                        expected_variables[current_step["target"]] = (
+                            build_item_checkpoint_for_step(
+                                current_step, authoritative_variables
+                            )
+                        )
+                        if checkpoint_variables != expected_variables:
+                            raise ConflictError(
+                                "BuildTC checkpoint differs from the authoritative catalog item"
+                            )
+                        expected_effect = {
+                            "event_type": "procedure.telecommand_built",
+                            "source": "telecommand-runtime",
+                            "severity": "info",
+                            "payload": {
+                                "step_index": step_index,
+                                "target": current_step["target"],
+                                "catalog_bound": True,
+                            },
+                        }
+                        if command_effects != [expected_effect] or prompt_resolution is not None:
+                            raise ConflictError(
+                                "BuildTC checkpoint evidence is missing or changed"
+                            )
+                    else:
+                        if checkpoint_variables != authoritative_variables:
+                            raise ConflictError(
+                                "Send checkpoint cannot mutate procedure variables"
+                            )
+                        unsigned_request, _, _ = prepare_send_request(
+                            execution_id,
+                            step_index,
+                            current_step,
+                            authoritative_variables,
+                        )
+                        requested = self._telecommand_event(
+                            session,
+                            execution_id,
+                            "procedure.telecommand_requested",
+                            unsigned_request["request_id"],
+                        )
+                        if requested is None:
+                            raise ConflictError(
+                                "Send checkpoint has no durable telecommand intent"
+                            )
+                        durable_request = dict(requested.payload)
+                        binding = durable_request.pop(
+                            _TELECOMMAND_RUNTIME_BINDING_KEY, None
+                        )
+                        request, _, preflight = validate_send_request(
+                            execution_id,
+                            step_index,
+                            current_step,
+                            authoritative_variables,
+                            durable_request,
+                        )
+                        if type(binding) is not dict:
+                            raise ConflictError(
+                                "Send checkpoint has no durable runtime binding"
+                            )
+                        settled = self._telecommand_event(
+                            session,
+                            execution_id,
+                            "procedure.telecommand_result",
+                            request["request_id"],
+                        )
+                        if settled is None:
+                            raise ConflictError(
+                                "Send checkpoint has no durable telecommand result"
+                            )
+                        result = validate_telecommand_result(
+                            request, settled.payload
+                        )
+                        failure_policy = result_failure_policy(request, result)
+                        if (
+                            failure_policy is not None
+                            and failure_policy["uncertain"]
+                        ):
+                            raise ConflictError(
+                                "Send checkpoint attempts to apply an uncertain result"
+                            )
+                        expected_effect = {
+                            "event_type": "procedure.telecommand_settled",
+                            "source": "telecommand-runtime",
+                            "severity": "info",
+                            "payload": {**result, "step_index": step_index},
+                        }
+                        if command_effects != [expected_effect]:
+                            raise ConflictError(
+                                "Send checkpoint evidence differs from its durable result"
+                            )
+                        if failure_policy is None:
+                            if prompt_resolution is not None:
+                                raise ConflictError(
+                                    "successful Send checkpoint includes failure prompt evidence"
+                                )
+                        elif failure_policy["prompt_user"]:
+                            expected_prompt_id = failure_prompt_id(
+                                execution_id, step_index, result["result_digest"]
+                            )
+                            if (
+                                type(prompt_resolution) is not dict
+                                or prompt_resolution.get("prompt_id")
+                                != expected_prompt_id
+                                or prompt_resolution.get("outcome") != "ANSWERED"
+                                or prompt_resolution.get("response") != "YES"
+                            ):
+                                raise ConflictError(
+                                    "Send checkpoint failure decision is not an approved continuation"
+                                )
+                            failure_prompt = session.get(
+                                OperatorPrompt, expected_prompt_id
+                            )
+                            if (
+                                failure_prompt is None
+                                or failure_prompt.execution_id != execution_id
+                                or failure_prompt.step_index != step_index
+                                or not self._telecommand_yes_no_prompt_matches(
+                                    failure_prompt,
+                                    failure_prompt_question(
+                                        result["result_digest"]
+                                    ),
+                                )
+                                or failure_prompt.settled_by
+                                == "operator-reconciler"
+                            ):
+                                raise ConflictError(
+                                    "Send checkpoint failure prompt does not bind its result"
+                                )
+                        else:
+                            if failure_policy["action"] == "ABORT":
+                                raise ConflictError(
+                                    "Send checkpoint conflicts with OnFailure=ABORT"
+                                )
+                            if prompt_resolution is not None:
+                                raise ConflictError(
+                                    "noninteractive Send failure includes prompt evidence"
+                                )
             if execution.ir_version == V08_IR_VERSION:
                 known_handle_digests = {
                     value["token_sha256"]
@@ -4627,6 +5585,7 @@ class Supervisor:
                 if operator_prompt is not None:
                     if (
                         operator_prompt.execution_id != execution_id
+                        or operator_prompt.step_index != step_index
                         or operator_prompt.state != "SETTLED"
                         or type(operator_prompt.settlement_id) is not str
                         or len(operator_prompt.settlement_id)
@@ -4732,11 +5691,6 @@ class Supervisor:
                         )
                     )
                 )
-            prior_checkpoint_variables = (
-                dict(execution.variables)
-                if isinstance(execution.variables, dict)
-                else {}
-            )
             if execution.ir_version == V08_IR_VERSION:
                 current_step = execution.steps[step_index]
                 handle_names = {
@@ -4943,6 +5897,13 @@ class Supervisor:
                 "aborting",
             }:
                 return
+            if (
+                execution.ir_version == V11_IR_VERSION
+                and not self._v11_prompt_message_matches(execution, message)
+            ):
+                raise ConflictError(
+                    "v0.11 prompt request does not match its authoritative step"
+                )
             prompt = session.get(Prompt, message["prompt_id"])
             if prompt is None:
                 prompt = Prompt(
@@ -5054,6 +6015,30 @@ class Supervisor:
         service = self.operator_service
         if service is None:
             raise ConflictError("typed prompt requires the v0.6 operator service")
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(
+                session, execution_id, generation
+            )
+            if execution is None:
+                return
+            current_step = (
+                execution.steps[execution.current_step]
+                if 0 <= execution.current_step < len(execution.steps)
+                else {}
+            )
+            if (
+                execution.ir_version == V11_IR_VERSION
+                and current_step.get("type") == "prompt"
+                and not self._v11_prompt_message_matches(execution, message)
+            ):
+                raise ConflictError(
+                    "v0.11 prompt request does not match its authoritative step"
+                )
+            if (
+                execution.ir_version == V11_IR_VERSION
+                and current_step.get("type") not in {"prompt", "send_tc"}
+            ):
+                raise ConflictError("v0.11 prompt request is outside a prompt boundary")
         declaration = {
             "type": message["prompt_type"],
             "question": message["question"],
@@ -5124,6 +6109,8 @@ class Supervisor:
                             "prompt_id": prompt["id"],
                             "step_index": prompt["step_index"],
                             "type": prompt["type"],
+                            "input_kind": prompt["input_kind"],
+                            "list_mode": prompt["list_mode"],
                             "question": prompt["question"],
                             "options": prompt["options"],
                             "default": prompt["default"],

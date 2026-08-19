@@ -15,6 +15,7 @@ from .versions import (
     v0006_observation_conditions,
     v0007_data_local_service,
     v0008_development_environment,
+    v0009_procedure_catalog_availability,
 )
 
 
@@ -27,6 +28,7 @@ MIGRATIONS = (
     v0006_observation_conditions,
     v0007_data_local_service,
     v0008_development_environment,
+    v0009_procedure_catalog_availability,
 )
 metadata = MetaData()
 schema_migrations = Table(
@@ -96,6 +98,10 @@ def run_migrations(
                 v0007_data_local_service.verify(connection)
             if v0008_development_environment.VERSION in applied | set(applied_now):
                 v0008_development_environment.verify(connection)
+            if v0009_procedure_catalog_availability.VERSION in applied | set(
+                applied_now
+            ):
+                v0009_procedure_catalog_availability.verify(connection)
     except Exception:
         if cleanup_v0007_after_rollback:
             with engine.begin() as cleanup_connection:

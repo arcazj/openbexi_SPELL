@@ -10,7 +10,10 @@ from sqlalchemy.engine import Engine
 from backend.database import Base
 from backend.migrations import schema_migrations
 from backend.migrations import run_migrations as run_product_migrations
-from backend.migrations.versions import v0008_development_environment
+from backend.migrations.versions import (
+    v0008_development_environment,
+    v0009_procedure_catalog_availability,
+)
 
 
 _POSTGRES_SESSION_DRAIN_TIMEOUT_SECONDS = 5.0
@@ -85,8 +88,10 @@ def reset_test_database(engine: Engine) -> None:
         if connection.dialect.name != "sqlite":
             raise RuntimeError("test database reset supports only SQLite and PostgreSQL")
 
-        # The v0.9 schema is migration-owned, so its tables must not depend on
-        # which ORM modules happened to be imported before this helper runs.
+        # Migration-owned tables must not depend on which ORM modules happened
+        # to be imported before this helper runs.
+        for table in reversed(v0009_procedure_catalog_availability.NEW_TABLES):
+            table.drop(connection, checkfirst=True)
         for table in reversed(v0008_development_environment.NEW_TABLES):
             table.drop(connection, checkfirst=True)
         Base.metadata.drop_all(connection)

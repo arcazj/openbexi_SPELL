@@ -37,6 +37,30 @@ from .ir_v08 import (
     validate_data_result,
     validate_ir_v08,
 )
+from .ir_v10 import (
+    IR_VERSION as V10_IR_VERSION,
+    V10ValidationError,
+    validate_ir_v10,
+)
+from .ir_v11 import (
+    IR_VERSION as V11_IR_VERSION,
+    V11ValidationError,
+    ordinary_prompt_id,
+    telecommand_dependency_variables,
+    validate_ir_v11,
+)
+from .reference_examples_v10 import ReferenceExampleError, execute_reference_example
+from .telecommand_runtime_v11 import (
+    TelecommandRuntimeError,
+    build_item_checkpoint_for_step,
+    confirmation_prompt_id,
+    failure_prompt_id,
+    failure_prompt_question,
+    prepare_send_request,
+    result_failure_policy,
+    validate_result_payload,
+)
+from .telecommand_v11 import TelecommandError
 
 
 MAX_INTEGER_BITS = 4_096
@@ -338,11 +362,23 @@ def worker_main(
         output.put({"kind": kind, "generation": generation, **fields})
 
     try:
+        v11_preflight = ir_version == V11_IR_VERSION
+        v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
         v07_preflight = ir_version == V07_IR_VERSION
-        v06_preflight = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+        v06_preflight = ir_version in {
+            V06_IR_VERSION,
+            V07_IR_VERSION,
+            V08_IR_VERSION,
+            V10_IR_VERSION,
+            V11_IR_VERSION,
+        }
         validator = (
-            validate_ir_v08
+            validate_ir_v11
+            if v11_preflight
+            else validate_ir_v10
+            if v10_preflight
+            else validate_ir_v08
             if v08_preflight
             else validate_ir_v07
             if v07_preflight
@@ -458,6 +494,8 @@ def worker_main(
         V06ValidationError,
         V07ValidationError,
         V08ValidationError,
+        V10ValidationError,
+        V11ValidationError,
     ) as exc:
         send(
             "event",
@@ -475,7 +513,13 @@ def worker_main(
     variables.update(runtime_checkpoint)
     if durable_arguments is not None:
         variables["ARGS"] = durable_arguments
-    v06_runtime = ir_version in {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    v06_runtime = ir_version in {
+        V06_IR_VERSION,
+        V07_IR_VERSION,
+        V08_IR_VERSION,
+        V10_IR_VERSION,
+        V11_IR_VERSION,
+    }
     file_handle_variables = {
         step["target"]
         for step in steps
@@ -483,6 +527,14 @@ def worker_main(
         and step.get("operation") == "OPEN_FILE"
         and type(step.get("target")) is str
     }
+    telecommand_item_variables = {
+        step["target"]
+        for step in steps
+        if step.get("type") == "build_tc" and type(step.get("target")) is str
+    }
+    telecommand_dependency_names = (
+        telecommand_dependency_variables(steps) if v11_preflight else frozenset()
+    )
     send(
         "event",
         event_type="worker.started",
@@ -618,11 +670,15 @@ def worker_main(
                     continue
                 name = operation.payload["name"]
                 declared_type = operation.payload["declared_type"]
-                if name in file_handle_variables:
+                if (
+                    name in file_handle_variables
+                    or name in telecommand_item_variables
+                    or name in telecommand_dependency_names
+                ):
                     raise V06ValidationError(
                         "USER_ACTION_TARGET_INVALID",
                         "$.handler.name",
-                        "FileHandle variables are not user-action targets",
+                        "protected runtime variables are not user-action targets",
                     )
                 if name not in validated_ir.variable_types or name not in variables:
                     raise V06ValidationError(
@@ -707,11 +763,15 @@ def worker_main(
             target_container, target_name = _inspection_target(
                 message.get("scope"), message.get("path")
             )
-            if target_container is None and target_name in file_handle_variables:
+            if target_container is None and (
+                target_name in file_handle_variables
+                or target_name in telecommand_item_variables
+                or target_name in telecommand_dependency_names
+            ):
                 raise V06ValidationError(
                     "INSPECTION_EDIT_INVALID",
                     "$.path",
-                    "FileHandle variables are not inspection-edit targets",
+                    "protected runtime variables are not inspection-edit targets",
                 )
             if ir_version == V08_IR_VERSION and target_container == "ARGS":
                 raise V06ValidationError(
@@ -950,6 +1010,13 @@ def worker_main(
                 if type(target) is not int or target < 0 or target >= len(steps):
                     reject_control(followup, "COMMAND_TARGET_INVALID", "goto target is invalid")
                     continue
+                if ir_version == V11_IR_VERSION and target <= step_index:
+                    reject_control(
+                        followup,
+                        "TC_REENTRY_FORBIDDEN",
+                        "v0.11 telecommand procedures do not permit backward goto",
+                    )
+                    continue
                 emit_operator_application(
                     "command_applied",
                     command_id,
@@ -1175,7 +1242,20 @@ def worker_main(
                 if v06_runtime:
                     send("state", state="running")
             elif should_run and step["type"] == "prompt":
-                prompt_id = resume_prompt_id or str(uuid.uuid4())
+                expected_prompt_id = (
+                    ordinary_prompt_id(execution_id, step_index)
+                    if v11_preflight
+                    else None
+                )
+                if (
+                    expected_prompt_id is not None
+                    and resume_prompt_id is not None
+                    and resume_prompt_id != expected_prompt_id
+                ):
+                    raise ExpressionEvaluationError(
+                        "v0.11 resume prompt identity does not match its step"
+                    )
+                prompt_id = resume_prompt_id or expected_prompt_id or str(uuid.uuid4())
                 resume_prompt_id = None
                 if (
                     resume_prompt_settlement is not None
@@ -1302,6 +1382,398 @@ def worker_main(
                     if type(settlement_id) is str:
                         completed_prompt_settlement_ids.add(settlement_id)
                     break
+                if "response_target" in step:
+                    if prompt_resolution.get("outcome") != "ANSWERED":
+                        raise ExpressionEvaluationError(
+                            "Prompt target requires an answered settlement"
+                        )
+                    response = prompt_resolution.get("response")
+                    if type(response) is not int:
+                        raise ExpressionEvaluationError(
+                            "Prompt LIST index response changed type"
+                        )
+                    variables[step["response_target"]] = response
+            elif should_run and step["type"] == "reference_example":
+                example_number = evaluate_expression(step["example"], variables)
+                if type(example_number) is not int or not 1 <= example_number <= 195:
+                    raise ExpressionEvaluationError(
+                        "ReferenceExample number must evaluate to an integer from 1 through 195"
+                    )
+                result = execute_reference_example(example_number)
+                if not result.passed:
+                    raise ReferenceExampleError(
+                        f"reference example {example_number} did not satisfy its oracle"
+                    )
+                variables[step["target"]] = result.summary
+                effects.append(
+                    {
+                        "event_type": "procedure.reference_example_completed",
+                        "source": "simulator",
+                        "severity": "info",
+                        "payload": result.as_event_payload(),
+                    }
+                )
+            elif should_run and step["type"] == "build_tc":
+                variables[step["target"]] = build_item_checkpoint_for_step(
+                    step, variables
+                )
+                effects.append(
+                    {
+                        "event_type": "procedure.telecommand_built",
+                        "source": "telecommand-runtime",
+                        "severity": "info",
+                        "payload": {
+                            "step_index": step_index,
+                            "target": step["target"],
+                            "catalog_bound": True,
+                        },
+                    }
+                )
+            elif should_run and step["type"] == "send_tc":
+                request, service, preflight = prepare_send_request(
+                    execution_id,
+                    step_index,
+                    step,
+                    variables,
+                )
+                if preflight.confirmation_required:
+                    prompt_id = confirmation_prompt_id(
+                        execution_id, step_index, preflight.plan.plan_digest
+                    )
+                    confirmation_evidence: dict[str, str] | None = None
+                    if resume_prompt_id == prompt_id:
+                        resume_prompt_id = None
+                        if resume_prompt_settlement is not None:
+                            prompt_resolution = dict(resume_prompt_settlement)
+                            completed_prompt_ids.add(prompt_id)
+                            completed_prompt_settlement_ids.add(
+                                resume_prompt_settlement["settlement_id"]
+                            )
+                            send(
+                                "prompt_settlement_consumed",
+                                **prompt_resolution,
+                            )
+                            if (
+                                resume_prompt_settlement["outcome"] != "ANSWERED"
+                                or resume_prompt_settlement["response"] != "YES"
+                            ):
+                                raise TelecommandRuntimeError(
+                                    "TC_CONFIRMATION_DENIED",
+                                    "$.confirmation",
+                                    "recovered telecommand confirmation was not approved",
+                                )
+                            confirmation_evidence = {
+                                "prompt_id": prompt_id,
+                            }
+                            resume_prompt_settlement = None
+                            prompt_resolution = None
+                    elif resume_prompt_id is not None:
+                        # A recovered result-bound failure prompt is newer than
+                        # the original confirmation.  The supervisor revalidates
+                        # the deterministic confirmation prompt from durable state.
+                        confirmation_evidence = {"prompt_id": prompt_id}
+                    if confirmation_evidence is None:
+                        send(
+                            "prompt_opened",
+                            prompt_id=prompt_id,
+                            step_index=step_index,
+                            question=(
+                                "Confirm deterministic simulator telecommand plan "
+                                f"{preflight.plan.plan_id}"
+                            ),
+                            choices=["YES", "NO"],
+                            default="NO",
+                            prompt_type="YES_NO",
+                            list_mode=None,
+                            warning_delay_seconds=None,
+                            response_timeout_seconds=None,
+                            no_controller_grace_seconds=None,
+                        )
+                        send_safe_point("PROMPT_BOUNDARY", step_index)
+                        send("state", state="prompting")
+                    while confirmation_evidence is None:
+                        message = wait_for_control(block=True, timeout=0.25)
+                        if message is None or message.get("type") == "safe_point_ack":
+                            continue
+                        message_type = message.get("type")
+                        if message_type in {"abort", "stop"}:
+                            send(
+                                "state",
+                                state="aborted",
+                                command_id=message.get("command_id"),
+                            )
+                            send("terminal", state="aborted")
+                            return
+                        if message_type == "kill":
+                            reject_control(
+                                message, "KILL_UNSUPPORTED", "hard kill is not supported"
+                            )
+                            continue
+                        if message_type == "user_action":
+                            apply_user_action(message, step_index)
+                            continue
+                        if message_type == "inspection_edit":
+                            apply_inspection_edit(message, step_index)
+                            continue
+                        if message_type in {"pause", "control_loss"}:
+                            result = handle_control(message, step_index)
+                            if result is not None and result["disposition"] == "abort":
+                                return
+                            send("state", state="prompting")
+                            continue
+                        if message_type not in {"prompt_response", "prompt_settlement"}:
+                            reject_control(
+                                message,
+                                "COMMAND_NOT_ALLOWED_IN_STATE",
+                                "only confirmation settlement is accepted at this boundary",
+                            )
+                            continue
+                        if message.get("prompt_id") != prompt_id:
+                            reject_control(
+                                message,
+                                "PROMPT_NOT_OPEN",
+                                "confirmation prompt identity does not match",
+                            )
+                            continue
+                        outcome = message.get("outcome", "ANSWERED")
+                        response = message.get("response", message.get("value"))
+                        settlement_id = message.get("settlement_id")
+                        if type(settlement_id) is not str or not settlement_id:
+                            raise TelecommandRuntimeError(
+                                "TC_CONFIRMATION_NOT_DURABLE",
+                                "$.confirmation.settlement_id",
+                                "telecommand confirmation lacks a durable settlement identity",
+                            )
+                        prompt_resolution = {
+                            "prompt_id": prompt_id,
+                            "settlement_id": settlement_id,
+                            "outcome": outcome,
+                            "response": response,
+                            "command_id": message.get("command_id"),
+                        }
+                        completed_prompt_ids.add(prompt_id)
+                        completed_prompt_settlement_ids.add(settlement_id)
+                        send(
+                            "prompt_settlement_consumed",
+                            **prompt_resolution,
+                        )
+                        if outcome != "ANSWERED" or response != "YES":
+                            raise TelecommandRuntimeError(
+                                "TC_CONFIRMATION_DENIED",
+                                "$.confirmation",
+                                "telecommand confirmation was not approved",
+                            )
+                        confirmation_evidence = {
+                            "prompt_id": prompt_id,
+                        }
+                        prompt_resolution = None
+                    request, service, preflight = prepare_send_request(
+                        execution_id,
+                        step_index,
+                        step,
+                        variables,
+                        confirmation=confirmation_evidence,
+                    )
+                    send("state", state="running")
+
+                send("telecommand_requested", **request)
+                send_safe_point("WAIT_BOUNDARY", step_index)
+                send("state", state="waiting")
+                telecommand_result: dict[str, Any] | None = None
+                while telecommand_result is None:
+                    message = wait_for_control(block=True, timeout=0.25)
+                    if message is None or message.get("type") == "safe_point_ack":
+                        continue
+                    message_type = message.get("type")
+                    if message_type in {"abort", "stop"}:
+                        send(
+                            "state",
+                            state="aborted",
+                            command_id=message.get("command_id"),
+                        )
+                        send("terminal", state="aborted")
+                        return
+                    if message_type == "kill":
+                        reject_control(
+                            message, "KILL_UNSUPPORTED", "hard kill is not supported"
+                        )
+                        continue
+                    if message_type == "user_action":
+                        apply_user_action(message, step_index)
+                        continue
+                    if message_type == "inspection_edit":
+                        apply_inspection_edit(message, step_index)
+                        continue
+                    if message_type in {"pause", "control_loss"}:
+                        result = handle_control(message, step_index)
+                        if result is not None and result["disposition"] == "abort":
+                            return
+                        send("state", state="waiting")
+                        continue
+                    if message_type != "telecommand_result":
+                        reject_control(
+                            message,
+                            "COMMAND_NOT_ALLOWED_IN_STATE",
+                            "only telecommand settlement is accepted at this boundary",
+                        )
+                        continue
+                    if message.get("request_id") != request["request_id"]:
+                        reject_control(
+                            message,
+                            "TC_RESULT_INVALID",
+                            "telecommand result identity does not match",
+                        )
+                        continue
+                    candidate = {
+                        key: value
+                        for key, value in message.items()
+                        if key not in {"type", "generation"}
+                    }
+                    telecommand_result = validate_result_payload(request, candidate)
+                send("state", state="running")
+                service.recover(preflight.plan, telecommand_result["checkpoint"])
+                failure_policy = result_failure_policy(request, telecommand_result)
+                if failure_policy is not None and failure_policy["uncertain"]:
+                    raise TelecommandRuntimeError(
+                        "TC_OPERATION_NOT_SUCCESSFUL",
+                        "$.result",
+                        "telecommand operation has uncertain effect and cannot continue",
+                    )
+                if failure_policy is None and resume_prompt_id is not None:
+                    raise TelecommandRuntimeError(
+                        "TC_FAILURE_PROMPT_INVALID",
+                        "$.resume_prompt_id",
+                        "recovered prompt does not bind an unsuccessful telecommand result",
+                    )
+                if failure_policy is not None and failure_policy["prompt_user"]:
+                    result_digest = telecommand_result["result_digest"]
+                    failure_id = failure_prompt_id(
+                        execution_id, step_index, result_digest
+                    )
+                    if resume_prompt_id is not None:
+                        if resume_prompt_id != failure_id:
+                            raise TelecommandRuntimeError(
+                                "TC_FAILURE_PROMPT_INVALID",
+                                "$.resume_prompt_id",
+                                "recovered failure prompt does not bind this result",
+                            )
+                        resume_prompt_id = None
+                        if resume_prompt_settlement is not None:
+                            prompt_resolution = dict(resume_prompt_settlement)
+                            resume_prompt_settlement = None
+                    if prompt_resolution is None:
+                        send(
+                            "prompt_opened",
+                            prompt_id=failure_id,
+                            step_index=step_index,
+                            question=failure_prompt_question(result_digest),
+                            choices=["YES", "NO"],
+                            default="NO",
+                            prompt_type="YES_NO",
+                            list_mode=None,
+                            warning_delay_seconds=None,
+                            response_timeout_seconds=None,
+                            no_controller_grace_seconds=None,
+                        )
+                        send_safe_point("PROMPT_BOUNDARY", step_index)
+                        send("state", state="prompting")
+                    while prompt_resolution is None:
+                        message = wait_for_control(block=True, timeout=0.25)
+                        if message is None or message.get("type") == "safe_point_ack":
+                            continue
+                        message_type = message.get("type")
+                        if message_type in {"abort", "stop"}:
+                            send(
+                                "state",
+                                state="aborted",
+                                command_id=message.get("command_id"),
+                            )
+                            send("terminal", state="aborted")
+                            return
+                        if message_type == "kill":
+                            reject_control(
+                                message, "KILL_UNSUPPORTED", "hard kill is not supported"
+                            )
+                            continue
+                        if message_type == "user_action":
+                            apply_user_action(message, step_index)
+                            continue
+                        if message_type == "inspection_edit":
+                            apply_inspection_edit(message, step_index)
+                            continue
+                        if message_type in {"pause", "control_loss"}:
+                            result = handle_control(message, step_index)
+                            if result is not None and result["disposition"] == "abort":
+                                return
+                            send("state", state="prompting")
+                            continue
+                        if message_type not in {"prompt_response", "prompt_settlement"}:
+                            reject_control(
+                                message,
+                                "COMMAND_NOT_ALLOWED_IN_STATE",
+                                "only failure prompt settlement is accepted at this boundary",
+                            )
+                            continue
+                        if message.get("prompt_id") != failure_id:
+                            reject_control(
+                                message,
+                                "PROMPT_NOT_OPEN",
+                                "failure prompt identity does not match",
+                            )
+                            continue
+                        settlement_id = message.get("settlement_id")
+                        if type(settlement_id) is not str or not settlement_id:
+                            raise TelecommandRuntimeError(
+                                "TC_FAILURE_PROMPT_NOT_DURABLE",
+                                "$.failure_prompt.settlement_id",
+                                "failure prompt lacks a durable settlement identity",
+                            )
+                        prompt_resolution = {
+                            "prompt_id": failure_id,
+                            "settlement_id": settlement_id,
+                            "outcome": message.get("outcome", "ANSWERED"),
+                            "response": message.get("response", message.get("value")),
+                            "command_id": message.get("command_id"),
+                        }
+                    completed_prompt_ids.add(failure_id)
+                    completed_prompt_settlement_ids.add(
+                        prompt_resolution["settlement_id"]
+                    )
+                    send("prompt_settlement_consumed", **prompt_resolution)
+                    if (
+                        prompt_resolution["outcome"] != "ANSWERED"
+                        or prompt_resolution["response"] != "YES"
+                    ):
+                        raise TelecommandRuntimeError(
+                            "TC_FAILURE_ABORTED",
+                            "$.failure_prompt",
+                            "operator did not authorize procedure continuation",
+                        )
+                elif failure_policy is not None:
+                    if resume_prompt_id is not None:
+                        raise TelecommandRuntimeError(
+                            "TC_FAILURE_PROMPT_INVALID",
+                            "$.resume_prompt_id",
+                            "failure policy does not permit an operator prompt",
+                        )
+                    if failure_policy["action"] == "ABORT":
+                        raise TelecommandRuntimeError(
+                            "TC_OPERATION_ABORTED",
+                            "$.result",
+                            "OnFailure=ABORT terminates the procedure",
+                        )
+                effects.append(
+                    {
+                        "event_type": "procedure.telecommand_settled",
+                        "source": "telecommand-runtime",
+                        "severity": "info",
+                        "payload": {
+                            **telecommand_result,
+                            "step_index": step_index,
+                        },
+                    }
+                )
+                send("state", state="running")
             elif should_run and step["type"] == "startproc":
                 startproc_id = str(
                     uuid.uuid5(
@@ -1574,6 +2046,11 @@ def worker_main(
             V06ValidationError,
             V07ValidationError,
             V08ValidationError,
+            V10ValidationError,
+            V11ValidationError,
+            ReferenceExampleError,
+            TelecommandError,
+            TelecommandRuntimeError,
         ) as exc:
             send(
                 "event",

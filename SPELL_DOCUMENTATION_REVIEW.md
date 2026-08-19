@@ -18,6 +18,25 @@ This record documents a page-complete review of the material currently under
 not permission to copy legacy implementation code, package the PDFs, connect to
 a Ground Control System (GCS), or reproduce unsafe legacy behavior.
 
+## v0.10 And v0.11 Application Note
+
+The 2026-08-19 mutable-worktree increments apply this review without changing
+the original 2026-07-17 evidence inventory. v0.10 maps all 195 numbered Language
+Reference examples to 257 hash-bound variant subcases and independently authored
+semantic oracles. v0.11 implements the command corpus in Examples 57 through 77
+as closed, deterministic simulator `BuildTC`/`Send` behavior. The Language
+Reference owns documented syntax and procedure-visible intent; the Driver
+Development Manual owns stage and provider concepts. Where legacy prose
+conflicts with typed certainty, no-resend, or supervisor-owned confirmation,
+the bounded decisions in `SPELL_v0.11_Pre-Implementation.md` apply, the mutable
+implementation and local qualification boundary is recorded in
+`SPELL_v0.11_Implementation.md`, and
+the conflict remains documented rather than guessed.
+
+These applications do not copy manual bodies into runtime source and do not
+create a live GCS adapter, driver credential, spacecraft connection, operational
+authorization, general SPELL 2.4.4 conformance claim, or accepted release.
+
 ## Evidence Inventory
 
 | Document | Pages reviewed | Stated version | SHA-256 | Principal use | Evidence limitation |

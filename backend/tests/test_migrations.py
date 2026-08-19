@@ -540,9 +540,10 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
         "0006_observation_conditions",
         "0007_data_local_service",
         "0008_development_environment",
+        "0009_procedure_catalog_availability",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0008_development_environment"
+    assert database_version(engine) == "0009_procedure_catalog_availability"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -568,9 +569,10 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0006_observation_conditions",
         "0007_data_local_service",
         "0008_development_environment",
+        "0009_procedure_catalog_availability",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0008_development_environment"
+    assert database_version(engine) == "0009_procedure_catalog_availability"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -635,7 +637,11 @@ def test_v0007_preflight_requires_safe_backup_directory_before_ddl(
     assert migration_runner.run_migrations(
         engine,
         v0007_backup_directory=backup_directory,
-    ) == ("0007_data_local_service", "0008_development_environment")
+    ) == (
+        "0007_data_local_service",
+        "0008_development_environment",
+        "0009_procedure_catalog_availability",
+    )
     assert list(backup_directory.iterdir()) == []
 
 
@@ -712,7 +718,11 @@ def test_v0007_sqlite_hard_exit_rolls_back_first_ddl(
         assert migration_runner.run_migrations(
             reopened,
             v0007_backup_directory=backup_directory,
-        ) == ("0007_data_local_service", "0008_development_environment")
+        ) == (
+            "0007_data_local_service",
+            "0008_development_environment",
+            "0009_procedure_catalog_availability",
+        )
     finally:
         reopened.dispose()
 
@@ -848,9 +858,10 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0006_observation_conditions",
         "0007_data_local_service",
         "0008_development_environment",
+        "0009_procedure_catalog_availability",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0008_development_environment"
+    assert database_version(engine) == "0009_procedure_catalog_availability"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -866,8 +877,9 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0006_observation_conditions",
         "0007_data_local_service",
         "0008_development_environment",
+        "0009_procedure_catalog_availability",
     )
-    assert database_version(engine) == "0008_development_environment"
+    assert database_version(engine) == "0009_procedure_catalog_availability"
 
 
 @pytest.mark.skipif(

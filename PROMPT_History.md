@@ -6,6 +6,71 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
+## 2026-08-19 - Strengthened v0.10 Gate And v0.11 Direction
+
+The owner required v0.10 to be audited before any v0.11 implementation. The
+direction requires all 195 Language Reference examples, their associated SPELL
+and Python adaptations, and every identified syntax variant to have test
+evidence. Example 60 specifically requires independent coverage of
+`Send(command = 'CMDNAME')` and `Send(command = tc_item)`. Tests or valid
+examples may not be weakened merely to obtain a pass.
+
+The initial audit found that the earlier 195-row qualification proved one
+semantic adapter per example but collapsed multi-variant examples. The v0.10
+contract was therefore strengthened to 257 stable variant subcases across all
+195 examples, including 46 multi-variant examples. Each subcase now binds an
+independent assertion and trace. Malformed, pseudocode, output-only, negative,
+and placeholder material remains explicitly classified as a semantic
+adaptation; the project does not claim arbitrary Python or verbatim execution
+of those fragments.
+
+After that prerequisite, the owner direction authorizes the bounded v0.11
+simulator telecommand scope in `PROJECT_ROADMAP.md`. The gate and local
+compatibility decisions are recorded in
+[`SPELL_v0.11_Pre-Implementation.md`](SPELL_v0.11_Pre-Implementation.md).
+The scope includes catalog-backed `BuildTC`/`Send`, all 26 documented command
+statements in Examples 57 through 77, durable confirmation and settlement,
+deterministic timing and verification, failure policy, recovery, effect
+certainty, and no-resend behavior. It excludes any operational driver, GCS,
+spacecraft, credential, browser mutation route, deployment, compliance, or
+release authorization.
+
+The resulting mutable-worktree implementation boundary, completed local
+qualification, and recorded non-release exclusions are recorded in
+[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). This later
+status note does not rewrite the authorization decision above or claim an
+accepted release.
+
+## 2026-08-19 - v0.10 Reference Example Adapter Direction And Local Result
+
+The owner directed the project to revisit v0.10 around the complete 195-example
+index in SPELL Language Reference 2.4.4, remove the prior bundled demo
+procedures, provide one menu-driven procedure, and implement and execute the
+scope as soon as possible with approvals granted. The resulting bounded scope
+uses one production-catalog runner, a hash-pinned 195-row contract, closed IR
+`0.10`, independently authored semantic adaptations, deterministic simulator
+oracles, and exact per-effect evidence.
+
+Local verification records 195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, and 0 unresolved
+examples. Example 195 queries real bundled TM and TC catalog entries and proves
+their catalog identity, direction, type, filter bounds, and a negative lookup.
+Focused backend, PostgreSQL, mTLS, frontend unit/build, and authenticated
+Chromium/Pixel 7 checks passed. The production image contains one
+`*.spell.py` and no stale Python bytecode.
+
+The Language Reference contains fragments, pseudocode, output illustrations,
+and intentionally invalid examples. v0.10 therefore proves a deterministic
+semantic-adaptation profile, not verbatim PDF-snippet execution or general
+SPELL 2.4.4 parser compatibility. External effects are simulator projections;
+telecommand dispatch remains disabled. These are mutable working-tree/local
+results only. No v0.10 candidate freeze, package, release commit, tag,
+deployment approval, compliance determination, or operational authorization is
+claimed.
+
+The accepted baseline for this work is v0.9.0, annotated tag object
+`b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit
+`a8caa957179f8df301f9863e421e3fd7127e5318`, with no accepted exceptions.
+
 ## 2026-08-18 - Prompt, Markdown, Local Session, And v0.9 Direction
 
 The owner directed the project to revisit and optimize `PROMPT_Instructions.md`,

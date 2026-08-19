@@ -11,6 +11,7 @@ from .operator_models import (
     OperatorContext,
     OperatorPrompt,
     ParentChildLink,
+    ProcedureCatalogAvailability,
     ProcedureCatalogEntry,
     ProcedureCatalogRevision,
     ProcedureSchedule,
@@ -64,6 +65,7 @@ def catalog_entry_dict(
     entry: ProcedureCatalogEntry,
     revision: ProcedureCatalogRevision | None = None,
     *,
+    availability: ProcedureCatalogAvailability | None = None,
     include_source: bool = False,
 ) -> dict[str, Any]:
     result = {
@@ -76,6 +78,13 @@ def catalog_entry_dict(
         "created_at": iso(entry.created_at),
         "updated_at": iso(entry.updated_at),
     }
+    if availability is not None:
+        result.update(
+            availability_state=availability.state,
+            source_kind=availability.source_kind,
+            availability_revision=availability.availability_revision,
+            availability_updated_at=iso(availability.updated_at),
+        )
     if revision is not None:
         result["revision"] = catalog_revision_dict(
             revision, include_source=include_source

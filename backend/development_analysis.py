@@ -1,4 +1,4 @@
-"""Deterministic, non-executing language services for v0.9 authoring."""
+"""Deterministic, non-executing language services for bounded SPELL authoring."""
 
 from __future__ import annotations
 
@@ -9,11 +9,20 @@ from dataclasses import dataclass
 from typing import Any, Iterable, Mapping
 
 from .development_domain import DevelopmentError, canonical_json_bytes, normalize_path
-from .procedure_parser import MAX_SOURCE_BYTES, ProcedureCatalog, ProcedureValidationError
+from .procedure_parser import (
+    MAX_SOURCE_BYTES,
+    V10_LANGUAGE_PROFILE,
+    ProcedureCatalog,
+    ProcedureValidationError,
+)
 
 
-TOOL_VERSION = "spell-development-analysis/0.9"
+TOOL_VERSION = "spell-development-analysis/0.10"
 LANGUAGE_PROFILE = "spell-restricted-ast/0.9"
+REFERENCE_LANGUAGE_PROFILE = V10_LANGUAGE_PROFILE
+SUPPORTED_LANGUAGE_PROFILES = frozenset(
+    {LANGUAGE_PROFILE, REFERENCE_LANGUAGE_PROFILE}
+)
 MAX_DIAGNOSTICS_PER_FILE = 1000
 MAX_OUTLINE_ITEMS = 5000
 MAX_COMPLETION_ITEMS = 500
@@ -73,7 +82,7 @@ def _procedure_headers(
         ):
             issues.append(("V09_PROCEDURE_ID_INVALID", "stable procedure id is invalid", 1))
     profile = values.get("language-profile")
-    if profile is not None and profile != LANGUAGE_PROFILE:
+    if profile is not None and profile not in SUPPORTED_LANGUAGE_PROFILES:
         issues.append(("V09_LANGUAGE_PROFILE", "procedure language profile is unsupported", 1))
     return (values if not issues else None), issues, outline
 

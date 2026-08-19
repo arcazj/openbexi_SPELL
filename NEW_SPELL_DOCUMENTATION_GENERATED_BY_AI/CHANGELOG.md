@@ -3,6 +3,26 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## Unreleased Product-Application Alignment - 2026-08-19
+
+- Recorded that the parent project's mutable v0.10 adapter maps all 195 numbered
+  Language Reference examples to 257 independently asserted, hash-bound variant
+  subcases. Raw malformed, pseudocode, output-only, placeholder, negative, and
+  intentionally invalid fragments remain semantic adaptations rather than
+  verbatim executable source.
+- Applied the Draft's effect-certainty and recovery principles to the parent
+  project's simulator-only v0.11 `BuildTC`/`Send` implementation: typed catalog
+  expansion, deterministic timing and telemetry verification, separate
+  per-element stages, critical confirmation, cancellation, recovery,
+  reconciliation, and no automatic resend after a possible or unknown effect.
+- Preserved `0.1.0-draft.1` as the generated specification version and v0.9.0 as
+  the parent project's accepted product baseline. The v0.10/v0.11 source and
+  evidence remain mutable working-tree material; v0.11 local qualification,
+  exact commands, results, and non-release exclusions are recorded in
+  `../SPELL_v0.11_Implementation.md`.
+- Made no live GCS, spacecraft, operational, deployment, compliance, candidate,
+  release, or accepted-baseline claim.
+
 ## 0.1.0-draft.1 - 2026-07-18
 
 - Established the generated next-generation documentation repository.

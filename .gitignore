@@ -1,27 +1,50 @@
-# Python
+.env
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
 *.egg-info/
-
-# Virtual envs
 .venv/
-venv/
+var/
 
-# IDE
+# The controlled GUI manual uses its versioned Draft filename.
+NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/SPELL_GUI_USER_MANUAL.pdf
+
 .idea/
-.vscode/
+*.iml
+/.qualification/
+SPELL-DOCUMENTATION/
 
-# OS
-.DS_Store
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/artifacts/
 
-# Backups / generated
-*.bak
-coverage_*.csv
-results_*.csv
-results_*.json
-json/*.json
-json/*.csv
-reports/
+artifacts/*.tar.gz
+artifacts/*.tar.gz.sha256
+artifacts/v04-plan.json
+artifacts/v0.3/session-access.png
+artifacts/v0.4/.qualification/
+artifacts/v0.4/*.tar.gz
+artifacts/v0.4/*.tar.gz.sha256
+artifacts/v0.4/browser/
+artifacts/v0.4/performance-*.json
+artifacts/v0.5/.qualification/
+artifacts/v0.5/*.tar.gz
+artifacts/v0.5/*.tar.gz.sha256
+artifacts/v0.6/.qualification/
+artifacts/v0.7/.qualification/
+artifacts/v0.8/.qualification/
+artifacts/v0.9/.qualification/
 
+*.log
+
+# Read-only legacy evidence is intentionally excluded from source releases.
+SPELL2.6.10-src.zip
+SPELL-COTS-2.6.10.zip
+SPELL_GUI_4.0.12-win32.win32.x86.zip
