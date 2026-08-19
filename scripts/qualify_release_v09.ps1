@@ -1034,6 +1034,7 @@ print(product_package_sha256_v09(root))
     "mkdir -p /tmp/work; cp /source/package.json /source/package-lock.json /tmp/work/; cd /tmp/work; npm ci --ignore-scripts --no-audit --no-fund --cache /npm-cache; npm cache verify --cache /npm-cache"
   Assert-NativeSuccess "cannot seed the verified offline npm cache"
 
+  $manualEvidenceMount = "type=bind,source=$stagedManualRoot,target=/qualification-source/SPELL-DOCUMENTATION,readonly"
   $imageInputHashes = [ordered]@{ $schemaRelative = $schemaSha256 }
   foreach ($entry in $manualLedger.GetEnumerator()) {
     $imageInputHashes["SPELL-DOCUMENTATION/$($entry.Key)"] = [string]$entry.Value
@@ -1070,7 +1071,7 @@ print("qualification-inputs=PASS files=8")
     [Text.Encoding]::UTF8.GetBytes(($imageInputHashes | ConvertTo-Json -Compress))
   )
   $imageInputProbeResult = @(& $script:DockerExe run --rm --network none --read-only `
-    --label "com.docker.compose.project=$project" --entrypoint python `
+    --label "com.docker.compose.project=$project" --mount $manualEvidenceMount --entrypoint python `
     $script:QualificationImage -I -c $imageInputProbeLauncher $imageInputProbePayload `
     $imageInputHashesPayload)
   Assert-NativeSuccess "qualification image input probe failed"
@@ -1332,7 +1333,6 @@ raise SystemExit(pytest.main(sys.argv[3:]))
     $toolingArguments += "--deselect=$node"
   }
   $toolingArguments += "--junitxml=/qualification-output/result.xml"
-  $manualEvidenceMount = "type=bind,source=$stagedManualRoot,target=/qualification-source/SPELL-DOCUMENTATION,readonly"
   Invoke-ImagePytest "tooling" "none" @("PYTHONDONTWRITEBYTECODE=1") `
     $toolingArguments $toolingBaseXml -Mounts @($manualEvidenceMount)
   $toolingHostXml = Join-Path $captureRoot "tooling-host.xml"
