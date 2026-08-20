@@ -1,0 +1,163 @@
+{
+  "accepted_predecessor": {
+    "commit": "c33d1893d90f9d42c36eedd19cb83f079bf39a9f",
+    "tag": "v0.10.0"
+  },
+  "browser": {
+    "passed": true,
+    "projects": [
+      "chromium",
+      "mobile"
+    ],
+    "real_backend": true,
+    "retries": 0,
+    "tests": 2
+  },
+  "candidate_commit": "e15d3314f9b97eb43d5d5057c8f1ba614844e0e7",
+  "decision": {
+    "accepted_exceptions": [],
+    "compliance_determination": false,
+    "cryptographic_signature": "not-claimed",
+    "deployment_approval": false,
+    "gate": "PASS",
+    "operational_authorization": false
+  },
+  "frontend_build": {
+    "passed": true,
+    "version": "0.11.0"
+  },
+  "gate_commands": {
+    "audit_tool": "python -m pytest scripts/tests/test_spell_auditor_tool.py --junitxml=<capture>",
+    "backend_compose": "python -m pytest <three Docker-Compose-selected node IDs> --junitxml=<capture>",
+    "backend_full": "python -m pytest backend/tests --junitxml=<capture>",
+    "backend_postgresql": "python -m pytest <16 PostgreSQL-selected node IDs> --junitxml=<capture>",
+    "backend_v10": "python -m pytest <seven v0.10 backend test modules> --junitxml=<capture>",
+    "backend_v11": "python -m pytest <eight v0.11 backend test modules> --junitxml=<capture>",
+    "documentation": "python -m pytest <documentation validation tests> --junitxml=<capture>",
+    "frontend_unit": "npm test -- --run --reporter=junit --outputFile=<capture>",
+    "release_tooling": "python -m pytest scripts/tests/test_release_v11.py --junitxml=<capture>"
+  },
+  "gates": {
+    "audit_tool": {
+      "duration_seconds": 0.424,
+      "errors": 0,
+      "failures": 0,
+      "passed": 3,
+      "skipped": 0,
+      "tests": 3
+    },
+    "backend_compose": {
+      "duration_seconds": 82.671,
+      "errors": 0,
+      "failures": 0,
+      "passed": 3,
+      "skipped": 0,
+      "tests": 3
+    },
+    "backend_full": {
+      "duration_seconds": 554.237,
+      "errors": 0,
+      "failures": 0,
+      "passed": 1544,
+      "skipped": 19,
+      "tests": 1563
+    },
+    "backend_postgresql": {
+      "duration_seconds": 52.504,
+      "errors": 0,
+      "failures": 0,
+      "passed": 16,
+      "skipped": 0,
+      "tests": 16
+    },
+    "backend_v10": {
+      "duration_seconds": 14.373,
+      "errors": 0,
+      "failures": 0,
+      "passed": 442,
+      "skipped": 1,
+      "tests": 443
+    },
+    "backend_v11": {
+      "duration_seconds": 40.283,
+      "errors": 0,
+      "failures": 0,
+      "passed": 197,
+      "skipped": 0,
+      "tests": 197
+    },
+    "documentation": {
+      "duration_seconds": 1.637,
+      "errors": 0,
+      "failures": 0,
+      "passed": 14,
+      "skipped": 0,
+      "tests": 14
+    },
+    "frontend_unit": {
+      "duration_seconds": 23.144947,
+      "errors": 0,
+      "failures": 0,
+      "passed": 112,
+      "skipped": 0,
+      "tests": 112
+    },
+    "release_tooling": {
+      "duration_seconds": 12.397,
+      "errors": 0,
+      "failures": 0,
+      "passed": 12,
+      "skipped": 0,
+      "tests": 12
+    }
+  },
+  "generated_at_utc": "2026-08-20T00:22:44.188501+00:00",
+  "image": {
+    "bytecode_absent": true,
+    "contracts": [
+      "v10",
+      "v11"
+    ],
+    "image_id": "sha256:c0d6ffbafc78056de27999c9cc02f900dbd816bd3687ba157cee5a744f69b3c8",
+    "legacy_documentation_absent": true,
+    "live_dispatch_absent": true,
+    "passed": true,
+    "procedure_count": 1,
+    "simulator_only": true,
+    "v12_absent": true,
+    "version": "0.11.0"
+  },
+  "product_version": "0.11.0",
+  "qualified_commit": "276b222a43dfbde260b3919c16f4080114251a8e",
+  "qualified_tree": "157be3b706a9222b7d5d0be2a478e71673a4e4ca",
+  "reference_inputs": {
+    "SPELL_DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf": "cedf617a4d551701394f75a8ec1769a402059a4c7b659ed87079ce5148074a81",
+    "SPELL_DOCUMENTATION/SPELL - Driver Development Manual - 2.4.4.pdf": "057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5",
+    "SPELL_DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6",
+    "SPELL_DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+    "SPELL_DOCUMENTATION/SPELL - Server Manual - 2.4.4.pdf": "ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9",
+    "SPELL_DOCUMENTATION/SPELL2.6.10-src.zip": "2176e198f04c3f2ec99ee6f740871d9368997e3fd1e33d6734cb8e163cb6a0ed",
+    "SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf": "94c1443646e22f3692ac25d2ef570ff437d83c38b71082e7077b4a322e5fb94f",
+    "SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf": "f2f3e72e62692eeabb287b704878240012062f894b52a10570b8f42199c233fb"
+  },
+  "release_evidence": {
+    "artifacts/v0.10/reference-examples.json": "14192c9d991b33b502b080539db62a0f0ebfd476d7ee1830c1eb53bfdbd72c74",
+    "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-evidence.json": "f26d55d2a85f867a78121914f92e4cd2d7e03b2fab21d1a6e34e0ecac76b733f",
+    "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-success.png": "cdb6db34f8d510785c72f37128706696c868c0dece8925dac5ca83a46c96f0ea",
+    "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-evidence.json": "70af43770de4ff4299817a3f6e4fbdf36565ede9c26f5b1aed7249ae4304244f",
+    "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-success.png": "b82f1905ea23f5274e0fa7d9b084b5ca1c36415f6022fdc71e6113dda44bf8a5",
+    "contracts/v10/language_reference_example_matrix.json": "ab7535a2db540664f1303fb8cd73f1599fe7aa81d469003cfe15fe7fa3ba7e4c",
+    "contracts/v10/language_reference_variant_matrix.json": "35ccaf6f276a2a6571e96f43c8aeb33ebf33cca16de3d6b9740e0217d45f94c8",
+    "contracts/v11/telecommand_catalog.json": "f60b574d18d4c3aa23c8c986b6ea3242e4e83fd41bc611f4ff6a37a15eb6e64c",
+    "contracts/v11/telecommand_execution.json": "d757eb602b03476ee512e8a89a714fae3024d3be3a4b590ebabca0dcd06021a3"
+  },
+  "release_tag": "v0.11.0",
+  "schema_version": "spell.v11.release-qualification/1",
+  "skip_resolution": {
+    "backend_full_environment_skips": 19,
+    "compose_selected_passes": 3,
+    "postgresql_selected_passes": 16,
+    "unresolved_skips": 0
+  },
+  "source_fingerprint_sha256": "2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b"
+}
