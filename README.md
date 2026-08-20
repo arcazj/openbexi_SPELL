@@ -12,12 +12,13 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The current source tree reports product version `0.11.0` and is the v0.11
-release candidate. Its accepted predecessor is **v0.10.0** at annotated tag
-`v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`.
-v0.11 becomes an accepted engineering release only when its committed
-qualification and deterministic package pass the version-scoped validator and
-annotated tag `v0.11.0` is present.
+The latest accepted engineering release is **v0.11.0** at annotated tag
+`v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`,
+which peels to release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its accepted predecessor is
+**v0.10.0**. v0.11 qualification, deterministic packaging, release-evidence
+validation, and strict annotated-tag validation passed with no accepted
+exceptions.
 
 > **Safety boundary:** this repository does not provide a live Ground Control
 > System (GCS) connection, spacecraft command path, production deployment
@@ -62,8 +63,8 @@ annotated tag `v0.11.0` is present.
 | v0.7 | Read-only observation and condition engine | Accepted at `v0.7.0` |
 | v0.8 | Data and local service compatibility | Accepted at `v0.8.0` |
 | v0.9 | Web-based SPELL development environment | Accepted at `v0.9.0` |
-| v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to this candidate |
-| v0.11 | Simulator telecommand semantics | Release candidate `e15d331`; acceptance requires validated tag `v0.11.0` |
+| v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to v0.11 |
+| v0.11 | Simulator telecommand semantics | Accepted at `v0.11.0`; no accepted exceptions |
 
 See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
 and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified
@@ -206,13 +207,18 @@ The exact v0.10 contracts and evidence are in:
 - [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json)
 - [SPELL_v0.10_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md)
 
-## v0.11 Telecommand Candidate
+## Accepted v0.11 Telecommand Release
 
 v0.11 adds catalog-backed `BuildTC` and `Send` semantics from the accepted
 `v0.10.0` tag. Its contracts preserve distinct construction, authorization,
 transport, loading, release, execution, verification, certainty, recovery, and
 reconciliation facts. A possible or unknown effect is never resent
 automatically.
+
+The accepted package SHA-256 is
+`61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`.
+The qualified source fingerprint is
+`2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b`.
 
 The implementation is deterministic and simulator-only. It contains no live
 driver credential, arbitrary endpoint, network command dispatch, GCS route, or
@@ -322,10 +328,16 @@ contract, a production build, two real-browser projects, product-image hygiene,
 documentation validation, and deterministic packaging. No unresolved skip or
 accepted exception is permitted.
 
-The canonical machine record is `artifacts/v0.11/release-qualification.json`
-once generated from one committed source state. Package and tag validation are
-separate final gates. See [Test_and_Integration.md](Test_and_Integration.md)
-for the complete commands and result boundaries.
+The canonical machine record is `artifacts/v0.11/release-qualification.json`.
+The deterministic package, SHA-256 sidecar, release manifest, and validated tag
+are committed under `artifacts/v0.11/` and `v0.11.0`. See
+[Test_and_Integration.md](Test_and_Integration.md) for the complete commands
+and result boundaries.
+
+Run strict v0.11 release validation from a clean checkout of `v0.11.0` or
+`release/v0.11`. Later default-branch documentation records intentionally have
+a different source fingerprint and must fail closed rather than being mistaken
+for the tagged release tree.
 
 ## Repository Layout
 
@@ -357,7 +369,7 @@ behavior, intentional exclusions, and safety strengthening back to them.
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): product scope, release status, gates,
   guardrails, and future sequence.
 - [VERSION_TIMELINE.md](VERSION_TIMELINE.md): evidence-qualified history through
-  accepted v0.10 and the v0.11 release candidate.
+  accepted v0.10 and v0.11.
 - [Test_and_Integration.md](Test_and_Integration.md): per-version test plans,
   commands, evidence, and exit decisions.
 - [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md):

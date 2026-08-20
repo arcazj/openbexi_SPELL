@@ -19,14 +19,15 @@ history remains in the parent project and is not duplicated as document history.
   subcases. Raw malformed, pseudocode, output-only, placeholder, negative, and
   intentionally invalid fragments remain semantic adaptations rather than
   verbatim executable source.
-- Applied the Draft's effect-certainty and recovery principles to the v0.11
-  `BuildTC`/`Send` release candidate. The release gate keeps typed catalog
+- Applied the Draft's effect-certainty and recovery principles to the accepted
+  v0.11 `BuildTC`/`Send` engineering release. The release gate keeps typed catalog
   expansion, separate stages, critical confirmation,
   reconciliation, and no automatic resend after a possible or unknown effect.
 - Preserved `0.1.0-draft.1` as the generated specification version, recorded
-  v0.10.0 as accepted, and bound v0.11 candidate source and release policy.
-- Made no live GCS, spacecraft, operational, deployment, compliance, or
-  premature v0.11 release claim.
+  v0.10.0 and v0.11.0 as accepted, and bound v0.11 candidate source,
+  qualification, package, release policy, and annotated tag.
+- Made no live GCS, spacecraft, operational, deployment, or compliance claim;
+  v0.11 acceptance remains a local simulator engineering release only.
 
 ## 0.1.0-draft.1 - 2026-07-18
 

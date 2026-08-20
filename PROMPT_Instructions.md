@@ -68,16 +68,17 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.10.0 is the accepted predecessor to the v0.11 candidate. Annotated
-tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7` peels to release commit
-`c33d1893d90f9d42c36eedd19cb83f079bf39a9f`; strict qualification,
+SPELL v0.11.0 is the accepted product baseline. Annotated tag object
+`eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86`; strict qualification,
 deterministic package, evidence, and tag validation passed with no accepted
-exceptions. v0.11 candidate
-`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` implements the bounded
-simulator telecommand semantics recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
-It becomes accepted only when committed qualification, deterministic package,
-and annotated tag `v0.11.0` pass the v0.11 release validator.
+exceptions. Qualified source commit
+`276b222a43dfbde260b3919c16f4080114251a8e` has fingerprint
+`2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b`,
+and the accepted package SHA-256 is
+`61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`.
+SPELL v0.10.0 remains its accepted predecessor. Later documentation updates on
+the default branch do not retarget or rewrite either immutable release tag.
 
 For v0.10 and v0.11 work, the applicable manuals under
 `SPELL_DOCUMENTATION/`, including the 195-example Language Reference 2.4.4,

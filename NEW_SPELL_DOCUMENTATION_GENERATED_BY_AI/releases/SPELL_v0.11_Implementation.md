@@ -6,22 +6,25 @@
 | --- | --- |
 | Accepted predecessor | SPELL v0.10.0 at annotated tag `v0.10.0` |
 | Candidate source | `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` |
+| Qualified source | `276b222a43dfbde260b3919c16f4080114251a8e`; fingerprint `2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b` |
 | Product version | `0.11.0` |
 | Entry authority | `V11-GATE-0A PASS` in `SPELL_v0.11_Pre-Implementation.md` |
 | Release policy | `contracts/v11/release_policy.json` |
-| Release disposition | Conditional: accepted only when committed qualification/package evidence and annotated tag `v0.11.0` pass `scripts.validate_release_evidence_v11` |
+| Release endpoint | Commit `a41be7f5c8472213fa027d7bb94a2389477b1b86`; annotated tag `v0.11.0`; tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` |
+| Package | 691 files; SHA-256 `61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170` |
+| Release disposition | ACCEPTED: qualification, deterministic package, evidence, and strict annotated-tag validation passed |
 | Accepted exceptions | None permitted |
 | Operational authorization | None |
 | Updated | 2026-08-19 |
 
-This record describes a simulator-only release candidate. It does not claim a
+This record describes an accepted simulator-only engineering release. It does not claim a
 live Ground Control System integration, network command dispatch, spacecraft
 commanding, deployment approval, compliance determination, or cryptographic
 signature.
 
 ## Implemented Surface
 
-The candidate adds:
+The accepted release adds:
 
 - `contracts/v11/telecommand_catalog.json`, a closed seven-command,
   two-sequence deterministic simulator catalog;
@@ -114,22 +117,26 @@ is hash-pinned in the policy. It exercises the real v0.11 backend while
 retaining the single v0.10 reference procedure and confirms Example 195 PASS
 on desktop and mobile.
 
-Qualification evidence will bind the exact source commit, Git tree, source
+Qualification evidence binds the exact source commit, Git tree, source
 fingerprint, image identity, gate totals, mandatory reference hashes, contract
-hashes, and browser hashes. The deterministic source archive will be built
-twice byte-for-byte, exclude prior-release artifacts and legacy inputs, and be
-validated before tagging.
+hashes, and browser hashes. The deterministic source archive was built twice
+byte-for-byte, excludes prior-release artifacts and legacy inputs, and passed
+independent rebuild validation before tagging.
 
-## Acceptance Rule
+## Acceptance Record
 
-The source tree is a release candidate until all of these are true:
+All release conditions are satisfied:
 
-1. `artifacts/v0.11/release-qualification.json` is committed and validates.
+1. `artifacts/v0.11/release-qualification.json` is committed at
+   `8d2c00c902b41a032265bd219439cc8e491036cb` and validates.
 2. `artifacts/v0.11/openbexi-spell-v0.11.0.tar.gz`, its SHA-256 sidecar, and
-   release manifest are committed and reproduce exactly.
+   release manifest are committed at
+   `a41be7f5c8472213fa027d7bb94a2389477b1b86` and reproduce exactly.
 3. Annotated tag `v0.11.0` targets the release commit and carries the exact
-   validator-generated message.
-4. Remote branch and tag object identities match the local validated objects.
+   validator-generated message; tag object is
+   `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`.
+4. GitHub branch, tag object, and peeled-tag identities match the local
+   validated objects.
 
 An accepted tag remains a local simulator engineering release only. It grants
 no deployment or operational authority.

@@ -6,7 +6,7 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
-## 2026-08-19 - v0.10 Acceptance And v0.11 Candidate Restoration
+## 2026-08-19 - v0.10 And v0.11 Acceptance Restoration
 
 The owner directed restoration of the complete v0.10 and v0.11 work, followed
 by GitHub publication, and approved the recommendation to close the releases
@@ -35,10 +35,34 @@ latest legacy auditor implementation. The auditor CLI/runner mismatch was
 fixed and bound by three tests. The focused v0.11 suite passes 197 tests, and
 fresh Chromium/mobile evidence passes 2/2 against the v0.11 image.
 
-The v0.11 release remains conditional on its complete source-bound gate,
-deterministic package, evidence validation, and annotated tag `v0.11.0`.
-Earlier mutable main-line evidence is historical context only and is not used
-as final release evidence.
+The complete v0.11 source-bound gate then passed. Accepted results include 442
+inherited v0.10 passes plus one selected skip, 197 focused v0.11 passes, 1,544
+full-backend passes plus 19 environment-selected skips, all 16 PostgreSQL and
+three Docker Compose selections, 112 frontend tests and production build,
+three auditor tests, 12 release-tooling tests, 14 documentation tests, and two
+real-browser projects. All environment-selected skips were resolved and no
+exception was accepted.
+
+Qualified source commit `276b222a43dfbde260b3919c16f4080114251a8e`
+records source fingerprint
+`2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b`
+and final image
+`sha256:c0d6ffbafc78056de27999c9cc02f900dbd816bd3687ba157cee5a744f69b3c8`.
+The deterministic 691-file package has SHA-256
+`61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`.
+Annotated tag `v0.11.0`, tag object
+`eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, accepts release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86`. Local and GitHub release-branch,
+tag, and peeled-tag identities match.
+
+Because the previous `master` and accepted release lineage had unrelated Git
+roots, default-branch reconciliation used a two-parent merge. Commit
+`a09296b6b8d66ed9bf8683eecfa80a0adab47bf4` retains the former `master` as
+parent one, the accepted v0.11 release as parent two, and the exact v0.11 tag
+tree. Duplicate browser attachments and IDE-only metadata were removed. The
+reconciled `master` was pushed normally without force. Earlier mutable
+main-line evidence remains historical context only and was not used as final
+release evidence.
 
 ## 2026-08-19 - GitHub Delivery Default
 

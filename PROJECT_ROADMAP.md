@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.10.0 baseline and v0.11 simulator telecommand release candidate |
-| Update type | Record accepted v0.10 evidence and bounded v0.11 candidate, policy, and closeout gates |
+| Document revision | Accepted v0.11.0 simulator telecommand baseline |
+| Update type | Record accepted v0.11 qualification, deterministic package, validated tag, and default-branch closeout |
 | Updated | 2026-08-19 |
-| Accepted product baseline | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
+| Accepted product baseline | SPELL v0.11.0, tag `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, release commit `a41be7f5c8472213fa027d7bb94a2389477b1b86` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -17,7 +17,7 @@
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
 | v0.10 current status | Accepted at annotated tag `v0.10.0`; qualification, deterministic package, evidence, and strict tag validation passed with no accepted exceptions |
-| v0.11 current status | Candidate `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`; focused 197-test and real-browser prechecks pass; acceptance requires complete policy gates, committed package/evidence, and annotated tag `v0.11.0` |
+| v0.11 current status | Accepted at annotated tag `v0.11.0`; all policy gates, deterministic package, evidence validation, and strict tag validation passed with no accepted exceptions |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
 | Runtime, API, schema, frontend, dependency, or driver change | v0.11 adds closed simulator telecommand contracts, IR, runtime, supervisor/worker/operator integration, and version bindings; no live driver or GCS command route |
 | Operational authorization | None |
@@ -26,7 +26,7 @@
 ## Purpose And Authority
 
 This document is the living, forward-looking roadmap for OpenBEXI SPELL. It
-connects the delivered v0.1 through accepted v0.4 foundations to candidate v0.x work,
+connects the delivered v0.1 through accepted v0.11 foundations to candidate v0.x work,
 records dependencies and decision points, and makes deferred scope explicit.
 
 The roadmap is an index and planning aid. It does not authorize implementation,
@@ -35,16 +35,15 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.10.0 is the accepted product baseline. Its annotated tag object
-`95f64a04bb15b1eb03250a8d0387a228b67727a7` peels to release commit
-`c33d1893d90f9d42c36eedd19cb83f079bf39a9f`. Source-bound qualification,
+SPELL v0.11.0 is the accepted product baseline. Its annotated tag object
+`eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86`. Source-bound qualification,
 deterministic packaging, evidence validation, and strict annotated-tag
 validation passed with no accepted exceptions and no operational
-authorization. v0.11 starts directly from that tag under
+authorization. v0.11 started directly from accepted `v0.10.0` under
 [`V11-GATE-0A`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
-and `contracts/v11/release_policy.json`. Candidate source is present, but only
-the complete evidence/package/tag sequence can create an accepted v0.11
-release.
+and `contracts/v11/release_policy.json`; its candidate, qualification, package,
+and tag endpoints remain separately recorded.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -408,12 +407,13 @@ waiver; the annotated tag targets the final release commit.
 Goal: implement the documented `BuildTC` and `Send` surface in a simulator with
 no operational route.
 
-Current disposition: simulator-only release candidate
-`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`, branched directly from validated
-`v0.10.0`. The focused 197-test suite and two real-browser prechecks pass.
-Formal acceptance remains conditional on all gates in
-`contracts/v11/release_policy.json`, committed qualification and package
-evidence, and strict annotated tag `v0.11.0`.
+Current disposition: accepted simulator-only engineering release `v0.11.0`,
+branched directly from validated `v0.10.0`. Candidate
+`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` was qualified at source commit
+`276b222a43dfbde260b3919c16f4080114251a8e`; release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86` is bound by annotated tag object
+`eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`. All gates in
+`contracts/v11/release_policy.json` passed with no accepted exceptions.
 
 Required properties:
 
@@ -435,10 +435,9 @@ Exit gate: command-corpus, confirmation, duplicate-child, stage,
 cancellation, crash-boundary, uncertainty, reconciliation, and no-resend tests
 pass against deterministic simulators. The strengthened 195-example/257-variant
 v0.10 gate, current product regression, frontend, browser, build, and image
-checks must pass, including every environment-selected PostgreSQL and
-Docker-Compose test. A version-scoped v0.11 release framework must replace any
-historical validator that still assumes an older current-root version; older
-evidence must not be relabeled.
+checks passed, including every environment-selected PostgreSQL and
+Docker-Compose test. The version-scoped v0.11 release framework validates this
+endpoint independently; older evidence is not relabeled.
 
 ### v0.12 - Read-Only Legacy Observation
 

@@ -9,7 +9,7 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | Accepted v0.10.0 baseline; v0.11 simulator telecommand release candidate |
+| Current release context | Accepted v0.11.0 simulator telecommand baseline; v0.10.0 accepted predecessor |
 | Product implementation change | None |
 | Operational authorization | None |
 | Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |
@@ -54,9 +54,10 @@ supervisor-owned confirmation decisions are recorded in the v0.11 entry and
 implementation records and tested through version-scoped gates.
 
 These applications do not copy manual bodies into runtime source and do not
-create a live GCS adapter, driver credential, spacecraft connection, operational
-authorization, general SPELL 2.4.4 conformance claim, or automatic v0.11
-acceptance without its validated tag.
+create a live GCS adapter, driver credential, spacecraft connection,
+operational authorization, or general SPELL 2.4.4 conformance claim. v0.11
+acceptance is bound only to validated annotated tag `v0.11.0` and its committed
+release evidence.
 
 ## Evidence Inventory
 

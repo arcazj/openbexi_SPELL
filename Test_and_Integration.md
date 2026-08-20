@@ -6,7 +6,7 @@
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Accepted predecessor | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
-| Current release state | v0.11 candidate `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`; acceptance conditional on complete policy gates, committed package/evidence, and annotated tag `v0.11.0` |
+| Current release state | v0.11 accepted at annotated tag `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, release commit `a41be7f5c8472213fa027d7bb94a2389477b1b86` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | Date | Updated 2026-08-19 |
@@ -63,14 +63,16 @@ malformed, output-only, placeholder, negative, and pseudocode fragments use
 explicit hash-bound semantic adaptations and are not represented as arbitrary
 Python or verbatim executable snippets.
 
-## Version 0.11 Simulator Telecommand Release Candidate
+## Version 0.11 Accepted Simulator Telecommand Release
 
 ### Scope And Entry Decision
 
-The candidate implements the deterministic simulator-only `BuildTC`/`Send`
-scope directly from validated `v0.10.0`. Every mandatory reference document
-remains pinned, and compatibility and safety decisions are recorded under
-`V11-GATE-0A`. Candidate commit `e15d331` is not an accepted release.
+The accepted release implements the deterministic simulator-only
+`BuildTC`/`Send` scope directly from validated `v0.10.0`. Every mandatory
+reference document remains pinned, and compatibility and safety decisions are
+recorded under `V11-GATE-0A`. Candidate commit `e15d331` remains the historical
+product endpoint; acceptance is bound to the later qualification, package, and
+annotated tag.
 
 ### Required Evidence
 
@@ -83,14 +85,19 @@ remains pinned, and compatibility and safety decisions are recorded under
 | Certainty | Separate stages and dispositions; no transport-success inference, load-only success inflation, blind resend, or success after uncertainty |
 | Integration | Public API execution of both Example 60 forms, full backend/scripts regression, frontend tests/build, and product-image contract availability |
 
-### Pre-Closeout Evidence
+### Executed Qualification Evidence
 
-| Gate | Current result | Final authority |
+| Gate | Accepted result | Authority |
 | --- | --- | --- |
-| Focused v0.11 | 197 passed, zero failures/errors/skips | Must be recaptured as source-bound JUnit |
-| Auditor integration | Three targeted checks passed after restoring the runner CLI contract | Must be recaptured as source-bound JUnit |
-| Real browser | Chromium and mobile passed 2/2 against health version 0.11.0 | Hash-pinned under `artifacts/v0.11/browser-e2e` |
-| Full release | Pending | `artifacts/v0.11/release-qualification.json` and strict validator |
+| Inherited v0.10 | 442 passed; one dedicated-PostgreSQL selection skipped here and passed in the database gate | Source-bound JUnit in the qualification record |
+| Focused v0.11 | 197 passed, zero failures/errors/skips | Source-bound JUnit in the qualification record |
+| Full backend | 1,544 passed and 19 environment-selected skips, with every selection resolved by the dedicated gates | Source-bound JUnit in the qualification record |
+| PostgreSQL and Compose | 16 PostgreSQL and three Docker Compose selections passed | Dedicated PostgreSQL 18 and Docker runtime captures |
+| Frontend | 112 passed and production build passed | Vitest JUnit and build disposition |
+| Audit and release controls | Three auditor, 12 release-tooling, and 14 documentation tests passed | Version-scoped JUnit captures and clean-export Markdown validation |
+| Real browser | Chromium and mobile passed 2/2 with zero retries against health version 0.11.0 | Hash-pinned under `artifacts/v0.11/browser-e2e` |
+| Product image | Probe passed for image `sha256:c0d6ffbafc78056de27999c9cc02f900dbd816bd3687ba157cee5a744f69b3c8` | Qualification image record |
+| Package and tag | 691-file package reproduced byte-for-byte; SHA-256 `61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`; strict annotated tag validation passed | Release manifest and tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` |
 
 Any future `PromptUser` design may decide only whether the procedure continues after a settled
 failure. `OnFailure` remains authoritative for remaining element progression.

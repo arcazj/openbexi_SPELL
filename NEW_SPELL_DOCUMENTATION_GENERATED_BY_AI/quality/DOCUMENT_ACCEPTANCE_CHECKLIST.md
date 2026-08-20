@@ -10,10 +10,11 @@ the engineering checks incorporated by `V04-GATE-0`. Proposed ADR acceptance,
 organization role assignment, connected-system review, GUI-manual publication,
 and other broader unchecked items do not block the local gate.
 
-### v0.10 Accepted Release And v0.11 Candidate Application Check
+### v0.10 And v0.11 Accepted Release Application Check
 
-This bounded application note does not change the Draft baseline or the
-accepted v0.10.0 predecessor or the Draft specification status.
+This bounded application note does not change the Draft baseline, accepted
+v0.10.0 predecessor, accepted v0.11.0 simulator release, or Draft specification
+status.
 
 - [x] The v0.10 traceability records distinguish 195 numbered example outcomes
   from 257 independently asserted variant subcases.
@@ -27,6 +28,9 @@ accepted v0.10.0 predecessor or the Draft specification status.
 - [x] Require the full v0.10 gate, current product regression, all selected
   PostgreSQL/Compose tests, frontend/build/browser, image, documentation,
   package, and tag checks with no unresolved skip or accepted exception.
+- [x] Bind accepted v0.11.0 to committed qualification and deterministic
+  package evidence plus validated annotated tag object
+  `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`.
 - [x] Do not claim deployment, compliance, cryptographic signature, live
   connectivity, or operational authorization from v0.10 or v0.11 evidence.
 

@@ -11,7 +11,7 @@ No live spacecraft or operational GCS connection is in scope until the specific
 adapter, environment, effect class, procedures, organization, and operational
 authority pass their independent gates.
 
-## Accepted v0.10 And v0.11 Candidate Application
+## Accepted v0.10 And v0.11 Application
 
 The accepted v0.10 release applies this strategy without changing this
 Draft specification's status. v0.10 has 195 numbered example outcomes and a separate 257-subcase variant
@@ -29,13 +29,14 @@ loading, release, acknowledgement, onboard execution, verification,
 disposition, and certainty; cancellation; bounded checkpoint recovery;
 reconciliation; uncertainty; and no automatic resend.
 
-Focused suite success is insufficient. The v0.11 record must retain exact
+Focused suite success alone is insufficient. The accepted v0.11 record retains exact
 commands, counts, skips, limitations, artifact identity, built-image contract
 availability, and full regression/frontend/build results from one consistent
 working-tree state. Direct public-API extremes fail with bounded typed
-diagnostics rather than raw runtime exceptions. Candidate source and browser
-prechecks are present, but no local result becomes accepted without the
-v0.11 immutable release endpoint and independent gates.
+diagnostics rather than raw runtime exceptions. Candidate source, complete
+qualification, browser evidence, deterministic package, and annotated tag
+`v0.11.0` passed their independent gates with no accepted exceptions. This is
+a local simulator engineering result, not operational validation.
 
 ## Evidence Contract
 

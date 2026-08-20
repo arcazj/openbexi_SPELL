@@ -2,15 +2,17 @@
 
 ## Record Status
 
-This record retains bounded historical release provenance and records v0.10.0
-as the accepted predecessor to the v0.11 candidate. Annotated tag `v0.10.0`,
-tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, peels to release
-commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f`. Its source-bound
-qualification, deterministic package, release evidence, and tag validator
-passed with no accepted exceptions. v0.11 candidate
-`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` is accepted only if its own
-committed package evidence and annotated `v0.11.0` tag pass the
-version-scoped validator.
+This record retains bounded historical release provenance and records v0.11.0
+as the accepted product baseline. Annotated tag `v0.11.0`, tag object
+`eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, peels to release commit
+`a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its source-bound qualification,
+deterministic package, release evidence, and tag validator passed with no
+accepted exceptions. Qualified source commit
+`276b222a43dfbde260b3919c16f4080114251a8e` has fingerprint
+`2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b`;
+the accepted package SHA-256 is
+`61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`.
+SPELL v0.10.0 remains the accepted predecessor from which v0.11 was branched.
 
 The v0.10 reference-example adapter is independently authored against the
 existing clean-room compatibility inventory for `SPELL - Language Reference -
@@ -32,12 +34,12 @@ Those bytes are versioned for traceability but excluded from backend images and
 the deterministic product package. Generated documentation is derived context,
 not a replacement source authority. No legacy implementation is copied.
 
-v0.11 is new first-party simulator-only work based on accepted v0.10 and
-separately qualified against the mandatory references. Its two data contracts
-are hash-pinned, and the implementation does not copy legacy code. The
-deterministic catalog/provider exposes no live endpoint, driver credential,
-network dispatch, GCS route, or spacecraft interface. The legacy source ZIP
-remains read-only evidence.
+The accepted v0.11 release is new first-party simulator-only work based on
+accepted v0.10 and separately qualified against the mandatory references. Its
+two data contracts are hash-pinned, and the implementation does not copy
+legacy code. The deterministic catalog/provider exposes no live endpoint,
+driver credential, network dispatch, GCS route, or spacecraft interface. The
+legacy source ZIP remains read-only evidence.
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256

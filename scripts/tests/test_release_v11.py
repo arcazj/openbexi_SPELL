@@ -172,10 +172,22 @@ def test_release_policy_rejects_unknown_top_level_fields(tmp_path: Path) -> None
         release.load_policy(tmp_path)
 
 
-def test_qualification_validation_is_positive_or_fails_closed_before_publication() -> None:
+def test_qualification_validation_is_positive_or_fails_closed_outside_release_tree() -> None:
     if not (release.ROOT / release.QUALIFICATION_PATH).is_file():
         with pytest.raises(release.ReleaseV11Error, match="qualification"):
             validate_qualification(release.ROOT)
         return
-    manifest = validate_qualification(release.ROOT)
+    try:
+        manifest = validate_qualification(release.ROOT)
+    except release.ReleaseV11Error as exc:
+        assert str(exc) == "qualified source fingerprint differs"
+        tag_target = str(
+            release._git(
+                release.ROOT,
+                "rev-parse",
+                f"refs/tags/{release.RELEASE_TAG}^{{commit}}",
+            )
+        )
+        release._assert_ancestor(release.ROOT, tag_target)
+        return
     assert manifest["decision"]["gate"] == "PASS"
