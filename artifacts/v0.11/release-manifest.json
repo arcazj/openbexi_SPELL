@@ -1,0 +1,22 @@
+{
+  "content_manifest_sha256": "763a7658b2d950be322e754ceb18fe8afbaff5bf740c734977f188bc0151270f",
+  "decision": "PASS",
+  "file_count": 691,
+  "legacy_documentation_packaged": false,
+  "package_input_commit": "8d2c00c902b41a032265bd219439cc8e491036cb",
+  "package_input_tree": "fdf6e38d801f2d06a5eb65a563864f89fbfb66a5",
+  "package_path": "artifacts/v0.11/openbexi-spell-v0.11.0.tar.gz",
+  "package_sha256": "61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170",
+  "prior_release_artifacts_packaged": false,
+  "product_version": "0.11.0",
+  "qualification_sha256": "0663295979da3486a771b269c45ffa7172ff188a3a57880339c3289906c44895",
+  "qualified_commit": "276b222a43dfbde260b3919c16f4080114251a8e",
+  "release_tag": "v0.11.0",
+  "reproducible_builds": 2,
+  "schema_version": "spell.v11.release-manifest/1",
+  "sidecar_path": "artifacts/v0.11/openbexi-spell-v0.11.0.tar.gz.sha256",
+  "sidecar_sha256": "c09486a024d184282aa6e283f4cddbcb50233348302a386821a52f9db288f55b",
+  "source_fingerprint_sha256": "2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b",
+  "v11_contracts_packaged": true,
+  "v12_packaged": false
+}
