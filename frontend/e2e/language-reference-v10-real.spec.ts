@@ -221,15 +221,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   const evidencePath = testInfo.outputPath(`language-reference-example-195-${testInfo.project.name}-evidence.json`);
   await writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   expect((await stat(evidencePath)).size).toBeGreaterThan(0);
-  await testInfo.attach(`language-reference-example-195-${testInfo.project.name}-evidence.json`, {
-    path: evidencePath,
-    contentType: "application/json",
-  });
   const screenshotPath = testInfo.outputPath(`language-reference-example-195-${testInfo.project.name}-success.png`);
   await page.screenshot({ path: screenshotPath, fullPage: true });
   expect((await stat(screenshotPath)).size).toBeGreaterThan(0);
-  await testInfo.attach(`language-reference-example-195-${testInfo.project.name}-success.png`, {
-    path: screenshotPath,
-    contentType: "image/png",
-  });
 });

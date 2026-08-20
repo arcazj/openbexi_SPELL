@@ -1,0 +1,115 @@
+{
+  "schema_version": "spell.v10.release-policy/1",
+  "product_version": "0.10.0",
+  "release_tag": "v0.10.0",
+  "candidate_commit": "8377760be59033b3372512ad812c43cd6d2f7e29",
+  "scope": "bounded-language-reference-adapter",
+  "operational_authorization": false,
+  "reference_inputs": [
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf",
+      "sha256": "cedf617a4d551701394f75a8ec1769a402059a4c7b659ed87079ce5148074a81",
+      "role": "mandatory-authoring-workflow-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Driver Development Manual - 2.4.4.pdf",
+      "sha256": "057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5",
+      "role": "mandatory-driver-service-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf",
+      "sha256": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6",
+      "role": "mandatory-operator-workflow-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf",
+      "sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+      "role": "mandatory-primary-v010-language-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Server Manual - 2.4.4.pdf",
+      "sha256": "ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9",
+      "role": "mandatory-server-execution-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL2.6.10-src.zip",
+      "sha256": "2176e198f04c3f2ec99ee6f740871d9368997e3fd1e33d6734cb8e163cb6a0ed",
+      "role": "mandatory-read-only-legacy-source-evidence"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf",
+      "sha256": "94c1443646e22f3692ac25d2ef570ff437d83c38b71082e7077b4a322e5fb94f",
+      "role": "mandatory-supplementary-development-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf",
+      "sha256": "f2f3e72e62692eeabb287b704878240012062f894b52a10570b8f42199c233fb",
+      "role": "mandatory-supplementary-language-reference"
+    }
+  ],
+  "release_evidence": [
+    {
+      "path": "contracts/v10/language_reference_example_matrix.json",
+      "sha256": "ab7535a2db540664f1303fb8cd73f1599fe7aa81d469003cfe15fe7fa3ba7e4c",
+      "role": "195-example-contract"
+    },
+    {
+      "path": "contracts/v10/language_reference_variant_matrix.json",
+      "sha256": "35ccaf6f276a2a6571e96f43c8aeb33ebf33cca16de3d6b9740e0217d45f94c8",
+      "role": "257-variant-contract"
+    },
+    {
+      "path": "artifacts/v0.10/reference-examples.json",
+      "sha256": "14192c9d991b33b502b080539db62a0f0ebfd476d7ee1830c1eb53bfdbd72c74",
+      "role": "canonical-reference-qualification"
+    },
+    {
+      "path": "artifacts/v0.10/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-evidence.json",
+      "sha256": "f858e77d3d83a2a79300dc2319b5af7f4bc540ea33c6bc8e5a27540f4700e672",
+      "role": "chromium-real-backend-event"
+    },
+    {
+      "path": "artifacts/v0.10/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-success.png",
+      "sha256": "222256e520d96475935ade450b1c9ac7b468ce755a5f78b6ccebe0214a5217d8",
+      "role": "chromium-success-capture"
+    },
+    {
+      "path": "artifacts/v0.10/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-evidence.json",
+      "sha256": "12172c8fe0293292f74b8d1dd1e148b31b01cd562efba8d62c622ca2241b10fc",
+      "role": "mobile-real-backend-event"
+    },
+    {
+      "path": "artifacts/v0.10/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-success.png",
+      "sha256": "b42d675362fc9c2fb446d5b2ef000454bf27cf9525090ff57b1513e723a089cd",
+      "role": "mobile-success-capture"
+    }
+  ],
+  "package_policy": {
+    "archive_path": "artifacts/v0.10/openbexi-spell-v0.10.0.tar.gz",
+    "exclude_prefixes": [
+      "SPELL_DOCUMENTATION/",
+      "tools/",
+      "artifacts/v0.1/",
+      "artifacts/v0.2/",
+      "artifacts/v0.3/",
+      "artifacts/v0.4/",
+      "artifacts/v0.5/",
+      "artifacts/v0.6/",
+      "artifacts/v0.7/",
+      "artifacts/v0.8/",
+      "artifacts/v0.9/",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/assets/"
+    ],
+    "exclude_suffixes": [
+      ".pdf",
+      ".zip",
+      ".pyc",
+      ".pyo",
+      ".png"
+    ],
+    "forbidden_release_prefixes": [
+      "artifacts/v0.11/",
+      "contracts/v11/"
+    ]
+  }
+}

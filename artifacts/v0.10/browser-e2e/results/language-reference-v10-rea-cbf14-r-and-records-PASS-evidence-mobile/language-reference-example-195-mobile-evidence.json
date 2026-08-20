@@ -1,11 +1,11 @@
 {
   "schema_version": "0.3",
   "payload_version": "1",
-  "event_id": "8ee113d0-cb92-4ea4-9e64-62e769d62d1c",
-  "execution_id": "b0131ee1-668b-4361-b997-b238f50b5b7d",
+  "event_id": "eaaae60b-3a13-4d7b-8034-bf4894f0bf48",
+  "execution_id": "323c07c2-fba6-496f-944c-4ab2c7eaacda",
   "sequence": 29,
   "event_type": "procedure.reference_example_completed",
-  "server_time": "2026-08-19T12:28:24.050819+00:00",
+  "server_time": "2026-08-19T22:33:45.429066+00:00",
   "source": "simulator",
   "severity": "info",
   "correlation_id": null,
@@ -24,25 +24,29 @@
         "assertion_id": "tmtc.tm_outcome",
         "passed": true,
         "expected": "OK",
-        "actual": "OK"
+        "actual": "OK",
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.tc_outcome",
         "passed": true,
         "expected": "OK",
-        "actual": "OK"
+        "actual": "OK",
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.tm_direction",
         "passed": true,
         "expected": "TM",
-        "actual": "TM"
+        "actual": "TM",
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.tc_direction",
         "passed": true,
         "expected": "TC",
-        "actual": "TC"
+        "actual": "TC",
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.value_types",
@@ -54,43 +58,57 @@
         "actual": [
           "FINITE_DOUBLE",
           "BOOLEAN"
-        ]
+        ],
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.filter_boundaries",
         "passed": true,
         "expected": true,
-        "actual": true
+        "actual": true,
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.catalog_digest",
         "passed": true,
         "expected": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
-        "actual": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7"
+        "actual": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+        "variant_id": null
       },
       {
         "assertion_id": "tmtc.negative_lookup",
         "passed": true,
         "expected": "NOT_FOUND",
-        "actual": "NOT_FOUND"
+        "actual": "NOT_FOUND",
+        "variant_id": null
+      },
+      {
+        "assertion_id": "variant.example_195.subcase_01",
+        "passed": true,
+        "expected": true,
+        "actual": true,
+        "variant_id": "V10-LRM244-EXAMPLE-195-VARIANT-01"
       },
       {
         "assertion_id": "runtime.trace_is_bounded",
         "passed": true,
         "expected": true,
-        "actual": true
+        "actual": true,
+        "variant_id": null
       },
       {
         "assertion_id": "runtime.execution_mode",
         "passed": true,
         "expected": "BOUNDED_ADAPTATION",
-        "actual": "BOUNDED_ADAPTATION"
+        "actual": "BOUNDED_ADAPTATION",
+        "variant_id": null
       },
       {
         "assertion_id": "runtime.source_span_is_pinned",
         "passed": true,
         "expected": true,
-        "actual": true
+        "actual": true,
+        "variant_id": null
       }
     ],
     "trace": [
@@ -195,7 +213,8 @@
             "outcome": "OK",
             "reason": "EXACT_MATCH"
           }
-        }
+        },
+        "variant_id": null
       }
     ],
     "effect_proofs": [
@@ -231,8 +250,28 @@
         ]
       }
     ],
-    "evidence_digest": "bcb1ae230b3337085eae331b662d4c673c00d5cdfae668a56d31d09649afb2e2",
+    "variant_proofs": [
+      {
+        "variant_id": "V10-LRM244-EXAMPLE-195-VARIANT-01",
+        "subcase_id": "V10-LRM244-EXAMPLE-195-SUBCASE-01",
+        "classification": "SEMANTIC_ADAPTATION",
+        "adapter_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-ADAPTER",
+        "oracle_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-ORACLE",
+        "test_id": "V10-LRM244-EXAMPLE-195-VARIANT-01-TEST",
+        "source_anchor_sha256": "b8f57b23c0e5614ac5b7dbe9c8315994bd40ad4a48b4496ffdd01228832d32e3",
+        "required_assertion_id": "variant.example_195.subcase_01",
+        "required_trace_operation": "PRIMARY_SEMANTIC_TRACE",
+        "status": "PASS",
+        "assertion_ids": [
+          "variant.example_195.subcase_01"
+        ],
+        "trace_sequences": [
+          1
+        ]
+      }
+    ],
+    "evidence_digest": "ae20d7639800270817ba69af58a36471f2ccb87210bc6251d623fbb44d934f9f",
     "passed": true,
-    "summary": "Example 195: PASS (11/11 assertions)"
+    "summary": "Example 195: PASS (12/12 assertions)"
   }
 }

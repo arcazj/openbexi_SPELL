@@ -379,8 +379,43 @@ def derive_spec_for(lname: str) -> Dict[str, Any]:
     return spec
 
 
-def load_header_rules(_path: Optional[str]) -> Dict[str, Any]:
-    return {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True, "spacecraft_check": True}
+def load_header_rules(path: Optional[str]) -> Dict[str, Any]:
+    if path is None:
+        return {
+            "required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT),
+            "file_must_match": True,
+            "spacecraft_check": True,
+        }
+
+    with open(path, "r", encoding="utf-8") as stream:
+        policy = json.load(stream)
+    if not isinstance(policy, dict):
+        raise ValueError("header rules must be a JSON object")
+
+    required = policy.get("required")
+    fields = policy.get("fields")
+    if (
+        not isinstance(required, list)
+        or not required
+        or any(not isinstance(name, str) or not name for name in required)
+        or not isinstance(fields, dict)
+    ):
+        raise ValueError("header rules require non-empty `required` and `fields` entries")
+    unknown = set(required) - set(fields)
+    if unknown:
+        raise ValueError(f"header rules omit field definitions for: {sorted(unknown)}")
+
+    file_policy = fields.get("FILE", {})
+    if not isinstance(file_policy, dict):
+        raise ValueError("header FILE rules must be a JSON object")
+    spacecraft_policy = fields.get("SPACECRAFT", {})
+    if not isinstance(spacecraft_policy, dict):
+        raise ValueError("header SPACECRAFT rules must be a JSON object")
+    return {
+        "required_keys": required,
+        "file_must_match": file_policy.get("must_match_filename") is True,
+        "spacecraft_check": "SPACECRAFT" in required,
+    }
 
 
 def _parse_commented_header(lines: List[str]) -> Tuple[Dict[str, str], int]:
@@ -959,6 +994,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("procedure_path")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--header-rules")
     args = ap.parse_args()
 
     global CURRENT_PROCEDURE_PATH
@@ -971,8 +1007,10 @@ def main():
         print(json.dumps(err, indent=2) if args.json else f"[ERROR] {e}")
         sys.exit(1)
 
-    header_rules = {"required_keys": list(REQUIRED_COMMENT_KEYS_DEFAULT), "file_must_match": True,
-                    "spacecraft_check": True}
+    try:
+        header_rules = load_header_rules(args.header_rules)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        ap.error(f"invalid header rules: {exc}")
     res = audit(text, args.json, header_rules)
 
     if args.json:

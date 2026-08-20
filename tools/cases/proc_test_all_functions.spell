@@ -230,7 +230,3 @@ def procedure():
     Prompt( 'Message',['A:Option 1', 'B:Option 2','C:Option 3', 'D:Option 4'],Type=LIST )
     Prompt( 'Option 1' + SCDB['angle'],['0-deg','180-deg'],
      Type=LIST|ALPHA, Default='0' )
-
-
-
-

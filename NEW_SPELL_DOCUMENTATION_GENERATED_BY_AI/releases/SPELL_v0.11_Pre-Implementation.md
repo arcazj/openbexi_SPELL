@@ -3,79 +3,87 @@
 ## Decision
 
 The project-owner direction recorded on 2026-08-19 authorizes the bounded
-v0.11 simulator telecommand increment only after the strengthened v0.10
-reference-example gate passes. The exact request time was not retained, so
-this record does not claim an exact implementation-start timestamp.
+v0.11 simulator telecommand increment after acceptance of v0.10. That
+predecessor condition is now satisfied by annotated tag `v0.10.0`, tag object
+`95f64a04bb15b1eb03250a8d0387a228b67727a7`, and release commit
+`c33d1893d90f9d42c36eedd19cb83f079bf39a9f`.
 
-`V11-GATE-0A PASS` authorizes implementation and testing. It is not a release,
-deployment, operational, compliance, or spacecraft-command authorization.
+`V11-GATE-0A PASS` authorizes implementation and qualification of the scope
+below. It is not deployment approval, operational authorization, a compliance
+determination, or permission to command a spacecraft.
+
+## Mandatory Source Inputs
+
+Every document under `SPELL_DOCUMENTATION/` is a required read-only source
+reference. The Language Reference constrains procedure-visible syntax and
+intent. The Driver and Server manuals constrain stages, services, lifecycle,
+context, and execution. The GUI and Development Environment manuals constrain
+operator and authoring workflows. The supplementary manuals remain
+compatibility references. The legacy source ZIP is evidence only and is not a
+code source for this implementation.
+
+Generated documentation may interpret those sources but cannot silently
+override them. Ambiguity, obsolete behavior, deliberate incompatibility, and
+safety strengthening require a recorded decision and test.
 
 ## Entry Gate
 
-The v0.10 entry condition is:
+The v0.10 entry condition is immutable and inherited:
 
-- Examples 1 through 195 have a complete variant-level traceability contract.
-- Every identified variant has distinct assertion and trace evidence.
-- Example 60 independently proves both `Send(command = 'CMDNAME')` and
-  `Send(command = tc_item)`.
-- Direct adapter, worker, API, generator, and qualification checks pass.
-- Semantic adaptations remain explicitly distinguished from verbatim source
-  execution for malformed, pseudocode, output-only, and negative fragments.
+- all 195 numbered examples have a source-bound compatibility record;
+- all 257 identified variants have distinct assertion and trace identities;
+- Example 60 independently proves direct command-name and built-item forms;
+- the v0.10 qualification, deterministic package, evidence validator, and
+  annotated tag pass with no accepted exceptions; and
+- semantic adaptations remain distinct from verbatim execution of malformed,
+  pseudocode, output-only, placeholder, or intentionally invalid fragments.
 
 ## Authorized Scope
 
-The v0.11 product boundary is the `PROJECT_ROADMAP.md` section
-"v0.11 - Simulator Telecommand Semantics":
-
-- Closed, catalog-backed `BuildTC` and `Send` syntax and IR.
-- Typed arguments and deterministic command, sequence, group, and block
-  expansion with stable per-element identities.
+- Closed catalog-backed `BuildTC` and `Send` parser and IR forms.
+- Typed command arguments and deterministic command, sequence, group, and
+  block expansion with stable per-element identities.
 - Global and per-command modifiers, critical confirmation, time and release
-  intent, load-only behavior, deterministic delays, timeout, and closed-loop
+  intent, load-only behavior, bounded delay and timeout, and closed-loop
   verification.
 - Separate transport, loading, release, acknowledgement, onboard execution,
-  verification, disposition, certainty, and bounded provider detail.
-- Durable supervisor-owned intent, confirmation, result settlement, recovery,
-  reconciliation, cancellation, and fail-closed procedure behavior.
-- Deterministic simulator providers only. No browser mutation route, driver
-  credential, arbitrary endpoint, shell, evaluation, network dispatch, live
-  GCS route, or automatic resend is authorized.
+  verification, disposition, effect certainty, and bounded provider detail.
+- Durable supervisor-owned intent, settlement, recovery, reconciliation,
+  cancellation, and fail-closed procedure behavior.
+- Deterministic simulator providers only.
+
+No browser telecommand mutation route, driver credential, arbitrary endpoint,
+shell, unrestricted evaluation, network dispatch, live GCS route, automatic
+resend, or spacecraft command path is authorized.
 
 ## Compatibility Decisions
 
-- `LoadOnly` may settle as `LOADED_ONLY`; it never claims onboard execution.
-- Unsupported or conflicting modifiers are rejected instead of ignored.
-- `OnFailure=CONTINUE` permits remaining elements and procedure continuation;
-  `CANCEL` cancels remaining elements but may continue the procedure;
-  `ABORT` terminates the procedure when no operator override is requested.
-- `PromptUser=True` asks only whether the procedure may continue after the
-  already-settled failure. It does not resend or change completed element
-  outcomes. Non-answer and `NO` fail closed.
-- Any possible or unknown effect forbids automatic retry. Reconciliation uses
-  the original operation and request identities.
-- Legacy boolean success is represented without conflating transport,
-  loading, execution, verification, or certainty.
+- `LoadOnly` may settle as `LOADED_ONLY`; it never proves onboard execution.
+- Unsupported or conflicting modifiers are rejected rather than ignored.
+- A possible or unknown effect is never automatically retried.
+- Reconciliation retains the original operation and request identities.
+- Critical commands require digest-bound explicit confirmation.
+- Operator actions and inspection edits cannot mutate telecommand items or
+  their dependencies.
+- Legacy boolean success cannot collapse transport, loading, execution,
+  verification, or certainty into one fact.
 
 ## Exit Gate
 
-v0.11 may be described as locally complete only when:
+v0.11 can be accepted only when:
 
-- all 26 documented command statements across Examples 57 through 77 compile
-  and execute through the closed runtime;
-- the complete 195-example, 257-variant v0.10 gate still passes;
-- parser, IR, core, worker, supervisor, public API, recovery, uncertainty,
-  no-resend, timing, verification, and failure-policy tests pass;
-- the full backend, script, frontend, build, and image checks pass without a
-  regression;
-- all relevant Markdown and version metadata describe the actual boundary;
-- the final report records exact commands, counts, skips, and limitations.
+- all eight focused v0.11 backend modules pass 197 tests with no skip;
+- the inherited v0.10 suite retains its exact 442-pass/one-PostgreSQL-skip
+  boundary and both generators pass in check mode;
+- the full backend suite, all 16 PostgreSQL selections, and all three Compose
+  selections meet the version policy;
+- frontend unit/build and both real-backend browser viewports pass;
+- the latest legacy auditor passes its three integration tests;
+- documentation, product-image, source hygiene, and deterministic package
+  validators pass; and
+- annotated tag `v0.11.0` validates against committed qualification and
+  package evidence.
 
-An accepted v0.11 release still requires a fixed release commit and validated
-annotated tag. Mutable working-tree evidence cannot create that status.
-
-The authorized implementation surface and the exact final-gate placeholders are
-recorded in
-[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md). Until those
-placeholders are replaced from one complete final run, the accurate status is
-implemented and locally qualified in the mutable working tree. The separate
-implementation record retains exact commands and non-release exclusions.
+The exact policy is `contracts/v11/release_policy.json`. The implementation
+record is
+[`SPELL_v0.11_Implementation.md`](SPELL_v0.11_Implementation.md).

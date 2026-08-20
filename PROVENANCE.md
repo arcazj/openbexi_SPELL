@@ -2,14 +2,15 @@
 
 ## Record Status
 
-This record retains the bounded SPELL v0.5.0 through v0.8.0 provenance, records
-the accepted v0.9.0 release, and distinguishes historical v0.9 Gate/source-
-freeze claims from the later immutable release endpoint. SPELL v0.9.0 is the
-accepted local-only, synthetic, non-CUI simulator engineering baseline at
-annotated tag `v0.9.0`, tag object
-`b47ee98429841afd7d91c928f3a314d6ac7f348c`, and release commit
-`a8caa957179f8df301f9863e421e3fd7127e5318`. v0.10 evidence described below
-is mutable local implementation evidence, not an accepted release.
+This record retains bounded historical release provenance and records v0.10.0
+as the accepted predecessor to the v0.11 candidate. Annotated tag `v0.10.0`,
+tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, peels to release
+commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f`. Its source-bound
+qualification, deterministic package, release evidence, and tag validator
+passed with no accepted exceptions. v0.11 candidate
+`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` is accepted only if its own
+committed package evidence and annotated `v0.11.0` tag pass the
+version-scoped validator.
 
 The v0.10 reference-example adapter is independently authored against the
 existing clean-room compatibility inventory for `SPELL - Language Reference -
@@ -25,18 +26,18 @@ traceable semantic-adaptation evidence only, not copyright ownership, verbatim
 source compatibility, arbitrary Python support, operational authorization, or
 general SPELL 2.4.4 conformance.
 
-The v0.11 simulator telecommand implementation is new first-party code derived
-from the documented behavior in the same hash-pinned Language Reference and the
-hash-pinned SPELL Driver Development Manual 2.4.4. It uses independently
-authored typed contracts under `contracts/v11`, a bundled synthetic catalog,
-closed parser/IR/runtime code, and deterministic simulator providers. No legacy
-source archive, proprietary driver implementation, manual body, credential,
-endpoint, or operational command path is copied or packaged. The implementation
-creates local working-tree compatibility evidence only; it does not establish
-ownership of legacy documentation, general SPELL conformance, deployment or
-mission suitability, or an accepted v0.11 release.
-Its implementation, local qualification, and non-release boundary are recorded in
-[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
+The v0.10 release policy pins all eight mandatory source-reference files under
+`SPELL_DOCUMENTATION/`, including the legacy source ZIP as read-only evidence.
+Those bytes are versioned for traceability but excluded from backend images and
+the deterministic product package. Generated documentation is derived context,
+not a replacement source authority. No legacy implementation is copied.
+
+v0.11 is new first-party simulator-only work based on accepted v0.10 and
+separately qualified against the mandatory references. Its two data contracts
+are hash-pinned, and the implementation does not copy legacy code. The
+deterministic catalog/provider exposes no live endpoint, driver credential,
+network dispatch, GCS route, or spacecraft interface. The legacy source ZIP
+remains read-only evidence.
 
 For v0.6, candidate commit `0ea26105e72d7830de4a265989ed7d9074ffbe09`
 is bound to canonical work-package evidence SHA-256

@@ -12,15 +12,18 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The current source tree reports product version `0.11.0`. The latest accepted,
-immutable release is **v0.9.0** at annotated tag `v0.9.0`. The v0.10 and v0.11
-increments are implemented and locally qualified in the mutable source tree,
-but they are not released or operationally authorized.
+The current source tree reports product version `0.11.0` and is the v0.11
+release candidate. Its accepted predecessor is **v0.10.0** at annotated tag
+`v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`.
+v0.11 becomes an accepted engineering release only when its committed
+qualification and deterministic package pass the version-scoped validator and
+annotated tag `v0.11.0` is present.
 
 > **Safety boundary:** this repository does not provide a live Ground Control
 > System (GCS) connection, spacecraft command path, production deployment
-> approval, or compliance determination. The v0.11 `BuildTC` and `Send`
-> implementation is deterministic and simulator-only.
+> approval, or compliance determination. Reference examples involving commands
+> execute only through deterministic in-memory adaptations with live dispatch
+> disabled.
 
 ## Capabilities
 
@@ -40,10 +43,9 @@ but they are not released or operationally authorized.
   file roots backed by server-owned storage.
 - A bounded v0.10 runner for all 195 numbered SPELL Language Reference 2.4.4
   examples, represented by 257 independently asserted semantic variants.
-- Closed v0.11 simulator telecommand semantics for typed `BuildTC` and `Send`,
-  including command/sequence/group/block expansion, critical confirmation,
-  scheduling, release, load-only behavior, verification, cancellation,
-  recovery, reconciliation, and no automatic resend after uncertain effects.
+- Closed simulator-only v0.11 `BuildTC` and `Send` semantics with separate
+  command stages, effect certainty, confirmation, recovery, reconciliation,
+  cancellation, and no automatic resend.
 - Hash-locked dependencies, digest-pinned container bases, release evidence,
   SBOM tooling, deterministic packaging, and version-scoped qualification.
 
@@ -59,9 +61,9 @@ but they are not released or operationally authorized.
 | v0.6 | Durable operator workspace and procedure composition | Accepted at `v0.6.0` |
 | v0.7 | Read-only observation and condition engine | Accepted at `v0.7.0` |
 | v0.8 | Data and local service compatibility | Accepted at `v0.8.0` |
-| v0.9 | Web-based SPELL development environment | Latest accepted release at `v0.9.0` |
-| v0.10 | SPELL 2.4.4 reference example adapter | Implemented and locally qualified; not released |
-| v0.11 | Simulator telecommand semantics | Implemented and locally qualified; not released |
+| v0.9 | Web-based SPELL development environment | Accepted at `v0.9.0` |
+| v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to this candidate |
+| v0.11 | Simulator telecommand semantics | Release candidate `e15d331`; acceptance requires validated tag `v0.11.0` |
 
 See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
 and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified
@@ -204,24 +206,22 @@ The exact v0.10 contracts and evidence are in:
 - [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json)
 - [SPELL_v0.10_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md)
 
-## v0.11 Telecommand Boundary
+## v0.11 Telecommand Candidate
 
-v0.11 adds catalog-backed simulator handling for the 26 documented command
-statements in Language Reference examples 57 through 77. Its contracts are:
+v0.11 adds catalog-backed `BuildTC` and `Send` semantics from the accepted
+`v0.10.0` tag. Its contracts preserve distinct construction, authorization,
+transport, loading, release, execution, verification, certainty, recovery, and
+reconciliation facts. A possible or unknown effect is never resent
+automatically.
+
+The implementation is deterministic and simulator-only. It contains no live
+driver credential, arbitrary endpoint, network command dispatch, GCS route, or
+spacecraft interface. The exact contracts and records are:
 
 - [`contracts/v11/telecommand_catalog.json`](contracts/v11/telecommand_catalog.json)
 - [`contracts/v11/telecommand_execution.json`](contracts/v11/telecommand_execution.json)
-
-The runtime records transport, loading, release, acknowledgement, onboard
-execution, verification, terminal disposition, timing, and effect certainty as
-separate facts. Confirmation challenges are digest-bound; recovery validates
-canonical checkpoints; and a possible uncertain effect is never automatically
-resent. Provider behavior, telemetry, and time are injected deterministic
-fixtures. No browser route can configure a live command endpoint.
-
-See [SPELL_v0.11_Pre-Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md) and
-[SPELL_v0.11_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md) for the approved
-scope, semantics, exact commands, evidence hashes, and exclusions.
+- [SPELL_v0.11_Pre-Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
+- [SPELL_v0.11_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md)
 
 ## Development
 
@@ -293,25 +293,39 @@ docker run --rm --network none --entrypoint python `
   -m scripts.qualify_reference_examples_v10 --check
 ```
 
-## Recorded Qualification
+### v0.11 Checks
 
-The v0.11 closeout record dated 2026-08-19 reports:
+Run the eight focused simulator telecommand modules:
 
-| Gate | Recorded result |
-| --- | --- |
-| Strengthened v0.10 backend gate | 442 passed; one dedicated-PostgreSQL guard skipped |
-| Reference adapter | 195/195 examples and 257/257 variants passed |
-| Focused v0.11 telecommand gate | 197 passed with no skips or failures |
-| Full backend regression | 1,544 passed plus all selected PostgreSQL and Compose checks passed separately |
-| Frontend | 112 unit tests and production build passed |
-| Real browser | Chromium and Pixel 7 workflows passed 2/2 |
-| Product image and documentation | Runtime, hygiene, compile, diff, and Markdown checks passed |
+```powershell
+docker run --rm --network none --entrypoint python `
+  -v "${PWD}:/workspace:ro" -w /workspace `
+  openbexi-spell-backend:local -m pytest `
+  backend/tests/test_telecommand_v11.py `
+  backend/tests/test_ir_v11.py `
+  backend/tests/test_v11_command_corpus.py `
+  backend/tests/test_telecommand_runtime_v11.py `
+  backend/tests/test_worker_v11.py `
+  backend/tests/test_supervisor_v11_runtime.py `
+  backend/tests/test_v11_api_runtime.py `
+  backend/tests/test_v11_operator_integration.py -q
+```
 
-These are recorded mutable-worktree results, not v0.10 or v0.11 release
-acceptance. Historical release/package validators for v0.5 through v0.9 are
-designed to fail closed when the current root identifies itself as v0.11. See
-[Test_and_Integration.md](Test_and_Integration.md) for the complete test and
-integration record.
+## Release Qualification
+
+v0.11 uses version-specific release controls in `scripts/release_v11.py` and
+the associated create, validate, and reproducible-package entry points. The
+gate requires the inherited 195-example/257-variant v0.10 contract, all 197
+focused v0.11 tests, complete backend regression, explicit execution of every
+PostgreSQL and Docker-selected test, 112 frontend tests, the three-test auditor
+contract, a production build, two real-browser projects, product-image hygiene,
+documentation validation, and deterministic packaging. No unresolved skip or
+accepted exception is permitted.
+
+The canonical machine record is `artifacts/v0.11/release-qualification.json`
+once generated from one committed source state. Package and tag validation are
+separate final gates. See [Test_and_Integration.md](Test_and_Integration.md)
+for the complete commands and result boundaries.
 
 ## Repository Layout
 
@@ -343,7 +357,7 @@ behavior, intentional exclusions, and safety strengthening back to them.
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): product scope, release status, gates,
   guardrails, and future sequence.
 - [VERSION_TIMELINE.md](VERSION_TIMELINE.md): evidence-qualified history through
-  the v0.10 and v0.11 working-tree increments.
+  accepted v0.10 and the v0.11 release candidate.
 - [Test_and_Integration.md](Test_and_Integration.md): per-version test plans,
   commands, evidence, and exit decisions.
 - [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md):

@@ -102,4 +102,3 @@ def test_example_60_forms_execute_through_public_api_and_durable_supervisor(
         assert len(results) == len(settlements) == 2
         assert all(item["payload"]["outcome"] == "SETTLED" for item in results)
         assert all(item["payload"]["successful"] is True for item in settlements)
-
