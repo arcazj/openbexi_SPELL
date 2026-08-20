@@ -11,16 +11,16 @@ No live spacecraft or operational GCS connection is in scope until the specific
 adapter, environment, effect class, procedures, organization, and operational
 authority pass their independent gates.
 
-## Current v0.10 And Planned v0.11 Application
+## Accepted v0.10 And v0.11 Candidate Application
 
-The reconstructed v0.10 candidate applies this strategy without changing this
+The accepted v0.10 release applies this strategy without changing this
 Draft specification's status. v0.10 has 195 numbered example outcomes and a separate 257-subcase variant
 matrix; every identified form requires its own assertion and trace. Hash-bound
 semantic adaptations are required for malformed, pseudocode, output-only,
 placeholder, negative, and intentionally invalid source. They are not evidence
 of verbatim snippet execution or unrestricted Python/SPELL compatibility.
 
-The planned simulator-only v0.11 `BuildTC`/`Send` gate must cover the 26 command
+The simulator-only v0.11 `BuildTC`/`Send` gate covers the 26 command
 statements in Examples 57 through 77; typed arguments; command, sequence, group,
 and block expansion; duplicate-child identity; critical confirmation;
 deterministic `Time`, `ReleaseTime`, `SendDelay`, per-element timeout, delayed
@@ -29,14 +29,13 @@ loading, release, acknowledgement, onboard execution, verification,
 disposition, and certainty; cancellation; bounded checkpoint recovery;
 reconciliation; uncertainty; and no automatic resend.
 
-Focused suite success is insufficient. A future v0.11 record must retain exact
+Focused suite success is insufficient. The v0.11 record must retain exact
 commands, counts, skips, limitations, artifact identity, built-image contract
 availability, and full regression/frontend/build results from one consistent
 working-tree state. Direct public-API extremes fail with bounded typed
-diagnostics rather than raw runtime exceptions. v0.11 has no implementation or
-local qualification record in the v0.10 release tree; no future local result
-becomes accepted without its own immutable release endpoint and independent
-gates.
+diagnostics rather than raw runtime exceptions. Candidate source and browser
+prechecks are present, but no local result becomes accepted without the
+v0.11 immutable release endpoint and independent gates.
 
 ## Evidence Contract
 

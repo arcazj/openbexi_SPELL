@@ -68,26 +68,25 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.9.0 is the accepted predecessor to the reconstructed v0.10 candidate. Annotated tag
-object `b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
-`a8caa957179f8df301f9863e421e3fd7127e5318`; strict release validation passed
-with no accepted exceptions. v0.10 product candidate
-`8377760be59033b3372512ad812c43cd6d2f7e29` implements the bounded Language
-Reference Example Adapter recorded in
-[`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md).
-It becomes accepted only when the committed qualification, deterministic
-package, and annotated `v0.10.0` tag pass the v0.10 release validator. v0.11 is
-future roadmap scope and is absent from this tree; it requires a new branch
-from the accepted v0.10 tag and a separate entry gate.
+SPELL v0.10.0 is the accepted predecessor to the v0.11 candidate. Annotated
+tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7` peels to release commit
+`c33d1893d90f9d42c36eedd19cb83f079bf39a9f`; strict qualification,
+deterministic package, evidence, and tag validation passed with no accepted
+exceptions. v0.11 candidate
+`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` implements the bounded
+simulator telecommand semantics recorded in
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
+It becomes accepted only when committed qualification, deterministic package,
+and annotated tag `v0.11.0` pass the v0.11 release validator.
 
-For v0.10 and planned v0.11 work, the applicable manuals under
+For v0.10 and v0.11 work, the applicable manuals under
 `SPELL_DOCUMENTATION/`, including the 195-example Language Reference 2.4.4,
 are the behavioral reference baseline. The generated matrices and version
 records provide derived traceability and evidence. Preserve distinct proof for
 every identified variant, including both Example 60 `Send` forms. Do not weaken
 tests, silently ignore conflicting modifiers, infer success from transport or
 loading, or automatically resend an effect-possible or effect-unknown
-operation. Any later v0.11 design must remain deterministic and simulator-only
+operation. The v0.11 implementation must remain deterministic and simulator-only
 with supervisor-owned durable confirmation and settlement.
 
 At the v0.9 candidate source-freeze boundary, SPELL v0.8.0 was the accepted

@@ -1,0 +1,128 @@
+{
+  "schema_version": "spell.v11.release-policy/1",
+  "product_version": "0.11.0",
+  "release_tag": "v0.11.0",
+  "candidate_commit": "e15d3314f9b97eb43d5d5057c8f1ba614844e0e7",
+  "accepted_predecessor_tag": "v0.10.0",
+  "accepted_predecessor_commit": "c33d1893d90f9d42c36eedd19cb83f079bf39a9f",
+  "scope": "simulator-telecommand-semantics",
+  "operational_authorization": false,
+  "reference_inputs": [
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf",
+      "sha256": "cedf617a4d551701394f75a8ec1769a402059a4c7b659ed87079ce5148074a81",
+      "role": "mandatory-authoring-workflow-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Driver Development Manual - 2.4.4.pdf",
+      "sha256": "057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5",
+      "role": "mandatory-driver-service-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf",
+      "sha256": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6",
+      "role": "mandatory-operator-workflow-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf",
+      "sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+      "role": "mandatory-primary-v011-command-language-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Server Manual - 2.4.4.pdf",
+      "sha256": "ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9",
+      "role": "mandatory-server-execution-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL2.6.10-src.zip",
+      "sha256": "2176e198f04c3f2ec99ee6f740871d9368997e3fd1e33d6734cb8e163cb6a0ed",
+      "role": "mandatory-read-only-legacy-source-evidence"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf",
+      "sha256": "94c1443646e22f3692ac25d2ef570ff437d83c38b71082e7077b4a322e5fb94f",
+      "role": "mandatory-supplementary-development-reference"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf",
+      "sha256": "f2f3e72e62692eeabb287b704878240012062f894b52a10570b8f42199c233fb",
+      "role": "mandatory-supplementary-language-reference"
+    }
+  ],
+  "release_evidence": [
+    {
+      "path": "contracts/v10/language_reference_example_matrix.json",
+      "sha256": "ab7535a2db540664f1303fb8cd73f1599fe7aa81d469003cfe15fe7fa3ba7e4c",
+      "role": "inherited-195-example-contract"
+    },
+    {
+      "path": "contracts/v10/language_reference_variant_matrix.json",
+      "sha256": "35ccaf6f276a2a6571e96f43c8aeb33ebf33cca16de3d6b9740e0217d45f94c8",
+      "role": "inherited-257-variant-contract"
+    },
+    {
+      "path": "artifacts/v0.10/reference-examples.json",
+      "sha256": "14192c9d991b33b502b080539db62a0f0ebfd476d7ee1830c1eb53bfdbd72c74",
+      "role": "inherited-reference-qualification"
+    },
+    {
+      "path": "contracts/v11/telecommand_catalog.json",
+      "sha256": "f60b574d18d4c3aa23c8c986b6ea3242e4e83fd41bc611f4ff6a37a15eb6e64c",
+      "role": "closed-simulator-command-catalog"
+    },
+    {
+      "path": "contracts/v11/telecommand_execution.json",
+      "sha256": "d757eb602b03476ee512e8a89a714fae3024d3be3a4b590ebabca0dcd06021a3",
+      "role": "closed-simulator-execution-policy"
+    },
+    {
+      "path": "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-evidence.json",
+      "sha256": "f26d55d2a85f867a78121914f92e4cd2d7e03b2fab21d1a6e34e0ecac76b733f",
+      "role": "chromium-real-v011-backend-event"
+    },
+    {
+      "path": "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-chromium/language-reference-example-195-chromium-success.png",
+      "sha256": "cdb6db34f8d510785c72f37128706696c868c0dece8925dac5ca83a46c96f0ea",
+      "role": "chromium-v011-success-capture"
+    },
+    {
+      "path": "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-evidence.json",
+      "sha256": "70af43770de4ff4299817a3f6e4fbdf36565ede9c26f5b1aed7249ae4304244f",
+      "role": "mobile-real-v011-backend-event"
+    },
+    {
+      "path": "artifacts/v0.11/browser-e2e/results/language-reference-v10-rea-cbf14-r-and-records-PASS-evidence-mobile/language-reference-example-195-mobile-success.png",
+      "sha256": "b82f1905ea23f5274e0fa7d9b084b5ca1c36415f6022fdc71e6113dda44bf8a5",
+      "role": "mobile-v011-success-capture"
+    }
+  ],
+  "package_policy": {
+    "archive_path": "artifacts/v0.11/openbexi-spell-v0.11.0.tar.gz",
+    "exclude_prefixes": [
+      "SPELL_DOCUMENTATION/",
+      "tools/",
+      "artifacts/v0.1/",
+      "artifacts/v0.2/",
+      "artifacts/v0.3/",
+      "artifacts/v0.4/",
+      "artifacts/v0.5/",
+      "artifacts/v0.6/",
+      "artifacts/v0.7/",
+      "artifacts/v0.8/",
+      "artifacts/v0.9/",
+      "artifacts/v0.10/",
+      "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/web/assets/"
+    ],
+    "exclude_suffixes": [
+      ".pdf",
+      ".zip",
+      ".pyc",
+      ".pyo",
+      ".png"
+    ],
+    "forbidden_release_prefixes": [
+      "artifacts/v0.12/",
+      "contracts/v12/"
+    ]
+  }
+}

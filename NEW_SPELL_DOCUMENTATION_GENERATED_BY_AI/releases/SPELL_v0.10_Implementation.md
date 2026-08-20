@@ -6,15 +6,16 @@
 | --- | --- |
 | Accepted predecessor | SPELL v0.9.0 at annotated tag `v0.9.0` |
 | Reconstructed product candidate | `8377760be59033b3372512ad812c43cd6d2f7e29` |
+| Accepted release | Annotated tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
 | Product version | `0.10.0` |
 | Release policy | `contracts/v10/release_policy.json` |
-| Release disposition | Conditional: accepted only when committed qualification/package evidence and annotated tag `v0.10.0` pass `scripts.validate_release_evidence_v10` |
+| Release disposition | Accepted; qualification, reproducible package, evidence, and annotated-tag validation passed |
 | Accepted exceptions | None permitted |
 | Operational authorization | None |
 | Updated | 2026-08-19 |
 
-This record is part of the v0.10 release candidate. It does not claim v0.11
-source, a live Ground Control System, spacecraft commanding, deployment
+This record defines the accepted v0.10 boundary. It does not grant the later
+v0.11 scope, a live Ground Control System, spacecraft commanding, deployment
 approval, compliance, or a cryptographic signature.
 
 ## Scope

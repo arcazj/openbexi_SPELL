@@ -9,7 +9,7 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | Accepted predecessor v0.9.0; reconstructed v0.10 candidate; v0.11 planned only |
+| Current release context | Accepted v0.10.0 baseline; v0.11 simulator telecommand release candidate |
 | Product implementation change | None |
 | Operational authorization | None |
 | Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |
@@ -37,25 +37,26 @@ decision with verification evidence. The manuals define what forward work must
 address; versioned code and tests define the approved implementation; validated
 annotated tags and committed evidence define release status.
 
-## v0.10 Application And Planned v0.11
+## v0.10 And v0.11 Application
 
-The reconstructed v0.10 candidate applies this review without changing
+The accepted v0.10 release applies this review without changing
 the original 2026-07-17 historical review inventory. v0.10 maps all 195 numbered Language
 Reference examples to 257 hash-bound variant subcases and independently authored
 semantic oracles. Its release policy pins all eight current legacy inputs,
 including the read-only source archive, and excludes those bytes from product
 images and packages.
 
-v0.11 is planned to address the command corpus in Examples 57 through 77 as
-closed deterministic simulator behavior. The Language Reference will own
+v0.11 addresses the command corpus in Examples 57 through 77 as closed
+deterministic simulator behavior. The Language Reference owns
 documented syntax and procedure-visible intent; the Driver Development Manual
-will constrain stage and provider concepts. Typed certainty, no-resend, and
-supervisor-owned confirmation decisions require a separate document-impact
-record and entry gate. No v0.11 implementation claim is made in v0.10.
+constrains stage and provider concepts. Typed certainty, no-resend, and
+supervisor-owned confirmation decisions are recorded in the v0.11 entry and
+implementation records and tested through version-scoped gates.
 
 These applications do not copy manual bodies into runtime source and do not
 create a live GCS adapter, driver credential, spacecraft connection, operational
-authorization, general SPELL 2.4.4 conformance claim, or v0.11 release.
+authorization, general SPELL 2.4.4 conformance claim, or automatic v0.11
+acceptance without its validated tag.
 
 ## Evidence Inventory
 

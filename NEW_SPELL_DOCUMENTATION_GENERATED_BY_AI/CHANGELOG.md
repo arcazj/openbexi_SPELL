@@ -14,20 +14,19 @@ history remains in the parent project and is not duplicated as document history.
   location and inventoried two supplementary earlier manuals. Preserved
   explicit compatibility decisions for ambiguity, obsolete mechanisms, safety
   strengthening, and intentional incompatibility.
-- Recorded that the parent project's mutable v0.10 adapter maps all 195 numbered
+- Recorded that the parent project's accepted v0.10 adapter maps all 195 numbered
   Language Reference examples to 257 independently asserted, hash-bound variant
   subcases. Raw malformed, pseudocode, output-only, placeholder, negative, and
   intentionally invalid fragments remain semantic adaptations rather than
   verbatim executable source.
-- Applied the Draft's effect-certainty and recovery principles to planned v0.11
-  `BuildTC`/`Send` scope without claiming implementation. The future gate must
-  keep typed catalog expansion, separate stages, critical confirmation,
+- Applied the Draft's effect-certainty and recovery principles to the v0.11
+  `BuildTC`/`Send` release candidate. The release gate keeps typed catalog
+  expansion, separate stages, critical confirmation,
   reconciliation, and no automatic resend after a possible or unknown effect.
-- Preserved `0.1.0-draft.1` as the generated specification version, v0.9.0 as
-  the accepted predecessor, and v0.10 as the reconstructed conditional release
-  candidate. v0.11 source and evidence are absent from the v0.10 tree.
-- Made no live GCS, spacecraft, operational, deployment, compliance, v0.11
-  implementation, or v0.11 release claim.
+- Preserved `0.1.0-draft.1` as the generated specification version, recorded
+  v0.10.0 as accepted, and bound v0.11 candidate source and release policy.
+- Made no live GCS, spacecraft, operational, deployment, compliance, or
+  premature v0.11 release claim.
 
 ## 0.1.0-draft.1 - 2026-07-18
 

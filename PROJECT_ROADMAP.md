@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.9.0 baseline, reconstructed v0.10 release candidate, and planned v0.11 boundary |
-| Update type | v0.10 source restoration and strict release closeout; v0.11 retained as future scope only |
+| Document revision | Accepted v0.10.0 baseline and v0.11 simulator telecommand release candidate |
+| Update type | Record accepted v0.10 evidence and bounded v0.11 candidate, policy, and closeout gates |
 | Updated | 2026-08-19 |
-| Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
+| Accepted product baseline | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -16,10 +16,10 @@
 | v0.8 status | Accepted at annotated tag `v0.8.0`; nine work packages `IMPLEMENTED_AND_QUALIFIED`; Final 2,676 concrete tests, 2,661 passes, 15 exact SQLite environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and later endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
-| v0.10 current status | Product candidate reconstructed at `8377760be59033b3372512ad812c43cd6d2f7e29`; acceptance requires committed qualification/package evidence and validated annotated tag `v0.10.0` |
-| v0.11 current status | Planned next increment only; no v0.11 source, contract, evidence, package, or release record is present in the v0.10 tree |
+| v0.10 current status | Accepted at annotated tag `v0.10.0`; qualification, deterministic package, evidence, and strict tag validation passed with no accepted exceptions |
+| v0.11 current status | Candidate `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`; focused 197-test and real-browser prechecks pass; acceptance requires complete policy gates, committed package/evidence, and annotated tag `v0.11.0` |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | v0.10 adds only the bounded reference runner, IR `0.10`, catalog retirement support, and associated UI/API behavior; v0.11 remains unimplemented in this tree |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.11 adds closed simulator telecommand contracts, IR, runtime, supervisor/worker/operator integration, and version bindings; no live driver or GCS command route |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -35,26 +35,16 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.9.0 is now the accepted product baseline. Its annotated tag object
-`b47ee98429841afd7d91c928f3a314d6ac7f348c` peels to release commit
-`a8caa957179f8df301f9863e421e3fd7127e5318`. Final validation,
-supply-chain/SBOM checks, deterministic packaging, release-evidence validation,
-and annotated tagging passed with no accepted exceptions. The verified tag
-activated the conditional owner acceptance without a post-tag documentation
-commit and provides no operational authorization. The earlier owner request
-`start and complete asap V0.9` and the subsequent
-[`V09-GATE-0A`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.9_Pre-Implementation.md) authorize only nine bounded
-local synthetic non-CUI development-environment work packages and 45 planned
-proof identities. At the authorization event, Gate 0A claimed zero implemented
-constructs or runtime artifacts. At candidate source freeze, the bounded
-implementation, version-scoped tooling, and exact product inventory were frozen
-together. At that boundary, canonical candidate qualification had not yet run;
-Gate 0B, Final qualification, packaging, release, and tag validation were
-pending. That historical boundary was later superseded by the validated
-`v0.9.0` tag. The v0.10 adapter is reconstructed as a release candidate and is
-governed by `contracts/v10/release_policy.json`; its annotated tag is the only
-acceptance endpoint. v0.11 is retained below as future simulator-only planning
-and is not implementation-authorized by this roadmap.
+SPELL v0.10.0 is the accepted product baseline. Its annotated tag object
+`95f64a04bb15b1eb03250a8d0387a228b67727a7` peels to release commit
+`c33d1893d90f9d42c36eedd19cb83f079bf39a9f`. Source-bound qualification,
+deterministic packaging, evidence validation, and strict annotated-tag
+validation passed with no accepted exceptions and no operational
+authorization. v0.11 starts directly from that tag under
+[`V11-GATE-0A`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
+and `contracts/v11/release_policy.json`. Candidate source is present, but only
+the complete evidence/package/tag sequence can create an accepted v0.11
+release.
 
 The owner limited v0.3.1 preparation to this file and
 [`VERSION_TIMELINE.md`](VERSION_TIMELINE.md). Consequently, v0.3.1 identifies
@@ -375,12 +365,12 @@ Goal: make every numbered example in SPELL Language Reference 2.4.4 selectable
 from one runnable procedure and prove its independently authored semantic
 adaptation against deterministic simulator oracles.
 
-Current disposition: reconstructed product candidate
-`8377760be59033b3372512ad812c43cd6d2f7e29`. The canonical result is 195 PASS
+Current disposition: accepted at annotated tag `v0.10.0`, tag object
+`95f64a04bb15b1eb03250a8d0387a228b67727a7`. The canonical result is 195 PASS
 with zero failed, skipped, expected-failed, or unresolved examples; the
 strengthened traceability gate contains 257 independently asserted variant
-subcases. Acceptance remains conditional on the source-bound qualification,
-deterministic package, and annotated `v0.10.0` tag validators.
+subcases. Source-bound qualification, deterministic packaging, and strict tag
+validation passed with no accepted exceptions.
 
 Required properties:
 
@@ -418,10 +408,12 @@ waiver; the annotated tag targets the final release commit.
 Goal: implement the documented `BuildTC` and `Send` surface in a simulator with
 no operational route.
 
-Current disposition: planned next increment only. v0.11 must branch from the
-validated `v0.10.0` tag, re-run document-impact analysis across every mandatory
-source reference, and pass a separately recorded entry gate before product
-edits begin. No v0.11 implementation or qualification claim belongs to v0.10.
+Current disposition: simulator-only release candidate
+`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`, branched directly from validated
+`v0.10.0`. The focused 197-test suite and two real-browser prechecks pass.
+Formal acceptance remains conditional on all gates in
+`contracts/v11/release_policy.json`, committed qualification and package
+evidence, and strict annotated tag `v0.11.0`.
 
 Required properties:
 

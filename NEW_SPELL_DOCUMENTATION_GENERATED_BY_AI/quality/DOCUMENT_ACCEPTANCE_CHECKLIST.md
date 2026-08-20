@@ -10,10 +10,10 @@ the engineering checks incorporated by `V04-GATE-0`. Proposed ADR acceptance,
 organization role assignment, connected-system review, GUI-manual publication,
 and other broader unchecked items do not block the local gate.
 
-### v0.10 Release And Planned v0.11 Application Check
+### v0.10 Accepted Release And v0.11 Candidate Application Check
 
 This bounded application note does not change the Draft baseline or the
-accepted v0.9.0 predecessor or the Draft specification status.
+accepted v0.10.0 predecessor or the Draft specification status.
 
 - [x] The v0.10 traceability records distinguish 195 numbered example outcomes
   from 257 independently asserted variant subcases.
@@ -22,13 +22,13 @@ accepted v0.9.0 predecessor or the Draft specification status.
   adaptations, not verbatim executable source.
 - [x] Pin every current `SPELL_DOCUMENTATION/` input in the v0.10 release policy
   and exclude legacy PDF/ZIP bytes from product images and packages.
-- [x] Keep v0.11 source, contracts, evidence, and release records out of the
-  v0.10 candidate; retain simulator telecommand semantics as roadmap scope.
+- [x] Start v0.11 from accepted tag `v0.10.0` and bind its closed simulator
+  contracts, source, evidence, package, and tag through a separate policy.
 - [x] Require the full v0.10 gate, current product regression, all selected
   PostgreSQL/Compose tests, frontend/build/browser, image, documentation,
   package, and tag checks with no unresolved skip or accepted exception.
 - [x] Do not claim deployment, compliance, cryptographic signature, live
-  connectivity, or operational authorization from v0.10 release evidence.
+  connectivity, or operational authorization from v0.10 or v0.11 evidence.
 
 - [ ] Repository version, source revision, status, approvers and effective date are fixed.
 - [x] All 304 reviewed source pages and seven file hashes reconcile.

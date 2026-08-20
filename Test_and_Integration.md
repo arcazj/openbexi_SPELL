@@ -5,10 +5,10 @@
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
-| Current release state | Reconstructed v0.10 product candidate `8377760be59033b3372512ad812c43cd6d2f7e29`; acceptance conditional on committed qualification/package evidence and annotated tag `v0.10.0` |
+| Accepted predecessor | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
+| Current release state | v0.11 candidate `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`; acceptance conditional on complete policy gates, committed package/evidence, and annotated tag `v0.11.0` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
-| v0.11 direction | Planned next release only; begin from accepted v0.10 after a separate mandatory-document impact and entry gate |
+| v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | Date | Updated 2026-08-19 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
@@ -17,7 +17,7 @@
 
 ### Scope And Claim Boundary
 
-The v0.10 candidate implements one production-catalog procedure with a
+The accepted v0.10 release implements one production-catalog procedure with a
 searchable 195-entry prompt and a closed `ReferenceExample` instruction. Each
 number is bound to a hash-pinned, independently authored semantic adaptation
 and exact simulator oracle. This proves the bounded adaptation profile; it does
@@ -43,10 +43,10 @@ provenance, types, directions, filter bounds, and a `NOT_FOUND` negative lookup.
 The canonical 195-result record is
 [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json).
 
-Product candidate `8377760be59033b3372512ad812c43cd6d2f7e29` freezes this
-runtime scope. Release qualification, package, and tag remain separate gates;
-no deployment approval, compliance result, or operational authorization is
-claimed.
+Product candidate `8377760be59033b3372512ad812c43cd6d2f7e29` froze this
+runtime scope. The later qualification, deterministic package, and strict
+annotated tag `v0.10.0` passed with no accepted exceptions. No deployment
+approval, compliance result, or operational authorization is claimed.
 
 ### Strengthened Variant Gate
 
@@ -63,15 +63,14 @@ malformed, output-only, placeholder, negative, and pseudocode fragments use
 explicit hash-bound semantic adaptations and are not represented as arbitrary
 Python or verbatim executable snippets.
 
-## Version 0.11 Planned Simulator Telecommand Gate
+## Version 0.11 Simulator Telecommand Release Candidate
 
 ### Scope And Entry Decision
 
-The roadmap identifies a deterministic simulator-only `BuildTC`/`Send` scope
-after v0.10. It is not implemented or authorized by the v0.10 tree. A later
-v0.11 branch must start from the validated `v0.10.0` tag, inventory every
-mandatory reference document, record compatibility and safety decisions, and
-pass a separate Gate 0A before product changes.
+The candidate implements the deterministic simulator-only `BuildTC`/`Send`
+scope directly from validated `v0.10.0`. Every mandatory reference document
+remains pinned, and compatibility and safety decisions are recorded under
+`V11-GATE-0A`. Candidate commit `e15d331` is not an accepted release.
 
 ### Required Evidence
 
@@ -84,6 +83,15 @@ pass a separate Gate 0A before product changes.
 | Certainty | Separate stages and dispositions; no transport-success inference, load-only success inflation, blind resend, or success after uncertainty |
 | Integration | Public API execution of both Example 60 forms, full backend/scripts regression, frontend tests/build, and product-image contract availability |
 
+### Pre-Closeout Evidence
+
+| Gate | Current result | Final authority |
+| --- | --- | --- |
+| Focused v0.11 | 197 passed, zero failures/errors/skips | Must be recaptured as source-bound JUnit |
+| Auditor integration | Three targeted checks passed after restoring the runner CLI contract | Must be recaptured as source-bound JUnit |
+| Real browser | Chromium and mobile passed 2/2 against health version 0.11.0 | Hash-pinned under `artifacts/v0.11/browser-e2e` |
+| Full release | Pending | `artifacts/v0.11/release-qualification.json` and strict validator |
+
 Any future `PromptUser` design may decide only whether the procedure continues after a settled
 failure. `OnFailure` remains authoritative for remaining element progression.
 No prompt changes a settled result or permits resend. All no-answer and
@@ -91,9 +99,9 @@ uncertain cases fail closed.
 
 The 195 v0.10 example outcomes and 257 variant subcases remain separate
 evidence dimensions and become inherited regression gates, not v0.11 feature
-evidence. Historical release validators must retain their original version
-meaning; v0.11 needs new version-scoped release controls rather than relabeled
-v0.5-v0.9 results.
+evidence. Historical release validators retain their original version meaning.
+v0.11 uses new version-scoped controls under `scripts/release_v11.py`; no
+older result is relabeled as v0.11 evidence.
 
 ## Version 0.9 Gate 0A Test Plan And Candidate Preparation
 

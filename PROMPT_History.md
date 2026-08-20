@@ -6,7 +6,7 @@ inserted at the top so it is visible first; earlier entries retain their origina
 delivery order. Later versions may supersede a decision but must not rewrite an
 earlier request or result.
 
-## 2026-08-19 - v0.10 Reconstruction And v0.11 Release Ordering
+## 2026-08-19 - v0.10 Acceptance And v0.11 Candidate Restoration
 
 The owner directed restoration of the complete v0.10 and v0.11 work, followed
 by GitHub publication, and approved the recommendation to close the releases
@@ -15,20 +15,30 @@ working-tree snapshot mixed v0.10 reference-runner work with v0.11 command
 runtime work. v0.10 was therefore reconstructed from the accepted `v0.9.0`
 tag instead of relabeling the mixed snapshot.
 
-The reconstructed v0.10 product candidate is
+The reconstructed v0.10 product candidate was
 `8377760be59033b3372512ad812c43cd6d2f7e29`. It contains the 195-example,
 257-variant reference adapter, one bundled procedure, complete supporting
 backend/frontend tests and browser evidence, and no v0.11 product path. The
 strict release policy pins all eight mandatory legacy references while
-excluding their PDF/ZIP bytes from product images and packages. Acceptance
-requires committed qualification and deterministic package evidence plus the
-validated annotated tag `v0.10.0`, with no accepted exception.
+excluding their PDF/ZIP bytes from product images and packages. All strict
+gates passed. Annotated tag `v0.10.0`, tag object
+`95f64a04bb15b1eb03250a8d0387a228b67727a7`, accepts release commit
+`c33d1893d90f9d42c36eedd19cb83f079bf39a9f` with package SHA-256
+`b65af04f53475e8a4aa5f233485c17fd734793aeaddda6446ea969b8705f405d`
+and no accepted exception.
 
-v0.11 remains the next planned release and must be constructed from the
-accepted v0.10 tag. Earlier mutable main-line v0.11 work is not imported into
-the v0.10 release tree and cannot be used as v0.10 release evidence. This
-ordering restores both versions without allowing v0.11 code or claims to leak
-backward into v0.10.
+v0.11 was then branched directly from that accepted tag. Candidate
+`e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` restores the closed simulator
+telecommand contracts, parser/IR/runtime, supervisor/worker/operator
+integration, all eight v0.11 backend test modules, version bindings, and the
+latest legacy auditor implementation. The auditor CLI/runner mismatch was
+fixed and bound by three tests. The focused v0.11 suite passes 197 tests, and
+fresh Chromium/mobile evidence passes 2/2 against the v0.11 image.
+
+The v0.11 release remains conditional on its complete source-bound gate,
+deterministic package, evidence validation, and annotated tag `v0.11.0`.
+Earlier mutable main-line evidence is historical context only and is not used
+as final release evidence.
 
 ## 2026-08-19 - GitHub Delivery Default
 

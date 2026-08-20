@@ -4,11 +4,11 @@
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.9.0 baseline, reconstructed v0.10 candidate, and planned v0.11 boundary |
-| Update type | v0.10 immutable candidate and conditional release closeout; correction of v0.11 to future scope in this tree |
+| Document revision | Accepted v0.10.0 baseline and v0.11 simulator telecommand release candidate |
+| Update type | Record immutable v0.10 acceptance and the bounded v0.11 candidate/closeout sequence |
 | Updated | 2026-08-19 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
-| Accepted product baseline | SPELL v0.9.0, tag `v0.9.0`, tag object `b47ee98429841afd7d91c928f3a314d6ac7f348c`, release commit `a8caa957179f8df301f9863e421e3fd7127e5318` |
+| Accepted product baseline | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
@@ -17,8 +17,8 @@
 | v0.8 status | Accepted 2026-08-18 at annotated tag `v0.8.0`; nine work packages implemented and qualified; no accepted exceptions |
 | v0.9 source-freeze status | Implementation, version-scoped tooling, and exact product inventory frozen in candidate source; canonical candidate qualification and all later release endpoints were pending at freeze; later acceptance only by a strictly validated annotated tag |
 | v0.9 current status | Accepted 2026-08-19 at annotated tag `v0.9.0`; Final qualification, package, and strict tag validation passed with no accepted exceptions |
-| v0.10 current status | Product candidate reconstructed at commit `8377760be59033b3372512ad812c43cd6d2f7e29`; release acceptance is conditional on committed evidence, deterministic package, and validated annotated tag `v0.10.0` |
-| v0.11 current status | Planned next increment only; the v0.10 tree contains no v0.11 source, contract, qualification, package, or tag |
+| v0.10 current status | Accepted 2026-08-19 at annotated tag `v0.10.0`; package SHA-256 `b65af04f53475e8a4aa5f233485c17fd734793aeaddda6446ea969b8705f405d`; no accepted exceptions |
+| v0.11 current status | Candidate source `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7` committed 2026-08-19; focused/backend-browser prechecks pass; complete release qualification/package/tag pending |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -81,8 +81,8 @@ Conventions:
 | v0.9 Gate 0A | SPELL Development Environment planning authorization | Owner request `start and complete asap V0.9` recorded 2026-08-18; exact time not retained | Explicit owner approval, nine-package/45-identity contract binding, and Gate validator PASS recorded 2026-08-18 | Same calendar day; exact elapsed time and active effort unknown | `V09-DEV-001` through `V09-DEV-009` authorized; no implementation, product evidence, release, operational, or compliance claim |
 | v0.9 candidate source freeze | Bounded development-environment implementation and version-scoped qualification/release tooling | Gate 0A commit `92f3b4b82908d44e28b9506749e498386a428c27`; exact implementation start time not retained | Candidate source and exact product inventory frozen 2026-08-18; canonical qualification had not yet run | Elapsed time and active effort unknown | Gate 0B, Final, package, release commit, and tag were pending at freeze; later acceptance only by validated annotated tag |
 | v0.9 | Bounded SPELL Development Environment | Candidate commit `060001baf423fb82f27041f6b842630370c1a786` at 2026-08-19 04:12:37 EDT | Annotated tag `v0.9.0` at 2026-08-19 05:56:44 EDT | Candidate-to-tag 1h 44m 07s; qualified-source-to-tag 52m 28s; release-commit-to-tag 2m 21s; total active engineering effort unknown | Exact Git intervals; strict release validation passed with no accepted exceptions |
-| v0.10 candidate | SPELL 2.4.4 Reference Example Adapter | Owner request recorded 2026-08-19; exact request time not retained | Product candidate reconstructed at `8377760be59033b3372512ad812c43cd6d2f7e29`; final tag endpoint conditional | Same calendar day; exact elapsed time and active effort unknown | 195/195 bounded adaptations and 257/257 variants; strict release qualification and package/tag gates required before acceptance |
-| v0.11 planned | Simulator Telecommand Semantics | May begin only from an accepted `v0.10.0` tag after a separate document-impact and entry-gate record | No implementation endpoint in the v0.10 tree | Not applicable | Roadmap scope only; no source, evidence, release, or operational claim |
+| v0.10 | SPELL 2.4.4 Reference Example Adapter | Owner request recorded 2026-08-19; exact request time not retained | Annotated tag `v0.10.0` at 2026-08-19 19:37:21 EDT | Total effort unknown; release-commit-to-tag interval 1m 23s | Exact release commit/tag endpoint; 195/195 examples and 257/257 variants |
+| v0.11 candidate | Simulator Telecommand Semantics | Accepted `v0.10.0` predecessor and recorded `V11-GATE-0A` | Candidate commit `e15d331` at 2026-08-19 19:44:43 EDT; final tag pending | Implementation effort unknown; v0.10-tag-to-candidate interval 7m 22s | Exact Git interval for candidate lineage; not an accepted release or active-effort measure |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
@@ -90,16 +90,24 @@ Conventions:
 | NG-WP-00 compatibility seed | Candidate v0.4 Driver/Server source-assertion decomposition | Roadmap-directed continuation recorded 2026-07-18; exact start time not retained | 62-row partial seed and digest reconciliation prepared in the working tree on 2026-07-18; exhaustive gate remains incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no row approval, product start, commit, tag, or gate pass |
 | NG-WP-00 example index | Seven-source registration and exact Language Reference example identity indexing | Owner request to complete v0.4 before v0.5 recorded 2026-07-18; exact start time not retained | 195 example indexes plus the prior 62 decomposed Driver/Server rows reconciled in the working tree on 2026-07-18; example bodies/oracles and the exhaustive gate remain incomplete | Same calendar day; exact elapsed time and active effort unknown | Working-tree evidence only; no semantic example decomposition, fixture/result evidence, row approval, product start, commit, tag, or gate pass |
 
-## v0.11 - Planned After Accepted v0.10
+## 2026-08-19 - v0.11 Candidate Reconstruction And Release Closeout
 
-v0.11 is retained as future simulator-only telecommand scope. It has no start,
-implementation, qualification, package, release commit, or tag in the v0.10
-tree. A later v0.11 branch must begin from the accepted `v0.10.0` tag and record
-its own mandatory-document impact, entry authority, exact code boundary,
-qualification, package, and immutable endpoint. Roadmap text is not evidence
-that `BuildTC` or `Send` is implemented.
+| Field | Value |
+| --- | --- |
+| Accepted predecessor | `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7` |
+| Entry authority | `V11-GATE-0A PASS` |
+| Candidate commit and time | `e15d3314f9b97eb43d5d5057c8f1ba614844e0e7`; 2026-08-19 19:44:43 EDT |
+| Implemented scope | Closed simulator catalog, typed `BuildTC`/`Send`, IR 0.11, staged execution/certainty, confirmation, cancellation, recovery, reconciliation, and no-resend |
+| Pre-closeout evidence | 197 focused v0.11 tests passed; Chromium and mobile passed 2/2 against the v0.11 image; complete source-bound release gates pending |
+| Immutable status | Candidate only; acceptance requires committed qualification/package evidence and validated annotated tag `v0.11.0` |
+| Operational authorization or compliance determination | None |
 
-## 2026-08-19 - v0.10 Candidate Reconstruction And Release Closeout
+The exact scope and conditional acceptance rule are recorded in
+[`SPELL_v0.11_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md).
+The candidate is an immutable Git endpoint, but selected prechecks are not a
+substitute for the complete release policy.
+
+## 2026-08-19 - v0.10.0 Accepted
 
 | Field | Value |
 | --- | --- |
@@ -108,15 +116,16 @@ that `BuildTC` or `Send` is implemented.
 | Product candidate | `8377760be59033b3372512ad812c43cd6d2f7e29` |
 | Result boundary | 195 PASS, 0 FAIL, 0 SKIP, 0 XFAIL, 0 unresolved, with 257 independently asserted variant subcases; Example 195 proves bundled TM/TC catalog lookup provenance and values; complete release results are authoritative only in `artifacts/v0.10/release-qualification.json` |
 | Claim boundary | Semantic adaptations, not verbatim execution of PDF fragments or general SPELL 2.4.4 parser compatibility; no live command dispatch |
-| Immutable status | Candidate commit exists; acceptance remains conditional on deterministic package evidence and annotated tag `v0.10.0` passing the v0.10 validator |
+| Release endpoint | Release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f`; annotated tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`; package SHA-256 `b65af04f53475e8a4aa5f233485c17fd734793aeaddda6446ea969b8705f405d` |
+| Immutable status | ACCEPTED; qualification, deterministic package, release evidence, and strict annotated-tag validation passed with no accepted exceptions |
 | Operational authorization or compliance determination | None |
 
 The exact local evidence is recorded in
 [`Test_and_Integration.md`](Test_and_Integration.md) and
 [`SPELL_v0.10_Implementation.md`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md). Elapsed time
 and active engineering effort are unknown because the request time and a
-continuous work log are not retained. The annotated tag, not an uncommitted or
-partial test result, is the release-acceptance endpoint.
+continuous work log are not retained. Annotated tag `v0.10.0` is the
+release-acceptance endpoint.
 
 ## 2026-08-19 - v0.9.0 Accepted
 
