@@ -71,7 +71,7 @@ The wrapper verifies `scripts/release-toolchain-v12.json`, including Python
 The complete gate names are defined by the producer; `prepare` builds the images
 and starts the loopback stack, and `assemble` joins their source-bound records.
 The seven test suites contain 1,699 SQLite/driver, 1,617 PostgreSQL, three Compose,
-114 frontend, 18 documentation, 16 tooling, and four real browser cases.
+114 frontend, 18 documentation, 17 tooling, and four real browser cases.
 The 19 SQLite and three PostgreSQL environment skips must resolve through the
 PostgreSQL and Compose runs. Replay includes a 60-second deterministic soak,
 a one-second per-iteration latency budget, and all 195 inherited reference

@@ -672,11 +672,15 @@ def test_handover_expiry_commits_and_is_audited(client) -> None:
         idempotency_key="handover-expiry",
         reason="focused expiry",
     )
-    with client.app.state.session_factory() as session:
-        stored = session.get(ControllerHandover, handover["id"])
-        stored.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
-        session.commit()
-    assert service.expire_due_handovers() == 1
+    # Keep the background reconciler from consuming this deliberately expired
+    # request between fixture setup and the focused expiry assertion.
+    with service._lock:
+        with client.app.state.session_factory() as session:
+            stored = session.get(ControllerHandover, handover["id"])
+            stored.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+            session.commit()
+        assert service.expire_due_handovers() == 1
+        assert service.expire_due_handovers() == 0
     with client.app.state.session_factory() as session:
         assert session.get(ControllerHandover, handover["id"]).state == "EXPIRED"
         assert session.scalar(

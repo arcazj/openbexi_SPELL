@@ -60,3 +60,15 @@ def test_json_evidence_has_canonical_lf_bytes(tmp_path: Path) -> None:
     release.write_json(path, {"result": "PASS"})
     assert b'\r' not in path.read_bytes()
     assert path.read_bytes().endswith(b'\n')
+
+
+def test_catalog_preserves_double_colons_inside_parameters(tmp_path: Path) -> None:
+    import json
+    from types import SimpleNamespace
+    from scripts.collect_release_v12 import Catalog
+    name = "test_reflection[column::text = ANY (ARRAY['a'::varchar]::text[])]"
+    item = SimpleNamespace(nodeid="backend/tests/test_schema.py::" + name, name=name,
+                           iter_markers=lambda _: ())
+    output = tmp_path / "catalog.json"
+    Catalog(output).pytest_collection_finish(SimpleNamespace(items=[item]))
+    assert json.loads(output.read_bytes()) == [{"identity": "backend.tests.test_schema::" + name, "skip": False}]

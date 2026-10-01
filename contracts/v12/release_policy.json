@@ -474,10 +474,10 @@
         "backend.tests.test_development_language_cache_v09::test_library_is_non_executing_digest_cached_and_explicitly_reparsed",
         "backend.tests.test_development_language_cache_v09::test_library_limits_and_forbidden_imports_are_checked_before_execution",
         "backend.tests.test_development_language_cache_v09::test_parser_selects_v09_and_preserves_legacy_profiles_deterministically",
-        "backend.tests.test_development_migration_v09.test_v0008_normalizes_equivalent_postgresql_check_reflection[case_policy IN ('CASE_SENSITIVE','CASE_INSENSITIVE')-case_policy.text = ANY (ARRAY['CASE_SENSITIVE'.character varying, 'CASE_INSENSITIVE'.character varying]::text[])]",
-        "backend.tests.test_development_migration_v09.test_v0008_normalizes_equivalent_postgresql_check_reflection[status IN ('QUARANTINED','APPLYING','APPLIED')-status.text = ANY (ARRAY['QUARANTINED'.character varying, 'APPLYING'.character varying, 'APPLIED'.character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_is_static_and_verifies_complete_sqlite_structure",
+        "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[case_policy IN ('CASE_SENSITIVE','CASE_INSENSITIVE')-case_policy::text = ANY (ARRAY['CASE_SENSITIVE'::character varying, 'CASE_INSENSITIVE'::character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[progress BETWEEN 0 AND 100-progress >= 0 AND progress <= 100]",
+        "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[status IN ('QUARANTINED','APPLYING','APPLIED')-status::text = ANY (ARRAY['QUARANTINED'::character varying, 'APPLYING'::character varying, 'APPLIED'::character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_rejects_collision_and_structural_tamper",
         "backend.tests.test_development_migration_v09::test_v0008_requires_predecessor_and_repeat_upgrade_is_rejected",
         "backend.tests.test_development_postgresql_v09::test_postgresql_development_idempotency_race_and_catalog_promotion",
@@ -2101,10 +2101,10 @@
         "backend.tests.test_development_language_cache_v09::test_library_is_non_executing_digest_cached_and_explicitly_reparsed",
         "backend.tests.test_development_language_cache_v09::test_library_limits_and_forbidden_imports_are_checked_before_execution",
         "backend.tests.test_development_language_cache_v09::test_parser_selects_v09_and_preserves_legacy_profiles_deterministically",
-        "backend.tests.test_development_migration_v09.test_v0008_normalizes_equivalent_postgresql_check_reflection[case_policy IN ('CASE_SENSITIVE','CASE_INSENSITIVE')-case_policy.text = ANY (ARRAY['CASE_SENSITIVE'.character varying, 'CASE_INSENSITIVE'.character varying]::text[])]",
-        "backend.tests.test_development_migration_v09.test_v0008_normalizes_equivalent_postgresql_check_reflection[status IN ('QUARANTINED','APPLYING','APPLIED')-status.text = ANY (ARRAY['QUARANTINED'.character varying, 'APPLYING'.character varying, 'APPLIED'.character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_is_static_and_verifies_complete_sqlite_structure",
+        "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[case_policy IN ('CASE_SENSITIVE','CASE_INSENSITIVE')-case_policy::text = ANY (ARRAY['CASE_SENSITIVE'::character varying, 'CASE_INSENSITIVE'::character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[progress BETWEEN 0 AND 100-progress >= 0 AND progress <= 100]",
+        "backend.tests.test_development_migration_v09::test_v0008_normalizes_equivalent_postgresql_check_reflection[status IN ('QUARANTINED','APPLYING','APPLIED')-status::text = ANY (ARRAY['QUARANTINED'::character varying, 'APPLYING'::character varying, 'APPLIED'::character varying]::text[])]",
         "backend.tests.test_development_migration_v09::test_v0008_rejects_collision_and_structural_tamper",
         "backend.tests.test_development_migration_v09::test_v0008_requires_predecessor_and_repeat_upgrade_is_rejected",
         "backend.tests.test_development_postgresql_v09::test_postgresql_development_idempotency_race_and_catalog_promotion",
@@ -3517,6 +3517,7 @@
     },
     "tooling": {
       "identities": [
+        "scripts.tests.test_release_v12::test_catalog_preserves_double_colons_inside_parameters",
         "scripts.tests.test_release_v12::test_json_evidence_has_canonical_lf_bytes",
         "scripts.tests.test_release_v12::test_junit_rejects_invalid_or_failing_evidence[<testcase name=\"bad\" time=\"-1\"/>]",
         "scripts.tests.test_release_v12::test_junit_rejects_invalid_or_failing_evidence[<testcase name=\"bad\" time=\"Infinity\"/>]",
@@ -3535,7 +3536,7 @@
         "scripts.tests.test_spell_auditor_tool::test_header_rules_are_loaded_from_the_declared_policy"
       ],
       "skipped": [],
-      "tests": 16
+      "tests": 17
     }
   },
   "legacy_system_qualified": false,

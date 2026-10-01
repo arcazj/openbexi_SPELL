@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import pytest
+from _pytest.junitxml import mangle_test_address
 
 
 class Catalog:
@@ -13,8 +14,8 @@ class Catalog:
     def pytest_collection_finish(self, session):
         rows = []
         for item in session.items:
-            parent, name = item.nodeid.rsplit("::", 1)
-            identity = parent.replace(".py", "").replace("/", ".").replace("::", ".") + "::" + name
+            names = mangle_test_address(item.nodeid)
+            identity = ".".join(names[:-1]) + "::" + names[-1]
             skips = [m for m in item.iter_markers("skipif") if m.args and m.args[0] is True]
             rows.append({"identity": identity, "skip": bool(skips) or item.name in {
                 "test_created_compose_driver_has_runtime_isolation_controls",
