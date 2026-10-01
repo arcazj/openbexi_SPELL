@@ -94,7 +94,9 @@ def main() -> None:
                 "runtime_tag": "v0.11.0", "runtime_commit": git("rev-parse", "v0.11.0^{commit}"),
                 "source_commit": git("rev-parse", "HEAD"), "source_tree": git("rev-parse", "HEAD^{tree}"),
                 "tests": identities, "evidence_sha256": {name: digest(destination / name) for name in ("documentation.xml", "restoration.json")}}
-        (destination / "qualification.json").write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (destination / "qualification.json").write_bytes(
+            (json.dumps(data, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        )
     else:
         validate(args.require_tag)
         print(tag_message() if args.tag_message else "v0.11.1 documentation release: PASS")
