@@ -1,0 +1,26 @@
+[
+  {
+    "path": "PROJECT_ROADMAP.md",
+    "source_commit": "060001baf423fb82f27041f6b842630370c1a786",
+    "restored_characters": 35179,
+    "restored_span_sha256": "ce7caea9932bb678a1716057f6d2a0ee5acb3a879d7edcf9489429f8a7eeefd8"
+  },
+  {
+    "path": "VERSION_TIMELINE.md",
+    "source_commit": "060001baf423fb82f27041f6b842630370c1a786",
+    "restored_characters": 31882,
+    "restored_span_sha256": "18b2bda44929ec2aa1ccfd27c76a861605786004f4f5fcedb097afddbe00fbae"
+  },
+  {
+    "path": "PROMPT_History.md",
+    "source_commit": "060001baf423fb82f27041f6b842630370c1a786",
+    "restored_characters": 22559,
+    "restored_span_sha256": "876b206d22db7c1940c687407bd7f580476350fb7a238507ec3ca699a5d9b203"
+  },
+  {
+    "path": "Test_and_Integration.md",
+    "source_commit": "060001baf423fb82f27041f6b842630370c1a786",
+    "restored_characters": 89215,
+    "restored_span_sha256": "80b2aac55f580a3b06b046222b52c6f68436cfd0f52451c4ff4891d693540f5e"
+  }
+]

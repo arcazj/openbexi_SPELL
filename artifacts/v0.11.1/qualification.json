@@ -1,0 +1,32 @@
+{
+  "evidence_sha256": {
+    "documentation.xml": "579a1158702072cf8705576c02e6d99006c3bdcc4bdab8df9ccfdf8edc788494",
+    "restoration.json": "7af6ced633dd41b8be7806217697c4c481ef4e433d2c3a3d9adf951067e342ce"
+  },
+  "release": "v0.11.1",
+  "runtime_commit": "a41be7f5c8472213fa027d7bb94a2389477b1b86",
+  "runtime_tag": "v0.11.0",
+  "schema": "spell.documentation-release/1",
+  "source_commit": "84cad7a02fe4fb34e2b1efcd058de32cc6930fa4",
+  "source_tree": "a7bbb1ac486498f8c4655cb194271c654300efe4",
+  "tests": [
+    "scripts.tests.test_documentation_tree_layout::test_generated_and_legacy_documentation_trees_are_separate",
+    "scripts.tests.test_documentation_tree_layout::test_project_policy_makes_reference_manuals_mandatory",
+    "scripts.tests.test_documentation_tree_layout::test_release_records_are_kept_under_generated_documentation",
+    "scripts.tests.test_markdown_preview_v09::test_comment_validation_does_not_treat_diagram_arrows_as_comment_ends",
+    "scripts.tests.test_markdown_preview_v09::test_every_tracked_markdown_file_renders_in_preview_mode",
+    "scripts.tests.test_markdown_preview_v09::test_gitless_qualification_export_has_a_bounded_markdown_inventory",
+    "scripts.tests.test_markdown_preview_v09::test_markdown_preview_engine_is_exactly_hash_locked",
+    "scripts.tests.test_markdown_preview_v09::test_never_versioned_v03_capture_is_not_a_nonportable_link",
+    "scripts.tests.test_markdown_preview_v09::test_preview_allows_discussion_of_truncation",
+    "scripts.tests.test_markdown_preview_v09::test_preview_allows_parent_segments_that_remain_inside_repository",
+    "scripts.tests.test_markdown_preview_v09::test_preview_engine_renders_commonmark_and_gfm_tables",
+    "scripts.tests.test_markdown_preview_v09::test_preview_rejects_a_missing_fragment",
+    "scripts.tests.test_markdown_preview_v09::test_preview_rejects_a_missing_local_link",
+    "scripts.tests.test_markdown_preview_v09::test_preview_rejects_truncated_tool_output[... 1,234 lines truncated ...]",
+    "scripts.tests.test_markdown_preview_v09::test_preview_rejects_truncated_tool_output[... 4269919 bytes omitted ...]",
+    "scripts.tests.test_markdown_preview_v09::test_preview_rejects_truncated_tool_output[\\u20268972 tokens truncated\\u2026]",
+    "scripts.tests.test_markdown_preview_v09::test_preview_resolves_duplicate_heading_suffixes_and_explicit_html_ids",
+    "scripts.tests.test_markdown_preview_v09::test_preview_resolves_same_document_and_percent_decoded_heading_fragments"
+  ]
+}
