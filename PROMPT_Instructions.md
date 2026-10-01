@@ -1,5 +1,13 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-09-30 - v0.12.0 Accepted
+
+The annotated `v0.12.0` tag passed independent clean-checkout validation with
+no accepted exceptions. The accepted scope is synthetic, read-only observation
+replay; real legacy-system qualification and full SPELL 2.4.4 language support
+remain outstanding. Exact release bindings and executed results are recorded in
+[the implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md#accepted-release-binding).
+
 ## 2026-09-30 - v0.12 Synthetic Observation Release Contract
 
 The owner authorized completion and publication of v0.11.1 and v0.12.
@@ -85,7 +93,19 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.11.0 is the accepted product baseline. Annotated tag object
+SPELL v0.12.0 is the accepted product baseline. Annotated tag object
+`48b577faafdb9b5011cc5240201e8ce45d88cfee` peels to release commit
+`978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6`. Qualified source commit
+`f01363685ba79582a93bc677cbcf0c415ad4ee84` has fingerprint
+`afb52322e59265bbfe37ad74b5e6b146dfb83e159665e0c90d296f3693fc461a`.
+The accepted package SHA-256 is
+`9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9`.
+All release gates passed with no accepted exceptions. Validation must run on
+the clean tagged checkout; subsequent documentation closeout does not retarget
+the immutable release. v0.11.1 is the accepted documentation-only predecessor,
+with the inherited v0.11.0 runtime.
+
+SPELL v0.11.0 is the previous product baseline. Annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`; strict qualification,
 deterministic package, evidence, and tag validation passed with no accepted

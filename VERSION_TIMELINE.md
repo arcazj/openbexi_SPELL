@@ -1,5 +1,13 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-09-30 - v0.12.0 Accepted
+
+The annotated `v0.12.0` tag passed independent clean-checkout validation with
+no accepted exceptions. The accepted scope is synthetic, read-only observation
+replay; real legacy-system qualification and full SPELL 2.4.4 language support
+remain outstanding. Exact release bindings and executed results are recorded in
+[the implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md#accepted-release-binding).
+
 ## 2026-09-30 - v0.12 Synthetic Observation Release Contract
 
 The owner authorized completion and publication of v0.11.1 and v0.12.
@@ -21,11 +29,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.11.0 simulator telecommand baseline |
-| Update type | Record immutable v0.11 qualification, package, tag, and GitHub closeout sequence |
-| Updated | 2026-08-19 |
-| Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July and August 2026 events |
-| Accepted product baseline | SPELL v0.11.0, tag `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, release commit `a41be7f5c8472213fa027d7bb94a2389477b1b86` |
+| Document revision | Accepted v0.12.0 synthetic observation baseline |
+| Update type | Record immutable v0.11.1 and v0.12.0 qualification and tag endpoints |
+| Updated | 2026-09-30 |
+| Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through September 2026 events |
+| Accepted product baseline | SPELL v0.12.0, tag `v0.12.0`, tag object `48b577faafdb9b5011cc5240201e8ce45d88cfee`, release commit `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
@@ -36,6 +44,8 @@ this planning/source record does not independently claim completed tests.
 | v0.9 current status | Accepted 2026-08-19 at annotated tag `v0.9.0`; Final qualification, package, and strict tag validation passed with no accepted exceptions |
 | v0.10 current status | Accepted 2026-08-19 at annotated tag `v0.10.0`; package SHA-256 `b65af04f53475e8a4aa5f233485c17fd734793aeaddda6446ea969b8705f405d`; no accepted exceptions |
 | v0.11 current status | Accepted 2026-08-19 at annotated tag `v0.11.0`; package SHA-256 `61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`; no accepted exceptions |
+| v0.11.1 current status | Accepted 2026-09-30 at annotated tag `v0.11.1`; documentation maintenance; 18 tests passed |
+| v0.12 current status | Accepted 2026-09-30 at annotated tag `v0.12.0`; package SHA-256 `9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9`; no accepted exceptions |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -100,6 +110,8 @@ Conventions:
 | v0.9 | Bounded SPELL Development Environment | Candidate commit `060001baf423fb82f27041f6b842630370c1a786` at 2026-08-19 04:12:37 EDT | Annotated tag `v0.9.0` at 2026-08-19 05:56:44 EDT | Candidate-to-tag 1h 44m 07s; qualified-source-to-tag 52m 28s; release-commit-to-tag 2m 21s; total active engineering effort unknown | Exact Git intervals; strict release validation passed with no accepted exceptions |
 | v0.10 | SPELL 2.4.4 Reference Example Adapter | Owner request recorded 2026-08-19; exact request time not retained | Annotated tag `v0.10.0` at 2026-08-19 19:37:21 EDT | Total effort unknown; release-commit-to-tag interval 1m 23s | Exact release commit/tag endpoint; 195/195 examples and 257/257 variants |
 | v0.11 | Simulator Telecommand Semantics | Candidate commit `e15d331` at 2026-08-19 19:44:43 EDT | Annotated tag `v0.11.0` at 2026-08-19 20:25:58 EDT | Total active effort unknown; v0.10-tag-to-v0.11-tag 48m 37s, candidate-to-tag 41m 15s, qualified-source-to-tag 25m 07s, and release-commit-to-tag 1m 25s | Exact Git intervals for immutable endpoints; not total implementation effort |
+| v0.11.1 | Documentation restoration and truncation validation | Owner request recorded 2026-09-30; exact request time not retained | Annotated tag `v0.11.1` at 2026-09-30 20:58:18 EDT | Total active effort unknown; release-commit-to-tag interval 1s | Exact commit `ccefd80` and tag endpoints; 18 documentation tests passed |
+| v0.12 | Synthetic read-only observation replay | Entry-gate commit `c1bbdaa` at 2026-09-30 21:00:21 EDT | Annotated tag `v0.12.0` at 2026-09-30 22:53:56 EDT | Gate-commit-to-tag 1h 53m 35s; qualified-source-to-tag 29m 36s; total active effort unknown | Exact Git intervals; strict release and independent clean-tag validation passed |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |

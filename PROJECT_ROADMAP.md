@@ -1,5 +1,13 @@
 # OpenBEXI SPELL Project Roadmap
 
+## 2026-09-30 - v0.12.0 Accepted
+
+The annotated `v0.12.0` tag passed independent clean-checkout validation with
+no accepted exceptions. The accepted scope is synthetic, read-only observation
+replay; real legacy-system qualification and full SPELL 2.4.4 language support
+remain outstanding. Exact release bindings and executed results are recorded in
+[the implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md#accepted-release-binding).
+
 ## 2026-09-30 - v0.12 Synthetic Observation Release Contract
 
 The owner authorized completion and publication of v0.11.1 and v0.12.
@@ -21,10 +29,10 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.11.0 simulator telecommand baseline |
-| Update type | Record accepted v0.11 qualification, deterministic package, validated tag, and default-branch closeout |
-| Updated | 2026-08-19 |
-| Accepted product baseline | SPELL v0.11.0, tag `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, release commit `a41be7f5c8472213fa027d7bb94a2389477b1b86` |
+| Document revision | Accepted v0.12.0 synthetic observation baseline |
+| Update type | Record qualified synthetic replay, reproducible package, validated tag, and documentation closeout |
+| Updated | 2026-09-30 |
+| Accepted product baseline | SPELL v0.12.0, tag `v0.12.0`, tag object `48b577faafdb9b5011cc5240201e8ce45d88cfee`, release commit `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -35,8 +43,10 @@ this planning/source record does not independently claim completed tests.
 | v0.9 current status | Accepted at annotated tag `v0.9.0`; strict Final, package, and tag validation passed with no accepted exceptions |
 | v0.10 current status | Accepted at annotated tag `v0.10.0`; qualification, deterministic package, evidence, and strict tag validation passed with no accepted exceptions |
 | v0.11 current status | Accepted at annotated tag `v0.11.0`; all policy gates, deterministic package, evidence validation, and strict tag validation passed with no accepted exceptions |
+| v0.11.1 current status | Accepted at annotated tag `v0.11.1`; documentation maintenance; 18 tests passed |
+| v0.12 current status | Accepted synthetic profile at annotated tag `v0.12.0`; 3,450 passed executions, 22 resolved environment skips, four identical package builds, and no accepted exceptions |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | v0.11 adds closed simulator telecommand contracts, IR, runtime, supervisor/worker/operator integration, and version bindings; no live driver or GCS command route |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.12 adds typed synthetic capture replay, authenticated GET APIs, comparison, console integration, and dependency updates; no parser or database migration |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -45,13 +55,13 @@ this planning/source record does not independently claim completed tests.
 v0.11.1 repairs tool-output truncation in this roadmap and three companion
 records using intact Git history. Restored historical planning text remains
 subject to the later accepted v0.9, v0.10, and v0.11 release records. The
-runtime baseline remains v0.11.0. See the
+runtime baseline of that maintenance release remains v0.11.0. See the
 [v0.11.1 release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11.1_Release.md).
 
 ## Purpose And Authority
 
 This document is the living, forward-looking roadmap for OpenBEXI SPELL. It
-connects the delivered v0.1 through accepted v0.11 foundations to candidate v0.x work,
+connects the delivered v0.1 through accepted v0.12 foundations to candidate v0.x work,
 records dependencies and decision points, and makes deferred scope explicit.
 
 The roadmap is an index and planning aid. It does not authorize implementation,
@@ -60,7 +70,11 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.11.0 is the accepted product baseline. Its annotated tag object
+SPELL v0.12.0 is the accepted product baseline for the synthetic observation
+profile. Its immutable bindings and qualification results are recorded above
+and in the implementation record. A real legacy environment remains unqualified.
+
+SPELL v0.11.0 is the previous product baseline. Its annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`. Source-bound qualification,
 deterministic packaging, evidence validation, and strict annotated-tag
@@ -279,7 +293,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.9 | SPELL Development Environment | Product | Accepted at v0.9.0 | Bounded authoring, language services, dictionaries, history, immutable bundles, and simulator promotion. | Accepted release record and validated annotated tag. |
 | v0.10 | SPELL 2.4.4 Reference Example Adapter | Product | Accepted at v0.10.0 | All 195 numbered examples and 257 variants have deterministic semantic adaptations and oracles. | Source-bound qualification, reproducible package, and validated annotated tag. |
 | v0.11 | Simulator Telecommand Semantics | Product | Accepted at v0.11.0 | Closed catalog-backed BuildTC/Send, staged results, confirmation, certainty, recovery, and reconciliation. | Source-bound qualification, reproducible package, and validated annotated tag. |
-| v0.12 | Read-Only Legacy Observation | Product | Synthetic profile; acceptance bound to `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement. |
+| v0.12 | Read-Only Legacy Observation | Product | Accepted synthetic profile at `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement passed. |
 | v0.13 | Controlled Non-Operational Procedure Control | Product | Candidate | Add audited legacy procedure control in an explicitly approved non-operational environment; no spacecraft command authority. | Accepted v0.12 observation and dedicated control-lease, failure, rollback, and environment safety plan. |
 | v0.14 | Bounded Adapter Migration | Product | Candidate | Migrate one specifically approved adapter capability per tranche with conformance, certainty, security, load, and rollback evidence. | Accepted capability contract and separate environment/effect authorization for each tranche. |
 | v0.15+ | Parallel Pilot Readiness | Product | Candidate | Progress from read-only shadow to supervised non-commanding pilots; consider commanding only through separate authorization with rapid rollback. | Prior phase acceptance, operational evidence, governance, workload budgets, and explicit pilot authorization. |

@@ -12,10 +12,13 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The v0.12 product adds read-only, synthetic SPELL 2.4.4 observation replay and
+The accepted **v0.12.0** release adds read-only, synthetic SPELL 2.4.4 observation replay and
 comparison under **Driver foundation → Legacy observation replay**.
-Its acceptance is determined by the annotated `v0.12.0` tag and
-`scripts/release_v12.py validate --require-tag` on that clean checkout.
+Its annotated `v0.12.0` tag passed independent clean-checkout validation:
+3,450 test executions passed, all 22 environment skips were resolved by the
+complementary runs, and four independent package builds produced identical bytes.
+Reproduce release validation with `scripts/release_v12.py validate --require-tag`
+on the clean tagged checkout; later documentation commits have a different fingerprint.
 See the [v0.12 scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
 Real legacy-system qualification and full SPELL language compatibility remain
 outside this bounded release. Documentation maintenance **v0.11.1** precedes it.
@@ -74,7 +77,7 @@ exceptions.
 | v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to v0.11 |
 | v0.11 | Simulator telecommand semantics | Accepted at `v0.11.0`; no accepted exceptions |
 | v0.11.1 | Restore documentation and reject truncation artifacts | Accepted at `v0.11.1`; runtime remains 0.11.0 |
-| v0.12 | Synthetic read-only observation replay and comparison | Acceptance bound to validated `v0.12.0`; real legacy environment deferred |
+| v0.12 | Synthetic read-only observation replay and comparison | Accepted at `v0.12.0`; real legacy environment deferred |
 
 See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
 and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified

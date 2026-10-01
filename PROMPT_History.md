@@ -1,5 +1,19 @@
 # Prompt History
 
+## 2026-09-30 - v0.11.1 And v0.12.0 Accepted
+
+The authorized releases are complete. v0.11.1 restores documentation and adds
+truncation regressions; its 18-test evidence and annotated tag were validated
+and published. v0.12.0 delivers the synthetic read-only replay profile and passed
+independent clean-tag validation with 3,450 passed executions, all 22 environment
+skips resolved by complementary runs, four identical package builds across two
+independent exports, and no accepted exceptions. Immutable bindings are in
+[the v0.12 implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md#accepted-release-binding).
+
+No real legacy capture or test environment was supplied. That environment's
+qualification and full SPELL 2.4.4 language support remain outstanding. This
+documentation closeout follows the accepted tag without changing its contents.
+
 ## 2026-09-30 - v0.12 Synthetic Observation Release Contract
 
 The owner authorized completion and publication of v0.11.1 and v0.12.

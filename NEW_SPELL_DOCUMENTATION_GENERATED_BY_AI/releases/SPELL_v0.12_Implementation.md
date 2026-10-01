@@ -2,7 +2,7 @@
 
 ## Delivered Scope
 
-The v0.12 candidate adds a strict translator for immutable synthetic captures
+The accepted v0.12.0 release adds a strict translator for immutable synthetic captures
 of the documented SPELL 2.4.4 telemetry model. It provides typed raw and
 engineering values, lossless integer transport, validity and quality,
 recorded acquisition time, bounded catalogs, resource and limit reads,
@@ -76,3 +76,48 @@ The 19 SQLite and three PostgreSQL environment skips must resolve through the
 PostgreSQL and Compose runs. Replay includes a 60-second deterministic soak,
 a one-second per-iteration latency budget, and all 195 inherited reference
 examples with their 257 variants.
+
+## Accepted Release Binding
+
+The annotated tag and an independent clean tagged checkout both passed
+`scripts/release_v12.py validate --require-tag`. This documentation closeout is
+subsequent to the immutable release; validate the tag checkout, not the later
+default-branch documentation fingerprint.
+
+| Endpoint | Immutable identity |
+| --- | --- |
+| Qualified source | `f01363685ba79582a93bc677cbcf0c415ad4ee84` |
+| Source fingerprint | `afb52322e59265bbfe37ad74b5e6b146dfb83e159665e0c90d296f3693fc461a` |
+| Release commit | `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
+| Annotated tag | `v0.12.0`, object `48b577faafdb9b5011cc5240201e8ce45d88cfee` |
+| Package SHA-256 | `9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9` |
+| Package inventory | 711 files; 3,445,082 bytes |
+| Accepted exceptions | None |
+
+| Executed gate | Result |
+| --- | --- |
+| Complete SQLite/driver regression, network disabled | 1,680 passed; 19 exact environment skips |
+| Complete PostgreSQL regression | 1,614 passed; three exact Compose skips |
+| Compose isolation and builders | Three passed; all environment skips resolved across the PostgreSQL and Compose runs |
+| Frontend and production build | 114 passed; TypeScript/Vite build passed |
+| Documentation and release tooling | 18 and 17 passed |
+| Real browser | Four passed across desktop and mobile, including reference Example 195 and observation replay |
+| Reference examples and replay | 195 examples, 257 variants, and 60-second deterministic replay soak passed |
+| Dependencies and images | Python/npm audits clear; four strict CycloneDX SBOMs; zero Critical/High image findings |
+| Reproducibility | Two builds in each of two independent exports; all four archive hashes identical |
+
+The aggregate is 3,450 passed test executions in 3,472 cases, with 22 resolved
+environment skips and no failed tests. Canonical retained records are
+[qualification](../../artifacts/v0.12/qualification.json),
+[raw evidence](../../artifacts/v0.12/evidence/), and
+[reproducibility](../../artifacts/v0.12/reproducibility.json).
+
+Qualification corrected parameterized-test inventory handling for identifiers
+containing `::` and synchronized the handover-expiry test with its background
+reconciler. One resource-contended SQLite attempt exceeded an existing worker
+acknowledgment deadline. The full suite then passed in isolation on the same
+frozen source, with no timeout or behavior weakened; failed attempts are retained
+locally outside the canonical evidence. The verified loopback application was
+restored after qualification and reports runtime `0.12.0` at
+`http://127.0.0.1:8080`, Compose project `spellv012release`. Its ignored local
+environment file is `.qualification/v12/final/runtime.env`.

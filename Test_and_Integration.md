@@ -1,5 +1,22 @@
 # Test and Integration Plan
 
+## 2026-09-30 - v0.12.0 Accepted Results
+
+Independent clean-tag validation passed for `v0.12.0`, release commit
+`978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6`, qualified source
+`f01363685ba79582a93bc677cbcf0c415ad4ee84`. The seven canonical suites contain
+3,472 cases: 3,450 passed executions and 22 exact environment skips, all resolved
+by complementary PostgreSQL and Compose runs. Frontend build, 60-second replay
+soak, all 195 reference examples and 257 variants, strict SBOM schema validation,
+and supply-chain gates passed. Four image scans have no Critical/High findings;
+Python and npm audits have no reported advisories. No exceptions were accepted.
+
+Two builds in each of two independent source exports produced the same package
+SHA-256 `9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9`.
+The [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md#accepted-release-binding)
+links the immutable evidence and documents qualification limits. Full SPELL
+2.4.4 compatibility and real legacy-system qualification remain outstanding.
+
 ## 2026-09-30 - v0.12 Synthetic Observation Release Contract
 
 The owner authorized completion and publication of v0.11.1 and v0.12.
@@ -22,11 +39,12 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | SPELL v0.10.0, tag `v0.10.0`, tag object `95f64a04bb15b1eb03250a8d0387a228b67727a7`, release commit `c33d1893d90f9d42c36eedd19cb83f079bf39a9f` |
-| Current release state | v0.11 accepted at annotated tag `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, release commit `a41be7f5c8472213fa027d7bb94a2389477b1b86` |
+| Accepted predecessor | Documentation release `v0.11.1`, commit `ccefd80c723a5276705e9b4fde0a2ce993198f65`, with inherited v0.11.0 runtime |
+| Current release state | v0.12 accepted at annotated tag `v0.12.0`, tag object `48b577faafdb9b5011cc5240201e8ce45d88cfee`, release commit `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
-| Date | Updated 2026-08-19 |
+| v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |
+| Date | Updated 2026-09-30 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 
