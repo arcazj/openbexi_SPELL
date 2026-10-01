@@ -1,0 +1,37 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v15/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_shadow_pilot_v15.py",
+        "scripts/tests/test_release_next.py",
+        "--deselect",
+        "backend/tests/test_shadow_pilot_v15.py::test_postgresql_prior_upgrade_failure_and_repeat[False]",
+        "--deselect",
+        "backend/tests/test_shadow_pilot_v15.py::test_postgresql_prior_upgrade_failure_and_repeat[True]",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/candidate.xml"
+      ],
+      "gate": "candidate",
+      "returncode": 0,
+      "seconds": 58.993,
+      "source_commit": "4c160f03be311eb823cda4cef0ae9a4e0ab355c2"
+    }
+  ],
+  "source_commit": "4c160f03be311eb823cda4cef0ae9a4e0ab355c2",
+  "source_fingerprint": "a3a55d5635b4c093e1011a2687e468f445136932890b425b683c708ed6756b65"
+}
