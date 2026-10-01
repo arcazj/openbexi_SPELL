@@ -1,0 +1,158 @@
+{
+  "images": {
+    "backend": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-41991",
+          "CVE-2026-53613",
+          "CVE-2026-53615",
+          "CVE-2005-2541",
+          "CVE-2007-5686",
+          "CVE-2010-0928",
+          "CVE-2010-4756",
+          "CVE-2011-3374",
+          "CVE-2013-4392",
+          "CVE-2017-18018",
+          "CVE-2018-20796",
+          "CVE-2019-1010022",
+          "CVE-2019-1010023",
+          "CVE-2019-1010024",
+          "CVE-2019-1010025",
+          "CVE-2019-9192",
+          "CVE-2021-45346",
+          "CVE-2022-0563",
+          "CVE-2023-31437",
+          "CVE-2023-31438",
+          "CVE-2023-31439",
+          "CVE-2025-14104",
+          "CVE-2025-5278",
+          "CVE-2025-70873",
+          "CVE-2026-102474",
+          "CVE-2026-53612",
+          "CVE-2026-53614",
+          "CVE-2026-53910",
+          "CVE-2026-56391",
+          "CVE-2026-56392",
+          "CVE-2026-34743",
+          "CVE-2026-97399",
+          "CVE-2025-45582",
+          "CVE-2026-27456",
+          "CVE-2026-102473",
+          "CVE-2026-13346",
+          "CVE-2026-13595",
+          "CVE-2026-41992"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "resolved_findings": [
+        {
+          "advisory": "CVE-2026-102010",
+          "affected_package": "pkg:deb/debian/gcc-14@14.2.0-19?os_distro=trixie&os_name=debian&os_version=13",
+          "evidence_sha256": "ac97af43b6cd4057d6dbace31aac3915bc02909b99f9b9e02781a142e98dcb49",
+          "justification": "vulnerable_code_not_present",
+          "status": "NOT_AFFECTED",
+          "upstream_fix": "aaa8351f4d2e636f9680a1f0a8ebc2f0a60611e6"
+        }
+      ],
+      "sbom_sha256": "650c28af394bf9f4aa1505e958eed19451e7e3134c2759b6c9700af167d83858",
+      "scan_sha256": "acda514798e8080943642b95b5dfe68b5e988994ae3efcb680e50f5e3d7f57d7"
+    },
+    "driver": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-41991",
+          "CVE-2026-53613",
+          "CVE-2026-53615",
+          "CVE-2005-2541",
+          "CVE-2007-5686",
+          "CVE-2010-0928",
+          "CVE-2010-4756",
+          "CVE-2011-3374",
+          "CVE-2013-4392",
+          "CVE-2017-18018",
+          "CVE-2018-20796",
+          "CVE-2019-1010022",
+          "CVE-2019-1010023",
+          "CVE-2019-1010024",
+          "CVE-2019-1010025",
+          "CVE-2019-9192",
+          "CVE-2021-45346",
+          "CVE-2022-0563",
+          "CVE-2023-31437",
+          "CVE-2023-31438",
+          "CVE-2023-31439",
+          "CVE-2025-14104",
+          "CVE-2025-5278",
+          "CVE-2025-70873",
+          "CVE-2026-102474",
+          "CVE-2026-53612",
+          "CVE-2026-53614",
+          "CVE-2026-53910",
+          "CVE-2026-56391",
+          "CVE-2026-56392",
+          "CVE-2026-34743",
+          "CVE-2026-97399",
+          "CVE-2025-45582",
+          "CVE-2026-27456",
+          "CVE-2026-102473",
+          "CVE-2026-13346",
+          "CVE-2026-13595",
+          "CVE-2026-41992"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "resolved_findings": [
+        {
+          "advisory": "CVE-2026-102010",
+          "affected_package": "pkg:deb/debian/gcc-14@14.2.0-19?os_distro=trixie&os_name=debian&os_version=13",
+          "evidence_sha256": "ac97af43b6cd4057d6dbace31aac3915bc02909b99f9b9e02781a142e98dcb49",
+          "justification": "vulnerable_code_not_present",
+          "status": "NOT_AFFECTED",
+          "upstream_fix": "aaa8351f4d2e636f9680a1f0a8ebc2f0a60611e6"
+        }
+      ],
+      "sbom_sha256": "639d7a40f717ea616e1a35fbe882e21370b945ebc3463a74d73d1544fbb1e0e1",
+      "scan_sha256": "acda514798e8080943642b95b5dfe68b5e988994ae3efcb680e50f5e3d7f57d7"
+    },
+    "frontend": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:53e5b599e17d78110c336d702514c82f01df0c2c42631e62f9faadd72b4ac7e8",
+      "lower_severity_disposition": {
+        "advisories": [],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "resolved_findings": [],
+      "sbom_sha256": "f5cbc9a3aac28f78f8490faefd482e1a4b9f1bcda5346af760796e2c4aece6fc",
+      "scan_sha256": "d5792a5052fb157aaf686dec92fd7a5a2d83f524c846c9c4032fc13e820a44df"
+    },
+    "proxy": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-89162",
+          "CVE-2026-89160",
+          "CVE-2026-89157",
+          "CVE-2025-60876"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "resolved_findings": [],
+      "sbom_sha256": "7d166b537c903a0269e7076fe111962ad92a8d7a2b4acc9ebb2525d0d9fc8e7e",
+      "scan_sha256": "7019dd72d2bfec29519222ec099abf4d417263425c7f63d97fca037d1f40863e"
+    }
+  },
+  "schema_version": "spell.v14.supply-chain/1"
+}

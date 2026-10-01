@@ -1,0 +1,902 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "run",
+        "--rm",
+        "--no-deps",
+        "-e",
+        "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
+        "backend",
+        "python",
+        "/app/scripts/issue_dev_token.py",
+        "--subject",
+        "v014-browser-qualification",
+        "--role",
+        "operator",
+        "--lifetime",
+        "900"
+      ],
+      "gate": "browser",
+      "returncode": 0,
+      "seconds": 1.232,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\JetBrains\\IntelliJIdea2026.2\\acp-agents\\.runtimes\\node\\24.19.0\\node.EXE",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "legacy-observation-v12-real.spec.ts",
+        "synthetic-control-v13-real.spec.ts",
+        "telemetry-adapter-v14-real.spec.ts",
+        "language-reference-v10-real.spec.ts",
+        "--workers=1",
+        "--reporter=junit"
+      ],
+      "gate": "browser",
+      "returncode": 0,
+      "seconds": 29.42,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "bridge",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "-e",
+        "SPELL_RUN_COMPOSE_RUNTIME_TESTS=1",
+        "-e",
+        "SPELL_IMAGE_TAG=v0.14.0-isolation",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_driver_isolation.py::test_created_compose_driver_has_runtime_isolation_controls",
+        "backend/tests/test_driver_isolation.py::test_live_bundle_builders_are_networkless_independent_and_reproducible",
+        "backend/tests/test_driver_isolation.py::test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/compose.xml"
+      ],
+      "gate": "compose",
+      "returncode": 0,
+      "seconds": 76.354,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "scripts/tests/test_markdown_preview_v09.py",
+        "scripts/tests/test_documentation_tree_layout.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/documentation.xml"
+      ],
+      "gate": "documentation",
+      "returncode": 0,
+      "seconds": 6.434,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\JetBrains\\IntelliJIdea2026.2\\acp-agents\\.runtimes\\node\\24.19.0\\npm.cmd",
+        "run",
+        "build"
+      ],
+      "gate": "frontend-build",
+      "returncode": 0,
+      "seconds": 21.699,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\JetBrains\\IntelliJIdea2026.2\\acp-agents\\.runtimes\\node\\24.19.0\\npm.cmd",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "gate": "frontend",
+      "returncode": 0,
+      "seconds": 21.237,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\JetBrains\\IntelliJIdea2026.2\\acp-agents\\.runtimes\\node\\24.19.0\\npm.cmd",
+        "test",
+        "--",
+        "--run",
+        "--reporter=junit",
+        "--outputFile=<repository>\\.qualification\\v14\\final\\frontend.xml"
+      ],
+      "gate": "frontend",
+      "returncode": 0,
+      "seconds": 21.531,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-c",
+        "import pathlib; files=[*pathlib.Path('backend').rglob('*.py'),*pathlib.Path('driver_host').rglob('*.py')]; [compile(p.read_bytes(),str(p),'exec') for p in files]; print('compilation PASS',len(files))"
+      ],
+      "gate": "image-probe",
+      "returncode": 0,
+      "seconds": 2.188,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "scripts.probe_images_next",
+        "--output",
+        "/evidence/image-probe.json"
+      ],
+      "gate": "image-probe",
+      "returncode": 0,
+      "seconds": 10.262,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "spellv014release_spell-internal",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\postgres.env",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/postgresql.xml"
+      ],
+      "gate": "postgresql",
+      "returncode": 0,
+      "seconds": 1171.911,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "build",
+        "-t",
+        "openbexi-spell-qualification:next",
+        "-f",
+        "scripts/qualification-next.Dockerfile",
+        "."
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.547,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "build",
+        "-t",
+        "openbexi-spell-backend:v0.14.0",
+        "-f",
+        "backend/Dockerfile",
+        "."
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 1.627,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "build",
+        "-t",
+        "openbexi-spell-driver:v0.14.0",
+        "-f",
+        "driver_host/Dockerfile",
+        "."
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.541,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "build",
+        "-t",
+        "openbexi-spell-frontend:v0.14.0",
+        "-f",
+        "proxy/Dockerfile",
+        "--target",
+        "frontend-build",
+        "."
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.57,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "build",
+        "-t",
+        "openbexi-spell-proxy:v0.14.0",
+        "-f",
+        "proxy/Dockerfile",
+        "."
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.548,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v13\\final\\runtime.env",
+        "--project-name",
+        "spellv013release",
+        "--profile",
+        "driver",
+        "stop"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.141,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "up",
+        "--build",
+        "-d",
+        "--wait"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 5.463,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "ps",
+        "--quiet",
+        "backend"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.127,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "inspect",
+        "--format",
+        "{{.Image}}",
+        "897fc30689feb980573febe91cad233c4bb63809027d8cdc08bafe85fae70a3f"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.048,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "tag",
+        "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+        "openbexi-spell-backend:v0.14.0"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.048,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "ps",
+        "--quiet",
+        "spell-driver"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.147,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "inspect",
+        "--format",
+        "{{.Image}}",
+        "70f4c5c10154d519e9eeca589d86977ac45bb01e9fca09c53293f825f44c733b"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.045,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "tag",
+        "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+        "openbexi-spell-driver:v0.14.0"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.049,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "ps",
+        "--quiet",
+        "proxy"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.134,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "inspect",
+        "--format",
+        "{{.Image}}",
+        "642bb9e2f53ca2755c0bba9fa3c4a8fced38e7dd63d4119d109901f7f2e12836"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.046,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "tag",
+        "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+        "openbexi-spell-proxy:v0.14.0"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.05,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "exec",
+        "-T",
+        "postgres",
+        "psql",
+        "-U",
+        "spell",
+        "-d",
+        "spell",
+        "-tAc",
+        "SELECT 1 FROM pg_database WHERE datname='spell_test'"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.175,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "--env-file",
+        "<repository>\\.qualification\\v14\\final\\runtime.env",
+        "--project-name",
+        "spellv014release",
+        "--profile",
+        "driver",
+        "exec",
+        "-T",
+        "postgres",
+        "psql",
+        "-U",
+        "spell",
+        "-d",
+        "spell",
+        "-tAc",
+        "SELECT 1 FROM pg_database WHERE datname='spell_migration_test'"
+      ],
+      "gate": "prepare",
+      "returncode": 0,
+      "seconds": 0.173,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "scripts.generate_reference_runner_v10",
+        "--check"
+      ],
+      "gate": "reference-generators",
+      "returncode": 0,
+      "seconds": 0.962,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "scripts.qualify_reference_examples_v10",
+        "--output",
+        "/evidence/reference-examples.json"
+      ],
+      "gate": "reference-generators",
+      "returncode": 0,
+      "seconds": 2.622,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "scripts.qualify_legacy_observation_v12",
+        "--soak-seconds",
+        "60",
+        "--output",
+        "/evidence/replay.json"
+      ],
+      "gate": "replay",
+      "returncode": 0,
+      "seconds": 62.993,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "scripts.qualify_telemetry_adapter_v14",
+        "--output",
+        "/evidence/adapter-soak.json"
+      ],
+      "gate": "replay",
+      "returncode": 0,
+      "seconds": 70.208,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests",
+        "driver_host/tests",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/sqlite.xml"
+      ],
+      "gate": "sqlite",
+      "returncode": 0,
+      "seconds": 547.158,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "bridge",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pip_audit",
+        "--disable-pip",
+        "--no-deps",
+        "-r",
+        "backend/requirements.hashes.lock",
+        "-f",
+        "json",
+        "-o",
+        "/evidence/python-audit.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 3.437,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\JetBrains\\IntelliJIdea2026.2\\acp-agents\\.runtimes\\node\\24.19.0\\npm.cmd",
+        "audit",
+        "--json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 0.941,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}}",
+        "openbexi-spell-backend:v0.14.0"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 0.043,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\OpenBEXI\\release-toolchain\\docker-sbom-0.6.0-windows-amd64\\docker-sbom.exe",
+        "sbom",
+        "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+        "--format",
+        "cyclonedx-json",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\backend.cdx.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 9.999,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "scout",
+        "cves",
+        "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+        "--format",
+        "sarif",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\backend.sarif.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 54.771,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}}",
+        "openbexi-spell-driver:v0.14.0"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 0.062,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\OpenBEXI\\release-toolchain\\docker-sbom-0.6.0-windows-amd64\\docker-sbom.exe",
+        "sbom",
+        "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+        "--format",
+        "cyclonedx-json",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\driver.cdx.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 8.685,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "scout",
+        "cves",
+        "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+        "--format",
+        "sarif",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\driver.sarif.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 27.794,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}}",
+        "openbexi-spell-frontend:v0.14.0"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 0.061,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\OpenBEXI\\release-toolchain\\docker-sbom-0.6.0-windows-amd64\\docker-sbom.exe",
+        "sbom",
+        "sha256:53e5b599e17d78110c336d702514c82f01df0c2c42631e62f9faadd72b4ac7e8",
+        "--format",
+        "cyclonedx-json",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\frontend.cdx.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 11.048,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "scout",
+        "cves",
+        "sha256:53e5b599e17d78110c336d702514c82f01df0c2c42631e62f9faadd72b4ac7e8",
+        "--format",
+        "sarif",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\frontend.sarif.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 87.24,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "--format",
+        "{{.Id}}",
+        "openbexi-spell-proxy:v0.14.0"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 2.546,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "<LocalAppData>\\OpenBEXI\\release-toolchain\\docker-sbom-0.6.0-windows-amd64\\docker-sbom.exe",
+        "sbom",
+        "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+        "--format",
+        "cyclonedx-json",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\proxy.cdx.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 3.282,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "scout",
+        "cves",
+        "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+        "--format",
+        "sarif",
+        "--output",
+        "<repository>\\.qualification\\v14\\final\\proxy.sarif.json"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 17.439,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-c",
+        "import json,pathlib; from scripts.validate_cyclonedx_v04 import validate_document,run_negative_self_test; p=pathlib.Path('/evidence'); names=['backend','driver','frontend','proxy']; versions={n:validate_document((p/(n+'.cdx.json')).read_text(),n) for n in names}; run_negative_self_test(); (p/'sbom-validation.json').write_bytes((json.dumps({'schemas':versions,'negative_tamper_rejected':True,'validator':'cyclonedx-python-lib/11.11.0'},sort_keys=True)+'\\n').encode()); print('four strict CycloneDX schemas: PASS')"
+      ],
+      "gate": "supply-chain",
+      "returncode": 0,
+      "seconds": 4.602,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    },
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "scripts/tests/test_release_v12.py",
+        "scripts/tests/test_release_next.py",
+        "scripts/tests/test_spell_auditor_tool.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/tooling.xml"
+      ],
+      "gate": "tooling",
+      "returncode": 0,
+      "seconds": 3.882,
+      "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+    }
+  ],
+  "source_commit": "4951cad2d9948135411c1de1a45a840ed1672ef0"
+}

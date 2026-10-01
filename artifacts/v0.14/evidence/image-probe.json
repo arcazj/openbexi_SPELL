@@ -1,0 +1,205 @@
+{
+  "decision": "PASS",
+  "images": {
+    "backend": {
+      "control_profile": {
+        "automatic_replacement_commands": false,
+        "commands": {
+          "ABORT": "ABORT",
+          "PAUSE": "PAUSE",
+          "RETURN_TO_READ_ONLY": "STOP",
+          "RUN": "RUN",
+          "STEP": "STEP"
+        },
+        "context_id": "simulator",
+        "execution_ir_versions": [
+          "0.6",
+          "0.7",
+          "0.8",
+          "0.10",
+          "0.11"
+        ],
+        "legacy_protocol_implemented": false,
+        "maximum_reason_characters": 900,
+        "operational_authorization": false,
+        "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+        "reference_version": "2.4.4",
+        "required_proofs": [
+          "operation_id",
+          "source_digest",
+          "execution_revision",
+          "lease_revision",
+          "fencing_token",
+          "actor",
+          "session",
+          "client_instance",
+          "reason"
+        ],
+        "roles": [
+          "operator",
+          "admin"
+        ],
+        "schema_version": "spell.synthetic-control-profile/1"
+      },
+      "forbidden_files": [],
+      "gcc_header_applicability": {
+        "files": {
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "30c61ab012a4241bed033725a09b61f5fdd3bb7df95ee852d0b096520524c7af",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6": "972bb2a18b71140dab0240f8a1f68ab3fb1d56bcd4c4f824a91b70888faf5a00",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "972bb2a18b71140dab0240f8a1f68ab3fb1d56bcd4c4f824a91b70888faf5a00",
+          "/usr/share/doc/gcc-14-base/copyright": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+          "/usr/share/gcc/python/libstdcxx/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "/usr/share/gcc/python/libstdcxx/v6/__init__.py": "88b4b04c123fd76e303ad47a8b74034552a28e0c65eac77685afeb738037337a",
+          "/usr/share/gcc/python/libstdcxx/v6/printers.py": "96a9c8547fe0e7291fc0dbe8c481f84c95b03c0dba4780d18d21a70b91d2df5b",
+          "/usr/share/gcc/python/libstdcxx/v6/xmethods.py": "75e4daa102d918a9b2b1f6ccd0a11881e9f079d7da074e56f0fd3c1937b5fb6b",
+          "/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33-gdb.py": "b2318ddd294072437b66997e58395ef33f822c37b060abbc3e61a7caa67c9724"
+        },
+        "packages": {
+          "gcc-14-base:amd64": "14.2.0-19",
+          "libgcc-s1:amd64": "14.2.0-19",
+          "libstdc++6:amd64": "14.2.0-19"
+        },
+        "pb_ds_headers": []
+      },
+      "image_id": "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+      "product_files": 206,
+      "product_version": "0.14.0",
+      "telemetry_profile": {
+        "clock": "RECORDED_LOGICAL_TIME",
+        "credentials": "LOCAL_SIGNED_SESSION_ONLY",
+        "effect_certainty": "NO_MUTATION",
+        "fallback": "EXPLICIT_PER_REQUEST_SIMULATOR",
+        "formats": [
+          "RAW",
+          "ENG"
+        ],
+        "legacy_system_qualified": false,
+        "maximum_capture_samples": 4096,
+        "maximum_catalog_items": 128,
+        "maximum_items_per_request": 1,
+        "maximum_page_size": 256,
+        "maximum_timeout_ms": 60000,
+        "methods": [
+          "GetTM",
+          "Catalog",
+          "Compare"
+        ],
+        "modifiers": [
+          "value_format",
+          "wait",
+          "after",
+          "timeout_ms",
+          "extended"
+        ],
+        "mutability": "READ_ONLY",
+        "operational_authorization": false,
+        "profile": "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER",
+        "reference_version": "2.4.4",
+        "roles": [
+          "viewer",
+          "operator",
+          "admin"
+        ],
+        "schema_version": "spell.telemetry-adapter-profile/1",
+        "sources": [
+          "reference",
+          "simulator"
+        ],
+        "unsupported_modifiers": "REJECT"
+      },
+      "user": "10001:10001",
+      "zlib": {
+        "library_sha256": "3ca5d10fcdfda57faf306d14569a8b56431f98df5ae1f2ae2da6a8a3a89c6f18",
+        "runtime_version": "1.3.2.1-motley",
+        "upstream_commit": "df84af25dc1942490e1d1c899a07619152a46148"
+      }
+    },
+    "driver": {
+      "forbidden_files": [],
+      "gcc_header_applicability": {
+        "files": {
+          "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "30c61ab012a4241bed033725a09b61f5fdd3bb7df95ee852d0b096520524c7af",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6": "972bb2a18b71140dab0240f8a1f68ab3fb1d56bcd4c4f824a91b70888faf5a00",
+          "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "972bb2a18b71140dab0240f8a1f68ab3fb1d56bcd4c4f824a91b70888faf5a00",
+          "/usr/share/doc/gcc-14-base/copyright": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+          "/usr/share/gcc/python/libstdcxx/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "/usr/share/gcc/python/libstdcxx/v6/__init__.py": "88b4b04c123fd76e303ad47a8b74034552a28e0c65eac77685afeb738037337a",
+          "/usr/share/gcc/python/libstdcxx/v6/printers.py": "96a9c8547fe0e7291fc0dbe8c481f84c95b03c0dba4780d18d21a70b91d2df5b",
+          "/usr/share/gcc/python/libstdcxx/v6/xmethods.py": "75e4daa102d918a9b2b1f6ccd0a11881e9f079d7da074e56f0fd3c1937b5fb6b",
+          "/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33-gdb.py": "b2318ddd294072437b66997e58395ef33f822c37b060abbc3e61a7caa67c9724"
+        },
+        "packages": {
+          "gcc-14-base:amd64": "14.2.0-19",
+          "libgcc-s1:amd64": "14.2.0-19",
+          "libstdc++6:amd64": "14.2.0-19"
+        },
+        "pb_ds_headers": []
+      },
+      "image_id": "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+      "product_files": 41,
+      "user": "10002:10002",
+      "zlib": {
+        "library_sha256": "3ca5d10fcdfda57faf306d14569a8b56431f98df5ae1f2ae2da6a8a3a89c6f18",
+        "runtime_version": "1.3.2.1-motley",
+        "upstream_commit": "df84af25dc1942490e1d1c899a07619152a46148"
+      }
+    },
+    "frontend": {
+      "forbidden_files": [],
+      "image_id": "sha256:53e5b599e17d78110c336d702514c82f01df0c2c42631e62f9faadd72b4ac7e8",
+      "product_files": 5740,
+      "user": "node"
+    },
+    "proxy": {
+      "forbidden_files": [],
+      "image_id": "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+      "product_files": 16,
+      "user": "101:101"
+    }
+  },
+  "services": {
+    "backend": {
+      "image_id": "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "bundle-builder-a": {
+      "image_id": "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "bundle-builder-b": {
+      "image_id": "sha256:8605e48cba47042761a82b5fed4716618381cd68516007707b1c67bed3ef9508",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "postgres": {
+      "image_id": "sha256:695199d413797f06fb404768c8e76f3bf1a75d2c055ab403c999d37a3a884cb0",
+      "ports": {},
+      "read_only": false,
+      "running": true
+    },
+    "proxy": {
+      "image_id": "sha256:61c5fd2677c07a892f0d809fec695cbe8066d8a8a47ffbf92f871d3bbf0160a5",
+      "ports": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "8080"
+          }
+        ]
+      },
+      "read_only": true,
+      "running": true
+    },
+    "spell-driver": {
+      "image_id": "sha256:4fd164f4766cb798616bad2e4f6402a54c7239605449a61ab1ad7ee25dc04d5c",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    }
+  }
+}
