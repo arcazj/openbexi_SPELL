@@ -1,5 +1,15 @@
 # Test and Integration Plan
 
+## 2026-10-01 - v0.14.0 Accepted
+
+Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
+The seven suites recorded 3,630 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.13.0 Accepted
 
 Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
@@ -50,7 +60,7 @@ this planning/source record does not independently claim completed tests.
 | --- | --- |
 | Project | OpenBEXI SPELL |
 | Accepted predecessor | Documentation release `v0.11.1`, commit `ccefd80c723a5276705e9b4fde0a2ce993198f65`, with inherited v0.11.0 runtime |
-| Current release state | v0.13.0 accepted; tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a`, release commit `9bcb55e665a663a9fcb58a1c1d29936837731fe3` |
+| Current release state | v0.14.0 accepted; tag object `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad`, release commit `4adec1be10eae1aa4fac0293db47e7bbf692b243` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |

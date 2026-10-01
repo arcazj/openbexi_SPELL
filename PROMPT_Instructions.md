@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-01 - v0.14.0 Accepted
+
+Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
+The seven suites recorded 3,630 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.13.0 Accepted
 
 Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
@@ -103,11 +113,11 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.13.0 is the accepted local product baseline for fenced local synthetic procedure control.
-Annotated tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a` peels to release commit
-`9bcb55e665a663a9fcb58a1c1d29936837731fe3`. Qualified source `0f85a4a8efb86edb3625b66c31de9762db0f63c9` has
-fingerprint `2597f4f7fe4ff19a1c4afea6e95f98dcaf159645de4621a625b1337877d864ef`. Package SHA-256:
-`ba415fc5fdda5d9754ae961a7f11255d654927e11bdd767c5c2d5563eb1dad8a`. Validate on the clean tagged checkout with
+SPELL v0.14.0 is the accepted local product baseline for bounded read-only GetTM adapter migration.
+Annotated tag object `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad` peels to release commit
+`4adec1be10eae1aa4fac0293db47e7bbf692b243`. Qualified source `4951cad2d9948135411c1de1a45a840ed1672ef0` has
+fingerprint `e9f486731dde22760b4b2080577d4cc7f812c12bc0aaee0ca6018c689c0dc987`. Package SHA-256:
+`4a617e920f6266928d8c6c98e448cbee8e32f5a71ae12cd41329b9484c69cbaa`. Validate on the clean tagged checkout with
 `scripts/release_next.py validate --require-tag`. Subsequent documentation
 closeout does not retarget an immutable release. Earlier accepted tags and
 their version-scoped evidence remain preserved.

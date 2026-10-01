@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-10-01 - v0.14.0 Accepted
+
+Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
+The seven suites recorded 3,630 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.13.0 Accepted
 
 Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
@@ -39,11 +49,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.13.0 local synthetic baseline |
-| Update type | Record immutable v0.13.0 qualification and acceptance |
+| Document revision | Accepted v0.14.0 local synthetic baseline |
+| Update type | Record immutable v0.14.0 qualification and acceptance |
 | Updated | 2026-10-01 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through September 2026 events |
-| Accepted product baseline | SPELL v0.13.0, tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a`, release commit `9bcb55e665a663a9fcb58a1c1d29936837731fe3` |
+| Accepted product baseline | SPELL v0.14.0, tag object `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad`, release commit `4adec1be10eae1aa4fac0293db47e7bbf692b243` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
