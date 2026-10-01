@@ -1,0 +1,165 @@
+{
+  "catalog": [
+    {
+      "eng_type": "FINITE_DOUBLE",
+      "item_id": "TEMP",
+      "max_age_ns": "3000000000",
+      "raw_type": "UINT64",
+      "unit": "degC"
+    },
+    {
+      "eng_type": "STRING",
+      "item_id": "MODE",
+      "max_age_ns": "3000000000",
+      "raw_type": "UINT64",
+      "unit": ""
+    },
+    {
+      "eng_type": "UINT64",
+      "item_id": "COUNTER",
+      "max_age_ns": "3000000000",
+      "raw_type": "UINT64",
+      "unit": "count"
+    },
+    {
+      "eng_type": "INT64",
+      "item_id": "STALE",
+      "max_age_ns": "1000000000",
+      "raw_type": "INT64",
+      "unit": "count"
+    },
+    {
+      "eng_type": "INT64",
+      "item_id": "UNKNOWN",
+      "max_age_ns": "3000000000",
+      "raw_type": "INT64",
+      "unit": "count"
+    },
+    {
+      "eng_type": "LEGACY_COMPLEX",
+      "item_id": "OPAQUE",
+      "max_age_ns": "3000000000",
+      "raw_type": "LEGACY_COMPLEX",
+      "unit": ""
+    },
+    {
+      "eng_type": "BOOLEAN",
+      "item_id": "MISSING",
+      "max_age_ns": "3000000000",
+      "raw_type": "BOOLEAN",
+      "unit": ""
+    }
+  ],
+  "clock_ns": "10000000000",
+  "connected": true,
+  "epoch": "simulator-1",
+  "limits": {
+    "TEMP": {
+      "enabled": true,
+      "lower": {
+        "type": "FINITE_DOUBLE",
+        "value": 0.0
+      },
+      "upper": {
+        "type": "FINITE_DOUBLE",
+        "value": 40.0
+      }
+    }
+  },
+  "provenance": "INDEPENDENT_SYNTHETIC_FIXTURE",
+  "reference_version": "2.4.4",
+  "resources": {
+    "DECODER": {
+      "type": "STRING",
+      "value": "SIMULATOR-A"
+    }
+  },
+  "samples": [
+    {
+      "eng": {
+        "type": "FINITE_DOUBLE",
+        "value": 20.1
+      },
+      "item_id": "TEMP",
+      "quality": "GOOD",
+      "raw": {
+        "type": "UINT64",
+        "value": "201"
+      },
+      "sequence": "1",
+      "time_ns": "10000000000",
+      "valid": true
+    },
+    {
+      "eng": {
+        "type": "STRING",
+        "value": "IDLE"
+      },
+      "item_id": "MODE",
+      "quality": "GOOD",
+      "raw": {
+        "type": "UINT64",
+        "value": "0"
+      },
+      "sequence": "2",
+      "time_ns": "9000000000",
+      "valid": true
+    },
+    {
+      "eng": {
+        "type": "UINT64",
+        "value": "18446744073709551615"
+      },
+      "item_id": "COUNTER",
+      "quality": "GOOD",
+      "raw": {
+        "type": "UINT64",
+        "value": "18446744073709551615"
+      },
+      "sequence": "3",
+      "time_ns": "9000000000",
+      "valid": true
+    },
+    {
+      "eng": {
+        "type": "INT64",
+        "value": "7"
+      },
+      "item_id": "STALE",
+      "quality": "GOOD",
+      "raw": {
+        "type": "INT64",
+        "value": "7"
+      },
+      "sequence": "4",
+      "time_ns": "1000000000",
+      "valid": true
+    },
+    {
+      "eng": {
+        "type": "INT64",
+        "value": "9"
+      },
+      "item_id": "UNKNOWN",
+      "quality": "UNKNOWN",
+      "raw": {
+        "type": "INT64",
+        "value": "9"
+      },
+      "sequence": "5",
+      "time_ns": "9000000000",
+      "valid": null
+    },
+    {
+      "eng": null,
+      "item_id": "OPAQUE",
+      "quality": "GOOD",
+      "raw": null,
+      "sequence": "6",
+      "time_ns": "9000000000",
+      "valid": true
+    }
+  ],
+  "schema_version": "spell.legacy-observation-capture/1",
+  "source_id": "simulator-oracle"
+}

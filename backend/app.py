@@ -82,6 +82,7 @@ from .observation_repository import (
     ObservationValidationError,
 )
 from .observation_read_service import ObservationReadService
+from .legacy_observation_v12 import ReplayError, compare as compare_replay, load_sources
 from .observation_service import ObservationRuntime
 from .operator_service import (
     OperatorAuthorizationError,
@@ -291,6 +292,7 @@ def create_app(
     )
     observation_repository = ObservationRepository(session_factory)
     observation_read_service = ObservationReadService()
+    legacy_replay_sources = load_sources()
     observation_runtime = ObservationRuntime(
         observation_repository,
         publisher=lambda _topic, event: hub.publish(OBSERVATION_STREAM, event),
@@ -2292,6 +2294,51 @@ def create_app(
             return {"driver_time": observation_repository.driver_time(context_id)}
         except ObservationRepositoryError as exc:
             raise translate_observation_error(exc) from exc
+
+    def replay_source(source: str):
+        if source not in legacy_replay_sources:
+            raise HTTPException(status_code=404, detail={"code": "SOURCE_NOT_FOUND"})
+        return legacy_replay_sources[source]
+
+    @app.get("/api/v1/legacy-observation/sources")
+    def legacy_sources(_: IdentityDep) -> dict[str, Any]:
+        return {"items": [{"id": key, **value.identity()} for key, value in legacy_replay_sources.items()]}
+
+    @app.get("/api/v1/legacy-observation/comparison")
+    def legacy_comparison(_: IdentityDep) -> dict[str, Any]:
+        return compare_replay(legacy_replay_sources["reference"], legacy_replay_sources["simulator"])
+
+    @app.get("/api/v1/legacy-observation/{source}/catalog")
+    def legacy_catalog(source: str, _: IdentityDep) -> dict[str, Any]:
+        return replay_source(source).catalog()
+
+    @app.get("/api/v1/legacy-observation/{source}/snapshot")
+    def legacy_snapshot(source: str, _: IdentityDep) -> dict[str, Any]:
+        return replay_source(source).snapshot()
+
+    @app.get("/api/v1/legacy-observation/{source}/replay")
+    def legacy_replay(source: str, _: IdentityDep, after: str = Query(max_length=220),
+                      limit: int = Query(64, ge=1, le=256)) -> dict[str, Any]:
+        try:
+            return replay_source(source).replay(after, limit)
+        except ReplayError as exc:
+            raise HTTPException(status_code=409, detail={"code": exc.code}) from exc
+
+    @app.get("/api/v1/legacy-observation/{source}/telemetry/{item_id}")
+    def legacy_telemetry(source: str, item_id: str, _: IdentityDep,
+                         after: str | None = Query(None, max_length=220),
+                         value_format: str = Query("ENG", max_length=8)) -> dict[str, Any]:
+        try:
+            return replay_source(source).get_tm(item_id, after, value_format)
+        except ReplayError as exc:
+            raise HTTPException(status_code=422, detail={"code": exc.code}) from exc
+
+    @app.get("/api/v1/legacy-observation/{source}/{category}/{item_id}")
+    def legacy_read(source: str, category: str, item_id: str, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return replay_source(source).read(category, item_id)
+        except ReplayError as exc:
+            raise HTTPException(status_code=422, detail={"code": exc.code}) from exc
 
     @app.get("/api/v1/observation-catalog")
     def observation_catalog(_: IdentityDep) -> dict[str, Any]:

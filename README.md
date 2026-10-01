@@ -12,7 +12,15 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The latest accepted engineering release is **v0.11.0** at annotated tag
+The v0.12 product adds read-only, synthetic SPELL 2.4.4 observation replay and
+comparison under **Driver foundation → Legacy observation replay**.
+Its acceptance is determined by the annotated `v0.12.0` tag and
+`scripts/release_v12.py validate --require-tag` on that clean checkout.
+See the [v0.12 scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
+Real legacy-system qualification and full SPELL language compatibility remain
+outside this bounded release. Documentation maintenance **v0.11.1** precedes it.
+
+The inherited engineering baseline is **v0.11.0** at annotated tag
 `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`,
 which peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its accepted predecessor is
@@ -65,6 +73,8 @@ exceptions.
 | v0.9 | Web-based SPELL development environment | Accepted at `v0.9.0` |
 | v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to v0.11 |
 | v0.11 | Simulator telecommand semantics | Accepted at `v0.11.0`; no accepted exceptions |
+| v0.11.1 | Restore documentation and reject truncation artifacts | Accepted at `v0.11.1`; runtime remains 0.11.0 |
+| v0.12 | Synthetic read-only observation replay and comparison | Acceptance bound to validated `v0.12.0`; real legacy environment deferred |
 
 See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
 and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified
@@ -153,7 +163,7 @@ qualification environment uses Python 3.13.
    Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
    ```
 
-   A healthy response reports version `0.11.0`, mode `simulator-only`, and
+   A healthy response reports version `0.12.0`, mode `simulator-only`, and
    `operational_use: false`.
 
 5. Issue a short-lived local operator token.

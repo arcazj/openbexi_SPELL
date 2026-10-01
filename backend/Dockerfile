@@ -1,4 +1,17 @@
+FROM python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280 AS zlib-security-build
+COPY scripts/build_zlib_v12.sh /tmp/build_zlib_v12.sh
+RUN sh /tmp/build_zlib_v12.sh
+
 FROM python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280
+
+COPY --from=zlib-security-build /tmp/zlib-fixed.deb /tmp/zlib-fixed.deb
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libc6=2.41-12+deb13u4 libssl3t64=3.5.7-1~deb13u3 \
+        libpcre2-8-0=10.46-1~deb13u3 libsqlite3-0=3.46.1-7+deb13u2 \
+    && dpkg -i /tmp/zlib-fixed.deb && ldconfig \
+    && rm -f /tmp/zlib-fixed.deb && rm -rf /var/lib/apt/lists/*
+
 
 LABEL org.opencontainers.image.base.name="python:3.13-slim@sha256:eb43ff125d8d58d7449dcba7d336c23bcac412f526d861db493b9994d8010280" \
     io.openbexi.spell.bundle-builder-profile="spell-v11-dual-network-none-builder/1"
@@ -18,11 +31,13 @@ COPY backend /app/backend
 COPY compose.yaml /app/compose.yaml
 COPY contracts/v10 /app/contracts/v10
 COPY contracts/v11 /app/contracts/v11
+COPY contracts/v12 /app/contracts/v12
 COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \
     scripts/qualify_browser_stream_server.py scripts/compose_qualification.py \
-    scripts/source_fingerprint.py scripts/seed_observation_v07.py /app/scripts/
+    scripts/source_fingerprint.py scripts/seed_observation_v07.py \
+    scripts/build_zlib_v12.sh /app/scripts/
 
 RUN groupadd --gid 10001 spell \
     && useradd --uid 10001 --gid spell --no-create-home \

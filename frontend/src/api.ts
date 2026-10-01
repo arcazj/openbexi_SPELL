@@ -32,6 +32,7 @@ import type {
   WorkspaceSearchResult,
   WorkspaceSearchView,
 } from "./types";
+import type { ReplayComparison, ReplaySnapshot } from "./components/LegacyObservation";
 
 const API_ROOT = "/api/v1";
 const ACCESS_TOKEN_KEY = "openbexi.spell.access-token";
@@ -782,11 +783,14 @@ function mutationProof(proof?: ControlProof): JsonObject {
 }
 
 export const api = {
+  legacyReplaySnapshot: (source: "reference" | "simulator") =>
+    request<ReplaySnapshot>(`/legacy-observation/${source}/snapshot`),
+  legacyReplayComparison: () => request<ReplayComparison>("/legacy-observation/comparison"),
   async health(): Promise<HealthStatus> {
     const raw = await request<JsonObject>("/health");
     return {
       service: "SPELL Simulator",
-      version: String(raw.version ?? "0.11.0"),
+      version: String(raw.version ?? "0.12.0"),
       status: String(raw.status ?? "unknown"),
       server_time: raw.server_time ? String(raw.server_time) : undefined,
       mode: raw.mode ? String(raw.mode) : undefined,

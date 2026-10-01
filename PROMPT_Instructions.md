@@ -1,5 +1,22 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-09-30 - v0.12 Synthetic Observation Release Contract
+
+The owner authorized completion and publication of v0.11.1 and v0.12.
+v0.11.1 is accepted at its annotated tag; v0.12 provides the bounded synthetic
+replay profile specified in the
+[v0.12 entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Pre-Implementation.md)
+and [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
+The isolated real legacy environment remains a separate, unqualified gate.
+Full SPELL 2.4.4 language support is not claimed.
+
+The frozen test inventory, canonical producers, source-bound raw evidence,
+image scans, reproducible package, and annotated `v0.12.0` tag determine
+acceptance. The authoritative result is a passing
+`scripts/release_v12.py validate --require-tag` on the clean tagged checkout;
+this planning/source record does not independently claim completed tests.
+
+
 This file is the durable execution policy for `openbexi_spell`. Read it before
 analysis, design, implementation, testing, integration, packaging, or release
 work. Keep request history, executed results, and release-specific bindings in

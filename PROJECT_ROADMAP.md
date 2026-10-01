@@ -1,5 +1,22 @@
 # OpenBEXI SPELL Project Roadmap
 
+## 2026-09-30 - v0.12 Synthetic Observation Release Contract
+
+The owner authorized completion and publication of v0.11.1 and v0.12.
+v0.11.1 is accepted at its annotated tag; v0.12 provides the bounded synthetic
+replay profile specified in the
+[v0.12 entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Pre-Implementation.md)
+and [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
+The isolated real legacy environment remains a separate, unqualified gate.
+Full SPELL 2.4.4 language support is not claimed.
+
+The frozen test inventory, canonical producers, source-bound raw evidence,
+image scans, reproducible package, and annotated `v0.12.0` tag determine
+acceptance. The authoritative result is a passing
+`scripts/release_v12.py validate --require-tag` on the clean tagged checkout;
+this planning/source record does not independently claim completed tests.
+
+
 ## Document Control
 
 | Field | Value |
@@ -262,7 +279,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.9 | SPELL Development Environment | Product | Accepted at v0.9.0 | Bounded authoring, language services, dictionaries, history, immutable bundles, and simulator promotion. | Accepted release record and validated annotated tag. |
 | v0.10 | SPELL 2.4.4 Reference Example Adapter | Product | Accepted at v0.10.0 | All 195 numbered examples and 257 variants have deterministic semantic adaptations and oracles. | Source-bound qualification, reproducible package, and validated annotated tag. |
 | v0.11 | Simulator Telecommand Semantics | Product | Accepted at v0.11.0 | Closed catalog-backed BuildTC/Send, staged results, confirmation, certainty, recovery, and reconciliation. | Source-bound qualification, reproducible package, and validated annotated tag. |
-| v0.12 | Read-Only Legacy Observation | Product | Candidate | Compare an isolated legacy test environment to the proven typed simulator APIs with structurally zero command authority. | Accepted read-only simulator contracts, version-specific evidence, golden traces, and a read-only enforcement plan. |
+| v0.12 | Read-Only Legacy Observation | Product | Synthetic profile; acceptance bound to `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement. |
 | v0.13 | Controlled Non-Operational Procedure Control | Product | Candidate | Add audited legacy procedure control in an explicitly approved non-operational environment; no spacecraft command authority. | Accepted v0.12 observation and dedicated control-lease, failure, rollback, and environment safety plan. |
 | v0.14 | Bounded Adapter Migration | Product | Candidate | Migrate one specifically approved adapter capability per tranche with conformance, certainty, security, load, and rollback evidence. | Accepted capability contract and separate environment/effect authorization for each tranche. |
 | v0.15+ | Parallel Pilot Readiness | Product | Candidate | Progress from read-only shadow to supervised non-commanding pilots; consider commanding only through separate authorization with rapid rollback. | Prior phase acceptance, operational evidence, governance, workload budgets, and explicit pilot authorization. |

@@ -29,6 +29,7 @@ _TOOLCHAIN_STATIC_FILES = (
     "compose.yaml",
     "backend/Dockerfile",
     "backend/requirements.hashes.lock",
+    "scripts/build_zlib_v12.sh",
     "contracts/v10/language_reference_example_matrix.json",
     "contracts/v11/telecommand_catalog.json",
     "contracts/v11/telecommand_execution.json",
@@ -212,15 +213,9 @@ def toolchain_descriptor(root: Path | None = None) -> dict[str, Any]:
                 "sha256": hashlib.sha256(raw).hexdigest(),
             }
         )
-    dockerfile_from = next(
-        (
-            line.strip().split(maxsplit=1)[1]
-            for line in raw_by_path["backend/Dockerfile"].decode("utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ),
-        None,
-    )
-    if dockerfile_from != BASE_IMAGE_REFERENCE:
+    dockerfile_stages = [line.strip() for line in raw_by_path["backend/Dockerfile"].decode("utf-8").splitlines()
+                         if line.strip().startswith("FROM ")]
+    if dockerfile_stages != [f"FROM {BASE_IMAGE_REFERENCE} AS zlib-security-build", f"FROM {BASE_IMAGE_REFERENCE}"]:
         raise RuntimeError("bundle builder base image differs from the Dockerfile FROM")
     lock = _locked_requirements(raw_by_path["backend/requirements.hashes.lock"])
     runtime = _runtime_environment(lock)

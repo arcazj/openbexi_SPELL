@@ -1,0 +1,14 @@
+{
+  "captures": {
+    "reference": "b2b26853c77d66781faec586f46c92f08b1f182df9155e970d36894e8f66c6ab",
+    "simulator": "cd894a801aacd78045bb58cc1655f70a7e3ea866c466e87af2d7ab3f6daa9c19"
+  },
+  "expected_comparison": {
+    "DIFFERENT": 0,
+    "EQUIVALENT": 5,
+    "INDETERMINATE": 3,
+    "UNSUPPORTED": 1
+  },
+  "schema_version": "spell.v12.replay-manifest/1",
+  "scope": "SYNTHETIC_REPLAY_ONLY"
+}

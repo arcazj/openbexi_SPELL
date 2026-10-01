@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import { useDriverProjectionStream } from "../useDriverProjectionStream";
 import { TelemetryObservation } from "./TelemetryObservation";
+import { LegacyObservation } from "./LegacyObservation";
 import type {
   DriverBinding,
   DriverCapacityValue,
@@ -546,6 +547,7 @@ export function DriverProjection() {
           </section>
         </>
       )}
+      <LegacyObservation />
     </main>
   );
 }

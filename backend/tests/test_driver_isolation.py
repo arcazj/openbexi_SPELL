@@ -206,7 +206,9 @@ def test_compose_statically_isolates_independent_bundle_builders() -> None:
     dockerfile = (ROOT / "backend/Dockerfile").read_text(encoding="utf-8")
     from backend.development_bundle_provenance import BASE_IMAGE_REFERENCE
 
-    assert dockerfile.splitlines()[0] == f"FROM {BASE_IMAGE_REFERENCE}"
+    stages = [line for line in dockerfile.splitlines() if line.startswith("FROM ")]
+    assert stages == [f"FROM {BASE_IMAGE_REFERENCE} AS zlib-security-build", f"FROM {BASE_IMAGE_REFERENCE}"]
+    assert "COPY --from=zlib-security-build /tmp/zlib-fixed.deb" in dockerfile
     assert "COPY backend /app/backend" in dockerfile
     assert f'org.opencontainers.image.base.name="{BASE_IMAGE_REFERENCE}"' in dockerfile
 
