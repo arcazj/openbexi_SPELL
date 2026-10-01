@@ -194,10 +194,15 @@ def validate_qualification() -> dict:
     data = json.loads((ROOT / ARTIFACT / "qualification.json").read_bytes())
     require(data["schema_version"] == "spell.v12.qualification/1" and data["product_version"] == "0.12.0", "qualification identity differs")
     require(data["accepted_exceptions"] == [] and data["operational_authorization"] is False, "decision differs")
+    require(data["scope"] == "SYNTHETIC_REPLAY_ONLY" and data["predecessor_commit"] == config["predecessor_commit"], "qualification scope differs")
     require(data["source_fingerprint"] == fingerprint(), "qualified source differs")
     require(data["source_tree"] == git("rev-parse", data["source_commit"] + "^{tree}"), "qualified tree differs")
     git("merge-base", "--is-ancestor", data["source_commit"], "HEAD")
     directory = ROOT / ARTIFACT / "evidence"
+    files = {path.relative_to(directory).as_posix() for path in directory.rglob("*") if path.is_file()}
+    require(files == set(data["evidence_sha256"]), "unbound or missing evidence file")
+    commands = json.loads((directory / "commands.json").read_bytes())
+    require(commands["source_commit"] == data["source_commit"], "command/qualification source differs")
     for name, digest in data["evidence_sha256"].items():
         require(not Path(name).is_absolute() and ".." not in Path(name).parts and sha((directory / name).read_bytes()) == digest, "evidence hash differs")
     require(verify_captures(directory, config) == data["gates"], "recomputed gates differ")

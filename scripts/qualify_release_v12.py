@@ -53,8 +53,15 @@ class Producer:
             log.write_bytes(result.stdout + result.stderr)
             if output:
                 (OUT / output).write_bytes(result.stdout)
+        def display(arg):
+            value = str(arg)
+            for base, label in ((str(ROOT), "<repository>"), (os.environ.get("LOCALAPPDATA"), "<LocalAppData>"),
+                                (os.environ.get("ProgramFiles"), "<ProgramFiles>")):
+                if base:
+                    value = value.replace(base, label).replace(base.replace("\\", "/"), label)
+            return value
         self.commands.append({"gate": self.gate, "source_commit": self.source,
-                              "command": [str(arg).replace(str(ROOT), "<repository>") for arg in command],
+                              "command": [display(arg) for arg in command],
                               "returncode": result.returncode,
                               "seconds": round(time.monotonic() - started, 3)})
         require(result.returncode == 0, f"{self.gate} command failed; inspect its local log")
@@ -82,6 +89,11 @@ class Producer:
                     f"SPELL_JWT_HS256_SECRET={secrets.token_hex(32)}\nSPELL_IMAGE_TAG=v0.12.0\n"
                     "SPELL_DRIVER_ENABLED=true\nSPELL_ALLOW_LOCAL_DEV_TOKEN=false\nSPELL_PROXY_PORT=8080\n").encode())
             self.run(compose("up", "--build", "-d", "--wait"))
+            # Compose image labels participate in image identity. Audit the running images.
+            for service, name in (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy")):
+                container = self.run(compose("ps", "--quiet", service)).decode().strip()
+                identity = self.run(["docker", "inspect", "--format", "{{.Image}}", container]).decode().strip()
+                self.run(["docker", "tag", identity, IMAGES[name]])
             for database in ("spell_test", "spell_migration_test"):
                 existing = self.run(compose("exec", "-T", "postgres", "psql", "-U", "spell", "-d", "spell", "-tAc",
                                            f"SELECT 1 FROM pg_database WHERE datname='{database}'"))
@@ -104,7 +116,7 @@ class Producer:
                 network = "spellv012release_spell-internal"
             elif gate == "compose":
                 extra = ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "SPELL_RUN_COMPOSE_RUNTIME_TESTS=1",
-                         "-e", "SPELL_IMAGE_TAG=v0.12.0"]
+                         "-e", "SPELL_IMAGE_TAG=v0.12.0-isolation"]
                 network = "bridge"
             self.run(docker_python("-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short",
                                    f"--junitxml=/evidence/{gate}.xml", network=network, extra=extra))
