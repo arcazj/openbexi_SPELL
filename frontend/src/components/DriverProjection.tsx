@@ -14,6 +14,7 @@ import { api } from "../api";
 import { useDriverProjectionStream } from "../useDriverProjectionStream";
 import { TelemetryObservation } from "./TelemetryObservation";
 import { LegacyObservation } from "./LegacyObservation";
+import { TelemetryAdapter } from "./TelemetryAdapter";
 import type {
   DriverBinding,
   DriverCapacityValue,
@@ -548,6 +549,7 @@ export function DriverProjection() {
         </>
       )}
       <LegacyObservation />
+      <TelemetryAdapter />
     </main>
   );
 }

@@ -131,3 +131,22 @@ def test_gcc_applicability_is_component_and_evidence_bound(tamper):
             resolve(scan, {"gcc_header_applicability": evidence})
     else:
         assert resolve(scan, {"gcc_header_applicability": evidence})[0]["status"] == "NOT_AFFECTED"
+
+
+@pytest.mark.parametrize("tamper", [None, "duration", "nan", "latency", "workload", "source", "failure"])
+def test_adapter_soak_rejects_invalid_budget_and_source_proof(tamper):
+    from backend.legacy_observation_v12 import load_sources
+    report = {"decision": "PASS", "failures": 0, "elapsed_seconds": 60.1, "batches": 128,
+              "reads_per_batch": 8, "batch_latency_ms": [0.1] * 128,
+              "sources": {key: value.identity() for key, value in load_sources().items()}}
+    if tamper == "duration": report["elapsed_seconds"] = 0
+    elif tamper == "nan": report["batch_latency_ms"][0] = float("nan")
+    elif tamper == "latency": report["batch_latency_ms"][0] = 500
+    elif tamper == "workload": report["batches"] = 127
+    elif tamper == "source": report["sources"]["reference"]["digest"] = "0" * 64
+    elif tamper == "failure": report["failures"] = 1
+    if tamper:
+        with pytest.raises(release.ReleaseError):
+            release.verify_adapter_soak(report)
+    else:
+        release.verify_adapter_soak(report)

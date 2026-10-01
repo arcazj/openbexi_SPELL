@@ -33,6 +33,7 @@ import type {
   WorkspaceSearchView,
 } from "./types";
 import type { ReplayComparison, ReplaySnapshot } from "./components/LegacyObservation";
+import type { AdapterComparison, AdapterOptions, AdapterRead } from "./components/TelemetryAdapter";
 import type { CompatibilityReceipt, CompatibilityRequest } from "./components/CompatibilityControl";
 
 const API_ROOT = "/api/v1";
@@ -784,6 +785,10 @@ function mutationProof(proof?: ControlProof): JsonObject {
 }
 
 export const api = {
+  telemetryAdapterCatalog: (source: "reference" | "simulator") => request<{ items: Array<{item_id: string}>; initial_cursor: string }>(`/telemetry-adapter/${source}/catalog`),
+  telemetryAdapterRead: (source: "reference" | "simulator", item: string, options: AdapterOptions) =>
+    request<AdapterRead>(`/telemetry-adapter/${source}/items/${encodeURIComponent(item)}?${new URLSearchParams(Object.entries(options).map(([key, value]) => [key, String(value)]))}`),
+  telemetryAdapterCompare: (item: string, format: "RAW" | "ENG") => request<AdapterComparison>(`/telemetry-adapter/comparison/${encodeURIComponent(item)}?value_format=${format}`),
   legacyReplaySnapshot: (source: "reference" | "simulator") =>
     request<ReplaySnapshot>(`/legacy-observation/${source}/snapshot`),
   legacyReplayComparison: () => request<ReplayComparison>("/legacy-observation/comparison"),

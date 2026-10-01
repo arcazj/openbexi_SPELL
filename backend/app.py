@@ -83,6 +83,7 @@ from .observation_repository import (
 )
 from .observation_read_service import ObservationReadService
 from .legacy_observation_v12 import ReplayError, compare as compare_replay, load_sources
+from .telemetry_adapter import ComparisonQuery, TMQuery, compare_tm, get_tm as adapter_get_tm, profile as telemetry_profile
 from .synthetic_control import CompatibilityCommand, SyntheticControl, profile as control_profile
 from uuid import UUID
 from .observation_service import ObservationRuntime
@@ -2329,6 +2330,31 @@ def create_app(
     @app.get("/api/v1/legacy-observation/sources")
     def legacy_sources(_: IdentityDep) -> dict[str, Any]:
         return {"items": [{"id": key, **value.identity()} for key, value in legacy_replay_sources.items()]}
+
+    @app.get("/api/v1/telemetry-adapter/profile")
+    def adapter_profile(_: IdentityDep) -> dict[str, Any]:
+        return telemetry_profile()
+
+    @app.get("/api/v1/telemetry-adapter/comparison/{item_id}")
+    def adapter_comparison(item_id: str, _: IdentityDep, query: Annotated[ComparisonQuery, Query()]) -> dict[str, Any]:
+        try:
+            return compare_tm(replay_source("reference"), replay_source("simulator"), item_id, query.value_format)
+        except ReplayError as exc:
+            raise HTTPException(status_code=422, detail={"code": exc.code}) from exc
+
+    @app.get("/api/v1/telemetry-adapter/{source}/catalog")
+    def adapter_catalog(source: str, _: IdentityDep) -> dict[str, Any]:
+        value = replay_source(source)
+        return {**value.catalog(), "initial_cursor": value.cursor(0), "current_cursor": value.snapshot()["cursor"]}
+
+    @app.get("/api/v1/telemetry-adapter/{source}/items/{item_id}")
+    def adapter_read(source: str, item_id: str, request: Request, _: IdentityDep, query: Annotated[TMQuery, Query()]) -> dict[str, Any]:
+        if len(request.query_params.multi_items()) != len(request.query_params):
+            raise HTTPException(status_code=422, detail={"code": "DUPLICATE_MODIFIER"})
+        try:
+            return adapter_get_tm(replay_source(source), item_id, query)
+        except ReplayError as exc:
+            raise HTTPException(status_code=422, detail={"code": exc.code}) from exc
 
     @app.get("/api/v1/legacy-observation/comparison")
     def legacy_comparison(_: IdentityDep) -> dict[str, Any]:

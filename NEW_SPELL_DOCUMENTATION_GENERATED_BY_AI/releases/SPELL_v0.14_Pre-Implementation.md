@@ -40,7 +40,7 @@ legacy driver conformance. Existing procedure IR behavior is unchanged.
 | V14-TM-001 | Closed GET-only profile, pinned source identities and bounded modifiers | Schema, source, authorization, unknown option and mutation rejection |
 | V14-TM-002 | Typed RAW/ENG and extended immutable current/next reads | UInt64, refresh, cursor, logical timeout, quality, gap and disconnect matrix |
 | V14-TM-003 | Differential trace and explicit simulator fallback | Both source identities, field differences, no non-good equivalence, failed-source recovery |
-| V14-TM-004 | Bounded capacity and accessible console | 128 reads with eight callers within 30 seconds, desktop/mobile keyboard and Axe workflows |
+| V14-TM-004 | Bounded capacity and accessible console | 128 reads with eight callers within 30 seconds, 60-second adapter soak with at least 128 eight-read batches each below 500 ms, desktop/mobile keyboard and Axe workflows |
 | V14-TM-005 | Immutable version-scoped release | Exact full SQLite/PostgreSQL/Compose catalogs, audits, image profile probes, candidate gate and four deterministic builds |
 
 The capability has viewer read permission, no driver credential, at most 128

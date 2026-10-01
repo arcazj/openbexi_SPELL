@@ -139,6 +139,8 @@ class Producer:
                 self.run([npm, "run", "build"], cwd=ROOT / "frontend")
         elif gate == "replay":
             self.run(docker_python("-m", "scripts.qualify_legacy_observation_v12", "--soak-seconds", "60", "--output", "/evidence/replay.json"))
+            if MINOR >= 14:
+                self.run(docker_python("-m", "scripts.qualify_telemetry_adapter_v14", "--output", "/evidence/adapter-soak.json"))
         elif gate == "reference-generators":
             self.run(docker_python("-m", "scripts.generate_reference_runner_v10", "--check"))
             self.run(docker_python("-m", "scripts.qualify_reference_examples_v10", "--output", "/evidence/reference-examples.json"))

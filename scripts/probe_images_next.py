@@ -43,6 +43,11 @@ def main():
                                       "import json; from backend.synthetic_control import profile; print(json.dumps(profile()))"))
             assert contract["profile"] == "LOCAL_SYNTHETIC_PROCEDURE_CONTROL"
             row["control_profile"] = contract
+            if MINOR >= 14:
+                contract = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c",
+                                          "import json; from backend.telemetry_adapter import profile; print(json.dumps(profile()))"))
+                assert contract["profile"] == "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER" and contract["mutability"] == "READ_ONLY"
+                row["telemetry_profile"] = contract
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):
