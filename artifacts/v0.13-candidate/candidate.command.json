@@ -1,0 +1,33 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v13/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_synthetic_control_v13.py",
+        "scripts/tests/test_release_next.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/candidate.xml"
+      ],
+      "gate": "candidate",
+      "returncode": 0,
+      "seconds": 78.271,
+      "source_commit": "0cc6547368bf014dbe5b21ddf2624750f108da75"
+    }
+  ],
+  "source_commit": "0cc6547368bf014dbe5b21ddf2624750f108da75",
+  "source_fingerprint": "9df7466c60d431b66e0bdfd535ccfada075c6e38685c252a2ac95adfd741721c"
+}
