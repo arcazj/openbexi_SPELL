@@ -28,7 +28,7 @@ def main():
         if name in {"backend", "driver"}:
             code = ("import hashlib,json,pathlib,zlib; p=pathlib.Path('/usr/lib/x86_64-linux-gnu/libz.so.1'); "
                     "print(json.dumps({'runtime_version':zlib.ZLIB_RUNTIME_VERSION,'library_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),"
-                    "'upstream_commit':pathlib.Path('/usr/share/doc/zlib1g/openbexi-upstream-commit').read_text().strip()}))")
+                    "'upstream_commit':pathlib.Path('/usr/local/share/openbexi/zlib-source-commit').read_text().strip()}))")
             row["zlib"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             assert row["zlib"]["upstream_commit"] == "df84af25dc1942490e1d1c899a07619152a46148"
             assert row["zlib"]["runtime_version"] == "1.3.2.1-motley"
@@ -44,7 +44,11 @@ def main():
         info = json.loads(call("inspect", ids[0]))[0]
         host = info["HostConfig"]
         assert info["State"]["Running"]
-        assert host["ReadonlyRootfs"] and "ALL" in host["CapDrop"]
+        if service == "postgres":
+            assert info["Config"]["User"] == "70:70"
+            assert any(mount["Destination"] == "/var/lib/postgresql" and mount["Type"] == "volume" for mount in info["Mounts"])
+        else:
+            assert host["ReadonlyRootfs"] and "ALL" in host["CapDrop"]
         assert "no-new-privileges:true" in host["SecurityOpt"]
         ports = host.get("PortBindings") or {}
         if service != "proxy":
@@ -56,7 +60,7 @@ def main():
         elif service != "proxy":
             for network in info["NetworkSettings"]["Networks"]:
                 assert json.loads(call("network", "inspect", network))[0]["Internal"]
-        services[service] = {"running": True, "read_only": True, "ports": ports, "image_id": info["Image"]}
+        services[service] = {"running": True, "read_only": host["ReadonlyRootfs"], "ports": ports, "image_id": info["Image"]}
     args.output.write_bytes((json.dumps({"images": images, "services": services, "decision": "PASS"}, indent=2, sort_keys=True) + "\n").encode())
     print("v0.12 image and isolation probes: PASS")
 

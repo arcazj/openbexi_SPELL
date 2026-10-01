@@ -144,7 +144,7 @@ class Producer:
             rows = {}
             for name, image in IMAGES.items():
                 identity = self.run(["docker", "image", "inspect", "--format", "{{.Id}}", image]).decode().strip()
-                self.run([str(sbom), "--format", "cyclonedx-json", "--output", str(OUT / f"{name}.cdx.json"), identity])
+                self.run([str(sbom), "sbom", identity, "--format", "cyclonedx-json", "--output", str(OUT / f"{name}.cdx.json")])
                 self.run(["docker", "scout", "cves", identity, "--format", "sarif", "--output", str(OUT / f"{name}.sarif.json")])
                 scan = json.loads((OUT / f"{name}.sarif.json").read_bytes())
                 rules = scan["runs"][0]["tool"]["driver"]["rules"]
@@ -156,6 +156,7 @@ class Producer:
                               "lower_severity_disposition": {"advisories": [r["id"] for r in rules],
                                   "review_by": "2026-10-30", "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use."}}
             write_json(OUT / "supply-chain.json", {"schema_version": "spell.v12.supply-chain/1", "images": rows})
+            self.run(docker_python("-c", "import json,pathlib; from scripts.validate_cyclonedx_v04 import validate_document,run_negative_self_test; p=pathlib.Path('/evidence'); names=['backend','driver','frontend','proxy']; versions={n:validate_document((p/(n+'.cdx.json')).read_text(),n) for n in names}; run_negative_self_test(); (p/'sbom-validation.json').write_bytes((json.dumps({'schemas':versions,'negative_tamper_rejected':True,'validator':'cyclonedx-python-lib/11.11.0'},sort_keys=True)+'\\n').encode()); print('four strict CycloneDX schemas: PASS')"))
         else:
             raise ValueError("unknown gate")
         self.finish()

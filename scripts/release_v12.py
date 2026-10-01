@@ -121,10 +121,12 @@ def verify_captures(directory: Path, config: dict) -> dict:
     require(audit["metadata"]["vulnerabilities"]["total"] == 0, "Node advisories remain")
     supply = json.loads((directory / "supply-chain.json").read_bytes())
     require(set(supply["images"]) == {"backend", "driver", "frontend", "proxy"}, "SBOM inventory differs")
+    require(len({row["image_id"] for row in supply["images"].values()}) == 4, "image identities are not distinct")
     for component, row in supply["images"].items():
         require(row["high"] == 0 and row["critical"] == 0, "image vulnerability gate failed")
         sbom = json.loads((directory / f"{component}.cdx.json").read_bytes())
         require(sbom.get("bomFormat") == "CycloneDX" and len(sbom.get("components", [])) > 0, "invalid SBOM")
+        require(sbom["metadata"]["component"]["version"] == row["image_id"], "SBOM image identity differs")
         require(sha((directory / f"{component}.cdx.json").read_bytes()) == row["sbom_sha256"], "SBOM hash differs")
         scan_path = directory / f"{component}.sarif.json"
         require(sha(scan_path.read_bytes()) == row["scan_sha256"], "image scan hash differs")
@@ -136,6 +138,11 @@ def verify_captures(directory: Path, config: dict) -> dict:
     probe = json.loads((directory / "image-probe.json").read_bytes())
     require(probe["decision"] == "PASS", "image probes failed")
     require(all(probe["images"][name]["image_id"] == row["image_id"] for name, row in supply["images"].items()), "probed/scanned images differ")
+    require(all(probe["services"][service]["image_id"] == supply["images"][name]["image_id"] for service, name in
+                (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy"))), "running/scanned images differ")
+    validation = json.loads((directory / "sbom-validation.json").read_bytes())
+    require(set(validation["schemas"]) == set(supply["images"]) and validation["negative_tamper_rejected"] is True,
+            "strict SBOM schema proof differs")
     examples = json.loads((directory / "reference-examples.json").read_bytes())
     require(examples["variant_summary"]["passed"] == 257 and examples["variant_summary"]["failed"] == 0, "inherited variants failed")
     commands = json.loads((directory / "commands.json").read_bytes())
@@ -162,7 +169,7 @@ def record(captures: Path) -> None:
         "replay.json", "python-audit.json", "npm-audit.json", "supply-chain.json", "commands.json",
         "backend.cdx.json", "driver.cdx.json", "frontend.cdx.json", "proxy.cdx.json",
         "backend.sarif.json", "driver.sarif.json", "frontend.sarif.json", "proxy.sarif.json",
-        "image-probe.json", "reference-examples.json"}
+        "image-probe.json", "reference-examples.json", "sbom-validation.json"}
     browser = [path for path in (captures / "browser").rglob("*") if path.is_file() and path.suffix in {".png", ".json"}]
     require(sum(path.suffix == ".png" for path in browser) == 4, "browser screenshot inventory differs")
     names |= {path.relative_to(captures).as_posix() for path in browser}

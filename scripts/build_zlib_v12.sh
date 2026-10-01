@@ -17,11 +17,11 @@ cd /tmp/zlib-source
 ./configure --prefix=/usr
 make -j2
 make test
-mkdir -p /tmp/zlib-package/DEBIAN /tmp/zlib-package/usr/lib/x86_64-linux-gnu /tmp/zlib-package/usr/share/doc/zlib1g
+mkdir -p /tmp/zlib-package/DEBIAN /tmp/zlib-package/usr/lib/x86_64-linux-gnu /tmp/zlib-package/usr/share/doc/zlib1g /tmp/zlib-package/usr/local/share/openbexi
 cp libz.so.1.3.2.1-motley /tmp/zlib-package/usr/lib/x86_64-linux-gnu/
 ln -s libz.so.1.3.2.1-motley /tmp/zlib-package/usr/lib/x86_64-linux-gnu/libz.so.1
 cp LICENSE /tmp/zlib-package/usr/share/doc/zlib1g/copyright
-printf '%s\n' 'df84af25dc1942490e1d1c899a07619152a46148' > /tmp/zlib-package/usr/share/doc/zlib1g/openbexi-upstream-commit
+printf '%s\n' 'df84af25dc1942490e1d1c899a07619152a46148' > /tmp/zlib-package/usr/local/share/openbexi/zlib-source-commit
 cat > /tmp/zlib-package/DEBIAN/control <<'EOF'
 Package: zlib1g
 Version: 1:1.3.2.1+git.df84af2-0openbexi1
