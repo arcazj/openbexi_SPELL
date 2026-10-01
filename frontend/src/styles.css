@@ -1167,3 +1167,5 @@ td code { color: #245785; font: 10px ui-monospace, SFMono-Regular, Consolas, mon
 .legacy-replay-inspector { padding: .8rem; min-width: 0; }
 .legacy-replay-inspector select { max-width: 100%; }
 .legacy-replay-inspector .replay-digest { overflow-wrap: anywhere; }
+
+.shadow-pilot { min-width: 0; overflow-wrap: anywhere; }

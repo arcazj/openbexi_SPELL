@@ -45,6 +45,7 @@ test("records independent review, incident rollback and a read-only restore", as
   await expect(region.getByRole("button", { name: "Record independent review" })).toBeDisabled();
   await region.getByText("Backup and restore drill", { exact: true }).click();
   await region.getByText("Differential trace and audit", { exact: true }).click();
+  expect(await region.locator(".replay-digest").evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   expect((await new AxeBuilder({ page }).include(".shadow-pilot").analyze()).violations).toEqual([]);
   await region.screenshot({ path: testInfo.outputPath("shadow-pilot.png") });

@@ -11,6 +11,8 @@ Incidents revoke readiness and retain a simulator/read-only disposition.
 Rollback is explicit and audited; a reviewed, incident or restored run cannot
 silently start another run. Unconfirmed requests retain their exact identity
 across reload and support authoritative readback or an explicit identical retry.
+Long report identities and audit text wrap within the mobile workspace; the
+browser gate checks the report hash directly for horizontal clipping.
 
 Backup export returns bounded data-only JSON with a canonical digest. Restore
 checks report hashes, source identities, every differential trace and declared
