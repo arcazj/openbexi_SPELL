@@ -1,0 +1,42 @@
+<testsuites id="" name="" tests="10" failures="0" skipped="0" errors="0" time="32.548275000000004">
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.238" errors="0">
+<testcase name="[chromium] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="3.238">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.122" errors="0">
+<testcase name="[chromium] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.122">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.964" errors="0">
+<testcase name="[chromium] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="1.964">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.268" errors="0">
+<testcase name="[chromium] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.268">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.432" errors="0">
+<testcase name="[chromium] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="1.432">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="mobile" tests="1" failures="0" skipped="0" time="3.35" errors="0">
+<testcase name="[mobile] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="3.35">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.332" errors="0">
+<testcase name="[mobile] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.332">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.083" errors="0">
+<testcase name="[mobile] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="2.083">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="mobile" tests="1" failures="0" skipped="0" time="7.373" errors="0">
+<testcase name="[mobile] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.373">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-01T10:35:28.417Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.667" errors="0">
+<testcase name="[mobile] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="1.667">
+</testcase>
+</testsuite>
+</testsuites>

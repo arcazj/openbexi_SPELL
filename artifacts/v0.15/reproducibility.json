@@ -1,0 +1,14 @@
+{
+  "builds_per_export": 2,
+  "decision": "PASS",
+  "independent_exports": 2,
+  "package_sha256_results": [
+    "b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b",
+    "b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b",
+    "b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b",
+    "b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b"
+  ],
+  "schema_version": "spell.v15.reproducibility/1",
+  "source_commit": "fe33fafd6fdd46ae84d1817aba54131afbb3d6fe",
+  "source_fingerprint": "5deba7feda167affc5f2f0777b736ea0975714db936f7b6891eab9d03030aa59"
+}
