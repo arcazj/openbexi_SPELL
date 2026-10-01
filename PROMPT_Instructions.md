@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-01 - v0.13.0 Accepted
+
+Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
+The seven suites recorded 3,544 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-09-30 - v0.12.0 Accepted
 
 The annotated `v0.12.0` tag passed independent clean-checkout validation with
@@ -93,19 +103,16 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.12.0 is the accepted product baseline. Annotated tag object
-`48b577faafdb9b5011cc5240201e8ce45d88cfee` peels to release commit
-`978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6`. Qualified source commit
-`f01363685ba79582a93bc677cbcf0c415ad4ee84` has fingerprint
-`afb52322e59265bbfe37ad74b5e6b146dfb83e159665e0c90d296f3693fc461a`.
-The accepted package SHA-256 is
-`9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9`.
-All release gates passed with no accepted exceptions. Validation must run on
-the clean tagged checkout; subsequent documentation closeout does not retarget
-the immutable release. v0.11.1 is the accepted documentation-only predecessor,
-with the inherited v0.11.0 runtime.
+SPELL v0.13.0 is the accepted local product baseline for fenced local synthetic procedure control.
+Annotated tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a` peels to release commit
+`9bcb55e665a663a9fcb58a1c1d29936837731fe3`. Qualified source `0f85a4a8efb86edb3625b66c31de9762db0f63c9` has
+fingerprint `2597f4f7fe4ff19a1c4afea6e95f98dcaf159645de4621a625b1337877d864ef`. Package SHA-256:
+`ba415fc5fdda5d9754ae961a7f11255d654927e11bdd767c5c2d5563eb1dad8a`. Validate on the clean tagged checkout with
+`scripts/release_next.py validate --require-tag`. Subsequent documentation
+closeout does not retarget an immutable release. Earlier accepted tags and
+their version-scoped evidence remain preserved.
 
-SPELL v0.11.0 is the previous product baseline. Annotated tag object
+SPELL v0.11.0 is a historical product baseline. Annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`; strict qualification,
 deterministic package, evidence, and tag validation passed with no accepted

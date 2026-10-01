@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Roadmap
 
+## 2026-10-01 - v0.13.0 Accepted
+
+Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
+The seven suites recorded 3,544 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-09-30 - v0.12.0 Accepted
 
 The annotated `v0.12.0` tag passed independent clean-checkout validation with
@@ -29,10 +39,10 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.12.0 synthetic observation baseline |
-| Update type | Record qualified synthetic replay, reproducible package, validated tag, and documentation closeout |
-| Updated | 2026-09-30 |
-| Accepted product baseline | SPELL v0.12.0, tag `v0.12.0`, tag object `48b577faafdb9b5011cc5240201e8ce45d88cfee`, release commit `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
+| Document revision | Accepted v0.13.0 local synthetic baseline |
+| Update type | Record immutable v0.13.0 qualification and acceptance |
+| Updated | 2026-10-01 |
+| Accepted product baseline | SPELL v0.13.0, tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a`, release commit `9bcb55e665a663a9fcb58a1c1d29936837731fe3` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -294,7 +304,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.10 | SPELL 2.4.4 Reference Example Adapter | Product | Accepted at v0.10.0 | All 195 numbered examples and 257 variants have deterministic semantic adaptations and oracles. | Source-bound qualification, reproducible package, and validated annotated tag. |
 | v0.11 | Simulator Telecommand Semantics | Product | Accepted at v0.11.0 | Closed catalog-backed BuildTC/Send, staged results, confirmation, certainty, recovery, and reconciliation. | Source-bound qualification, reproducible package, and validated annotated tag. |
 | v0.12 | Read-Only Legacy Observation | Product | Accepted synthetic profile at `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement passed. |
-| v0.13 | Controlled Non-Operational Procedure Control | Product | Candidate | Add audited legacy procedure control in an explicitly approved non-operational environment; no spacecraft command authority. | Accepted v0.12 observation and dedicated control-lease, failure, rollback, and environment safety plan. |
+| v0.13 | Fenced local synthetic procedure control | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.13.0` and committed evidence. |
 | v0.14 | Bounded Adapter Migration | Product | Candidate | Migrate one specifically approved adapter capability per tranche with conformance, certainty, security, load, and rollback evidence. | Accepted capability contract and separate environment/effect authorization for each tranche. |
 | v0.15+ | Parallel Pilot Readiness | Product | Candidate | Progress from read-only shadow to supervised non-commanding pilots; consider commanding only through separate authorization with rapid rollback. | Prior phase acceptance, operational evidence, governance, workload budgets, and explicit pilot authorization. |
 

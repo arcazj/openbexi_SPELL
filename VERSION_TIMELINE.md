@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-10-01 - v0.13.0 Accepted
+
+Annotated `v0.13.0` passed independent clean-tag validation for fenced local synthetic procedure control.
+The seven suites recorded 3,544 passed executions; all 22 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-09-30 - v0.12.0 Accepted
 
 The annotated `v0.12.0` tag passed independent clean-checkout validation with
@@ -29,11 +39,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.12.0 synthetic observation baseline |
-| Update type | Record immutable v0.11.1 and v0.12.0 qualification and tag endpoints |
-| Updated | 2026-09-30 |
+| Document revision | Accepted v0.13.0 local synthetic baseline |
+| Update type | Record immutable v0.13.0 qualification and acceptance |
+| Updated | 2026-10-01 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through September 2026 events |
-| Accepted product baseline | SPELL v0.12.0, tag `v0.12.0`, tag object `48b577faafdb9b5011cc5240201e8ce45d88cfee`, release commit `978c89ecec5ae1bdc57a9fc27395b7c12c8acbb6` |
+| Accepted product baseline | SPELL v0.13.0, tag object `9f982937fc81e6d18e34b7a55ca228f346ad610a`, release commit `9bcb55e665a663a9fcb58a1c1d29936837731fe3` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |

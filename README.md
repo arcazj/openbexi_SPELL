@@ -12,16 +12,14 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The accepted **v0.12.0** release adds read-only, synthetic SPELL 2.4.4 observation replay and
-comparison under **Driver foundation → Legacy observation replay**.
-Its annotated `v0.12.0` tag passed independent clean-checkout validation:
-3,450 test executions passed, all 22 environment skips were resolved by the
-complementary runs, and four independent package builds produced identical bytes.
-Reproduce release validation with `scripts/release_v12.py validate --require-tag`
-on the clean tagged checkout; later documentation commits have a different fingerprint.
-See the [v0.12 scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
+The accepted **v0.13.0** release provides fenced local synthetic procedure control.
+Its annotated tag passed independent clean-checkout validation: 3,544 test
+executions passed, all 22 environment skips were resolved, and four independent
+package builds produced identical bytes. Run `scripts/release_next.py validate
+--require-tag` on the clean tagged checkout; later documentation commits have a
+different fingerprint. See the [scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md).
 Real legacy-system qualification and full SPELL language compatibility remain
-outside this bounded release. Documentation maintenance **v0.11.1** precedes it.
+outstanding. The local console is available at `http://127.0.0.1:8080`.
 
 The inherited engineering baseline is **v0.11.0** at annotated tag
 `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`,
