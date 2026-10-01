@@ -33,6 +33,7 @@ import type {
   WorkspaceSearchView,
 } from "./types";
 import type { ReplayComparison, ReplaySnapshot } from "./components/LegacyObservation";
+import type { CompatibilityReceipt, CompatibilityRequest } from "./components/CompatibilityControl";
 
 const API_ROOT = "/api/v1";
 const ACCESS_TOKEN_KEY = "openbexi.spell.access-token";
@@ -942,6 +943,14 @@ export const api = {
       through_sequence: Number(body.through_sequence ?? 0),
     };
   },
+
+  compatibilityCommand: (executionId: string, body: CompatibilityRequest) =>
+    request<CompatibilityReceipt>(`/legacy-control/executions/${encodeURIComponent(executionId)}/operations`, {
+      method: "POST", body: JSON.stringify(body),
+    }),
+
+  compatibilityReceipt: (executionId: string, operationId: string) =>
+    request<CompatibilityReceipt>(`/legacy-control/executions/${encodeURIComponent(executionId)}/operations/${encodeURIComponent(operationId)}`),
 
   command: (
     executionId: string,

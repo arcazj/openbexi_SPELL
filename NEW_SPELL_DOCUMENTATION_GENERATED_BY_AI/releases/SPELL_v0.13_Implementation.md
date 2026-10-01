@@ -6,6 +6,12 @@ actor, reason, revision and controller proof in the durable command ledger.
 Readback returns the authoritative command outcome after reconnect. Returning
 to read-only requests a safe stop and remains pending until settlement.
 
+Real-worker qualification found that the existing operator projection omitted
+the worker's `waiting` state and displayed it as `ERROR`. The release maps that
+state to `WAITING`, preserving the documented pause/abort controls. Regression
+tests verify the projection and exercise real worker settlement. Only fenced
+IR profiles 0.6, 0.7, 0.8, 0.10 and 0.11 are admitted by the new facade.
+
 The console's **Compatibility control** panel uses the selected execution and
 its existing controller lease. A missing or expired lease, disconnected stream,
 stale revision, wrong source or unsupported operation prevents control.

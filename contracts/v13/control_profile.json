@@ -3,6 +3,7 @@
   "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
   "context_id": "simulator",
   "reference_version": "2.4.4",
+  "execution_ir_versions": ["0.6", "0.7", "0.8", "0.10", "0.11"],
   "legacy_protocol_implemented": false,
   "operational_authorization": false,
   "commands": {

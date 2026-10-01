@@ -83,6 +83,8 @@ from .observation_repository import (
 )
 from .observation_read_service import ObservationReadService
 from .legacy_observation_v12 import ReplayError, compare as compare_replay, load_sources
+from .synthetic_control import CompatibilityCommand, SyntheticControl, profile as control_profile
+from uuid import UUID
 from .observation_service import ObservationRuntime
 from .operator_service import (
     OperatorAuthorizationError,
@@ -282,6 +284,7 @@ def create_app(
         ),
     )
     supervisor.attach_operator_service(operator_service)
+    synthetic_control = SyntheticControl(operator_service, supervisor)
     driver_repository = DriverRepository(session_factory)
     driver_gateway = DriverGateway(
         driver_repository,
@@ -510,6 +513,7 @@ def create_app(
     app.state.catalog = catalog
     app.state.supervisor = supervisor
     app.state.operator_service = operator_service
+    app.state.synthetic_control = synthetic_control
     app.state.driver_repository = driver_repository
     app.state.driver_gateway = driver_gateway
     app.state.observation_repository = observation_repository
@@ -2294,6 +2298,28 @@ def create_app(
             return {"driver_time": observation_repository.driver_time(context_id)}
         except ObservationRepositoryError as exc:
             raise translate_observation_error(exc) from exc
+
+    @app.get("/api/v1/legacy-control/profile")
+    def legacy_control_profile(_: IdentityDep) -> dict[str, Any]:
+        return control_profile()
+
+    @app.post("/api/v1/legacy-control/executions/{execution_id}/operations", status_code=202)
+    def legacy_control_operation(execution_id: str, request: CompatibilityCommand,
+                                 caller: MutationIdentityDep, binding: SessionBindingDep) -> dict[str, Any]:
+        require_session_binding(binding, session_id=request.session_id,
+                                client_instance_key_id=request.client_instance_key_id)
+        try:
+            return synthetic_control.submit(execution_id, request, actor=caller.actor, role=caller.role)
+        except (OperatorAuthorizationError, OperatorConflictError, OperatorNotFoundError,
+                OperatorValidationError, AuthorizationError, ConflictError, NotFoundError) as exc:
+            raise translate_error(exc) from exc
+
+    @app.get("/api/v1/legacy-control/executions/{execution_id}/operations/{operation_id}")
+    def legacy_control_receipt(execution_id: str, operation_id: UUID, _: IdentityDep) -> dict[str, Any]:
+        try:
+            return synthetic_control.receipt(execution_id, operation_id)
+        except (OperatorAuthorizationError, OperatorNotFoundError, OperatorValidationError) as exc:
+            raise translate_error(exc) from exc
 
     def replay_source(source: str):
         if source not in legacy_replay_sources:

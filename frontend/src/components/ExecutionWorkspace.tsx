@@ -31,6 +31,7 @@ import { ProcedureFlow } from "./ProcedureFlow";
 import { PromptPanel } from "./PromptPanel";
 import { SourceWorkspace } from "./SourceWorkspace";
 import { ValidationPanel } from "./ValidationPanel";
+import { CompatibilityControl } from "./CompatibilityControl";
 
 const TERMINAL_STATES = new Set(["ABORTED", "FAILED", "COMPLETED", "FINISHED", "ERROR"]);
 const ABORT_ALLOWED_STATES = new Set(["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "PROMPTING", "INTERRUPTED", "SUSPENDED", "RECOVERING"]);
@@ -528,6 +529,8 @@ export function ExecutionWorkspace() {
       </div>
 
       <OwnershipControls execution={execution} />
+      <CompatibilityControl key={execution.id} execution={execution} connected={!stale}
+        onRefresh={() => { void dispatch(resyncExecution(execution.id)); void dispatch(refreshMaster()); }} />
 
       <div className="command-toolbar" aria-label="Execution controls">
         <CommandButton

@@ -154,6 +154,7 @@ _LEGACY_STATE_PROJECTION = {
     "ready": "PAUSED",
     "starting": "LOADING",
     "running": "RUNNING",
+    "waiting": "WAITING",
     "pausing": "RUNNING",
     "paused": "PAUSED",
     "resuming": "RUNNING",
