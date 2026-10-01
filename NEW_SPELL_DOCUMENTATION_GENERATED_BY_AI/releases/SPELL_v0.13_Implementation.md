@@ -12,6 +12,11 @@ state to `WAITING`, preserving the documented pause/abort controls. Regression
 tests verify the projection and exercise real worker settlement. Only fenced
 IR profiles 0.6, 0.7, 0.8, 0.10 and 0.11 are admitted by the new facade.
 
+The backend image includes the control profile and the image probe loads it
+from the actual runtime filesystem. The fresh GCC source-package advisory is
+resolved through [component applicability evidence](GCC_CVE-2026-102010_Applicability.md);
+the unmodified scan and exact runtime file inventory remain in release evidence.
+
 The console's **Compatibility control** panel uses the selected execution and
 its existing controller lease. A missing or expired lease, disconnected stream,
 stale revision, wrong source or unsupported operation prevents control.

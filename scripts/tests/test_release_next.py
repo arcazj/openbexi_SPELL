@@ -103,3 +103,31 @@ def test_candidate_gate_activates_atomically_only_for_unchanged_proof(tmp_path, 
         release.candidate_apply(captures)
         assert release.verify_candidate(release.policy())["decision"] == "PASS"
         assert json.loads((candidate / "gate-0b.json").read_bytes())["tests"] == 1
+
+
+@pytest.mark.parametrize("tamper", [None, "advisory", "package", "version", "header", "location", "hash", "development"])
+def test_gcc_applicability_is_component_and_evidence_bound(tamper):
+    from scripts.gcc_header_applicability import ADVISORY, PURL, PACKAGES, LOCATIONS, resolve
+    rule = {"id": ADVISORY, "properties": {"security-severity": "7.0", "purls": [PURL]}}
+    result = {"ruleId": ADVISORY, "locations": [{"physicalLocation": {"artifactLocation": {"uri": p}}} for p in sorted(LOCATIONS)]}
+    evidence = {"packages": dict(PACKAGES), "files": {p: "a" * 64 for p in LOCATIONS - {"/var/lib/dpkg/status"}}, "pb_ds_headers": []}
+    if tamper == "advisory":
+        rule["id"] = "CVE-unknown"
+    elif tamper == "package":
+        rule["properties"]["purls"] = ["pkg:deb/debian/gcc-15@other"]
+    elif tamper == "version":
+        evidence["packages"]["libstdc++6:amd64"] = "unknown"
+    elif tamper == "header":
+        evidence["pb_ds_headers"] = ["/usr/include/c++/14/ext/pb_ds/priority_queue.hpp"]
+    elif tamper == "location":
+        result["locations"].append({"physicalLocation": {"artifactLocation": {"uri": "/unknown"}}})
+    elif tamper == "hash":
+        evidence["files"]["/usr/lib/x86_64-linux-gnu/libgcc_s.so.1"] = "invalid"
+    elif tamper == "development":
+        evidence["files"]["/usr/include/c++/header.hpp"] = "a" * 64
+    scan = {"runs": [{"tool": {"driver": {"rules": [rule]}}, "results": [result]}]}
+    if tamper:
+        with pytest.raises(AssertionError):
+            resolve(scan, {"gcc_header_applicability": evidence})
+    else:
+        assert resolve(scan, {"gcc_header_applicability": evidence})[0]["status"] == "NOT_AFFECTED"

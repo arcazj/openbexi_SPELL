@@ -1,4 +1,4 @@
-"""Inspect the exact v0.12 images and running local isolation boundaries."""
+"""Inspect the exact active release images and running local isolation boundaries."""
 from __future__ import annotations
 import argparse
 import json
@@ -27,6 +27,8 @@ def main():
         assert not forbidden, (name, forbidden)
         row = {"image_id": identity["Id"], "user": identity["Config"]["User"], "product_files": len(files), "forbidden_files": []}
         if name in {"backend", "driver"}:
+            code = (Path(__file__).with_name("gcc_header_applicability.py")).read_text()
+            row["gcc_header_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             code = ("import hashlib,json,pathlib,zlib; p=pathlib.Path('/usr/lib/x86_64-linux-gnu/libz.so.1'); "
                     "print(json.dumps({'runtime_version':zlib.ZLIB_RUNTIME_VERSION,'library_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),"
                     "'upstream_commit':pathlib.Path('/usr/local/share/openbexi/zlib-source-commit').read_text().strip()}))")
@@ -37,6 +39,10 @@ def main():
             version = call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", "from backend.version import PRODUCT_VERSION; print(PRODUCT_VERSION)").strip()
             assert version == VERSION
             row["product_version"] = version
+            contract = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c",
+                                      "import json; from backend.synthetic_control import profile; print(json.dumps(profile()))"))
+            assert contract["profile"] == "LOCAL_SYNTHETIC_PROCEDURE_CONTROL"
+            row["control_profile"] = contract
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):

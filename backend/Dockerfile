@@ -32,6 +32,7 @@ COPY compose.yaml /app/compose.yaml
 COPY contracts/v10 /app/contracts/v10
 COPY contracts/v11 /app/contracts/v11
 COPY contracts/v12 /app/contracts/v12
+COPY contracts/v13 /app/contracts/v13
 COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \

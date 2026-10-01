@@ -16,6 +16,7 @@ import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from scripts.gcc_header_applicability import resolve
 
 ROOT = Path(__file__).resolve().parents[1]
 import tomllib
@@ -131,6 +132,7 @@ def verify_captures(directory: Path, config: dict) -> dict:
     audit = json.loads((directory / "npm-audit.json").read_bytes())
     require(audit["metadata"]["vulnerabilities"]["total"] == 0, "Node advisories remain")
     supply = json.loads((directory / "supply-chain.json").read_bytes())
+    probe = json.loads((directory / "image-probe.json").read_bytes())
     require(set(supply["images"]) == {"backend", "driver", "frontend", "proxy"}, "SBOM inventory differs")
     require(len({row["image_id"] for row in supply["images"].values()}) == 4, "image identities are not distinct")
     for component, row in supply["images"].items():
@@ -145,9 +147,10 @@ def verify_captures(directory: Path, config: dict) -> dict:
         require(sha(scan_path.read_bytes()) == row["scan_sha256"], "image scan hash differs")
         scan = json.loads(scan_path.read_bytes())
         rules = scan["runs"][0]["tool"]["driver"]["rules"]
-        require(not any(float(rule["properties"].get("security-severity", "0")) >= 7 for rule in rules), "Critical/High advisory remains")
+        require(row["resolved_findings"] == resolve(scan, probe["images"][component]), "applicability resolution differs")
         disposition = row["lower_severity_disposition"]
-        require(disposition["advisories"] == [rule["id"] for rule in rules] and disposition["review_by"] == "2026-10-30", "advisory disposition differs")
+        require(disposition["advisories"] == [rule["id"] for rule in rules if float(rule["properties"].get("security-severity", "0")) < 7]
+                and disposition["review_by"] == "2026-10-30", "advisory disposition differs")
     probe = json.loads((directory / "image-probe.json").read_bytes())
     require(probe["decision"] == "PASS", "image probes failed")
     require(all(probe["images"][name]["image_id"] == row["image_id"] for name, row in supply["images"].items()), "probed/scanned images differ")
