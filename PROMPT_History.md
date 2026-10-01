@@ -1,5 +1,15 @@
 # Prompt History
 
+## 2026-10-01 - v0.13 Through v0.15 Authorized
+
+The owner requested execution and GitHub publication of the next three roadmap
+releases, interpreted as v0.13.0, v0.14.0 and v0.15.0. With no isolated legacy
+environment supplied, the established local synthetic profile continues.
+The sequence is fenced procedure control, one read-only telemetry adapter
+tranche, and local shadow-pilot readiness. Real-system qualification remains
+separate. The [v0.13 entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Pre-Implementation.md)
+records the first bounded contract; each later version must have its own gate.
+
 ## 2026-09-30 - v0.11.1 And v0.12.0 Accepted
 
 The authorized releases are complete. v0.11.1 restores documentation and adds

@@ -1,0 +1,19 @@
+{
+  "schema_version": "spell.synthetic-control-profile/1",
+  "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+  "context_id": "simulator",
+  "reference_version": "2.4.4",
+  "legacy_protocol_implemented": false,
+  "operational_authorization": false,
+  "commands": {
+    "RUN": "RUN",
+    "STEP": "STEP",
+    "PAUSE": "PAUSE",
+    "ABORT": "ABORT",
+    "RETURN_TO_READ_ONLY": "STOP"
+  },
+  "roles": ["operator", "admin"],
+  "required_proofs": ["operation_id", "source_digest", "execution_revision", "lease_revision", "fencing_token", "actor", "session", "client_instance", "reason"],
+  "maximum_reason_characters": 900,
+  "automatic_replacement_commands": false
+}
