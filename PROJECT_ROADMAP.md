@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Roadmap
 
+## 2026-10-01 - v0.15.0 Accepted
+
+Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.
+The seven suites recorded 3,732 passed executions; all 24 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.14.0 Accepted
 
 Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
@@ -49,10 +59,10 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.14.0 local synthetic baseline |
-| Update type | Record immutable v0.14.0 qualification and acceptance |
+| Document revision | Accepted v0.15.0 local synthetic baseline |
+| Update type | Record immutable v0.15.0 qualification and acceptance |
 | Updated | 2026-10-01 |
-| Accepted product baseline | SPELL v0.14.0, tag object `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad`, release commit `4adec1be10eae1aa4fac0293db47e7bbf692b243` |
+| Accepted product baseline | SPELL v0.15.0, tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
 | v0.4 status | Accepted local-only synthetic non-CUI release; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted at annotated tag `v0.5.0`; Final 1,096 concrete tests, 1,090 passes, six exact approved environment skips, zero failures/errors, four SBOMs, and zero High/Critical findings |
@@ -316,7 +326,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.12 | Read-Only Legacy Observation | Product | Accepted synthetic profile at `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement passed. |
 | v0.13 | Fenced local synthetic procedure control | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.13.0` and committed evidence. |
 | v0.14 | Bounded read-only gettm adapter migration | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.14.0` and committed evidence. |
-| v0.15+ | Parallel Pilot Readiness | Product | Candidate | Progress from read-only shadow to supervised non-commanding pilots; consider commanding only through separate authorization with rapid rollback. | Prior phase acceptance, operational evidence, governance, workload budgets, and explicit pilot authorization. |
+| v0.15 | Local synthetic shadow-pilot readiness | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.15.0` and committed evidence. |
 
 ## Delivered Foundation
 

@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-01 - v0.15.0 Accepted
+
+Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.
+The seven suites recorded 3,732 passed executions; all 24 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.14.0 Accepted
 
 Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
@@ -113,11 +123,11 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.14.0 is the accepted local product baseline for bounded read-only GetTM adapter migration.
-Annotated tag object `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad` peels to release commit
-`4adec1be10eae1aa4fac0293db47e7bbf692b243`. Qualified source `4951cad2d9948135411c1de1a45a840ed1672ef0` has
-fingerprint `e9f486731dde22760b4b2080577d4cc7f812c12bc0aaee0ca6018c689c0dc987`. Package SHA-256:
-`4a617e920f6266928d8c6c98e448cbee8e32f5a71ae12cd41329b9484c69cbaa`. Validate on the clean tagged checkout with
+SPELL v0.15.0 is the accepted local product baseline for local synthetic shadow-pilot readiness.
+Annotated tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef` peels to release commit
+`b7bceaf2489156271c91a939d897d040caeb0be1`. Qualified source `fe33fafd6fdd46ae84d1817aba54131afbb3d6fe` has
+fingerprint `5deba7feda167affc5f2f0777b736ea0975714db936f7b6891eab9d03030aa59`. Package SHA-256:
+`b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b`. Validate on the clean tagged checkout with
 `scripts/release_next.py validate --require-tag`. Subsequent documentation
 closeout does not retarget an immutable release. Earlier accepted tags and
 their version-scoped evidence remain preserved.

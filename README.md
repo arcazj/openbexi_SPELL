@@ -12,12 +12,12 @@ designs; it does not independently replace or weaken the documented behavior.
 Conflicts and deliberate safety-driven deviations require explicit traceability,
 decision, and test evidence.
 
-The accepted **v0.14.0** release provides bounded read-only GetTM adapter migration.
-Its annotated tag passed independent clean-checkout validation: 3,630 test
-executions passed, all 22 environment skips were resolved, and four independent
+The accepted **v0.15.0** release provides local synthetic shadow-pilot readiness.
+Its annotated tag passed independent clean-checkout validation: 3,732 test
+executions passed, all 24 environment skips were resolved, and four independent
 package builds produced identical bytes. Run `scripts/release_next.py validate
 --require-tag` on the clean tagged checkout; later documentation commits have a
-different fingerprint. See the [scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md).
+different fingerprint. See the [scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md).
 Real legacy-system qualification and full SPELL language compatibility remain
 outstanding. The local console is available at `http://127.0.0.1:8080`.
 

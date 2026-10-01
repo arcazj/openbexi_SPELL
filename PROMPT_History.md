@@ -1,5 +1,15 @@
 # Prompt History
 
+## 2026-10-01 - v0.15.0 Accepted
+
+Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.
+The seven suites recorded 3,732 passed executions; all 24 environment
+skips were resolved by complementary PostgreSQL and Compose runs. Four package
+builds across two independent exports produced identical bytes. No exceptions
+were accepted. See [the release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md#accepted-release-binding).
+Real legacy-system qualification, full SPELL 2.4.4 language support and
+operational authorization remain outside this accepted local profile.
+
 ## 2026-10-01 - v0.14.0 Accepted
 
 Annotated `v0.14.0` passed independent clean-tag validation for bounded read-only GetTM adapter migration.
