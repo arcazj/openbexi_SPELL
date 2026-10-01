@@ -1,0 +1,18 @@
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="22.434746999999998">
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T02:26:29.684Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.274" errors="0">
+<testcase name="[chromium] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="7.274">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T02:26:29.684Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.621" errors="0">
+<testcase name="[chromium] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="5.621">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T02:26:29.684Z" hostname="mobile" tests="1" failures="0" skipped="0" time="5.72" errors="0">
+<testcase name="[mobile] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="5.72">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T02:26:29.684Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.652" errors="0">
+<testcase name="[mobile] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.652">
+</testcase>
+</testsuite>
+</testsuites>

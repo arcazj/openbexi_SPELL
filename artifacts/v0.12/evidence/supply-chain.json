@@ -1,0 +1,136 @@
+{
+  "images": {
+    "backend": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:fc2fb548371b64409e39d7550cdad0372877598b0fe87628a96485b47ccc9f7c",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-41991",
+          "CVE-2026-53613",
+          "CVE-2026-53615",
+          "CVE-2005-2541",
+          "CVE-2007-5686",
+          "CVE-2010-0928",
+          "CVE-2010-4756",
+          "CVE-2011-3374",
+          "CVE-2013-4392",
+          "CVE-2017-18018",
+          "CVE-2018-20796",
+          "CVE-2019-1010022",
+          "CVE-2019-1010023",
+          "CVE-2019-1010024",
+          "CVE-2019-1010025",
+          "CVE-2019-9192",
+          "CVE-2021-45346",
+          "CVE-2022-0563",
+          "CVE-2023-31437",
+          "CVE-2023-31438",
+          "CVE-2023-31439",
+          "CVE-2025-14104",
+          "CVE-2025-5278",
+          "CVE-2025-70873",
+          "CVE-2026-102474",
+          "CVE-2026-53612",
+          "CVE-2026-53614",
+          "CVE-2026-53910",
+          "CVE-2026-56391",
+          "CVE-2026-56392",
+          "CVE-2026-34743",
+          "CVE-2026-97399",
+          "CVE-2025-45582",
+          "CVE-2026-27456",
+          "CVE-2026-102473",
+          "CVE-2026-13346",
+          "CVE-2026-13595",
+          "CVE-2026-41992"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "sbom_sha256": "ff250b2269013551bbf46ccc64a31b88052ade021266a5f1c7a1a07533b1ad85",
+      "scan_sha256": "70ee8a17505bf12a5a37f4c0ae6e9fbef2b1afcc6a23ef4dab680251cd7aeac6"
+    },
+    "driver": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:3cc3850f5029dbaa7eed799d9c359c84f1f5828edbbbb676a51af59535496548",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-41991",
+          "CVE-2026-53613",
+          "CVE-2026-53615",
+          "CVE-2005-2541",
+          "CVE-2007-5686",
+          "CVE-2010-0928",
+          "CVE-2010-4756",
+          "CVE-2011-3374",
+          "CVE-2013-4392",
+          "CVE-2017-18018",
+          "CVE-2018-20796",
+          "CVE-2019-1010022",
+          "CVE-2019-1010023",
+          "CVE-2019-1010024",
+          "CVE-2019-1010025",
+          "CVE-2019-9192",
+          "CVE-2021-45346",
+          "CVE-2022-0563",
+          "CVE-2023-31437",
+          "CVE-2023-31438",
+          "CVE-2023-31439",
+          "CVE-2025-14104",
+          "CVE-2025-5278",
+          "CVE-2025-70873",
+          "CVE-2026-102474",
+          "CVE-2026-53612",
+          "CVE-2026-53614",
+          "CVE-2026-53910",
+          "CVE-2026-56391",
+          "CVE-2026-56392",
+          "CVE-2026-34743",
+          "CVE-2026-97399",
+          "CVE-2025-45582",
+          "CVE-2026-27456",
+          "CVE-2026-102473",
+          "CVE-2026-13346",
+          "CVE-2026-13595",
+          "CVE-2026-41992"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "sbom_sha256": "519cabbffe23a5314fa13bc5039084452d59609bfcbad6c158f47e4eaccdf35e",
+      "scan_sha256": "70ee8a17505bf12a5a37f4c0ae6e9fbef2b1afcc6a23ef4dab680251cd7aeac6"
+    },
+    "frontend": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:05e8e6adc0ec5f59d2fa08c3fbbbe47ef03fe03664a5b7fe7150bc8bddd20a48",
+      "lower_severity_disposition": {
+        "advisories": [],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "sbom_sha256": "ab9dda270245976d74c4e389ad3819d3ac2c36747f1002d27c45ddc841b12554",
+      "scan_sha256": "d5792a5052fb157aaf686dec92fd7a5a2d83f524c846c9c4032fc13e820a44df"
+    },
+    "proxy": {
+      "critical": 0,
+      "high": 0,
+      "image_id": "sha256:e2a297b8b0f3382dbe4cf725af6676a054f1ddde2abe2fc3a81317f21da92f6f",
+      "lower_severity_disposition": {
+        "advisories": [
+          "CVE-2026-89162",
+          "CVE-2026-89160",
+          "CVE-2026-89157",
+          "CVE-2025-60876"
+        ],
+        "decision": "Restricted local synthetic environment; monitor vendor fixes and rebuild before broader use.",
+        "review_by": "2026-10-30"
+      },
+      "sbom_sha256": "0a565be68306105592b90a5905cac3fc4970e2a29d0b4a9dbf7a90c531d4176e",
+      "scan_sha256": "0ac25291f5f7d84d99ee5c14e32099b29f3ec14fe8dd27218f6cc9caff20b03d"
+    }
+  },
+  "schema_version": "spell.v12.supply-chain/1"
+}

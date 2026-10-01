@@ -1,0 +1,98 @@
+{
+  "comparison": {
+    "counts": {
+      "DIFFERENT": 0,
+      "EQUIVALENT": 5,
+      "INDETERMINATE": 3,
+      "UNSUPPORTED": 1
+    },
+    "legacy_system_qualified": false,
+    "reference": {
+      "clock": "RECORDED_LOGICAL_TIME",
+      "clock_ns": "10000000000",
+      "digest": "fb70279665ae1dcd7f0a20b6932a114e21a27981165fc361bc9f51d6c23d5fcf",
+      "epoch": "recording-1",
+      "live": false,
+      "mutability": "READ_ONLY",
+      "provenance": "INDEPENDENT_SYNTHETIC_FIXTURE",
+      "reference_version": "2.4.4",
+      "source_id": "reference-244"
+    },
+    "rows": [
+      {
+        "category": "telemetry",
+        "classification": "EQUIVALENT",
+        "differences": [],
+        "item_id": "COUNTER"
+      },
+      {
+        "category": "telemetry",
+        "classification": "INDETERMINATE",
+        "differences": [],
+        "item_id": "MISSING"
+      },
+      {
+        "category": "telemetry",
+        "classification": "EQUIVALENT",
+        "differences": [],
+        "item_id": "MODE"
+      },
+      {
+        "category": "telemetry",
+        "classification": "UNSUPPORTED",
+        "differences": [],
+        "item_id": "OPAQUE"
+      },
+      {
+        "category": "telemetry",
+        "classification": "INDETERMINATE",
+        "differences": [],
+        "item_id": "STALE"
+      },
+      {
+        "category": "telemetry",
+        "classification": "EQUIVALENT",
+        "differences": [],
+        "item_id": "TEMP"
+      },
+      {
+        "category": "telemetry",
+        "classification": "INDETERMINATE",
+        "differences": [],
+        "item_id": "UNKNOWN"
+      },
+      {
+        "category": "resources",
+        "classification": "EQUIVALENT",
+        "differences": [],
+        "item_id": "DECODER"
+      },
+      {
+        "category": "limits",
+        "classification": "EQUIVALENT",
+        "differences": [],
+        "item_id": "TEMP"
+      }
+    ],
+    "schema_version": "spell.v12.compatibility-report/1",
+    "scope": "SYNTHETIC_REPLAY_ONLY",
+    "simulator": {
+      "clock": "RECORDED_LOGICAL_TIME",
+      "clock_ns": "10000000000",
+      "digest": "0874d7a7b87fd128e5d6ca8d55af5a2ae60c5ca125eb0af2103fe9cac7998402",
+      "epoch": "simulator-1",
+      "live": false,
+      "mutability": "READ_ONLY",
+      "provenance": "INDEPENDENT_SYNTHETIC_FIXTURE",
+      "reference_version": "2.4.4",
+      "source_id": "simulator-oracle"
+    }
+  },
+  "decision": "PASS",
+  "maximum_iteration_seconds": 0.04189169999972364,
+  "network_required": false,
+  "repetitions": 48391,
+  "schema_version": "spell.v12.replay-qualification/1",
+  "snapshot_sha256": "f88c7b34f85af234e33aada0a25a96fe24bdc744d750cdc2b68b19c62a313bca",
+  "soak_seconds": 60.0
+}

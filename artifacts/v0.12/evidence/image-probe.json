@@ -1,0 +1,85 @@
+{
+  "decision": "PASS",
+  "images": {
+    "backend": {
+      "forbidden_files": [],
+      "image_id": "sha256:fc2fb548371b64409e39d7550cdad0372877598b0fe87628a96485b47ccc9f7c",
+      "product_files": 198,
+      "product_version": "0.12.0",
+      "user": "10001:10001",
+      "zlib": {
+        "library_sha256": "3ca5d10fcdfda57faf306d14569a8b56431f98df5ae1f2ae2da6a8a3a89c6f18",
+        "runtime_version": "1.3.2.1-motley",
+        "upstream_commit": "df84af25dc1942490e1d1c899a07619152a46148"
+      }
+    },
+    "driver": {
+      "forbidden_files": [],
+      "image_id": "sha256:3cc3850f5029dbaa7eed799d9c359c84f1f5828edbbbb676a51af59535496548",
+      "product_files": 41,
+      "user": "10002:10002",
+      "zlib": {
+        "library_sha256": "3ca5d10fcdfda57faf306d14569a8b56431f98df5ae1f2ae2da6a8a3a89c6f18",
+        "runtime_version": "1.3.2.1-motley",
+        "upstream_commit": "df84af25dc1942490e1d1c899a07619152a46148"
+      }
+    },
+    "frontend": {
+      "forbidden_files": [],
+      "image_id": "sha256:05e8e6adc0ec5f59d2fa08c3fbbbe47ef03fe03664a5b7fe7150bc8bddd20a48",
+      "product_files": 5740,
+      "user": "node"
+    },
+    "proxy": {
+      "forbidden_files": [],
+      "image_id": "sha256:e2a297b8b0f3382dbe4cf725af6676a054f1ddde2abe2fc3a81317f21da92f6f",
+      "product_files": 16,
+      "user": "101:101"
+    }
+  },
+  "services": {
+    "backend": {
+      "image_id": "sha256:fc2fb548371b64409e39d7550cdad0372877598b0fe87628a96485b47ccc9f7c",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "bundle-builder-a": {
+      "image_id": "sha256:fc2fb548371b64409e39d7550cdad0372877598b0fe87628a96485b47ccc9f7c",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "bundle-builder-b": {
+      "image_id": "sha256:fc2fb548371b64409e39d7550cdad0372877598b0fe87628a96485b47ccc9f7c",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    },
+    "postgres": {
+      "image_id": "sha256:05051299d2f4e78de4feb89aa28f735920c619adef1150c2fb5dfb83120966a7",
+      "ports": {},
+      "read_only": false,
+      "running": true
+    },
+    "proxy": {
+      "image_id": "sha256:e2a297b8b0f3382dbe4cf725af6676a054f1ddde2abe2fc3a81317f21da92f6f",
+      "ports": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "8080"
+          }
+        ]
+      },
+      "read_only": true,
+      "running": true
+    },
+    "spell-driver": {
+      "image_id": "sha256:3cc3850f5029dbaa7eed799d9c359c84f1f5828edbbbb676a51af59535496548",
+      "ports": {},
+      "read_only": true,
+      "running": true
+    }
+  }
+}
