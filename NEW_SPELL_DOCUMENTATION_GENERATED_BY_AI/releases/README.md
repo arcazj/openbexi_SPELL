@@ -18,6 +18,7 @@ as `PROJECT_ROADMAP.md`, `VERSION_TIMELINE.md`, `Test_and_Integration.md`, and
 | v0.9 | [Pre-Implementation](SPELL_v0.9_Pre-Implementation.md), [Gate 0B](SPELL_v0.9_Gate_0B.md) | [Release](SPELL_v0.9_Release.md) |
 | v0.10 | Release policy in `contracts/v10/release_policy.json` | [Implementation and accepted release record](SPELL_v0.10_Implementation.md); accepted at `v0.10.0` |
 | v0.11 | [Pre-Implementation](SPELL_v0.11_Pre-Implementation.md), release policy in `contracts/v11/release_policy.json` | [Implementation and accepted release record](SPELL_v0.11_Implementation.md); accepted at `v0.11.0` |
+| v0.11.1 | [Pre-Implementation](SPELL_v0.11.1_Pre-Implementation.md) | [Documentation maintenance](SPELL_v0.11.1_Release.md); runtime remains v0.11.0 |
 
 The accepted release status and immutable tag identities remain authoritative
 in the individual records and in the root `VERSION_TIMELINE.md`. Moving these

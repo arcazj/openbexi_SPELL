@@ -100,6 +100,33 @@ def test_never_versioned_v03_capture_is_not_a_nonportable_link() -> None:
     assert "never versioned" in source
 
 
+@pytest.mark.parametrize("marker", [
+    "\u20268972 tokens truncated\u2026",
+    "... 4269919 bytes omitted ...",
+    "... 1,234 lines truncated ...",
+])
+def test_preview_rejects_truncated_tool_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, marker: str,
+) -> None:
+    (tmp_path / "broken.md").write_text(
+        "# Release record\n\nBefore " + marker + " after.\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(markdown, "tracked_markdown", lambda root: ("broken.md",))
+    with pytest.raises(markdown.MarkdownValidationError, match="truncated tool output"):
+        markdown.validate_markdown(tmp_path)
+
+
+def test_preview_allows_discussion_of_truncation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "guide.md").write_text(
+        "# Diagnostics\n\nReports must reject truncated output and omitted bytes.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(markdown, "tracked_markdown", lambda root: ("guide.md",))
+    assert markdown.validate_markdown(tmp_path).files == 1
+
+
 def test_preview_rejects_a_missing_local_link(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "broken.md").write_text("[missing](no-such-file.md)\n", encoding="utf-8")
     monkeypatch.setattr(markdown, "tracked_markdown", lambda root: ("broken.md",))

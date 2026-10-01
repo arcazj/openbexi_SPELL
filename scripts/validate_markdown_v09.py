@@ -33,6 +33,11 @@ EXPLICIT_HTML_ID = re.compile(
     r"\bid\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s>]+))", re.IGNORECASE
 )
 GITHUB_SLUG_PUNCTUATION = re.compile(r"[^\w\- ]", re.UNICODE)
+TRUNCATED_OUTPUT = re.compile(
+    r"(?:\u2026|\.{3})\s*\d[\d,]*\s+(?:tokens|bytes|lines)\s+"
+    r"(?:truncated|omitted)\s*(?:\u2026|\.{3})",
+    re.IGNORECASE,
+)
 
 
 class MarkdownValidationError(ValueError):
@@ -272,6 +277,10 @@ def validate_markdown(root: Path = ROOT) -> MarkdownReport:
         except UnicodeDecodeError as exc:
             raise MarkdownValidationError(f"tracked Markdown is not strict UTF-8: {relative}") from exc
         _require("\0" not in source, f"tracked Markdown contains NUL: {relative}")
+        _require(
+            TRUNCATED_OUTPUT.search(source) is None,
+            f"Markdown contains truncated tool output: {relative}",
+        )
         _require(_comments_are_closed(source), f"Markdown HTML comments are unbalanced: {relative}")
         _require(
             DANGEROUS_HTML.search(source) is None,
