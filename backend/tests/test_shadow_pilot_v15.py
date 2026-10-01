@@ -3,6 +3,9 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 import copy
 import os
+import json
+import subprocess
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
@@ -165,6 +168,26 @@ def test_restore_rejects_tampered_or_unbounded_evidence(client, operator_headers
     result = client.post(PREFIX + "/restore", headers=admin_headers,
                          json={"operation_id": str(uuid.uuid4()), "reason": "tamper drill", "backup": backup})
     assert result.status_code == 422, result.text
+
+
+def test_restore_validation_remains_enabled_under_python_optimization(client, operator_headers):
+    run, _ = create(client, operator_headers)
+    backup = client.app.state.shadow_pilot.backup(run["id"])
+    backup["payload"]["run"]["operational_authorization"] = True
+    backup["sha256"] = digest(backup["payload"])
+    request = {"operation_id": str(uuid.uuid4()), "reason": "optimized runtime validation", "backup": backup}
+    code = """
+import json,sys
+from backend.shadow_pilot import ShadowPilot, RestoreRequest, PilotError
+try:
+    ShadowPilot(None).restore(RestoreRequest.model_validate(json.load(sys.stdin)), 'reviewer', 'admin')
+except PilotError as exc:
+    if exc.code != 'INVALID_PILOT_BACKUP': raise
+else:
+    raise RuntimeError('invalid backup was accepted')
+"""
+    result = subprocess.run([sys.executable, "-O", "-c", code], input=json.dumps(request), text=True, capture_output=True, timeout=30)
+    assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.parametrize("phase", ["before", "after_report"])

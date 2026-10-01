@@ -39,6 +39,11 @@ class PilotError(ValueError):
         super().__init__(code)
 
 
+def _require_backup(condition):
+    if not condition:
+        raise ValueError("invalid pilot backup")
+
+
 class Plan(BaseModel):
     model_config = ConfigDict(extra="forbid")
     items: list[Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")]] = Field(min_length=1, max_length=8)
@@ -250,56 +255,56 @@ class ShadowPilot:
             raise PilotError("RESTORE_ADMIN_REQUIRED", 403)
         backup = request.backup
         try:
-            assert set(backup) == {"payload", "sha256"} and digest(backup["payload"]) == backup["sha256"]
+            _require_backup(set(backup) == {"payload", "sha256"} and digest(backup["payload"]) == backup["sha256"])
             payload = backup["payload"]
-            assert set(payload) == {"schema_version", "profile", "run"}
-            assert payload["schema_version"] == "spell.shadow-pilot-backup/1" and payload["profile"] == PROFILE
+            _require_backup(set(payload) == {"schema_version", "profile", "run"})
+            _require_backup(payload["schema_version"] == "spell.shadow-pilot-backup/1" and payload["profile"] == PROFILE)
             original = payload["run"]
-            assert set(original) == {"id", "creator", "state", "revision", "report_sha256", "read_only", "route", "local_review_recorded", "operational_authorization", "plan", "report", "origin", "events"}
-            assert original["read_only"] is True and original["operational_authorization"] is False
-            assert str(UUID(original["id"])) == original["id"] and original["id"] != str(request.operation_id)
-            assert type(original["revision"]) is int and 1 <= original["revision"] <= 128
-            assert isinstance(original["creator"], str) and 0 < len(original["creator"]) <= 200
-            assert original["state"] in {"PENDING_REVIEW", "REVIEWED_READ_ONLY", "INCIDENT_READ_ONLY", "ROLLED_BACK_READ_ONLY", "RESTORED_READ_ONLY"}
-            assert original["local_review_recorded"] is (original["state"] == "REVIEWED_READ_ONLY")
-            assert original["route"] == summary(original)["route"]
+            _require_backup(set(original) == {"id", "creator", "state", "revision", "report_sha256", "read_only", "route", "local_review_recorded", "operational_authorization", "plan", "report", "origin", "events"})
+            _require_backup(original["read_only"] is True and original["operational_authorization"] is False)
+            _require_backup(str(UUID(original["id"])) == original["id"] and original["id"] != str(request.operation_id))
+            _require_backup(type(original["revision"]) is int and 1 <= original["revision"] <= 128)
+            _require_backup(isinstance(original["creator"], str) and 0 < len(original["creator"]) <= 200)
+            _require_backup(original["state"] in {"PENDING_REVIEW", "REVIEWED_READ_ONLY", "INCIDENT_READ_ONLY", "ROLLED_BACK_READ_ONLY", "RESTORED_READ_ONLY"})
+            _require_backup(original["local_review_recorded"] is (original["state"] == "REVIEWED_READ_ONLY"))
+            _require_backup(original["route"] == summary(original)["route"])
             plan = Plan.model_validate(original["plan"])
             report = original["report"]
-            assert set(report) == {"schema_version", "profile", "plan", "rows", "comparison_latency_ms", "elapsed_seconds", "budget_passed", "equivalent", "operational_authorization"}
-            assert report["schema_version"] == "spell.shadow-pilot-report/1" and report["profile"] == PROFILE
-            assert type(report["equivalent"]) is bool and type(report["budget_passed"]) is bool
-            assert report["plan"] == plan.model_dump() and report["operational_authorization"] is False
-            assert digest(report) == original["report_sha256"] and report["rows"] == trace(plan, self.sources)
+            _require_backup(set(report) == {"schema_version", "profile", "plan", "rows", "comparison_latency_ms", "elapsed_seconds", "budget_passed", "equivalent", "operational_authorization"})
+            _require_backup(report["schema_version"] == "spell.shadow-pilot-report/1" and report["profile"] == PROFILE)
+            _require_backup(type(report["equivalent"]) is bool and type(report["budget_passed"]) is bool)
+            _require_backup(report["plan"] == plan.model_dump() and report["operational_authorization"] is False)
+            _require_backup(digest(report) == original["report_sha256"] and report["rows"] == trace(plan, self.sources))
             durations = report["comparison_latency_ms"]
-            assert len(durations) == len(report["rows"]) and all(type(v) in {int, float} and math.isfinite(v) and v >= 0 for v in durations)
+            _require_backup(len(durations) == len(report["rows"]) and all(type(v) in {int, float} and math.isfinite(v) and v >= 0 for v in durations))
             elapsed = report["elapsed_seconds"]
-            assert type(elapsed) in {int, float} and math.isfinite(elapsed) and elapsed >= 0
-            assert report["budget_passed"] == (elapsed <= 10 and max(durations) < 500)
-            assert report["equivalent"] == all(row["comparison"]["classification"] == "EQUIVALENT" for row in report["rows"])
+            _require_backup(type(elapsed) in {int, float} and math.isfinite(elapsed) and elapsed >= 0)
+            _require_backup(report["budget_passed"] == (elapsed <= 10 and max(durations) < 500))
+            _require_backup(report["equivalent"] == all(row["comparison"]["classification"] == "EQUIVALENT" for row in report["rows"]))
             history = original["events"]
-            assert type(history) is list and len(history) == original["revision"] and len({str(UUID(e["operation_id"])) for e in history}) == len(history)
-            assert history[0]["action"] in {"CREATE", "RESTORE"} and history[0]["operation_id"] == original["id"]
-            assert history[0]["actor"] == original["creator"]
+            _require_backup(type(history) is list and len(history) == original["revision"] and len({str(UUID(e["operation_id"])) for e in history}) == len(history))
+            _require_backup(history[0]["action"] in {"CREATE", "RESTORE"} and history[0]["operation_id"] == original["id"])
+            _require_backup(history[0]["actor"] == original["creator"])
             for revision, event in enumerate(history, 1):
-                assert set(event) == {"operation_id", "action", "actor", "reason", "result", "created_at"}
-                assert event["action"] in {"CREATE", "REVIEW", "INCIDENT", "ROLLBACK", "RESTORE"}
-                assert isinstance(event["actor"], str) and 0 < len(event["actor"]) <= 200
-                assert isinstance(event["reason"], str) and 0 < len(event["reason"]) <= 900
-                assert event["reason"].strip() and all(character.isprintable() for character in event["reason"])
-                assert str(UUID(event["operation_id"])) == event["operation_id"]
-                assert isinstance(event["created_at"], str) and datetime.fromisoformat(event["created_at"])
+                _require_backup(set(event) == {"operation_id", "action", "actor", "reason", "result", "created_at"})
+                _require_backup(event["action"] in {"CREATE", "REVIEW", "INCIDENT", "ROLLBACK", "RESTORE"})
+                _require_backup(isinstance(event["actor"], str) and 0 < len(event["actor"]) <= 200)
+                _require_backup(isinstance(event["reason"], str) and 0 < len(event["reason"]) <= 900)
+                _require_backup(event["reason"].strip() and all(character.isprintable() for character in event["reason"]))
+                _require_backup(str(UUID(event["operation_id"])) == event["operation_id"])
+                _require_backup(isinstance(event["created_at"], str) and datetime.fromisoformat(event["created_at"]))
                 receipt = event["result"]
-                assert set(receipt) == set(summary(original))
-                assert type(receipt["revision"]) is int and receipt["revision"] == revision
-                assert receipt["id"] == original["id"] and receipt["creator"] == original["creator"]
-                assert receipt["read_only"] is True and receipt["operational_authorization"] is False
-                assert receipt["report_sha256"] == original["report_sha256"]
+                _require_backup(set(receipt) == set(summary(original)))
+                _require_backup(type(receipt["revision"]) is int and receipt["revision"] == revision)
+                _require_backup(receipt["id"] == original["id"] and receipt["creator"] == original["creator"])
+                _require_backup(receipt["read_only"] is True and receipt["operational_authorization"] is False)
+                _require_backup(receipt["report_sha256"] == original["report_sha256"])
                 expected_state = {"CREATE": "PENDING_REVIEW", "REVIEW": "REVIEWED_READ_ONLY", "INCIDENT": "INCIDENT_READ_ONLY",
                                   "ROLLBACK": "ROLLED_BACK_READ_ONLY", "RESTORE": "RESTORED_READ_ONLY"}[event["action"]]
-                assert receipt["state"] == expected_state and receipt["route"] == summary(receipt)["route"]
-                assert receipt["local_review_recorded"] is (expected_state == "REVIEWED_READ_ONLY")
-            assert history[-1]["result"] == summary(original)
-        except (AssertionError, KeyError, TypeError, ValueError, OverflowError, RecursionError) as exc:
+                _require_backup(receipt["state"] == expected_state and receipt["route"] == summary(receipt)["route"])
+                _require_backup(receipt["local_review_recorded"] is (expected_state == "REVIEWED_READ_ONLY"))
+            _require_backup(history[-1]["result"] == summary(original))
+        except (KeyError, TypeError, ValueError, OverflowError, RecursionError) as exc:
             raise PilotError("INVALID_PILOT_BACKUP", 422) from exc
         request_hash = digest({"action": "RESTORE", "actor": actor, "request": request.model_dump(mode="json")})
         with self.factory.begin() as session:
