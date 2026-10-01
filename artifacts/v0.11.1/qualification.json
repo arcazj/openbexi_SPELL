@@ -1,14 +1,14 @@
 {
   "evidence_sha256": {
-    "documentation.xml": "579a1158702072cf8705576c02e6d99006c3bdcc4bdab8df9ccfdf8edc788494",
-    "restoration.json": "7af6ced633dd41b8be7806217697c4c481ef4e433d2c3a3d9adf951067e342ce"
+    "documentation.xml": "c9c03bd275713ea17416ba321256e225703541ac81050e7d3a49b1d64f295ce2",
+    "restoration.json": "c11f7d6d1a13a1e67d53f053e7f3d8df71039fc42bcad1fc8a7da8c5d160bedf"
   },
   "release": "v0.11.1",
   "runtime_commit": "a41be7f5c8472213fa027d7bb94a2389477b1b86",
   "runtime_tag": "v0.11.0",
   "schema": "spell.documentation-release/1",
-  "source_commit": "84cad7a02fe4fb34e2b1efcd058de32cc6930fa4",
-  "source_tree": "a7bbb1ac486498f8c4655cb194271c654300efe4",
+  "source_commit": "27440bf43aa5ee36f60568517f20aaa1a98d22d6",
+  "source_tree": "802e7bbb5571b5c13e767b8d45064fc254e604c9",
   "tests": [
     "scripts.tests.test_documentation_tree_layout::test_generated_and_legacy_documentation_trees_are_separate",
     "scripts.tests.test_documentation_tree_layout::test_project_policy_makes_reference_manuals_mandatory",
