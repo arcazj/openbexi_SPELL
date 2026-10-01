@@ -48,6 +48,11 @@ def main():
                                           "import json; from backend.telemetry_adapter import profile; print(json.dumps(profile()))"))
                 assert contract["profile"] == "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER" and contract["mutability"] == "READ_ONLY"
                 row["telemetry_profile"] = contract
+            if MINOR >= 15:
+                contract = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c",
+                                          "import json; from backend.shadow_pilot import profile; print(json.dumps(profile()))"))
+                assert contract["profile"] == "LOCAL_SYNTHETIC_SHADOW_PILOT" and contract["operational_authorization"] is False
+                row["pilot_profile"] = contract
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):

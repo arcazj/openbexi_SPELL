@@ -36,6 +36,10 @@ all budgets pass. The authenticated creator owns the record; a different
 authenticated administrator may record review. This never changes execution
 leases, driver permissions, telemetry routes or mission authority. Monitoring
 reports counts, budget results, report hashes, state, revision and audit events.
+A 60-second canonical SQLite soak executes at least 16 complete create, review,
+incident, rollback and restore drills, each below 10 seconds. Readback load
+requires 128 reads by eight callers within 30 seconds. These are local
+engineering budgets, not operational SLOs.
 
 Plans and reports are stored in new migration 0010 tables. Each mutation uses
 a UUID and exact request hash, actor and revision. Repeated identical requests

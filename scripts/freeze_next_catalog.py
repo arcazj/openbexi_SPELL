@@ -54,6 +54,11 @@ def main():
     config["candidate_files"] = [f"backend/tests/test_{feature}.py", "scripts/tests/test_release_next.py"]
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(
         (f"backend.tests.test_{feature}::", "scripts.tests.test_release_next::")))
+    if MINOR == 15:
+        postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]
+        require({r["identity"] for r in rows if r["identity"].startswith(f"backend.tests.test_{feature}::") and r["skip"]} == set(postgres_only), "candidate environment inventory differs")
+        config["candidate_deselections"] = [name.replace("backend.tests.test_shadow_pilot_v15", "backend/tests/test_shadow_pilot_v15.py") for name in postgres_only]
+        config["candidate_identities"] = [name for name in config["candidate_identities"] if name not in postgres_only]
     require(len(config["candidate_identities"]) > 17, "feature candidate inventory missing")
     write_json(ROOT / POLICY, config)
     print({name: value["tests"] for name, value in config["gates"].items()})

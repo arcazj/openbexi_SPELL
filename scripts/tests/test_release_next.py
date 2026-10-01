@@ -150,3 +150,21 @@ def test_adapter_soak_rejects_invalid_budget_and_source_proof(tamper):
             release.verify_adapter_soak(report)
     else:
         release.verify_adapter_soak(report)
+
+
+@pytest.mark.parametrize("tamper", [None, "duration", "latency", "event_count", "authority", "source"])
+def test_pilot_soak_recomputes_durable_workload_and_authority(tamper):
+    from backend.legacy_observation_v12 import load_sources
+    report = {"decision": "PASS", "failures": 0, "elapsed_seconds": 60.1, "iterations": 16,
+              "batch_seconds": [0.1] * 16, "runs": 32, "events": 80, "operational_authorization": False,
+              "source_identities": {key: value.identity() for key, value in load_sources().items()}}
+    if tamper == "duration": report["elapsed_seconds"] = 1
+    elif tamper == "latency": report["batch_seconds"][0] = float("nan")
+    elif tamper == "event_count": report["events"] = 79
+    elif tamper == "authority": report["operational_authorization"] = True
+    elif tamper == "source": report["source_identities"]["reference"]["digest"] = "0" * 64
+    if tamper:
+        with pytest.raises(release.ReleaseError):
+            release.verify_pilot_soak(report)
+    else:
+        release.verify_pilot_soak(report)

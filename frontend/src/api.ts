@@ -34,6 +34,7 @@ import type {
 } from "./types";
 import type { ReplayComparison, ReplaySnapshot } from "./components/LegacyObservation";
 import type { AdapterComparison, AdapterOptions, AdapterRead } from "./components/TelemetryAdapter";
+import type { PilotAction, PilotCreate, PilotDetail, PilotRestore, PilotSummary } from "./components/ShadowPilot";
 import type { CompatibilityReceipt, CompatibilityRequest } from "./components/CompatibilityControl";
 
 const API_ROOT = "/api/v1";
@@ -785,6 +786,12 @@ function mutationProof(proof?: ControlProof): JsonObject {
 }
 
 export const api = {
+  pilotList: () => request<{items: PilotSummary[]}>("/shadow-pilot/runs"),
+  pilotGet: (id: string) => request<PilotDetail>(`/shadow-pilot/runs/${encodeURIComponent(id)}`),
+  pilotCreate: (body: PilotCreate) => request<PilotSummary>("/shadow-pilot/runs", {method: "POST", body: JSON.stringify(body)}),
+  pilotAction: (id: string, body: PilotAction) => request<PilotSummary>(`/shadow-pilot/runs/${encodeURIComponent(id)}/actions`, {method: "POST", body: JSON.stringify(body)}),
+  pilotBackup: (id: string) => request<Record<string, unknown>>(`/shadow-pilot/runs/${encodeURIComponent(id)}/backup`),
+  pilotRestore: (body: PilotRestore) => request<PilotSummary>("/shadow-pilot/restore", {method: "POST", body: JSON.stringify(body)}),
   telemetryAdapterCatalog: (source: "reference" | "simulator") => request<{ items: Array<{item_id: string}>; initial_cursor: string }>(`/telemetry-adapter/${source}/catalog`),
   telemetryAdapterRead: (source: "reference" | "simulator", item: string, options: AdapterOptions) =>
     request<AdapterRead>(`/telemetry-adapter/${source}/items/${encodeURIComponent(item)}?${new URLSearchParams(Object.entries(options).map(([key, value]) => [key, String(value)]))}`),

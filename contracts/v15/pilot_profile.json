@@ -1,0 +1,20 @@
+{
+  "schema_version": "spell.shadow-pilot-profile/1",
+  "profile": "LOCAL_SYNTHETIC_SHADOW_PILOT",
+  "environment": "LOCAL_SYNTHETIC_READ_ONLY",
+  "maximum_items": 8,
+  "maximum_repetitions": 4,
+  "maximum_comparisons": 32,
+  "maximum_run_seconds": 10,
+  "maximum_comparison_ms": 500,
+  "maximum_runs": 512,
+  "maximum_events_per_run": 128,
+  "maximum_backup_bytes": 262144,
+  "owner": "AUTHENTICATED_CREATOR",
+  "reviewer": "DIFFERENT_AUTHENTICATED_ADMIN",
+  "restore_state": "RESTORED_READ_ONLY",
+  "incident_route": "SIMULATOR",
+  "operational_authorization": false,
+  "real_pilot_qualified": false,
+  "full_language_compatibility": false
+}

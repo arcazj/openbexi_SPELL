@@ -118,6 +118,17 @@ def verify_adapter_soak(soak: dict) -> None:
     require(soak["sources"] == {key: value.identity() for key, value in load_sources().items()}, "adapter source identities differ")
 
 
+def verify_pilot_soak(soak: dict) -> None:
+    from backend.legacy_observation_v12 import load_sources
+    count, durations = soak["iterations"], soak["batch_seconds"]
+    require(type(count) is int and 16 <= count <= 256 and count == len(durations), "pilot workload differs")
+    require(soak["decision"] == "PASS" and soak["failures"] == 0 and 60 <= soak["elapsed_seconds"] <= 120, "pilot soak failed")
+    require(soak["runs"] == count * 2 and soak["events"] == count * 5, "pilot durable evidence differs")
+    require(soak["operational_authorization"] is False, "pilot authority differs")
+    require(all(type(v) in {int, float} and math.isfinite(v) and 0 < v < 10 for v in durations), "pilot latency budget failed")
+    require(soak["source_identities"] == {key: value.identity() for key, value in load_sources().items()}, "pilot source identities differ")
+
+
 def verify_captures(directory: Path, config: dict) -> dict:
     verify_candidate(config)
     gates = {}
@@ -138,6 +149,8 @@ def verify_captures(directory: Path, config: dict) -> dict:
             "replay oracle differs")
     if MINOR >= 14:
         verify_adapter_soak(json.loads((directory / "adapter-soak.json").read_bytes()))
+    if MINOR >= 15:
+        verify_pilot_soak(json.loads((directory / "pilot-soak.json").read_bytes()))
     audit = json.loads((directory / "python-audit.json").read_bytes())
     require(not any(row.get("vulns") for row in audit["dependencies"]), "Python advisories remain")
     audit = json.loads((directory / "npm-audit.json").read_bytes())
@@ -199,6 +212,8 @@ def record(captures: Path) -> None:
         "image-probe.json", "reference-examples.json", "sbom-validation.json"}
     if MINOR >= 14:
         names.add("adapter-soak.json")
+    if MINOR >= 15:
+        names.add("pilot-soak.json")
     browser = [path for path in (captures / "browser").rglob("*") if path.is_file() and path.suffix in {".png", ".json"}]
     require(sum(path.suffix == ".png" for path in browser) == config["browser_screenshots"], "browser screenshot inventory differs")
     names |= {path.relative_to(captures).as_posix() for path in browser}

@@ -112,7 +112,8 @@ class Producer:
                 f"SPELL_TEST_DATABASE_URL=postgresql+psycopg://spell:{password}@postgres:5432/spell_test\n"
                 f"SPELL_MIGRATION_TEST_DATABASE_URL=postgresql+psycopg://spell:{password}@postgres:5432/spell_migration_test\n").encode())
         elif gate == "candidate":
-            self.run(docker_python("-m", "pytest", *policy()["candidate_files"], "-q", "-p", "no:cacheprovider",
+            deselections = [arg for name in policy().get("candidate_deselections", []) for arg in ("--deselect", name)]
+            self.run(docker_python("-m", "pytest", *policy()["candidate_files"], *deselections, "-q", "-p", "no:cacheprovider",
                                    "--tb=short", "--junitxml=/evidence/candidate.xml"))
         elif gate in {"sqlite", "postgresql", "compose", "documentation", "tooling"}:
             tests = {
@@ -141,6 +142,8 @@ class Producer:
             self.run(docker_python("-m", "scripts.qualify_legacy_observation_v12", "--soak-seconds", "60", "--output", "/evidence/replay.json"))
             if MINOR >= 14:
                 self.run(docker_python("-m", "scripts.qualify_telemetry_adapter_v14", "--output", "/evidence/adapter-soak.json"))
+            if MINOR >= 15:
+                self.run(docker_python("-m", "scripts.qualify_shadow_pilot_v15", "--output", "/evidence/pilot-soak.json"))
         elif gate == "reference-generators":
             self.run(docker_python("-m", "scripts.generate_reference_runner_v10", "--check"))
             self.run(docker_python("-m", "scripts.qualify_reference_examples_v10", "--output", "/evidence/reference-examples.json"))
@@ -152,6 +155,12 @@ class Producer:
             env = dict(os.environ, SPELL_E2E_TOKEN=token, SPELL_REAL_BACKEND="1", SPELL_E2E_BASE_URL="http://127.0.0.1:8080",
                        PLAYWRIGHT_JUNIT_OUTPUT_FILE=str(OUT / "browser.xml"), PLAYWRIGHT_JUNIT_INCLUDE_PROJECT_IN_TEST_NAME="1",
                        SPELL_E2E_OUTPUT_DIRECTORY=str(OUT / "browser"))
+            if MINOR >= 15:
+                reviewer = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
+                    "backend", "python", "/app/scripts/issue_dev_token.py", "--subject", "v015-independent-review-test",
+                    "--role", "admin", "--lifetime", "900"), private=True).decode().strip()
+                require(reviewer.count(".") == 2 and "\n" not in reviewer, "review token issuer output invalid")
+                env["SPELL_E2E_REVIEW_TOKEN"] = reviewer
             node = shutil.which("node")
             self.run([node, "node_modules/@playwright/test/cli.js", "test", "legacy-observation-v12-real.spec.ts",
                       *policy()["feature_browser_specs"], "language-reference-v10-real.spec.ts", "--workers=1", "--reporter=junit"], cwd=ROOT / "frontend", env=env)

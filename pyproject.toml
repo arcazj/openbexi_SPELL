@@ -1,6 +1,6 @@
 [project]
 name = "openbexi-spell"
-version = "0.14.0"
+version = "0.15.0"
 description = "Local synthetic simulator with a durable SPELL operator workspace"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }

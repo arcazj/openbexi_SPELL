@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import select
+from sqlalchemy.exc import DBAPIError
 
 from .auth import AuthConfig, AuthenticationError, authenticate_bearer, decode_token
 from .config import Settings
@@ -84,6 +85,8 @@ from .observation_repository import (
 from .observation_read_service import ObservationReadService
 from .legacy_observation_v12 import ReplayError, compare as compare_replay, load_sources
 from .telemetry_adapter import ComparisonQuery, TMQuery, compare_tm, get_tm as adapter_get_tm, profile as telemetry_profile
+from .shadow_pilot import (ShadowPilot, PilotError, CreateRequest as PilotCreateRequest,
+                           ActionRequest as PilotActionRequest, RestoreRequest as PilotRestoreRequest, profile as pilot_profile)
 from .synthetic_control import CompatibilityCommand, SyntheticControl, profile as control_profile
 from uuid import UUID
 from .observation_service import ObservationRuntime
@@ -297,6 +300,7 @@ def create_app(
     observation_repository = ObservationRepository(session_factory)
     observation_read_service = ObservationReadService()
     legacy_replay_sources = load_sources()
+    shadow_pilot = ShadowPilot(session_factory, legacy_replay_sources)
     observation_runtime = ObservationRuntime(
         observation_repository,
         publisher=lambda _topic, event: hub.publish(OBSERVATION_STREAM, event),
@@ -511,6 +515,7 @@ def create_app(
     app.state.settings = settings
     app.state.engine = engine
     app.state.session_factory = session_factory
+    app.state.shadow_pilot = shadow_pilot
     app.state.catalog = catalog
     app.state.supervisor = supervisor
     app.state.operator_service = operator_service
@@ -2334,6 +2339,42 @@ def create_app(
     @app.get("/api/v1/telemetry-adapter/profile")
     def adapter_profile(_: IdentityDep) -> dict[str, Any]:
         return telemetry_profile()
+
+    def pilot_call(operation, *args):
+        try:
+            return operation(*args)
+        except PilotError as exc:
+            raise HTTPException(status_code=exc.status, detail={"code": exc.code}) from exc
+        except DBAPIError as exc:
+            raise HTTPException(status_code=503, detail={"code": "PILOT_STORAGE_UNAVAILABLE_RETRY_SAME_ID"}) from exc
+
+    @app.get("/api/v1/shadow-pilot/profile")
+    def get_pilot_profile(_: IdentityDep):
+        return pilot_profile()
+
+    @app.get("/api/v1/shadow-pilot/runs")
+    def list_pilot_runs(_: IdentityDep):
+        return pilot_call(shadow_pilot.list)
+
+    @app.post("/api/v1/shadow-pilot/runs", status_code=201)
+    def create_pilot_run(request: PilotCreateRequest, caller: MutationIdentityDep):
+        return pilot_call(shadow_pilot.create, request, caller.actor, caller.role)
+
+    @app.get("/api/v1/shadow-pilot/runs/{run_id}")
+    def get_pilot_run(run_id: UUID, _: IdentityDep):
+        return pilot_call(shadow_pilot.get, str(run_id))
+
+    @app.post("/api/v1/shadow-pilot/runs/{run_id}/actions")
+    def change_pilot_run(run_id: UUID, request: PilotActionRequest, caller: MutationIdentityDep):
+        return pilot_call(shadow_pilot.action, str(run_id), request, caller.actor, caller.role)
+
+    @app.get("/api/v1/shadow-pilot/runs/{run_id}/backup")
+    def backup_pilot_run(run_id: UUID, _: IdentityDep):
+        return pilot_call(shadow_pilot.backup, str(run_id))
+
+    @app.post("/api/v1/shadow-pilot/restore", status_code=201)
+    def restore_pilot_run(request: PilotRestoreRequest, caller: MutationIdentityDep):
+        return pilot_call(shadow_pilot.restore, request, caller.actor, caller.role)
 
     @app.get("/api/v1/telemetry-adapter/comparison/{item_id}")
     def adapter_comparison(item_id: str, _: IdentityDep, query: Annotated[ComparisonQuery, Query()]) -> dict[str, Any]:
