@@ -1,0 +1,26 @@
+<testsuites id="" name="" tests="6" failures="0" skipped="0" errors="0" time="24.728761000000002">
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.092" errors="0">
+<testcase name="[chromium] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="3.092">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.097" errors="0">
+<testcase name="[chromium] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.097">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.26" errors="0">
+<testcase name="[chromium] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.26">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="mobile" tests="1" failures="0" skipped="0" time="3.317" errors="0">
+<testcase name="[mobile] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="3.317">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.081" errors="0">
+<testcase name="[mobile] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.081">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-01T09:02:33.060Z" hostname="mobile" tests="1" failures="0" skipped="0" time="7.347" errors="0">
+<testcase name="[mobile] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.347">
+</testcase>
+</testsuite>
+</testsuites>

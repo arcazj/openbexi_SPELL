@@ -1,0 +1,11 @@
+{
+  "file_count": 730,
+  "package_sha256": "ba415fc5fdda5d9754ae961a7f11255d654927e11bdd767c5c2d5563eb1dad8a",
+  "qualification_sha256": "8c0e39467a0b0759380222b9f9ea218015d6076ec45ef3e03fe88c305109e26c",
+  "release_tag": "v0.13.0",
+  "repeated_builds": 2,
+  "schema_version": "spell.v13.release-manifest/1",
+  "scope": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+  "source_commit": "0f85a4a8efb86edb3625b66c31de9762db0f63c9",
+  "source_fingerprint": "2597f4f7fe4ff19a1c4afea6e95f98dcaf159645de4621a625b1337877d864ef"
+}
