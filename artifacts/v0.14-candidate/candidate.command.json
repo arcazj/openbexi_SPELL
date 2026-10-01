@@ -1,0 +1,33 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v14/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_telemetry_adapter_v14.py",
+        "scripts/tests/test_release_next.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/candidate.xml"
+      ],
+      "gate": "candidate",
+      "returncode": 0,
+      "seconds": 26.557,
+      "source_commit": "b4d847273eb39c978fb8800c61de9ab7ca2a2f87"
+    }
+  ],
+  "source_commit": "b4d847273eb39c978fb8800c61de9ab7ca2a2f87",
+  "source_fingerprint": "e9f486731dde22760b4b2080577d4cc7f812c12bc0aaee0ca6018c689c0dc987"
+}

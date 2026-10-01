@@ -1,0 +1,11 @@
+{
+  "command_sha256": "ee0c462914b1a9e6b2a4467807d800a04422a9a7cc4382c1a06e6d68568e2367",
+  "decision": "PASS",
+  "evidence_sha256": "3abdf6bcb1fa09f133c43902509a0db8ca0e35ba2c20e976a6a6c88abe225a77",
+  "profile": "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER",
+  "release_tag": "v0.14.0",
+  "schema_version": "spell.candidate-gate/1",
+  "source_commit": "b4d847273eb39c978fb8800c61de9ab7ca2a2f87",
+  "source_fingerprint": "e9f486731dde22760b4b2080577d4cc7f812c12bc0aaee0ca6018c689c0dc987",
+  "tests": 68
+}
