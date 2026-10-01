@@ -5,6 +5,7 @@ import copy
 import os
 import time
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import func, insert, inspect, select, update
@@ -109,6 +110,16 @@ def test_operation_retry_conflict_stale_revision_and_service_restart(client, ope
     restarted = ShadowPilot(client.app.state.session_factory)
     assert restarted.get(run["id"])["state"] == "INCIDENT_READ_ONLY"
     assert len(restarted.get(run["id"])["events"]) == 2
+
+
+def test_audit_order_uses_durable_revision_when_wall_clock_moves_backwards(client, operator_headers, monkeypatch):
+    from backend import shadow_pilot
+    run, _ = create(client, operator_headers)
+    monkeypatch.setattr(shadow_pilot, "utc_now", lambda: datetime(2000, 1, 1, tzinfo=timezone.utc))
+    assert act(client, operator_headers, run, "INCIDENT").status_code == 200
+    history = client.app.state.shadow_pilot.get(run["id"])["events"]
+    assert [event["action"] for event in history] == ["CREATE", "INCIDENT"]
+    assert [event["result"]["revision"] for event in history] == [1, 2]
 
 
 def test_backup_restore_preserves_trace_but_never_restores_review(client, operator_headers, admin_headers, viewer_headers):
@@ -225,6 +236,25 @@ def test_bounded_readback_load_preserves_report(client, operator_headers):
         results = list(pool.map(lambda _: service.get(run["id"]), range(128)))
     assert time.monotonic() - started < 30
     assert all(r["report_sha256"] == run["report_sha256"] and r["revision"] == 1 for r in results)
+
+
+def test_concurrent_readback_never_mixes_row_and_audit_revisions(client, operator_headers):
+    run, _ = create(client, operator_headers)
+    service = client.app.state.shadow_pilot
+    def writer():
+        current = run
+        for _ in range(10):
+            current = service.action(run["id"], ActionRequest(operation_id=uuid.uuid4(), reason="snapshot contention",
+                action="INCIDENT", expected_revision=current["revision"]), "pytest-operator", "operator")
+    def reader():
+        for _ in range(128):
+            current = service.get(run["id"])
+            assert current["revision"] == len(current["events"]) == current["events"][-1]["result"]["revision"]
+            assert current["state"] == current["events"][-1]["result"]["state"]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        writes, reads = pool.submit(writer), pool.submit(reader)
+        writes.result(timeout=30)
+        reads.result(timeout=30)
 
 
 def test_migration_is_static_and_repeated_start_preserves_reports(client, operator_headers):

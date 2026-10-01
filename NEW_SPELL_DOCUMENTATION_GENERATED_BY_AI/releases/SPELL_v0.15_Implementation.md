@@ -24,6 +24,9 @@ Migration `0010_shadow_pilot` adds immutable report and operation-ledger tables.
 Fresh/prior/repeated/failed upgrade tests cover SQLite and PostgreSQL. The
 candidate gate executes the network-disabled feature matrix; its two declared
 PostgreSQL-only migration cases execute in the mandatory Final PostgreSQL suite.
+Audit revisions are unique per run and determine event order even when the wall
+clock moves backward. Report and ledger readback use one consistent database
+snapshot so concurrent actions cannot mix revisions in an exported backup.
 
 See [the entry gate](SPELL_v0.15_Pre-Implementation.md) for exact capability,
 capacity and review boundaries. Release acceptance requires committed raw

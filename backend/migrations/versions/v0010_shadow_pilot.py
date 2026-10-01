@@ -1,5 +1,5 @@
 """Immutable local shadow-pilot report and operation ledger schema."""
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, JSON, MetaData, String, Table, inspect, text
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint, inspect, text
 from .v0008_development_environment import _actual_structure, _expected_structure
 
 VERSION = "0010_shadow_pilot"
@@ -17,9 +17,12 @@ events = Table("shadow_pilot_events", metadata,
     Column("operation_id", String(36), primary_key=True),
     Column("run_id", String(36), ForeignKey("shadow_pilot_runs.id"), nullable=False, index=True),
     Column("request_hash", String(64), nullable=False), Column("action", String(16), nullable=False),
+    Column("revision", Integer, nullable=False),
     Column("actor", String(200), nullable=False), Column("reason", String(900), nullable=False),
     Column("result", JSON, nullable=False), Column("created_at", DateTime(timezone=True), nullable=False),
-    CheckConstraint("action IN ('CREATE','REVIEW','INCIDENT','ROLLBACK','RESTORE')", name="ck_shadow_pilot_action"))
+    CheckConstraint("action IN ('CREATE','REVIEW','INCIDENT','ROLLBACK','RESTORE')", name="ck_shadow_pilot_action"),
+    CheckConstraint("revision > 0", name="ck_shadow_pilot_event_revision"),
+    UniqueConstraint("run_id", "revision", name="uq_shadow_pilot_event_revision"))
 NEW_TABLES = (runs, events)
 
 

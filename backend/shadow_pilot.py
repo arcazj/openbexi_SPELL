@@ -162,7 +162,7 @@ class ShadowPilot:
         if session.scalar(select(func.count()).select_from(events).where(events.c.run_id == run_id)) >= 128:
             raise PilotError("PILOT_AUDIT_CAPACITY", 429)
         session.execute(insert(events).values(operation_id=str(request.operation_id), run_id=run_id,
-            action=action, actor=actor, reason=request.reason, request_hash=request_hash, result=result, created_at=utc_now()))
+            action=action, actor=actor, reason=request.reason, request_hash=request_hash, revision=result["revision"], result=result, created_at=utc_now()))
 
     def create(self, request: CreateRequest, actor: str, role: str):
         self._allowed(actor, role)
@@ -216,10 +216,19 @@ class ShadowPilot:
 
     def get(self, run_id: str):
         with self.factory() as session:
+            # Row and ledger must describe one committed revision, including
+            # when another operator commits between the two SELECT statements.
+            connection = session.connection()
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN")
+            elif connection.dialect.name == "postgresql":
+                connection.exec_driver_sql("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+            else:
+                raise PilotError("UNSUPPORTED_PILOT_DATABASE", 503)
             row = session.execute(select(runs).where(runs.c.id == run_id)).mappings().first()
             if row is None:
                 raise PilotError("PILOT_NOT_FOUND", 404)
-            history = session.execute(select(events).where(events.c.run_id == run_id).order_by(events.c.created_at, events.c.operation_id)).mappings().all()
+            history = session.execute(select(events).where(events.c.run_id == run_id).order_by(events.c.revision)).mappings().all()
             return {**summary(row), "plan": row["plan"], "report": row["report"], "origin": row["origin"],
                     "events": [{"operation_id": event["operation_id"], "action": event["action"], "actor": event["actor"],
                                 "reason": event["reason"], "result": event["result"], "created_at": event["created_at"].isoformat()} for event in history]}
