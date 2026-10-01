@@ -126,7 +126,9 @@ def verify_captures(directory: Path, config: dict) -> dict:
         require(row["high"] == 0 and row["critical"] == 0, "image vulnerability gate failed")
         sbom = json.loads((directory / f"{component}.cdx.json").read_bytes())
         require(sbom.get("bomFormat") == "CycloneDX" and len(sbom.get("components", [])) > 0, "invalid SBOM")
-        require(sbom["metadata"]["component"]["version"] == row["image_id"], "SBOM image identity differs")
+        # Syft records the requested Docker config ID as the subject name;
+        # the subject version is the distinct image manifest digest.
+        require(sbom["metadata"]["component"]["name"] == row["image_id"], "SBOM input image identity differs")
         require(sha((directory / f"{component}.cdx.json").read_bytes()) == row["sbom_sha256"], "SBOM hash differs")
         scan_path = directory / f"{component}.sarif.json"
         require(sha(scan_path.read_bytes()) == row["scan_sha256"], "image scan hash differs")
