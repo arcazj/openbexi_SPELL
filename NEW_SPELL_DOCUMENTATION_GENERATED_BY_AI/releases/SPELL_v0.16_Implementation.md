@@ -45,6 +45,11 @@ connection and no operational authorization.
 
 ## Verification
 
+The first candidate passed focused and browser checks, but image auditing found
+`CVE-2026-103111` in proxy PCRE2 10.48. That candidate was not released.
+The proxy now pins PCRE2 10.49; acceptance requires a fresh candidate gate and
+complete qualification of the revised source. No advisory exception is granted.
+
 Qualification will bind one frozen source to exact test identities, raw
 SQLite/PostgreSQL/Compose results, frontend and browser evidence, complete
 language coverage/results, documentation checks, soaks, image/SBOM/audit

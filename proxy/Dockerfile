@@ -29,7 +29,7 @@ RUN apk del --no-network curl libcurl nginx-module-xslt nginx-module-njs \
     nginx-module-image-filter nginx-module-geoip nginx-module-acme \
     && apk add --no-cache --upgrade \
     "libcrypto3=3.5.9-r0" \
-    "libssl3=3.5.9-r0" "pcre2=10.48-r0" "xz-libs=5.8.4-r0"
+    "libssl3=3.5.9-r0" "pcre2=10.49-r0" "xz-libs=5.8.4-r0"
 COPY proxy/nginx.conf /etc/nginx/nginx.conf
 COPY proxy/security_headers.conf /etc/nginx/security_headers.conf
 COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
