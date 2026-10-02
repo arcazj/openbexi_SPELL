@@ -1,0 +1,18 @@
+{
+  "full_language_compatibility_claim": false,
+  "operational_authorization": false,
+  "owner_authorized": true,
+  "predecessor_commit": "e525b9c842e3c26a35058d85fc40bd3ee4b16c85",
+  "release_tag": "v0.18.0",
+  "requirements": [
+    "V18-IR-001",
+    "V18-RUNTIME-001",
+    "V18-RECOVERY-001",
+    "V18-RUNNER-001",
+    "V18-PROCEDURES-001",
+    "V18-DOC-001",
+    "V18-RELEASE-001"
+  ],
+  "schema_version": "spell.v18.entry-gate/1",
+  "scope": "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS"
+}

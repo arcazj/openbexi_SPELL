@@ -1,5 +1,15 @@
 # Prompt History
 
+## 2026-10-02 - v0.18.0 Execution Authorized
+
+The owner requested execution of the native-language/simulator-telecommand
+integration prompt, expansion of `language_reference_244.spell.py` with currently
+supported behavior, and additional testing procedures under `procedures/`.
+The [entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Pre-Implementation.md)
+records the bounded scope, proof, concise documentation, Git push and publication.
+v0.17.0 remains the accepted predecessor until v0.18.0 independently qualifies.
+
+
 ## 2026-10-02 - v0.17.0 Published
 
 Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.
