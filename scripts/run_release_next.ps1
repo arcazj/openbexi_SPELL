@@ -10,10 +10,10 @@ foreach ($tool in $lock.tools) {
   $base = [Environment]::GetEnvironmentVariable($tool.base_directory)
   $path = Join-Path $base $tool.relative_path
   if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $tool.sha256) {
-    throw "v0.13-v0.15 tool hash differs: $($tool.name)"
+    throw "v0.13-v0.16 tool hash differs: $($tool.name)"
   }
   if ($tool.name -ceq 'python') { $python = $path }
 }
 if (-not $python) { throw 'Pinned Python is missing' }
 & $python -I -c 'import runpy,sys; sys.path.insert(0,sys.argv.pop(1)); runpy.run_module(sys.argv.pop(1),run_name=sys.argv.pop(1))' $root $Module __main__ @Arguments
-if ($LASTEXITCODE -ne 0) { throw "v0.13-v0.15 command failed: $Module" }
+if ($LASTEXITCODE -ne 0) { throw "v0.13-v0.16 command failed: $Module" }

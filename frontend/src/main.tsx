@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import App from "./App";
 import { store } from "./store";
 import "./styles.css";
+import "./manualWorkspace.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing application root");

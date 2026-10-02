@@ -125,7 +125,7 @@ function ReportView() {
   );
 }
 
-export function DataDock() {
+export function DataDock({ expanded = true, onToggle }: { expanded?: boolean; onToggle?: () => void } = {}) {
   const dispatch = useAppDispatch();
   const { execution, dockTab } = useAppSelector((state) => state.console);
   if (!execution) return null;
@@ -155,6 +155,7 @@ export function DataDock() {
     const next = tabs[nextIndex];
     if (!next) return;
     dispatch(setDockTab(next.id));
+    if (!expanded) onToggle?.();
     document.getElementById(`dock-tab-${next.id}`)?.focus();
   };
 
@@ -170,7 +171,7 @@ export function DataDock() {
             aria-selected={dockTab === tab.id}
             aria-controls={`dock-${tab.id}`}
             key={tab.id}
-            onClick={() => dispatch(setDockTab(tab.id))}
+            onClick={() => { dispatch(setDockTab(tab.id)); if (!expanded) onToggle?.(); }}
             onKeyDown={(event) => moveTab(event, index)}
             tabIndex={dockTab === tab.id ? 0 : -1}
           >
@@ -178,8 +179,11 @@ export function DataDock() {
           </button>
         ))}
       </div>
+      {onToggle && <button type="button" className="dock-toggle" aria-expanded={expanded}
+        aria-label={expanded ? "Collapse execution data" : "Expand execution data"}
+        title={expanded ? "Collapse execution data" : "Expand execution data"} onClick={onToggle}>{expanded ? "−" : "+"}</button>}
 
-      <div className="dock-content" id={`dock-${dockTab}`} role="tabpanel" aria-labelledby={`dock-tab-${dockTab}`}>
+      <div className="dock-content" id={`dock-${dockTab}`} role="tabpanel" aria-labelledby={`dock-tab-${dockTab}`} hidden={!expanded}>
         {dockTab === "telemetry" && (
           <div className="telemetry-layout">
             <TelemetryChart />

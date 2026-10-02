@@ -1,0 +1,39 @@
+{
+  "schema_version": "spell.v16.gui-profile/1",
+  "profile": "LOCAL_SIMULATOR_MANUAL_WORKSPACE",
+  "reference": {
+    "path": "SPELL_DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf",
+    "sha256": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6",
+    "pages": [6, 7, 8, 9, 10, 11, 14, 17, 18, 19, 21, 24, 25, 26, 27, 28, 29]
+  },
+  "workspace": {
+    "chrome": "Compact System, Procedures, Execution, Help menu and connection status",
+    "navigation": "Left procedure catalog; Enter or double-click opens the selected procedure",
+    "utilities": "Left Outline, Variables and Call stack tabs",
+    "main": "Permanent Master tab and separately selected procedure-instance tabs",
+    "presentation": "Tabular numbered highlighted source with Code, Data and Result columns; Text, As-run and Support log views",
+    "control": "Controller ownership, revision and connection checks retained; command toolbar, bounded keyboard command field and prompt below source",
+    "secondary": "Collapsible execution-data dock and separate Driver foundation, Data services and Development workspaces"
+  },
+  "data_rules": [
+    "Data and Result require an explicit line-correlated event for the selected execution",
+    "Executed-line coverage alone never implies a successful result",
+    "Source is rendered as escaped text and is never evaluated in the browser",
+    "Outline navigation is interlocked while the procedure is running",
+    "Switching instance tabs cannot expose another instance's control panel while its snapshot loads"
+  ],
+  "browser_dispositions": [
+    "Automatic loopback simulator connection replaces the manual listener/context dialog by owner request",
+    "Narrow screens stack navigation and procedure panes and scroll the source table horizontally",
+    "Browser tabs replace native Eclipse detached windows; no native window or docking parity is claimed",
+    "Call stack shows committed parent/current/child procedure relationships, not an arbitrary Python frame inspector",
+    "Typed inspection retains audited edits; unrestricted Python Shell and arbitrary expression evaluation remain excluded",
+    "No real GCS, spacecraft, host memory, domain-family or commanding indicators are fabricated"
+  ],
+  "tests": [
+    "frontend/src/components/ManualWorkspace.test.tsx",
+    "frontend/e2e/manual-workspace-v16-real.spec.ts",
+    "frontend/e2e/operator-workspace.spec.ts"
+  ],
+  "operational_authorization": false
+}

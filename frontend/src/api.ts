@@ -39,6 +39,7 @@ import type { CompatibilityReceipt, CompatibilityRequest } from "./components/Co
 
 const API_ROOT = "/api/v1";
 const ACCESS_TOKEN_KEY = "openbexi.spell.access-token";
+const LOCAL_SESSION_ID_KEY = "openbexi.spell.local-session-token-id";
 const SESSION_ID_KEY = "openbexi.spell.session-id";
 const CLIENT_INSTANCE_KEY = "openbexi.spell.client-instance-key";
 
@@ -65,12 +66,39 @@ export function normalizeAccessToken(token: string): string {
 
 export function setAccessToken(token: string): void {
   const normalized = normalizeAccessToken(token);
+  window.sessionStorage.removeItem(LOCAL_SESSION_ID_KEY);
   window.sessionStorage.setItem(ACCESS_TOKEN_KEY, normalized);
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
 export function clearAccessToken(): void {
   window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.sessionStorage.removeItem(LOCAL_SESSION_ID_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
+
+function tokenId(token: string | null): string | null {
+  try {
+    const segment = token?.split(".")[1];
+    if (!segment) return null;
+    const payload = JSON.parse(atob(segment.replace(/-/g, "+").replace(/_/g, "/"))) as { jti?: unknown };
+    return typeof payload.jti === "string" ? payload.jti : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isSimulatorSession(token = getAccessToken()): boolean {
+  const id = tokenId(token);
+  return Boolean(id && window.sessionStorage.getItem(LOCAL_SESSION_ID_KEY) === id);
+}
+
+export function setSimulatorAccessToken(token: string): void {
+  const normalized = normalizeAccessToken(token);
+  const id = tokenId(normalized);
+  if (!id) throw new Error("Invalid simulator session response.");
+  window.sessionStorage.setItem(ACCESS_TOKEN_KEY, normalized);
+  window.sessionStorage.setItem(LOCAL_SESSION_ID_KEY, id);
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
@@ -204,14 +232,15 @@ export async function authenticateAccessToken(token: string): Promise<string> {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = requestHeaders(init?.headers);
   const response = await fetch(`${API_ROOT}${path}`, {
     ...init,
-    headers: requestHeaders(init?.headers),
+    headers,
   });
 
   const body = (await response.json().catch(() => null)) as unknown;
   if (!response.ok) {
-    if (response.status === 401) clearAccessToken();
+    if (response.status === 401 && headers.get("Authorization") === `Bearer ${getAccessToken()}`) clearAccessToken();
     const detail = typeof body === "object" && body !== null && "detail" in body ? body.detail : null;
     const message = typeof detail === "object" && detail !== null
       ? `${"code" in detail ? `${String(detail.code)}: ` : ""}${"message" in detail ? String(detail.message) : "Request rejected"}`
@@ -248,7 +277,15 @@ function unwrapExecution(
 
 function stepLabel(step: JsonObject): string {
   const type = String(step.type ?? "step");
-  if (type === "log") return `Log: ${String(step.message ?? "message")}`;
+  if (type === "log") {
+    if (typeof step.message === "object" && step.message !== null) {
+      const expression = step.message as JsonObject;
+      if (expression.expr === "variable" && typeof expression.name === "string") return `Log: ${expression.name}`;
+      if (expression.expr === "literal" && ["string", "number", "boolean"].includes(typeof expression.value)) return `Log: ${String(expression.value)}`;
+      return "Log (expression)";
+    }
+    return `Log: ${String(step.message ?? "message")}`;
+  }
   if (type === "telemetry") return `TM: ${String(step.channel ?? "channel")}`;
   if (type === "wait") return `Wait ${String(step.seconds ?? 0)}s`;
   if (type === "prompt") return `Prompt: ${String(step.question ?? "operator")}`;

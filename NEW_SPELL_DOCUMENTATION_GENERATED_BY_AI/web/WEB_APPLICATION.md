@@ -1,5 +1,15 @@
 # Web Application Specification
 
+## v0.16 Workspace
+
+The original GUI User Manual 2.4.4, especially pages 6, 10 and 21, governs the
+compact v0.16 workspace. Navigation/utilities sit beside Master/procedure tabs;
+source Code/Data/Result rows take the main area, with controls, prompts and logs
+below. The owner's automatic local connection replaces the listener dialog.
+See the [operator guide](../../frontend/README.md) and
+[version record](../releases/SPELL_v0.16_Implementation.md) for current behavior
+and qualification. The broader design below remains Draft.
+
 ## Accepted Local Product Profile
 
 As of 2026-10-01, accepted v0.15.0 includes v0.13 fenced procedure controls,

@@ -3,6 +3,14 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## v0.16 Product Documentation - 2026-10-01
+
+- Added current language coverage, manual-workspace and automatic local-access
+  instructions, with release status and evidence in one version record.
+- Shortened the root README and roadmap; historical detail remains available
+  through immutable Git history and version records.
+- Preserved original manuals, prior release evidence and broader Draft status.
+
 ## Product Documentation Alignment - 2026-10-01
 
 - Aligned the documentation map, current product status, release index, and

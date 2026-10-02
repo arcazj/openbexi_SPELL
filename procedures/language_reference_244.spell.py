@@ -1,8 +1,8 @@
 # @procedure language_reference_244
-# @display-name SPELL 2.4.4 reference examples
-# @description Select and execute one of the 195 deterministic semantic adaptations
-# @language-profile spell-lrm244-adapter/0.10
-"""Run one bounded simulator adaptation from the SPELL 2.4.4 reference."""
+# @display-name SPELL 2.4.4 language checks
+# @description Select an adaptation, direct source or rejection check; gaps remain explicit
+# @language-profile spell-lrm244-conformance/0.16
+"""SPELL 2.4.4 coverage: 763 artifacts. Full language support remains incomplete."""
 
 selected_index: int = 0
 example_number: int = 1
@@ -207,11 +207,44 @@ Prompt(
         "Example 193 - compare memory images on limited data ranges",
         "Example 194 - extract memory values",
         "Example 195 - extract TM/TC database values",
+        "Direct - scalar-inference",
+        "Direct - arithmetic",
+        "Direct - boolean-and-comparison",
+        "Direct - short-circuit",
+        "Direct - comments-and-continuation",
+        "Direct - case-sensitive-names",
+        "Direct - conditional",
+        "Direct - bounded-range",
+        "Direct - reverse-range",
+        "Direct - local-function",
+        "Direct - display-default",
+        "Direct - display-positional",
+        "Direct - display-keyword",
+        "Direct - integer-literals",
+        "Direct - runtime-division-error",
+        "Direct - recovery-fresh-run",
+        "Gap check - reject-type-change",
+        "Gap check - reject-branch-declaration",
+        "Gap check - reject-import",
+        "Gap check - reject-while",
+        "Gap check - reject-list",
+        "Gap check - reject-dictionary",
+        "Gap check - reject-function-arguments",
+        "Gap check - reject-exception-syntax",
+        "Gap check - reject-silent-display",
+        "Gap check - reject-display-duplicate",
+        "Gap check - reject-display-invalid-severity",
+        "Gap check - reject-display-missing-text",
+        "Gap check - reject-display-type",
+        "Gap check - reject-severity-shadow",
+        "Gap check - reject-attribute",
+        "Gap check - reject-source-evaluation",
+        "Run all language checks and adaptations; report gaps",
     ],
     list_mode="INDEX",
     default=0,
     target=selected_index,
 )
 example_number = selected_index + 1
-ReferenceExample(example_number, target=result)
+LanguageCheck(selected_index, target=result)
 Log(result)

@@ -74,6 +74,7 @@ from .ir_v11 import (
     validate_ir_v11,
 )
 from .models import Command, Event, Execution, Prompt
+from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
 from .procedure_parser import (
@@ -129,7 +130,7 @@ _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION}
 )
 _V11_PROMPT_INPUT_KINDS = {
     "OK": "FIXED_CHOICE",
@@ -2664,7 +2665,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v11
+                    validate_ir_v16
+                    if ir_version == V16_IR_VERSION
+                    else validate_ir_v11
                     if ir_version == V11_IR_VERSION
                     else validate_ir_v10
                     if ir_version == V10_IR_VERSION

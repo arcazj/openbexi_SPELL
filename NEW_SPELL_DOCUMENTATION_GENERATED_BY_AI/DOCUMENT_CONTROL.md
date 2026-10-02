@@ -27,6 +27,11 @@ increments. See the [release index](releases/README.md) and
 do not approve this broader Draft specification or its Draft GUI manual, and
 do not establish full language compatibility or operational authorization.
 
+The parent v0.16.0 increment is in implementation and qualification under its
+[entry gate](releases/SPELL_v0.16_Pre-Implementation.md). The current operator
+guide is [frontend/README.md](../frontend/README.md); this broader Draft and its
+manual/PDF retain their separate version and approval status.
+
 ## Normative Language
 
 - **Shall** or **shall not** expresses a mandatory, testable requirement.

@@ -1,5 +1,14 @@
 # Verification And Validation Strategy
 
+## v0.16 Application
+
+The [v0.16 gate](../releases/SPELL_v0.16_Pre-Implementation.md) requires complete
+language-inventory reconciliation, real parser/worker cases, manual UI visual
+and browser evidence, and default local-session security/renewal tests. The
+complete inherited qualification still applies. Inventory completeness,
+passing adaptations and expected rejection do not imply full language support.
+Actual results are centralized in the [version record](../releases/SPELL_v0.16_Implementation.md).
+
 ## Purpose
 
 Verification proves that the implementation satisfies the specification.

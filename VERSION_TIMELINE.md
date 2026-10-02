@@ -1,5 +1,14 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-10-01 - v0.16.0 Entry Gate
+
+The owner authorized complete implementation, qualification and publication.
+Entry commit `7ebf580` records eight proof requirements; validation passed for
+all eight mandatory source inputs. The scope is language coverage/direct cases,
+the compact original-manual workspace, automatic local simulator sessions and
+concise current documentation. Product acceptance and duration endpoints remain
+pending. See the [v0.16 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md).
+
 ## 2026-10-01 - v0.15.0 Accepted
 
 Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.

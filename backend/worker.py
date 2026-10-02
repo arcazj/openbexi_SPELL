@@ -50,6 +50,8 @@ from .ir_v11 import (
     validate_ir_v11,
 )
 from .reference_examples_v10 import ReferenceExampleError, execute_reference_example
+from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
+from .language_conformance_v16 import execute_selection
 from .telecommand_runtime_v11 import (
     TelecommandRuntimeError,
     build_item_checkpoint_for_step,
@@ -363,6 +365,7 @@ def worker_main(
 
     try:
         v11_preflight = ir_version == V11_IR_VERSION
+        v16_preflight = ir_version == V16_IR_VERSION
         v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
         v07_preflight = ir_version == V07_IR_VERSION
@@ -372,9 +375,12 @@ def worker_main(
             V08_IR_VERSION,
             V10_IR_VERSION,
             V11_IR_VERSION,
+            V16_IR_VERSION,
         }
         validator = (
-            validate_ir_v11
+            validate_ir_v16
+            if v16_preflight
+            else validate_ir_v11
             if v11_preflight
             else validate_ir_v10
             if v10_preflight
@@ -519,6 +525,7 @@ def worker_main(
         V08_IR_VERSION,
         V10_IR_VERSION,
         V11_IR_VERSION,
+        V16_IR_VERSION,
     }
     file_handle_variables = {
         step["target"]
@@ -1393,6 +1400,13 @@ def worker_main(
                             "Prompt LIST index response changed type"
                         )
                     variables[step["response_target"]] = response
+            elif should_run and step["type"] == "language_check":
+                try:
+                    summary, check_effects = execute_selection(evaluate_expression(step["selection"], variables))
+                except ValueError as exc:
+                    raise ReferenceExampleError("language check did not satisfy its closed oracle") from exc
+                variables[step["target"]] = summary
+                effects.extend(check_effects)
             elif should_run and step["type"] == "reference_example":
                 example_number = evaluate_expression(step["example"], variables)
                 if type(example_number) is not int or not 1 <= example_number <= 195:

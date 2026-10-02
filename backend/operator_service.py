@@ -71,7 +71,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
-_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11"})
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,

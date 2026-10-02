@@ -74,7 +74,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(catalogResponse.status()).toBe(200);
   const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string }> };
   expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244"]);
-  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.10" }));
+  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.16" }));
   await expect(
     page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: catalog.items[0]!.name }),
   ).toBeVisible();
@@ -121,9 +121,9 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(initialGeometry.clientHeight).toBeLessThanOrEqual(380);
   expect(initialGeometry.scrollWidth).toBeLessThanOrEqual(initialGeometry.clientWidth);
 
-  const search = page.getByRole("searchbox", { name: "Filter 195 examples" });
+  const search = page.getByRole("searchbox", { name: "Filter 228 examples" });
   await search.fill("195");
-  await expect(page.getByText("Showing 1 of 195 examples")).toBeVisible();
+  await expect(page.getByText("Showing 1 of 228 examples")).toBeVisible();
   await expect(page.getByRole("button", { name: "Commit response" })).toBeDisabled();
   const example195 = page.getByRole("radio", { name: /Example 195.*extract TM\/TC database values/ });
   await expect(example195).toBeVisible();
@@ -168,7 +168,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
       ".workspace-tabs",
       ".console-layout",
       ".catalog-pane",
-      ".work-region",
+      ".procedure-views",
       ".instance-master",
       ".execution-workspace",
       ".execution-titlebar",
@@ -208,7 +208,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
     page.getByRole("tab", { name: "Execution", exact: true }),
     page.getByRole("tab", { name: "Driver foundation", exact: true }),
     page.getByRole("tab", { name: "Data services", exact: true }),
-    page.getByRole("heading", { name: "Procedures", exact: true }),
+    page.getByRole("heading", { name: "Navigation", exact: true }),
     page.getByRole("button", { name: "Validate source", exact: true }),
     page.getByRole("button", { name: "Start procedure", exact: true }),
     executionWorkspace.getByRole("heading", { name: "Language Reference 244", exact: true }),

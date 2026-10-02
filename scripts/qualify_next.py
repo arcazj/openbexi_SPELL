@@ -1,4 +1,4 @@
-"""Canonical, source-bound v0.13-v0.15 qualification producer (Windows host, Linux Docker)."""
+"""Canonical, source-bound v0.13-v0.16 qualification producer (Windows host, Linux Docker)."""
 from __future__ import annotations
 
 import argparse
@@ -147,6 +147,8 @@ class Producer:
         elif gate == "reference-generators":
             self.run(docker_python("-m", "scripts.generate_reference_runner_v10", "--check"))
             self.run(docker_python("-m", "scripts.qualify_reference_examples_v10", "--output", "/evidence/reference-examples.json"))
+            if MINOR >= 16:
+                self.run(docker_python("-m", "scripts.qualify_language_v16", "--output", "/evidence/language-conformance.json"))
         elif gate == "browser":
             token = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
                 "backend", "python", "/app/scripts/issue_dev_token.py", "--subject", f"v0{MINOR}-browser-qualification",

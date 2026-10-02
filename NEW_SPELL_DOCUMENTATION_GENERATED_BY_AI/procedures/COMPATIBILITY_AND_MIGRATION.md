@@ -1,5 +1,15 @@
 # SPELL Compatibility and Migration
 
+## v0.16 Coverage And Direct Source Tests
+
+The [complete language inventory](../../contracts/v16/language_coverage.json)
+tracks original source artifacts, direct cases, adaptations and gaps. The
+[reference procedure](../../procedures/language_reference_244.spell.py) supports
+individual and complete-suite choices. v0.16 adds bounded inferred scalar
+assignment and Display severity through the existing typed IR. Correct
+unsupported-syntax rejection is test evidence, not language support. See the
+[version record](../releases/SPELL_v0.16_Implementation.md) for qualification.
+
 ## Accepted Local Product Profile
 
 The accepted product baseline is v0.15.0 as of 2026-10-01. Its latest bounded

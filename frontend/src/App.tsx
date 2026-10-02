@@ -1,13 +1,12 @@
 import { AlertCircle, Database, ServerCog, Workflow, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AUTH_CHANGED_EVENT, getAccessToken } from "./api";
-import { AccessTokenGate } from "./components/AccessTokenGate";
+import { useSimulatorSession } from "./useSimulatorSession";
+import { ConsoleMenu } from "./components/ConsoleMenu";
 import { ConsoleHeader } from "./components/ConsoleHeader";
-import { DataDock } from "./components/DataDock";
 import { DataServiceWorkspace } from "./components/DataServiceWorkspace";
 import { DriverProjection } from "./components/DriverProjection";
-import { ExecutionWorkspace } from "./components/ExecutionWorkspace";
-import { InstanceMaster } from "./components/InstanceMaster";
+import { ProcedureViews } from "./components/ProcedureViews";
+import { NavigationUtilities } from "./components/NavigationUtilities";
 import { ProcedureCatalog } from "./components/ProcedureCatalog";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { bootstrap, dismissError } from "./store";
@@ -16,27 +15,22 @@ import { useExecutionStream } from "./useExecutionStream";
 export default function App() {
   const dispatch = useAppDispatch();
   const error = useAppSelector((state) => state.console.error);
-  const [accessToken, setCurrentAccessToken] = useState(() => getAccessToken());
+  const { accessToken, status, error: sessionError, retry } = useSimulatorSession();
   const [activeView, setActiveView] = useState<"execution" | "driver" | "data">("execution");
-  const authenticated = Boolean(accessToken);
   useExecutionStream(accessToken);
-
-  useEffect(() => {
-    const updateAuthentication = () => setCurrentAccessToken(getAccessToken());
-    window.addEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
-  }, []);
 
   useEffect(() => {
     if (accessToken) void dispatch(bootstrap());
   }, [accessToken, dispatch]);
 
-  if (!authenticated) return <AccessTokenGate />;
-
   return (
-    <div className="app-frame">
-      <ConsoleHeader />
+    <div className="app-frame manual-console">
+      <div className="console-chrome"><ConsoleMenu onReconnect={retry} onView={setActiveView} /><ConsoleHeader onReconnect={retry} /></div>
       <div className="status-area">
+        {status !== "connected" && <div className="session-notice" role="status">
+          <span>{status === "connecting" ? "Connecting to OpenBEXI SPELL simulator..." : sessionError ?? "Simulator connection unavailable."}</span>
+          {status !== "connecting" && <button type="button" onClick={retry}>Retry connection</button>}
+        </div>}
         {error && (
           <div className="error-banner" role="alert">
             <AlertCircle aria-hidden="true" size={17} />
@@ -130,12 +124,11 @@ export default function App() {
           role="tabpanel"
           aria-labelledby="workspace-tab-execution"
         >
-          <ProcedureCatalog />
-          <div className="work-region">
-            <InstanceMaster />
-            <ExecutionWorkspace />
-            <DataDock />
+          <div className="navigation-region">
+            <ProcedureCatalog />
+            <NavigationUtilities />
           </div>
+          <ProcedureViews />
         </div>
       ) : activeView === "driver" ? (
         <div

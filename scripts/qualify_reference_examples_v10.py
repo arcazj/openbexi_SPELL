@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from backend.development_analysis import analyze_source
-from backend.procedure_parser import ProcedureCatalog
+from backend.procedure_parser import ProcedureCatalog, language_profile_for_ir
 from backend.reference_examples_v10 import (
     REFERENCE_SOURCE_SHA256,
     ReferenceExampleRegistry,
@@ -59,8 +59,8 @@ def qualify() -> dict[str, object]:
     if len(catalog) != 1 or catalog[0].id != "language_reference_244":
         raise RuntimeError("v0.10 must expose exactly the reference-example runner")
     runner = catalog[0]
-    if runner.ir_version != "0.10":
-        raise RuntimeError("reference-example runner did not compile to IR 0.10")
+    if runner.ir_version not in {"0.10", "0.16"}:
+        raise RuntimeError("reference-example runner did not compile to an accepted reference IR")
     analysis = analyze_source(
         runner.source,
         "language_reference_244.spell.py",
@@ -114,12 +114,12 @@ def qualify() -> dict[str, object]:
                 )
     core: dict[str, object] = {
         "schema_version": "spell.v10.reference-example-qualification/1",
-        "release": "v0.10.0",
+        "release": "v0.16.0" if runner.ir_version == "0.16" else "v0.10.0",
         "authority_sha256": REFERENCE_SOURCE_SHA256,
         "contract_sha256": hashlib.sha256(CONTRACT.read_bytes()).hexdigest(),
         "variant_contract_sha256": hashlib.sha256(VARIANT_CONTRACT.read_bytes()).hexdigest(),
         "runner_sha256": hashlib.sha256(RUNNER.read_bytes()).hexdigest(),
-        "language_profile": "spell-lrm244-adapter/0.10",
+        "language_profile": language_profile_for_ir(runner.ir_version),
         "ir_version": runner.ir_version,
         "execution_mode": "BOUNDED_DETERMINISTIC_SIMULATOR_ADAPTATION",
         "raw_snippet_execution_claim": False,

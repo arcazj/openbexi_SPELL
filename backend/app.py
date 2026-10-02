@@ -28,6 +28,7 @@ from sqlalchemy.exc import DBAPIError
 
 from .auth import AuthConfig, AuthenticationError, authenticate_bearer, decode_token
 from .config import Settings
+from .local_session import install_local_session_api
 from .bundled_observation_catalog import CATALOG_ITEMS, POLICY_ID, POLICY_REVISION
 from .condition_engine import (
     ConditionContractError,
@@ -534,6 +535,7 @@ def create_app(
     app.state.development_service = development_service
     app.state.hub = hub
     app.state.auth_config = auth_config
+    install_local_session_api(app, settings, get_auth_config)
 
     @app.middleware("http")
     async def reject_ambiguous_json(request: Request, call_next):

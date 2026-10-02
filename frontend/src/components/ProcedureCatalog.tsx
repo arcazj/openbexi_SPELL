@@ -85,8 +85,7 @@ export function ProcedureCatalog() {
     <aside className="catalog-pane" aria-labelledby="catalog-title">
       <div className="pane-heading">
         <div>
-          <span className="eyebrow">Simulator workspace</span>
-          <h2 id="catalog-title">Procedures</h2>
+          <h2 id="catalog-title">Navigation</h2>
         </div>
         <span className="count-label">{procedures.length}</span>
       </div>
@@ -118,12 +117,17 @@ export function ProcedureCatalog() {
 
         <div className="procedure-list" role="listbox" aria-label="Procedure catalog">
           {filtered.map((procedure, index) => (
-            <button id={`procedure-option-${index}`} type="button" role="option" aria-selected={procedure.id === selectedProcedureId} className="procedure-row" key={procedure.id} onClick={() => dispatch(setSelectedProcedure(procedure.id))} onKeyDown={(event) => moveSelection(event, index)}>
+            <button id={`procedure-option-${index}`} type="button" role="option" aria-selected={procedure.id === selectedProcedureId} className="procedure-row" key={procedure.id} onClick={() => dispatch(setSelectedProcedure(procedure.id))}
+              onDoubleClick={() => { if (!unavailable) void dispatch(startExecution({ procedureId: procedure.id, contextId })); }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") { event.preventDefault(); if (!unavailable) void dispatch(startExecution({ procedureId: procedure.id, contextId })); }
+                else moveSelection(event, index);
+              }}>
               <FileCode2 aria-hidden="true" size={18} />
               <span><strong>{procedure.name}</strong><small>v{procedure.version} - {procedure.step_count} steps</small></span>
             </button>
           ))}
-          {filtered.length === 0 && <p className="empty-list">No matching procedures</p>}
+          {filtered.length === 0 && <div className="empty-list" role="option" aria-selected="false" aria-disabled="true">No matching procedures</div>}
         </div>
       </div>}
 

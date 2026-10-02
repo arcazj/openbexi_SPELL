@@ -1,9 +1,12 @@
-import { Circle, CircleDot, FileCode2, FileText, ListTree, Play, Search, ShieldAlert, Text, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Circle, CircleDot, FileCode2, FileText, Play, Search, ShieldAlert, Text, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, currentControlProof } from "../api";
 import { useAppDispatch } from "../hooks";
 import { sendExecutionCommand } from "../store";
 import type { ExecutionSnapshot, ExecutionViewEntry, WorkspaceHistoryView, WorkspaceSearchResult, WorkspaceSearchView } from "../types";
+
+import { SOURCE_LINE_EVENT } from "./NavigationUtilities";
+import { HighlightedSource, lineObservations } from "./tabularSource";
 
 type SourceTab = "source" | "text" | "as-run" | "support";
 
@@ -19,6 +22,10 @@ function legacyEntries(value: string | undefined, scope: string, kind: string): 
 
 export function SourceWorkspace({ execution, canMutate }: { execution: ExecutionSnapshot; canMutate: boolean }) {
   const dispatch = useAppDispatch();
+  const codeRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [fontSize, setFontSize] = useState(12);
+  const observations = useMemo(() => lineObservations(execution), [execution.events, execution.id]);
   const [tab, setTab] = useState<SourceTab>("source");
   const [query, setQuery] = useState("");
   const [selectedLine, setSelectedLine] = useState(execution.current_line ?? 1);
@@ -37,14 +44,22 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   const asRunEntries = history.AS_RUN ?? (execution.as_run_entries?.length ? execution.as_run_entries : legacyEntries(execution.as_run_source, "execution", "as-run"));
   const supportEntries = history.SUPPORT;
   const executedLines = useMemo(() => new Set(execution.executed_lines ?? []), [execution.executed_lines]);
-  const outline = execution.outline?.length
-    ? execution.outline
-    : execution.steps.map((step) => ({ id: step.id, label: step.label, line: step.line, depth: 0, kind: "step" as const }));
-
   useEffect(() => setBreakpoints(new Set(execution.breakpoints ?? [])), [execution.breakpoints]);
   useEffect(() => {
-    if (execution.current_line) setSelectedLine(execution.current_line);
-  }, [execution.current_line]);
+    if (!autoScroll || !execution.current_line) return;
+    setSelectedLine(execution.current_line);
+    codeRef.current?.querySelector(`[data-source-line="${execution.current_line}"]`)?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [autoScroll, execution.current_line, tab]);
+  useEffect(() => {
+    const select = (event: Event) => {
+      const detail = (event as CustomEvent<{ executionId: string; line: number }>).detail;
+      if (detail.executionId !== execution.id || !["PAUSED", "INTERRUPTED"].includes(execution.state)) return;
+      setTab("source"); setSelectedLine(detail.line);
+      window.requestAnimationFrame(() => codeRef.current?.querySelector(`[data-source-line="${detail.line}"]`)?.scrollIntoView?.({ block: "nearest", inline: "nearest" }));
+    };
+    window.addEventListener(SOURCE_LINE_EVENT, select);
+    return () => window.removeEventListener(SOURCE_LINE_EVENT, select);
+  }, [execution.id, execution.state]);
 
   useEffect(() => {
     setHistory({});
@@ -183,23 +198,31 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   };
 
   const renderLines = (lines: string[], interactive: boolean, unavailable: string) => lines.length ? (
-    <ol className="source-list operator-source-list" tabIndex={0} aria-label={`Scrollable ${tab} view`}>
-      {lines.map((line, index) => {
-        const lineNumber = index + 1;
-        const active = lineNumber === execution.current_line;
-        const selected = lineNumber === selectedLine;
-        return (
-          <li key={`${lineNumber}-${line}`} aria-label={`Line ${lineNumber}${executedLines.has(lineNumber) ? ", executed" : ""}`} className={`${active ? "current-line" : ""} ${selected ? "selected-line" : ""} ${sourceMatches.has(lineNumber) ? "search-match" : ""} ${executedLines.has(lineNumber) ? "executed-line" : ""}`.trim()} onClick={() => setSelectedLine(lineNumber)}>
-            {interactive ? (
-              <button type="button" className="breakpoint-toggle" aria-label={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint on line ${lineNumber}`} title={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canMutate} onClick={(event) => { event.stopPropagation(); void toggleBreakpoint(lineNumber); }}>
-                {breakpoints.has(lineNumber) ? <CircleDot aria-hidden="true" size={12} /> : <Circle aria-hidden="true" size={12} />}
-              </button>
-            ) : <span />}
-            <span className="line-number">{lineNumber}</span><code>{line || " "}</code>
-          </li>
-        );
-      })}
-    </ol>
+    <div className="tabular-scroll" ref={codeRef} tabIndex={0} aria-label="Scrollable source view" style={{ fontSize }}>
+      <table className="operator-source-table" aria-label="Tabular procedure source">
+        <colgroup><col className="breakpoint-column" /><col className="line-column" /><col className="code-column" /><col className="data-column" /><col className="result-column" /></colgroup>
+        <thead><tr><th><span className="sr-only">Breakpoint</span></th><th>#</th><th>Code</th><th>Data</th><th>Result</th></tr></thead>
+        <tbody>{lines.map((line, index) => {
+          const lineNumber = index + 1;
+          const observation = observations.get(lineNumber);
+          return <tr key={lineNumber} data-source-line={lineNumber}
+            aria-label={`Line ${lineNumber}${executedLines.has(lineNumber) ? ", executed" : ""}`}
+            className={`${lineNumber === execution.current_line ? "current-line" : ""} ${lineNumber === selectedLine ? "selected-line" : ""} ${sourceMatches.has(lineNumber) ? "search-match" : ""} ${executedLines.has(lineNumber) ? "executed-line" : ""}`.trim()}
+            onClick={() => setSelectedLine(lineNumber)}>
+            <td>{interactive && <button type="button" className="breakpoint-toggle"
+              aria-label={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint on line ${lineNumber}`}
+              title={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canMutate}
+              onClick={(event) => { event.stopPropagation(); void toggleBreakpoint(lineNumber); }}>
+              {breakpoints.has(lineNumber) ? <CircleDot aria-hidden="true" size={11} /> : <Circle aria-hidden="true" size={11} />}
+            </button>}</td>
+            <td className="line-number">{lineNumber}</td>
+            <td className="source-text"><code><HighlightedSource text={line || " "} /></code></td>
+            <td className="line-data" title={observation ? `${observation.item} ${observation.value}` : undefined}>{observation && <>{observation.item}{observation.item && observation.value && " = "}{observation.value}</>}</td>
+            <td className="line-result" title={observation?.result}>{observation?.result}</td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
   ) : <div className="source-unavailable" role="status">{unavailable}</div>;
 
   const renderEntries = (entries: ExecutionViewEntry[], matches: Set<string>, label: string, includeCorrelation = false, includeOutcome = false) => entries.length ? (
@@ -212,10 +235,17 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
 
   return (
     <section className="source-workspace" aria-labelledby="source-title">
+      <div className="presentation-indicators">
+        <span>Step: {execution.steps.find((step) => step.id === execution.current_step_id)?.label ?? "(None)"}</span>
+        <label><input type="checkbox" checked={autoScroll} onChange={(event) => setAutoScroll(event.target.checked)} /> Auto-scroll</label>
+        <button type="button" aria-label="Decrease code font" disabled={fontSize <= 10} onClick={() => setFontSize((size) => size - 1)}>-</button>
+        <button type="button" aria-label="Increase code font" disabled={fontSize >= 18} onClick={() => setFontSize((size) => size + 1)}>+</button>
+        <strong>{execution.context_id}</strong>
+      </div>
       <div className="source-toolbar">
         <h2 id="source-title" className="sr-only">Procedure source and execution views</h2>
         <div className="source-tabs" role="tablist" aria-label="Procedure views">
-          <button id="source-tab-source" type="button" role="tab" aria-selected={tab === "source"} aria-controls="source-panel" tabIndex={tab === "source" ? 0 : -1} onKeyDown={(event) => moveTab(event, 0)} onClick={() => setTab("source")}><FileCode2 aria-hidden="true" size={14} /> Source</button>
+          <button id="source-tab-source" type="button" role="tab" aria-selected={tab === "source"} aria-controls="source-panel" tabIndex={tab === "source" ? 0 : -1} onKeyDown={(event) => moveTab(event, 0)} onClick={() => setTab("source")}><FileCode2 aria-hidden="true" size={14} /> Tabular</button>
           <button id="source-tab-text" type="button" role="tab" aria-selected={tab === "text"} aria-controls="source-panel" tabIndex={tab === "text" ? 0 : -1} onKeyDown={(event) => moveTab(event, 1)} onClick={() => setTab("text")}><Text aria-hidden="true" size={14} /> Text</button>
           <button id="source-tab-as-run" type="button" role="tab" aria-selected={tab === "as-run"} aria-controls="source-panel" tabIndex={tab === "as-run" ? 0 : -1} onKeyDown={(event) => moveTab(event, 2)} onClick={() => setTab("as-run")}><FileText aria-hidden="true" size={14} /> As-run</button>
           <button id="source-tab-support" type="button" role="tab" aria-selected={tab === "support"} aria-controls="source-panel" tabIndex={tab === "support" ? 0 : -1} onKeyDown={(event) => moveTab(event, 3)} onClick={() => setTab("support")}><ShieldAlert aria-hidden="true" size={14} /> Support log</button>
@@ -227,14 +257,6 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
       </div>
       {(error || searchError) && <div className="source-error" role="alert">{error ?? searchError}</div>}
       <div className="source-body">
-        <nav className="source-outline" aria-label="Procedure outline">
-          <div className="outline-title"><ListTree aria-hidden="true" size={14} /><strong>Outline</strong></div>
-          {outline.map((item) => (
-            <button type="button" key={item.id} className={item.line === selectedLine ? "selected" : undefined} style={{ paddingLeft: `${8 + item.depth * 12}px` }} onClick={() => setSelectedLine(item.line)} title={item.label}>
-              <span>{item.label}</span><small>{item.line}</small>
-            </button>
-          ))}
-        </nav>
         <div className="source-code" role="tabpanel" id="source-panel" aria-labelledby={`source-tab-${tab}`}>
           {tab === "source" && renderLines(sourceLines, true, "Pinned source is unavailable for this snapshot.")}
           {tab === "text" && renderEntries(hasQuery && searchResult ? searchEntries : textEntries, hasQuery ? matchedEntryIds : new Set(), "Text")}

@@ -44,6 +44,11 @@ def profile() -> dict:
     value = json.loads((Path(__file__).resolve().parents[1] / "contracts/v13/control_profile.json").read_bytes())
     if value["commands"] != OPERATIONS or value["profile"] != PROFILE:
         raise RuntimeError("synthetic control profile differs")
+    extension = json.loads((Path(__file__).resolve().parents[1] / "contracts/v16/control_extension.json").read_bytes())
+    if extension.get("additional_execution_ir_versions") != ["0.16"] or extension.get("new_commands") != [] or extension.get("operational_authorization") is not False:
+        raise RuntimeError("synthetic control extension differs")
+    value["execution_ir_versions"] = [*value["execution_ir_versions"], "0.16"]
+    value["extension_schema"] = extension["schema_version"]
     return value
 
 
@@ -58,7 +63,7 @@ class SyntheticControl:
                 raise OperatorNotFoundError("execution not found")
             if execution.context_id != "simulator":
                 raise OperatorAuthorizationError("synthetic simulator context required")
-            if execution.ir_version not in {"0.6", "0.7", "0.8", "0.10", "0.11"}:
+            if execution.ir_version not in {"0.6", "0.7", "0.8", "0.10", "0.11", "0.16"}:
                 raise OperatorValidationError("a fenced operator execution profile is required")
             return execution
 

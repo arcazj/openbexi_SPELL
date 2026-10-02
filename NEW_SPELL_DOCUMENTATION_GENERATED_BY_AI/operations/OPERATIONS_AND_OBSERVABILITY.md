@@ -1,5 +1,9 @@
 # Operations and Observability
 
+v0.16 adds a compact operator workspace and automatic finite local operator
+sessions; see the [current guide](../../frontend/README.md). The inherited pilot
+report, incident and rollback boundaries below remain unchanged.
+
 ## Accepted Local Product Profile
 
 Accepted v0.15.0 records bounded synthetic shadow comparisons, differential

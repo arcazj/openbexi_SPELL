@@ -1,5 +1,21 @@
 # Test and Integration Plan
 
+## v0.16.0 Qualification
+
+The [entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
+defines eight requirements. Focused work tests the complete language inventory,
+direct parser/worker semantics, runner selection/all-suite behavior, loopback
+session authorization/expiry, and the manual workspace on desktop and mobile.
+Release qualification additionally reruns the complete inherited product suites,
+soaks, image/SBOM/audit checks and independent package builds. Exact identities
+must be collected and frozen before a candidate can qualify.
+
+The canonical producer is `scripts.qualify_next`; the independent validator is
+`scripts.release_next`. Release results are recorded in the
+[v0.16 implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md).
+No planned test is counted as passed. Full language compatibility remains false
+while the complete coverage inventory contains unresolved semantics.
+
 ## 2026-10-01 - Post-v0.15 Documentation Audit
 
 The owner requested confirmation that the documentation and READMEs reflected

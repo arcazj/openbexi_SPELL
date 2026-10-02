@@ -15,7 +15,8 @@ REQUIRED = {
 
 def validate(root: Path = ROOT) -> dict:
     data = json.loads((root / "contracts/v16/entry_gate.json").read_bytes())
-    if (data.get("release_tag") != "v0.16.0" or data.get("owner_authorized") is not True
+    if (data.get("schema_version") != "spell.v16.entry-gate/1"
+            or data.get("release_tag") != "v0.16.0" or data.get("owner_authorized") is not True
             or data.get("scope") != "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"
             or data.get("operational_authorization") is not False
             or data.get("full_language_compatibility_claim") is not False
@@ -30,7 +31,9 @@ def validate(root: Path = ROOT) -> dict:
                    cwd=root, check=True)
     policy = json.loads((root / "contracts/v16/release_policy.json").read_bytes())
     if (policy["release_tag"] != data["release_tag"] or policy["scope"] != data["scope"]
-            or policy["predecessor_commit"] != predecessor):
+            or policy["predecessor_commit"] != predecessor
+            or policy["operational_authorization"] is not False
+            or policy["legacy_system_qualified"] is not False):
         raise ValueError("entry/release policy mismatch")
     previous = json.loads(subprocess.check_output(
         ["git", "show", "v0.15.0:contracts/v15/release_policy.json"], cwd=root))

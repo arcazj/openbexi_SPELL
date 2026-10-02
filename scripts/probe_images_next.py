@@ -53,6 +53,22 @@ def main():
                                           "import json; from backend.shadow_pilot import profile; print(json.dumps(profile()))"))
                 assert contract["profile"] == "LOCAL_SYNTHETIC_SHADOW_PILOT" and contract["operational_authorization"] is False
                 row["pilot_profile"] = contract
+            if MINOR >= 16:
+                code = (
+                    "import json; from pathlib import Path; "
+                    "from backend.procedure_parser import ProcedureCatalog; "
+                    "from backend.language_conformance_v16 import execute_selection, CASES; "
+                    "p=ProcedureCatalog(Path('/app/procedures')).get('language_reference_244'); "
+                    "assert p.ir_version=='0.16' and len(p.steps)==7; "
+                    "summary,effects=execute_selection(195+len(CASES)); r=effects[0]['payload']; "
+                    "assert len(r['cases'])==32 and all(c['passed'] for c in r['cases']); "
+                    "assert len(r['adaptations'])==195 and sum(x['variant_count'] for x in r['adaptations'])==257; "
+                    "assert r['full_compatibility'] is False; "
+                    "print(json.dumps({'ir_version':p.ir_version,'steps':len(p.steps),"
+                    "'direct_and_boundary_cases':len(r['cases']),'adapted_examples':len(r['adaptations']),"
+                    "'adapted_variants':257,'full_compatibility':False,'decision':'PASS'}))"
+                )
+                row["language_runner"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):

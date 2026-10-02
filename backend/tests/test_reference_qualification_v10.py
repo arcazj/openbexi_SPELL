@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -38,7 +39,7 @@ def test_generated_runner_is_current_and_is_the_only_bundled_procedure() -> None
 
     procedures = ProcedureCatalog(ROOT / "procedures").list()
     assert [(item.id, item.ir_version) for item in procedures] == [
-        ("language_reference_244", "0.10")
+        ("language_reference_244", "0.16")
     ]
     assert "0.10" not in SUPPORTED_BUNDLE_IR_SCHEMA_VERSIONS
 
@@ -64,7 +65,9 @@ def test_generated_v10_text_artifacts_are_byte_stable_lf() -> None:
         json.loads(variant_matrix_bytes)
     )
     assert runner_bytes == render().encode("ascii")
-    assert qualification_bytes == encode_qualification(qualify())
+    # Historical v0.10 evidence remains immutable when the bundled runner evolves.
+    assert qualification_bytes == encode_qualification(json.loads(qualification_bytes))
+    assert hashlib.sha256(qualification_bytes).hexdigest() == "14192c9d991b33b502b080539db62a0f0ebfd476d7ee1830c1eb53bfdbd72c74"
     for raw in (matrix_bytes, variant_matrix_bytes, runner_bytes, qualification_bytes):
         assert b"\r" not in raw
         assert raw.endswith(b"\n")
@@ -170,7 +173,12 @@ def test_published_reference_qualification_is_current_and_exact() -> None:
     published = json.loads(DEFAULT_OUTPUT.read_text(encoding="utf-8"))
     expected = qualify()
 
-    assert published == expected
+    assert published["ir_version"] == "0.10"
+    assert expected["ir_version"] == "0.16"
+    changing_runner_fields = {"runner_sha256", "ir_version", "content_binding_sha256", "release", "language_profile"}
+    assert {k: v for k, v in published.items() if k not in changing_runner_fields} == {
+        k: v for k, v in expected.items() if k not in changing_runner_fields
+    }
     assert published["summary"] == {
         "total": 195,
         "passed": 195,

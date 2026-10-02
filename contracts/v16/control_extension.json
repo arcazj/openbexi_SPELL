@@ -1,0 +1,9 @@
+{
+  "schema_version": "spell.v16.control-extension/1",
+  "extends": "contracts/v13/control_profile.json",
+  "additional_execution_ir_versions": ["0.16"],
+  "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+  "operational_authorization": false,
+  "new_commands": [],
+  "unchanged_requirements": "All v0.13 roles, leases, fencing, revisions, source identities and durable outcomes apply."
+}

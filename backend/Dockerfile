@@ -35,6 +35,7 @@ COPY contracts/v12 /app/contracts/v12
 COPY contracts/v13 /app/contracts/v13
 COPY contracts/v14 /app/contracts/v14
 COPY contracts/v15 /app/contracts/v15
+COPY contracts/v16 /app/contracts/v16
 COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \

@@ -165,7 +165,11 @@ describe("v0.6 operator API", () => {
           state: "ACTIVE",
         },
         breakpoints: [9, 17],
-        steps: [{ index: 0, line: 9, type: "startproc", child_reference: "ops/child", lexical_frame_path: ["root", "frame:1:handoff:9:1"], call_boundary_id: "frame:1:handoff:9:1", reachability_id: "frame:1:handoff:9:1:step:0", labels: [{ name: "handoff", frame_id: "root" }] }],
+        steps: [{ index: 0, line: 9, type: "startproc", child_reference: "ops/child", lexical_frame_path: ["root", "frame:1:handoff:9:1"], call_boundary_id: "frame:1:handoff:9:1", reachability_id: "frame:1:handoff:9:1:step:0", labels: [{ name: "handoff", frame_id: "root" }] },
+          { index: 1, line: 10, type: "log", message: { expr: "variable", name: "result" } },
+          { index: 2, line: 11, type: "log", message: { expr: "literal", value: "Done" } },
+          { index: 3, line: 12, type: "log", message: { expr: "binary", operator: "+", left: {}, right: {} } },
+        ],
         text_entries: [{ id: "text-1", sequence: 2, time: "2026-08-15T10:00:01Z", scope: "prompt", kind: "prompt.opened", message: "Select route", line: 9 }],
         as_run_entries: [{ id: "run-1", sequence: 3, time: "2026-08-15T10:00:02Z", scope: "operator", kind: "control.lease_acquired", message: "Control acquired", correlation_id: "correlation-1", outcome: "PAUSED" }],
         executed_line_coverage: { source_digest: "a".repeat(64), lines: [9], through_sequence: 3 },
@@ -189,6 +193,7 @@ describe("v0.6 operator API", () => {
 
     const snapshot = await api.snapshot("execution-1");
     expect(snapshot.state).toBe("SUSPENDED");
+    expect(snapshot.steps.slice(1).map((step) => step.label)).toEqual(["Log: result", "Log: Done", "Log (expression)"]);
     expect(snapshot.revision).toBe(5);
     expect(snapshot.controller_lease?.held_by_current_session).toBe(true);
     expect(snapshot.breakpoints).toEqual([9, 17]);

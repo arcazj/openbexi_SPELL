@@ -12,16 +12,17 @@ from .development_domain import DevelopmentError, canonical_json_bytes, normaliz
 from .procedure_parser import (
     MAX_SOURCE_BYTES,
     V10_LANGUAGE_PROFILE,
+    V16_LANGUAGE_PROFILE,
     ProcedureCatalog,
     ProcedureValidationError,
 )
 
 
-TOOL_VERSION = "spell-development-analysis/0.10"
+TOOL_VERSION = "spell-development-analysis/0.16"
 LANGUAGE_PROFILE = "spell-restricted-ast/0.9"
 REFERENCE_LANGUAGE_PROFILE = V10_LANGUAGE_PROFILE
 SUPPORTED_LANGUAGE_PROFILES = frozenset(
-    {LANGUAGE_PROFILE, REFERENCE_LANGUAGE_PROFILE}
+    {LANGUAGE_PROFILE, REFERENCE_LANGUAGE_PROFILE, V16_LANGUAGE_PROFILE}
 )
 MAX_DIAGNOSTICS_PER_FILE = 1000
 MAX_OUTLINE_ITEMS = 5000

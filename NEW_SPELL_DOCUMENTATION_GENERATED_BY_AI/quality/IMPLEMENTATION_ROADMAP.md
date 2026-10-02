@@ -1,5 +1,13 @@
 # Implementation Roadmap
 
+## Current Local Increment
+
+v0.16.0 implements language coverage/direct cases, the compact original-manual
+workspace and automatic local simulator access. Its
+[entry gate](../releases/SPELL_v0.16_Pre-Implementation.md) and
+[implementation record](../releases/SPELL_v0.16_Implementation.md) control that
+local scope. Broader phases below retain their separate Draft gates.
+
 ## Roadmap Rule
 
 This is a capability and evidence roadmap, not an authorization schedule. A phase

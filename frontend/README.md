@@ -1,115 +1,95 @@
-# SPELL v0.15 Operations Console
+# SPELL v0.16 Console
 
-React and strict TypeScript console for the accepted OpenBEXI SPELL v0.15.0
-local synthetic simulator. It includes procedure execution, Data Service,
-the separate development workspace, and the control, telemetry, and pilot
-workflows described below. The console uses Redux Toolkit, native WebSocket
-reconnect and resynchronization, ECharts, and Lucide icons.
+Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
+simulator. No token entry is needed. If the backend is unavailable, use
+**Retry connection**; **System > Reconnect simulator** refreshes the connection.
+The server retains permissions and finite sessions; the browser renews its local
+operator session automatically.
 
-The [root quick start](../README.md#quick-start) covers the complete local
-stack. The [release index](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md)
-links the accepted scope and evidence for each version. Full SPELL 2.4.4
-language compatibility and real legacy-system qualification remain outstanding.
+The [root quick start](../README.md#quick-start) starts the complete stack.
+[Release records](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md)
+identify qualified scope and evidence. This is a simulator, with explicit
+remaining language gaps and no operational authorization.
+
+## Console Workspace
+
+The layout follows the original GUI User Manual 2.4.4:
+
+- **Navigation** lists procedures. Select one and press **Enter**, double-click,
+  or choose **Start procedure**. **Validate source** checks without starting.
+- **Master** lists execution instances. Open an instance to select its procedure
+  tab; Master remains available beside it.
+- **Tabular** shows numbered source, execution coverage and **Data / Result**.
+  Data and Result appear only for explicitly correlated notifications;
+  line coverage alone is not success. **Text**, **As-run** and **Support log**
+  show committed messages and history.
+- **Outline**, **Variables** and **Call stack** occupy the left utility area.
+  Outline selects a source line while paused. Variables links to audited typed
+  inspection. Call stack shows committed procedure relationships.
+- Execution controls and any input prompt appear below source. Controller
+  ownership and connection checks remain enforced. Read-only monitors cannot
+  command or answer prompts. **Enter command** accepts the listed control names;
+  it uses the same button checks and abort confirmation, without evaluating code.
+- Click **Telemetry**, **Events**, **Logs**, **Inspect**, **Schedules**,
+  **Actions**, **Relations** or **As-run** to expand the lower dock. Its **-**
+  button collapses it. **Procedure flow** is an optional disclosure.
+- Use arrow keys, Home and End within view tabs; Escape closes application menus.
+
+**System** opens Data services, Driver foundation and the separate
+[development workspace](http://127.0.0.1:8080/development.html). **Procedures**
+opens or validates a selection and refreshes the catalog. **Execution** returns
+to controls or opens prompt settings.
+
+Browser differences are recorded in the [UI profile](../contracts/v16/ui_profile.json):
+panes stack on narrow screens, native detached windows are unavailable, and the
+unrestricted legacy Python Shell remains excluded. Original manuals are unchanged.
+
+## Compatibility Control
+
+Expand **Compatibility control** for the selected execution. Supply a reason,
+then use a supported action or **Return to read-only**. A stop request is complete
+only after its recorded result confirms it. For an uncertain response, use
+**Refresh operation** or **Retry same operation** with the retained identity.
+See the [control profile](../contracts/v13/control_profile.json).
+
+## Telemetry Adapter
+
+Under **Driver foundation > Telemetry adapter**, select Reference capture or
+Simulator fallback, an item and RAW/ENG. **Read current**, **Read next recorded
+sample** and **Compare both sources** operate on bounded recorded data.
+Waiting uses a logical recorded clock. Fallback is explicit, and non-good values
+are not treated as equivalent valid telemetry.
+See the [telemetry profile](../contracts/v14/telemetry_profile.json).
+
+## Shadow Pilot Readiness
+
+Under **Driver foundation > Shadow pilot readiness**, enter catalog items,
+repetitions and a reason, then **Run read-only shadow**. Inspect the comparison
+trace and audit. **Record incident** and **Roll back to simulator** retain history.
+A different administrator is required for independent review; the default local
+operator cannot grant themselves that role.
+
+**Prepare backup** exports a pilot report. An administrator may **Restore as
+read-only** from at most 256 KiB of JSON. Restores create a new read-only report;
+review and authority are not restored. This does not restore the whole database.
+For an uncertain run, use **Read recorded pilot run** or **Retry same pilot
+request**. See the [pilot profile](../contracts/v15/pilot_profile.json).
 
 ## Local Access And Development
 
-The normal deployment is built and served by the loopback reverse proxy at
-`http://127.0.0.1:8080`. The development workspace is at
-`http://127.0.0.1:8080/development.html`; it provides project resources,
-semantic checks, history, immutable bundles, review, and simulator promotion.
-
-For frontend development, run these commands from `frontend/`:
+Run these commands from `frontend/` with the pinned release toolchain:
 
 ```powershell
 npm ci
 npm run dev -- --host 127.0.0.1
 ```
 
-Vite serves `http://127.0.0.1:5173` and proxies `/api` and WebSocket traffic to
-the Compose proxy. Use the repository's pinned toolchain for release work.
-
-Generate a short-lived signed token using the root quick start, then enter it
-in the session-access form. The token is held in browser session storage and
-is not compiled into the frontend. The server rechecks JWT expiry after a
-WebSocket is established and closes an expired connection with code `4401`.
-Logout closes the socket and erases the token; a `4401` close also erases it
-and returns the console to session access.
-
-## Compatibility Control
-
-The v0.13 **Compatibility control** panel acts on the selected execution using
-the existing controller lease. An operator or administrator supplies a reason
-for a supported control action. The server checks the execution revision,
-lease revision, fencing token, actor, and stable operation identity.
-
-Use **Return to read-only** to request a stop and inspect the recorded outcome.
-A pending rollback is not complete until the execution reaches its confirmed
-stop state. If a response is lost, use **Refresh operation** or **Retry same
-operation** to resolve the original operation; do not assume that a missing
-response means no action occurred. The panel controls only the bounded
-simulator procedure profile.
-
-The [v0.13 implementation record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md)
-and [control profile](../contracts/v13/control_profile.json) define the supported
-commands, IR versions, and failure cases.
-
-## Telemetry Adapter
-
-Open **Driver foundation** and use **Telemetry adapter**:
-
-1. Choose **Reference capture** (`reference`) or **Simulator fallback**
-   (`simulator`), an item, and `RAW` or `ENG` format. Enable **Extended metadata**
-   when quality and source details are needed.
-2. Use **Read current** for the current recorded value, or **Read next recorded
-   sample** to advance from the recorded cursor. Waiting uses the logical
-   recorded clock within the adapter timeout; it is not a live telemetry feed.
-3. Use **Compare both sources** to inspect classification, quality, and values.
-   A non-good sample is not treated as an equivalent valid value.
-4. Select **Simulator fallback** explicitly when falling back, and use
-   **Refresh adapter catalog** to refresh available items.
-
-This v0.14 profile provides authenticated, read-only `GetTM` access. Unsupported
-modifiers are rejected, and each request selects its source explicitly. See
-the [telemetry profile](../contracts/v14/telemetry_profile.json) and
-[v0.14 release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md).
-
-## Shadow Pilot Readiness
-
-Under **Driver foundation**, the v0.15 **Shadow pilot readiness** panel records
-local comparisons and recovery evidence:
-
-1. As an operator or administrator, enter one to eight unique catalog item
-   names separated by commas, one to four repetitions, a value format, and a
-   reason. Select **Run read-only shadow**. The available catalog can contain
-   fewer than eight items.
-2. Inspect **Recent shadow runs** and **Differential trace and audit**. Use
-   **Refresh shadow reports** to obtain current server state.
-3. A different administrator can **Record independent review** only when all
-   comparisons are equivalent and within the declared budgets. The creator
-   cannot review their own run. Review records local readiness; it grants no
-   operational authority.
-4. The owner or an administrator can **Record incident** and **Roll back to
-   simulator**. A new run is needed to establish readiness after rollback.
-5. Use **Prepare backup** for the selected report. In **Backup and restore
-   drill**, an administrator can paste the backup JSON and **Restore as
-   read-only**. The input limit is 256 KiB. The restored report is a new
-   `RESTORED_READ_ONLY` record; prior review and authority are not restored.
-   Imported history is untrusted provenance, and the digest checks integrity
-   rather than authenticating its author.
-
-If a run response is uncertain, use **Read recorded pilot run** or **Retry same
-pilot request**. The exact pending request identity survives a page reload in
-session storage, allowing a retry without creating a replacement request.
-
-All pilot reports remain read-only. This backup workflow covers pilot reports;
-it does not restore the complete database or qualify disaster recovery. The
-[pilot profile](../contracts/v15/pilot_profile.json) and
-[v0.15 implementation record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
-define roles, bounds, state transitions, and the accepted local scope.
+Vite uses port 5173 and proxies APIs to port 8080. Automatic session bootstrap is
+restricted to the published proxy origin; use port 8080 for the normal workflow.
+Vite integration tests need a privately supplied short-lived signed credential.
+Never place credentials in source, screenshots, reports or frontend builds.
 
 ## Frontend Verification
-
-Run from `frontend/`:
 
 ```powershell
 npm test
@@ -117,18 +97,10 @@ npm run build
 npm run test:e2e
 ```
 
-The mocked browser suite runs without a backend. Real integration requires a
-fresh local Compose stack, `SPELL_REAL_BACKEND=1`, `SPELL_E2E_BASE_URL` set to
-its loopback proxy URL, and `SPELL_E2E_TOKEN` containing a valid signed operator
-or administrator JWT. The v0.15 pilot test also requires
-`SPELL_E2E_REVIEW_TOKEN`, a valid administrator JWT for a different subject.
-Supply these credentials privately; do not commit them or place them in test
-evidence. The canonical qualification producer issues short-lived test
-identities for these roles.
-
-Accepted v0.15 evidence includes 128 frontend tests and 10 real-browser cases
-across desktop and mobile projects, including keyboard and accessibility
-checks. Frontend checks alone do not qualify a release. Use the
-[root release qualification instructions](../README.md#release-qualification)
-and the clean annotated tag for complete validation. Historical v0.4-v0.12
-tools and evidence remain specific to those releases.
+Mocked browser tests run without a backend. Real cases require
+`SPELL_REAL_BACKEND=1` and `SPELL_E2E_BASE_URL` pointing to a fresh local stack.
+The v0.16 manual/session cases exercise automatic connection. Historical feature
+cases use private `SPELL_E2E_TOKEN`; pilot review also needs a different
+administrator's `SPELL_E2E_REVIEW_TOKEN`. The canonical producer supplies those
+identities. See [release qualification](../README.md#release-qualification)
+for complete source-bound checks; frontend tests alone do not qualify a release.

@@ -32,6 +32,7 @@ import { PromptPanel } from "./PromptPanel";
 import { SourceWorkspace } from "./SourceWorkspace";
 import { ValidationPanel } from "./ValidationPanel";
 import { CompatibilityControl } from "./CompatibilityControl";
+import { CommandEntry } from "./CommandEntry";
 
 const TERMINAL_STATES = new Set(["ABORTED", "FAILED", "COMPLETED", "FINISHED", "ERROR"]);
 const ABORT_ALLOWED_STATES = new Set(["REQUESTED", "VALIDATING", "ADMISSION_PENDING", "LOADING", "PAUSED", "RUNNING", "WAITING", "PROMPT", "PROMPTING", "INTERRUPTED", "SUSPENDED", "RECOVERING"]);
@@ -456,10 +457,11 @@ function AbortDialog({ execution }: { execution: ExecutionSnapshot }) {
   );
 }
 
-export function ExecutionWorkspace() {
+export function ExecutionWorkspace({ showValidation = true }: { showValidation?: boolean } = {}) {
   const dispatch = useAppDispatch();
   const { execution, connection, pendingAction, validation } = useAppSelector((state) => state.console);
   const [gotoLine, setGotoLine] = useState(1);
+  const commandToolbar = useRef<HTMLDivElement>(null);
   const canControl = useActiveControlLease(execution);
 
   useEffect(() => {
@@ -532,7 +534,9 @@ export function ExecutionWorkspace() {
       <CompatibilityControl key={execution.id} execution={execution} connected={!stale}
         onRefresh={() => { void dispatch(resyncExecution(execution.id)); void dispatch(refreshMaster()); }} />
 
-      <div className="command-toolbar" aria-label="Execution controls">
+      {showValidation && <ValidationPanel />}
+      <SourceWorkspace execution={execution} canMutate={!commandDisabled} />
+      <div className="command-toolbar" aria-label="Execution controls" ref={commandToolbar}>
         <CommandButton
           icon={<Play aria-hidden="true" size={15} fill="currentColor" />}
           label="Run"
@@ -612,8 +616,6 @@ export function ExecutionWorkspace() {
         </button>
       </div>
 
-      <ValidationPanel />
-
       {stale && (
         <div className="stale-interlock" role="alert">
           <AlertOctagon aria-hidden="true" size={17} />
@@ -622,10 +624,11 @@ export function ExecutionWorkspace() {
         </div>
       )}
 
-      {execution.active_prompt && <PromptPanel prompt={execution.active_prompt} />}
+      {execution.active_prompt ? <PromptPanel prompt={execution.active_prompt} /> : <CommandEntry key={execution.id} toolbar={commandToolbar} disabled={commandDisabled} />}
 
-      <ProcedureFlow steps={execution.steps} currentStepId={execution.current_step_id} />
-      <SourceWorkspace execution={execution} canMutate={!commandDisabled} />
+      <details className="flow-disclosure"><summary>Procedure flow</summary>
+        <ProcedureFlow steps={execution.steps} currentStepId={execution.current_step_id} />
+      </details>
     </main>
   );
 }

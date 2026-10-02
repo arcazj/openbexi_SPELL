@@ -463,14 +463,18 @@ async function assertNoPageOverflow(page: Page) {
   expect({ scrollX: geometry.scrollX, scrollY: geometry.scrollY }).toEqual({ scrollX: 0, scrollY: 0 });
 }
 
-test("authenticates the signed JWT before opening the development shell", async ({ page }) => {
+test("opens the development shell with an automatically established local session", async ({ page }) => {
   await installApi(page);
+  const expires = Math.floor(Date.now() / 1000) + 300;
+  const localToken = `header.${Buffer.from(JSON.stringify({ sub: "operator", role: "operator", jti: "development-local", exp: expires })).toString("base64url")}.signature`;
+  await page.route("**/api/v1/local-session", (route) => route.fulfill({ contentType: "application/json",
+    body: JSON.stringify({ access_token: localToken, token_type: "Bearer", role: "operator",
+      expires_at: expires, mode: "simulator-only", operational_use: false }) }));
   await page.goto("/development.html");
-  await page.getByLabel("Signed JWT").fill(`  Bearer ${operatorToken}  `);
-  await page.getByRole("button", { name: "Connect" }).click();
+  await expect(page.getByLabel("Signed JWT")).toHaveCount(0);
   await expect(page.getByText("Development environment")).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Project" })).toHaveValue("project-1");
-  await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("openbexi.spell.access-token"))).toBe(operatorToken);
+  await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("openbexi.spell.access-token"))).toBe(localToken);
 });
 
 test("supports rectangular editing and remains accessible and contained", async ({ page }, testInfo) => {

@@ -50,16 +50,20 @@ def main():
         visit(suite)
     require(len(identities) == len(set(identities)) == config["browser_screenshots"], "browser catalog differs")
     config["gates"]["browser"] = {"tests": len(identities), "identities": sorted(identities), "skipped": []}
-    feature = {13: "synthetic_control_v13", 14: "telemetry_adapter_v14", 15: "shadow_pilot_v15"}[MINOR]
-    config["candidate_files"] = [f"backend/tests/test_{feature}.py", "scripts/tests/test_release_next.py"]
-    config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(
-        (f"backend.tests.test_{feature}::", "scripts.tests.test_release_next::")))
+    features = {13: ["synthetic_control_v13"], 14: ["telemetry_adapter_v14"],
+                15: ["shadow_pilot_v15"], 16: ["language_conformance_v16", "local_session_v16"]}[MINOR]
+    config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
+    prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
+    config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))
     if MINOR == 15:
         postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]
-        require({r["identity"] for r in rows if r["identity"].startswith(f"backend.tests.test_{feature}::") and r["skip"]} == set(postgres_only), "candidate environment inventory differs")
+        require({r["identity"] for r in rows if r["identity"].startswith("backend.tests.test_shadow_pilot_v15::") and r["skip"]} == set(postgres_only), "candidate environment inventory differs")
         config["candidate_deselections"] = [name.replace("backend.tests.test_shadow_pilot_v15", "backend/tests/test_shadow_pilot_v15.py") for name in postgres_only]
         config["candidate_identities"] = [name for name in config["candidate_identities"] if name not in postgres_only]
     require(len(config["candidate_identities"]) > 17, "feature candidate inventory missing")
+    if MINOR >= 16:
+        require(not any(r["skip"] for r in rows if r["identity"].startswith(prefixes)), "candidate contains an unresolved environment skip")
+        config["catalog_frozen"] = True
     write_json(ROOT / POLICY, config)
     print({name: value["tests"] for name, value in config["gates"].items()})
     print("Candidate cases:", len(config["candidate_identities"]))

@@ -161,7 +161,7 @@ def test_v03_rejects_unsafe_or_unbounded_constructs(
     "source",
     [
         "import os\nLog('x')\n",
-        "value = 3\nLog('x')\n",
+        "value = [3]\nLog('x')\n",
         "Log(str(3))\n",
         "open('unsafe')\n",
         "Log('x', unexpected=True)\n",

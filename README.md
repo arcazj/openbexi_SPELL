@@ -1,455 +1,169 @@
 # OpenBEXI SPELL
 
-OpenBEXI SPELL is a local, simulator-only environment for developing,
-validating, and executing bounded satellite procedures. It combines a FastAPI
-control plane, isolated procedure workers, PostgreSQL persistence, a React and
-TypeScript operator console, and deterministic simulator services.
+OpenBEXI SPELL is a local simulator for developing and executing bounded
+satellite procedures, with a Python control plane, isolated workers,
+PostgreSQL storage and a compact web operator workspace.
+
+This checkout targets **v0.16.0**: language coverage, a GUI-manual workspace
+and automatic local simulator access. Release qualification is in progress;
+[v0.15.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
+remains the accepted predecessor. See the
+[v0.16 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md)
+for the exact scope and evidence.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
-future SPELL planning, coding, testing, and delivery. The AI-generated
-documentation translates those sources into controlled modern requirements and
-designs; it does not independently replace or weaken the documented behavior.
-Conflicts and deliberate safety-driven deviations require explicit traceability,
-decision, and test evidence.
-
-The accepted **v0.15.0** release provides local synthetic shadow-pilot readiness.
-Its annotated tag passed independent clean-checkout validation: 3,732 test
-executions passed, all 24 environment skips were resolved, and four independent
-package builds produced identical bytes. Run `scripts/release_next.py validate
---require-tag` on the clean tagged checkout; later documentation commits have a
-different fingerprint. See the [scope and verification record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md).
-Real legacy-system qualification and full SPELL language compatibility remain
-outstanding. The local console is available at `http://127.0.0.1:8080`.
-
-The historical telecommand foundation is **v0.11.0** at annotated tag
-`v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`,
-which peels to release commit
-`a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its accepted predecessor is
-**v0.10.0**. v0.11 qualification, deterministic packaging, release-evidence
-validation, and strict annotated-tag validation passed with no accepted
-exceptions.
-
-> **Safety boundary:** this repository does not provide a live Ground Control
-> System (GCS) connection, spacecraft command path, production deployment
-> approval, or compliance determination. Reference examples involving commands
-> execute only through deterministic in-memory adaptations with live dispatch
-> disabled.
-
-## Capabilities
-
-- Restricted SPELL source parsing into bounded, versioned intermediate
-  representations without unrestricted Python execution.
-- Durable execution state, revision-guarded operator control, prompts,
-  schedules, checkpoints, recovery, event replay, and as-run reporting.
-- Authenticated REST and WebSocket APIs with short-lived JWT identities and
-  server-enforced viewer, operator, and administrator roles.
-- Responsive operator console for procedure selection, execution control,
-  monitoring, telemetry, source, logs, prompts, and data-service workflows.
-- Separate web development environment for project resources, semantic checks,
-  history, immutable bundle construction, review, and simulator promotion.
-- Read-only simulator telemetry, conditions, limits, alarms, resources,
-  memory/TM/TC lookup, and deterministic driver time.
-- Revisioned catalogs, dictionaries, containers, shared data, and fixed virtual
-  file roots backed by server-owned storage.
-- A bounded v0.10 runner for all 195 numbered SPELL Language Reference 2.4.4
-  examples, represented by 257 independently asserted semantic variants.
-- Closed simulator-only v0.11 `BuildTC` and `Send` semantics with separate
-  command stages, effect certainty, confirmation, recovery, reconciliation,
-  cancellation, and no automatic resend.
-- Hash-locked dependencies, digest-pinned container bases, release evidence,
-  SBOM tooling, deterministic packaging, and version-scoped qualification.
-- Synthetic capture replay and comparison, fenced procedure control, and a
-  bounded read-only `GetTM` adapter with explicit simulator fallback.
-- Local shadow-pilot reports with independent review, incident recording,
-  rollback, and backup restoration as read-only evidence. See the
-  [console workflow guide](frontend/README.md) for the v0.13-v0.15 controls.
-
-## Version Status
-
-| Version | Scope | Status |
-| --- | --- | --- |
-| v0.1 | Pre-implementation requirements and architecture baseline | Delivered planning baseline |
-| v0.2 | End-to-end simulator vertical slice | Accepted at `v0.2.0` |
-| v0.3 | Security, isolation, recovery, and language hardening | Accepted at `v0.3.0` |
-| v0.4 | Typed out-of-process simulator driver lifecycle | Accepted at `v0.4.0` |
-| v0.5 | Fail-closed validation for the existing IR 0.3 scope | Accepted at `v0.5.0` |
-| v0.6 | Durable operator workspace and procedure composition | Accepted at `v0.6.0` |
-| v0.7 | Read-only observation and condition engine | Accepted at `v0.7.0` |
-| v0.8 | Data and local service compatibility | Accepted at `v0.8.0` |
-| v0.9 | Web-based SPELL development environment | Accepted at `v0.9.0` |
-| v0.10 | SPELL 2.4.4 reference example adapter | Accepted at `v0.10.0`; predecessor to v0.11 |
-| v0.11 | Simulator telecommand semantics | Accepted at `v0.11.0`; no accepted exceptions |
-| v0.11.1 | Restore documentation and reject truncation artifacts | Accepted at `v0.11.1`; runtime remains 0.11.0 |
-| v0.12 | Synthetic read-only observation replay and comparison | Accepted at `v0.12.0`; real legacy environment deferred |
-| v0.13 | Fenced synthetic procedure control and return to read-only | [Accepted at `v0.13.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md) |
-| v0.14 | Bounded read-only `GetTM` adapter and comparison | [Accepted at `v0.14.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md) |
-| v0.15 | Local shadow-pilot review, incident, rollback, and restore workflows | [Accepted at `v0.15.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md); current local product baseline |
-
-See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
-and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified
-release history.
-
-## Architecture
-
-```text
-Browser
-   |
-   | HTTP/WebSocket on 127.0.0.1:8080
-   v
-Nginx proxy + built React frontend
-   |
-   v
-FastAPI control plane ---------------- PostgreSQL
-   |          |               |
-   |          |               +------ durable state and audit
-   |          +---------------------- isolated procedure workers
-   +-------------------------------- networkless bundle builders
-
-Optional Compose `driver` profile:
-FastAPI gateway -- internal mTLS -- synthetic driver host
-```
-
-The default Compose stack publishes only the Nginx proxy on the loopback
-interface. The backend and PostgreSQL remain on internal Docker networks. Two
-bundle builders run with `network_mode: none`. The optional driver profile is a
-separate synthetic lifecycle service and does not add live TM/TC connectivity.
-
-| Service | Responsibility | Exposure |
-| --- | --- | --- |
-| `proxy` | Frontend, security headers, API and WebSocket reverse proxy | `127.0.0.1:8080` |
-| `backend` | API, parser, supervisor, runtime, data and development services | Internal only |
-| `postgres` | Authoritative transactional persistence | Internal only |
-| `bundle-builder-a/b` | Independent immutable development bundle construction | No network |
-| `pki-init` | One-use local driver credential provisioning | Optional `driver` profile |
-| `spell-driver` | Synthetic driver lifecycle and observation service | Optional internal profile |
-
-## Requirements
-
-For the normal workflow:
-
-- Git
-- Docker Engine or Docker Desktop with Docker Compose v2
-- Enough resources to build the Python 3.13 backend and Node 22 frontend images
-
-For host-side frontend development, install Node.js 22 and npm. Project
-metadata permits Python 3.10 or newer, while the controlled container and
-qualification environment uses Python 3.13.
+future SPELL work. Derived specifications cannot silently replace its behavior.
+The simulator has no live GCS or spacecraft connection and no operational
+approval. Full SPELL Language Reference 2.4.4 compatibility is not claimed.
 
 ## Quick Start
 
-1. Clone the repository and enter it.
+Install Git and Docker with Compose v2, then run:
 
-   ```powershell
-   git clone https://github.com/arcazj/openbexi_SPELL.git
-   Set-Location openbexi_SPELL
-   ```
+```powershell
+git clone https://github.com/arcazj/openbexi_SPELL.git
+Set-Location openbexi_SPELL
+Copy-Item .env.example .env
+```
 
-2. Create local configuration.
+Set private local values in `.env`:
 
-   ```powershell
-   Copy-Item .env.example .env
-   ```
+```dotenv
+SPELL_DB_PASSWORD=<URL-safe-random-value>
+SPELL_JWT_HS256_SECRET=<at-least-32-random-bytes>
+```
 
-   Set these two values in `.env` before starting the stack:
+Start the stack and check health:
 
-   ```dotenv
-   SPELL_DB_PASSWORD=<URL-safe-random-value>
-   SPELL_JWT_HS256_SECRET=<at-least-32-random-bytes>
-   ```
+```powershell
+docker compose up --build -d --wait
+Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
+```
 
-   Do not commit `.env` or reuse these local secrets in another environment.
+Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). The local profile connects
+as a simulator operator automatically; no Session access screen or pasted token
+is needed. Health reports `0.16.0`, `simulator-only` and
+`operational_use: false`. Keep `.env` private and untracked.
 
-3. Build and start the local stack.
+The [development workspace](http://127.0.0.1:8080/development.html) provides
+project editing, checks, history, immutable bundles and simulator promotion.
+The [console guide](frontend/README.md) covers the current interface and roles.
 
-   ```powershell
-   docker compose up --build -d --wait
-   docker compose ps
-   ```
-
-4. Verify the public health endpoint.
-
-   ```powershell
-   Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
-   ```
-
-   A healthy response reports version `0.15.0`, mode `simulator-only`, and
-   `operational_use: false`.
-
-5. Issue a short-lived local operator token.
-
-   ```powershell
-   docker compose run --rm --no-deps `
-     -e SPELL_ALLOW_LOCAL_DEV_TOKEN=true backend `
-     python /app/scripts/issue_dev_token.py `
-     --subject local-operator --role operator --lifetime 900
-   ```
-
-   Token issuance is disabled in the running service by default. The command
-   enables it only in a loopback-oriented one-off container.
-
-6. Open [http://127.0.0.1:8080](http://127.0.0.1:8080) and enter the token in
-   the session-access form.
-
-The separate v0.9 development workspace is available at
-[http://127.0.0.1:8080/development.html](http://127.0.0.1:8080/development.html).
-It uses the same authentication boundary.
-
-Stop the stack without deleting persistent volumes:
+Stop the stack while retaining its database volumes:
 
 ```powershell
 docker compose down
 ```
 
-## Run The v0.10 Reference Procedure
+## Operator Workspace
 
-The production catalog contains one bundled v0.10 procedure:
-[`procedures/language_reference_244.spell.py`](procedures/language_reference_244.spell.py).
+The original [GUI User Manual 2.4.4](SPELL_DOCUMENTATION/SPELL%20-%20GUI%20User%20Manual%20-%202.4.4.pdf)
+defines the workspace: Navigation and utility views on the left, Master and
+procedure tabs in the center, Code/Data/Result source rows, and execution,
+prompt and log controls below. Driver and data services remain available as
+secondary views. Browser tabs and responsive layouts replace native desktop
+window management; unrestricted Python Shell execution is excluded.
 
-After signing in to the operator console:
+Automatic sessions use finite signed operator credentials and a stable local
+browser identity. The bootstrap is restricted to the explicitly enabled local
+profile and its loopback origin. Backend defaults outside that profile remain
+disabled. Administrator permissions are never granted automatically.
 
-1. Select **SPELL 2.4.4 reference examples** in the `simulator` context.
-2. Choose **Start procedure**. The console creates the execution and acquires
-   operator control.
-3. Filter or scroll through the 195-example prompt.
-4. Select an example and commit the response.
-5. Review the completed execution, ordered trace, assertions, and as-run report.
+## Language Reference Runner
 
-Each choice invokes a source-hash-bound deterministic adaptation and oracle.
-This is not verbatim execution of arbitrary PDF snippets and is not a claim of
-general SPELL 2.4.4 source compatibility. External-effect examples remain
-in-memory simulator operations with live dispatch disabled.
+Find **Language Reference 244** (`language_reference_244`) in the catalog and start
+[language_reference_244.spell.py](procedures/language_reference_244.spell.py).
+Its 228 choices include 195 adapted examples, 32 direct or rejection checks,
+and **Run all language checks**. The inventory covers 763 reference entries:
+195 adapted, 59 partially covered and 509 gaps.
 
-The exact v0.10 contracts and evidence are in:
+The language inventory distinguishes direct source tests, partial coverage,
+semantic adaptations and unresolved gaps. The inherited 195 numbered examples
+and 257 variants are independently authored adaptations; they are not proof
+that arbitrary manual snippets or Python programs execute unchanged. A correct
+rejection of unsupported syntax does not count as language support.
 
-- [`contracts/v10/language_reference_example_matrix.json`](contracts/v10/language_reference_example_matrix.json)
-- [`contracts/v10/language_reference_variant_matrix.json`](contracts/v10/language_reference_variant_matrix.json)
-- [`artifacts/v0.10/reference-examples.json`](artifacts/v0.10/reference-examples.json)
-- [SPELL_v0.10_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.10_Implementation.md)
+See the [v0.16 scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
+and [language coverage](contracts/v16/language_coverage.json) for exact bounds.
 
-## Accepted v0.11 Telecommand Release
+## Architecture
 
-v0.11 adds catalog-backed `BuildTC` and `Send` semantics from the accepted
-`v0.10.0` tag. Its contracts preserve distinct construction, authorization,
-transport, loading, release, execution, verification, certainty, recovery, and
-reconciliation facts. A possible or unknown effect is never resent
-automatically.
+```text
+Browser -> loopback proxy -> FastAPI control plane -> PostgreSQL
+                                  |        |
+                                  |        +-> isolated procedure workers
+                                  +----------> networkless bundle builders
+Optional driver profile: internal mTLS -> synthetic driver host
+```
 
-The accepted package SHA-256 is
-`61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`.
-The qualified source fingerprint is
-`2a29599e035f79bca9802562665a9a648b1fc15b3ffd949fe43076c1a746d56b`.
-
-The implementation is deterministic and simulator-only. It contains no live
-driver credential, arbitrary endpoint, network command dispatch, GCS route, or
-spacecraft interface. The exact contracts and records are:
-
-- [`contracts/v11/telecommand_catalog.json`](contracts/v11/telecommand_catalog.json)
-- [`contracts/v11/telecommand_execution.json`](contracts/v11/telecommand_execution.json)
-- [SPELL_v0.11_Pre-Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Pre-Implementation.md)
-- [SPELL_v0.11_Implementation.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.11_Implementation.md)
+Only the proxy publishes a loopback port. Backend, database and driver services
+stay on internal networks; bundle builders have no network access. There is
+no browser-to-driver command path.
 
 ## Development
 
-### Backend
-
-Build the local backend image:
+For frontend work, run from `frontend/` while the Compose proxy is available:
 
 ```powershell
-docker build -t openbexi-spell-backend:local -f backend/Dockerfile .
-```
-
-Create a Python 3.13 test environment from the hash-locked dependency sets and
-run the backend plus driver-host suites:
-
-```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\python -m pip install --require-hashes `
-  -r backend/requirements.hashes.lock `
-  -r driver_host/pki-requirements.hashes.lock `
-  -r contracts/generator-requirements.hashes.lock
-.\.venv\Scripts\python -m pytest `
-  backend/tests driver_host/tests -q -p no:cacheprovider
-```
-
-Environment-selected PostgreSQL and Docker Compose integration tests require
-their dedicated services and variables. The version implementation records
-contain the exact qualification invocations; a skipped environment-selected
-test is not equivalent to a pass.
-
-### Frontend
-
-With the Compose proxy running on port 8080:
-
-```powershell
-Set-Location frontend
 npm ci
 npm run dev -- --host 127.0.0.1
-```
-
-Vite serves the development frontend at `http://127.0.0.1:5173` and proxies
-`/api` plus WebSocket traffic to the loopback Compose proxy.
-
-Run the frontend checks:
-
-```powershell
 npm test
 npm run build
 npm run test:e2e
 ```
 
-The mocked Playwright suite does not require a backend. Real integration uses a
-fresh Compose stack and the `SPELL_REAL_BACKEND`, `SPELL_E2E_BASE_URL`, and
-`SPELL_E2E_TOKEN` variables, plus a separate administrator identity in
-`SPELL_E2E_REVIEW_TOKEN` for independent pilot review, as described in
-[frontend/README.md](frontend/README.md).
-
-### v0.10 Checks
-
-After building `openbexi-spell-backend:local`, verify that the generated runner
-and evidence remain current:
-
-```powershell
-docker run --rm --network none --entrypoint python `
-  -v "${PWD}:/workspace:ro" -w /workspace `
-  openbexi-spell-backend:local `
-  -m scripts.generate_reference_runner_v10 --check
-
-docker run --rm --network none --entrypoint python `
-  -v "${PWD}:/workspace:ro" -w /workspace `
-  openbexi-spell-backend:local `
-  -m scripts.qualify_reference_examples_v10 --check
-```
-
-### v0.11 Checks
-
-Run the eight focused simulator telecommand modules:
-
-```powershell
-docker run --rm --network none --entrypoint python `
-  -v "${PWD}:/workspace:ro" -w /workspace `
-  openbexi-spell-backend:local -m pytest `
-  backend/tests/test_telecommand_v11.py `
-  backend/tests/test_ir_v11.py `
-  backend/tests/test_v11_command_corpus.py `
-  backend/tests/test_telecommand_runtime_v11.py `
-  backend/tests/test_worker_v11.py `
-  backend/tests/test_supervisor_v11_runtime.py `
-  backend/tests/test_v11_api_runtime.py `
-  backend/tests/test_v11_operator_integration.py -q
-```
+See [frontend/README.md](frontend/README.md) for local-origin configuration and
+mocked versus real-browser testing. Release work uses the exact tools in
+[scripts/release-toolchain-next.json](scripts/release-toolchain-next.json).
+Python dependencies are hash-locked; see
+[backend/requirements.hashes.lock](backend/requirements.hashes.lock).
 
 ## Release Qualification
 
-v0.13-v0.15 use `scripts.qualify_next` to produce evidence and
-`scripts.release_next` to validate the version-specific release policy. The
-current policy is [contracts/v15/release_policy.json](contracts/v15/release_policy.json).
-The pinned host tools are recorded in
-[scripts/release-toolchain-next.json](scripts/release-toolchain-next.json).
+The canonical producer is `scripts.qualify_next`; the validator and packager
+are `scripts.release_next`. The active
+[release policy](contracts/v16/release_policy.json) freezes exact test identities
+and references. Required evidence includes SQLite/PostgreSQL/Compose regression,
+frontend/build/browser checks, language results, documentation rendering,
+soaks, image checks, four SBOMs, vulnerability review and four identical package
+builds from two independent source exports.
 
-From a clean checkout of the annotated `v0.15.0` tag, run:
+After release acceptance, validate a clean checkout of the annotated tag:
 
 ```powershell
 .\scripts\run_release_next.ps1 -Module scripts.release_next `
   -Arguments @('validate', '--require-tag')
 ```
 
-Accepted v0.15 qualification recorded 3,732 passed test executions and 24
-environment-selected skips, each resolved by a complementary environment run.
-The evidence includes SQLite and PostgreSQL regression, Compose integration,
-128 frontend tests, 10 real desktop/mobile browser cases, 18 documentation
-checks, the 195-example/257-variant reference contract, image probes, four
-SBOMs, supply-chain review, and three bounded soaks. Four independent package
-builds produced identical bytes. There are no unresolved skips or accepted
-exceptions.
+Later documentation commits have different source fingerprints. Validate the
+exact tagged tree, and use each historical release's own policy and evidence.
+[Test_and_Integration.md](Test_and_Integration.md) records executed results.
 
-The canonical records are
-[qualification.json](artifacts/v0.15/qualification.json),
-[evidence/](artifacts/v0.15/evidence/), and
-[reproducibility.json](artifacts/v0.15/reproducibility.json).
-See the [v0.15 implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
-and [Test_and_Integration.md](Test_and_Integration.md) for commands and limits.
-Earlier releases retain their own version-specific policies and evidence.
+## Documentation And Repository Map
 
-Later default-branch documentation commits have a different source fingerprint.
-Strict release validation must use the clean tagged tree; a documentation
-follow-up does not replace or regenerate that immutable release evidence.
-
-## Repository Layout
-
-| Path | Contents |
+| Topic | Canonical location |
 | --- | --- |
-| `backend/` | FastAPI application, parser, IR, supervisor, runtime, services, migrations, and tests |
-| `frontend/` | React/TypeScript operator console, development workspace, unit tests, and Playwright tests |
-| `proxy/` | Nginx loopback ingress and multi-stage frontend image |
-| `driver_host/` | Optional isolated synthetic driver lifecycle and observation service |
-| `spell/` | Shared restricted-language and runtime support package |
-| `procedures/` | Source-controlled bundled production procedures |
-| `contracts/` | Versioned machine-readable behavior, compatibility, and gate contracts |
-| `artifacts/` | Qualification, release, browser, SBOM, and reference-example evidence |
-| `scripts/` | Build, qualification, audit, packaging, token, and evidence tools |
-| `SPELL_DOCUMENTATION/` | Mandatory source-reference manuals for future SPELL coding and delivery; legacy source archives remain read-only evidence |
-| `NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/` | Controlled AI-generated interpretation: requirements, architecture, security, web, assurance, and version-specific release records |
-| `tools/` | Standalone legacy SPELL Procedure Compliance Auditor and its own documentation |
+| Current operator workflows | [Console guide](frontend/README.md) |
+| Scope and remaining work | [Project roadmap](PROJECT_ROADMAP.md) |
+| Release history and evidence | [Release index](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md), [timeline](VERSION_TIMELINE.md), [test record](Test_and_Integration.md) |
+| Source authority and provenance | [Documentation review](SPELL_DOCUMENTATION_REVIEW.md), [provenance](PROVENANCE.md) |
+| Broader Draft design | [Generated specification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md) |
+| Control plane, runtime, migrations | `backend/`, `spell/` |
+| Web interface and browser tests | `frontend/`, `proxy/` |
+| Synthetic driver service | `driver_host/` |
+| Procedures, contracts and release tools | `procedures/`, `contracts/`, `scripts/` |
+| Immutable qualification artifacts | `artifacts/` |
+| Original read-only manuals | `SPELL_DOCUMENTATION/` |
+| Separate legacy procedure auditor | [tools/README.md](tools/README.md) |
 
-The compliance auditor is a separate tool. Its usage, policies, cases, and
-output schema are documented in [tools/README.md](tools/README.md); they do not
-define the root project README.
-
-## Documentation
-
-The manuals under `SPELL_DOCUMENTATION/` are the forward source-reference
-baseline. Generated documents and implementation artifacts must trace relevant
-behavior, intentional exclusions, and safety strengthening back to them.
-
-- [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): product scope, release status, gates,
-  guardrails, and future sequence.
-- [VERSION_TIMELINE.md](VERSION_TIMELINE.md): evidence-qualified history through
-  accepted v0.15.0.
-- [frontend/README.md](frontend/README.md): current console workflows, local
-  development, authentication, and browser testing.
-- [Test_and_Integration.md](Test_and_Integration.md): per-version test plans,
-  commands, evidence, and exit decisions.
-- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md):
-  AI-generated next-generation design specification and document map.
-- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/SOURCE_AUTHORITY.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/SOURCE_AUTHORITY.md):
-  reviewed source authority, precedence, and evidence hashes.
-- [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md):
-  index of version-specific planning, gate, implementation, and release records.
-- [SPELL - Language Reference - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Language%20Reference%20-%202.4.4.pdf):
-  primary reference for language syntax and procedure-visible behavior.
-- [SPELL - Driver Development Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Driver%20Development%20Manual%20-%202.4.4.pdf):
-  primary reference for driver services and lifecycle concepts.
-- [SPELL - Server Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Server%20Manual%20-%202.4.4.pdf):
-  source reference for server, context, executor, and configuration concepts.
-- [SPELL - GUI User Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20GUI%20User%20Manual%20-%202.4.4.pdf):
-  source reference for operator workflows and visible behavior.
-- [SPELL - Development Environment Manual - 2.4.4.pdf](SPELL_DOCUMENTATION/SPELL%20-%20Development%20Environment%20Manual%20-%202.4.4.pdf):
-  source reference for authoring and development workflows.
-- [SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf](SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf):
-  supplementary earlier SPELL language manual.
-- [SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf](SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf):
-  supplementary earlier SPELL development environment manual.
-- [PROVENANCE.md](PROVENANCE.md): source, build, dependency, and release
-  provenance records.
-- [PROMPT_History.md](PROMPT_History.md): retained project prompt and decision
-  history.
-
-## Security And Operational Limits
-
-- Keep `.env`, tokens, private keys, and mission data out of Git.
-- Keep the public proxy bound to loopback unless a separately reviewed
-  deployment architecture replaces the local Compose assumptions.
-- Local token issuance is disabled by default and is not an authentication
-  service for shared or production use.
-- Arbitrary Python, imports, shell access, browser-to-driver access, generic
-  database access, and configurable live command endpoints are outside the
-  procedure execution contract.
-- The documentation may support security-control implementation and assessment,
-  but this software does not itself establish NIST SP 800-171 compliance.
-- Any connection to a mission network, GCS, or spacecraft requires independent
-  engineering, safety, security, governance, and operational authorization.
+The generated design specification and its Draft GUI manual have their own
+approval status. They do not establish product, operational or full-language
+acceptance. Original manuals and legacy archives are excluded from product
+images and release packages.
 
 ## License And Notices
 
-See [LICENSE](LICENSE), [NOTICE](NOTICE), and [PROVENANCE.md](PROVENANCE.md) for
-the repository's license, notices, source authority, and attribution records.
+New first-party code is licensed under [Apache License 2.0](LICENSE).
+[NOTICE](NOTICE) and [PROVENANCE.md](PROVENANCE.md) describe source and
+dependency boundaries. That license does not relicense the original manuals,
+legacy source archives or third-party dependencies.

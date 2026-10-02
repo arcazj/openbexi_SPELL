@@ -1,39 +1,23 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { resolve } from "node:path";
 
-function artifactPath(name: string): string {
-  return resolve(
-    process.cwd(),
-    process.env.SPELL_E2E_ARTIFACT_DIRECTORY ?? "../artifacts/v0.3",
-    name,
-  );
-}
-
-test("requires a session JWT without embedding a default credential", async ({ page }, testInfo) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Session access" })).toBeVisible();
-  await expect(page.getByLabel("Signed JWT")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Connect" })).toBeDisabled();
-
-  await page.getByLabel("Signed JWT").fill("not-a-token");
-  await page.getByRole("button", { name: "Connect" }).click();
-  await expect(page.getByRole("alert")).toContainText("three segments");
-  await expect(page.getByRole("status")).toHaveCount(0);
-
-  const accessibility = await new AxeBuilder({ page }).analyze();
-  const blocking = accessibility.violations.filter(
-    (violation) => violation.impact === "serious" || violation.impact === "critical",
-  );
-  expect(blocking).toEqual([]);
-
-  const containment = await page.evaluate(() => ({
-    viewport: document.documentElement.clientWidth,
-    document: document.documentElement.scrollWidth,
-    body: document.body.scrollWidth,
+test("connects to the local simulator without a session access form", async ({ page }) => {
+  const expires = Math.floor(Date.now() / 1000) + 300;
+  const token = `header.${Buffer.from(JSON.stringify({ sub: "local.simulator.test", role: "operator", jti: "test", exp: expires })).toString("base64url")}.signature`;
+  await page.route("**/api/v1/local-session", (route) => route.fulfill({
+    contentType: "application/json", body: JSON.stringify({ access_token: token, expires_at: expires,
+      token_type: "Bearer", role: "operator", mode: "simulator-only", operational_use: false }),
   }));
-  expect(Math.max(containment.document, containment.body)).toBeLessThanOrEqual(containment.viewport);
-  if (testInfo.project.name === "chromium") {
-    await page.screenshot({ path: artifactPath("session-access.png") });
+  await page.route("**/api/v1/health", (route) => route.fulfill({ contentType: "application/json",
+    body: JSON.stringify({ status: "ok", version: "0.16.0", mode: "simulator-only" }) }));
+  for (const endpoint of ["procedures", "contexts", "master"]) {
+    await page.route(`**/api/v1/${endpoint}`, (route) => route.fulfill({ contentType: "application/json", body: '{"items":[]}' }));
   }
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Session access" })).toHaveCount(0);
+  await expect(page.getByLabel("Signed JWT")).toHaveCount(0);
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

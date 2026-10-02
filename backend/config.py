@@ -45,8 +45,14 @@ class Settings:
     bundle_response_a_directory: Path | None = None
     bundle_response_b_directory: Path | None = None
     bundle_build_timeout_seconds: float = 30.0
+    local_session_enabled: bool = False
+    local_session_port: int = 8080
 
     def __post_init__(self) -> None:
+        if type(self.local_session_enabled) is not bool:
+            raise ValueError("SPELL_LOCAL_SESSION_ENABLED must be true or false")
+        if type(self.local_session_port) is not int or not 1 <= self.local_session_port <= 65535:
+            raise ValueError("SPELL_LOCAL_SESSION_PORT must be between 1 and 65535")
         if self.websocket_replay_limit <= 0:
             raise ValueError("SPELL_WS_REPLAY_LIMIT must be a positive integer")
         if self.websocket_queue_size <= 0:
@@ -204,4 +210,8 @@ class Settings:
             bundle_build_timeout_seconds=float(
                 os.getenv("SPELL_BUNDLE_BUILD_TIMEOUT_SECONDS", "30")
             ),
+            local_session_enabled=_strict_bool(
+                "SPELL_LOCAL_SESSION_ENABLED", os.getenv("SPELL_LOCAL_SESSION_ENABLED", "false")
+            ),
+            local_session_port=int(os.getenv("SPELL_LOCAL_SESSION_PORT", "8080")),
         )

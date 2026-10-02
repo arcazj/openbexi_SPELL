@@ -1,6 +1,6 @@
-import { Clock3, LogOut, Radio, Satellite, Server, UserRound } from "lucide-react";
+import { Clock3, RefreshCcw, Radio, Satellite, Server, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
-import { clearAccessToken } from "../api";
+import { accessTokenSubject, isSimulatorSession } from "../api";
 import { useAppSelector } from "../hooks";
 
 function useUtcClock(): string {
@@ -9,21 +9,22 @@ function useUtcClock(): string {
     const timer = window.setInterval(() => setNow(new Date()), 1_000);
     return () => window.clearInterval(timer);
   }, []);
-  return now.toISOString().replace("T", " ").replace(".000Z", " UTC");
+  return `${now.toISOString().slice(0, 19).replace("T", " ")} UTC`;
 }
 
-export function ConsoleHeader() {
+export function ConsoleHeader({ onReconnect }: { onReconnect: () => void }) {
   const utc = useUtcClock();
-  const { connection, contextId, userName } = useAppSelector((state) => state.console);
+  const { connection, contextId } = useAppSelector((state) => state.console);
+  const userName = isSimulatorSession() ? "Local operator" : accessTokenSubject();
   const statusClass = connection.phase.toLowerCase();
 
   return (
     <header className="console-header">
       <div className="brand-lockup" aria-label="SPELL operations console">
-        <Satellite aria-hidden="true" size={24} strokeWidth={1.8} />
+        <Satellite aria-hidden="true" size={16} strokeWidth={1.8} />
         <div>
           <strong>SPELL</strong>
-          <span>Operations Console</span>
+          <span>Simulator</span>
         </div>
       </div>
       <dl className="environment-strip">
@@ -51,11 +52,11 @@ export function ConsoleHeader() {
       <button
         type="button"
         className="session-button"
-        aria-label="End session"
-        title="End session"
-        onClick={clearAccessToken}
+        aria-label="Reconnect simulator"
+        title="Reconnect simulator"
+        onClick={onReconnect}
       >
-        <LogOut aria-hidden="true" size={16} />
+        <RefreshCcw aria-hidden="true" size={16} />
       </button>
     </header>
   );

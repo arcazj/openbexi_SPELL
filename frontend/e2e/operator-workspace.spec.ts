@@ -85,7 +85,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("operates the dense v0.6 workspace on desktop and mobile", async ({ page }) => {
+test("operates the dense v0.6 workspace on desktop and mobile", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.getByRole("status")).toContainText("CONNECTED");
   await expect(page.getByRole("heading", { name: "Master" })).toBeVisible();
@@ -107,8 +107,9 @@ test("operates the dense v0.6 workspace on desktop and mobile", async ({ page })
   const runPayload = (await runRequest).postDataJSON();
   expect(runPayload).toMatchObject({ type: "RUN", expected_execution_revision: 9, target: { line: 2, source_digest: "a".repeat(64) } });
 
-  const sourceTab = page.getByRole("tab", { name: "Source" });
-  await expect(page.locator(".operator-source-list li.executed-line")).toHaveCount(1);
+  await page.screenshot({ path: testInfo.outputPath("manual-workspace-source.png"), fullPage: true });
+  const sourceTab = page.getByRole("tab", { name: "Tabular" });
+  await expect(page.locator(".operator-source-table tr.executed-line")).toHaveCount(1);
   await sourceTab.focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tab", { name: "Text", exact: true })).toHaveAttribute("aria-selected", "true");

@@ -1,4 +1,4 @@
-"""Source-bound v0.13-v0.15 qualification, deterministic packaging, and tag validation.
+"""Source-bound v0.13-v0.16 qualification, deterministic packaging, and tag validation.
 
 Run tests from clean committed source. The recorder retains raw evidence;
 validation recomputes its hashes, test identities, skips, and package bytes.
@@ -23,10 +23,11 @@ import tomllib
 
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 MINOR = int(VERSION.split(".")[1])
-if VERSION not in {"0.13.0", "0.14.0", "0.15.0"}:
+if VERSION not in {"0.13.0", "0.14.0", "0.15.0", "0.16.0"}:
     raise ValueError("unsupported release identity")
 PROFILE = {13: "LOCAL_SYNTHETIC_PROCEDURE_CONTROL", 14: "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER",
-           15: "LOCAL_SYNTHETIC_SHADOW_PILOT"}[MINOR]
+           15: "LOCAL_SYNTHETIC_SHADOW_PILOT",
+           16: "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"}[MINOR]
 ARTIFACT = Path(f"artifacts/v0.{MINOR}")
 TAG = "v" + VERSION
 POLICY = Path(f"contracts/v{MINOR}/release_policy.json")
@@ -64,6 +65,10 @@ def policy() -> dict:
     require(data["release_tag"] == TAG and data["product_version"] == VERSION, "policy identity differs")
     require(data["scope"] == PROFILE and data["legacy_system_qualified"] is False, "scope differs")
     require(data["operational_authorization"] is False, "policy authority differs")
+    if MINOR >= 16:
+        from scripts.validate_v16_gate import validate as validate_entry
+        require(validate_entry(ROOT)["decision"] == "PASS", "entry gate failed")
+        require(data.get("catalog_frozen") is True, "release catalog is not frozen")
     require(git("rev-parse", PREDECESSOR + "^{commit}") == data["predecessor_commit"], "predecessor differs")
     git("merge-base", "--is-ancestor", data["predecessor_commit"], "HEAD")
     for row in data["reference_inputs"]:
@@ -130,6 +135,7 @@ def verify_pilot_soak(soak: dict) -> None:
 
 
 def verify_captures(directory: Path, config: dict) -> dict:
+    verify_browser_evidence(directory, config)
     verify_candidate(config)
     gates = {}
     for gate, expected in config["gates"].items():
@@ -151,12 +157,17 @@ def verify_captures(directory: Path, config: dict) -> dict:
         verify_adapter_soak(json.loads((directory / "adapter-soak.json").read_bytes()))
     if MINOR >= 15:
         verify_pilot_soak(json.loads((directory / "pilot-soak.json").read_bytes()))
+    if MINOR >= 16:
+        from backend.language_conformance_v16 import validate_report
+        validate_report(json.loads((directory / "language-conformance.json").read_bytes()))
     audit = json.loads((directory / "python-audit.json").read_bytes())
     require(not any(row.get("vulns") for row in audit["dependencies"]), "Python advisories remain")
     audit = json.loads((directory / "npm-audit.json").read_bytes())
     require(audit["metadata"]["vulnerabilities"]["total"] == 0, "Node advisories remain")
     supply = json.loads((directory / "supply-chain.json").read_bytes())
     probe = json.loads((directory / "image-probe.json").read_bytes())
+    if MINOR >= 16:
+        verify_installed_language_runner(probe)
     require(set(supply["images"]) == {"backend", "driver", "frontend", "proxy"}, "SBOM inventory differs")
     require(len({row["image_id"] for row in supply["images"].values()}) == 4, "image identities are not distinct")
     for component, row in supply["images"].items():
@@ -193,6 +204,31 @@ def verify_captures(directory: Path, config: dict) -> dict:
     return gates
 
 
+def verify_browser_evidence(directory: Path, config: dict) -> None:
+    screenshots = [path for path in (directory / "browser").rglob("*.png") if path.is_file()]
+    require(len(screenshots) == config["browser_screenshots"], "browser screenshot inventory differs")
+    require(all(not path.is_symlink() and path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+                for path in screenshots), "invalid browser screenshot evidence")
+
+
+def verify_installed_language_runner(probe: dict) -> None:
+    result = probe.get("images", {}).get("backend", {}).get("language_runner")
+    expected = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
+                "adapted_examples": 195, "adapted_variants": 257,
+                "full_compatibility": False, "decision": "PASS"}
+    require(json.dumps(result, sort_keys=True) == json.dumps(expected, sort_keys=True),
+            "installed language runner proof differs")
+
+
+def verify_release_metadata(manifest: dict, reproduced: dict) -> None:
+    require(manifest["schema_version"] == f"spell.v{MINOR}.release-manifest/1"
+            and manifest["release_tag"] == TAG and manifest["scope"] == PROFILE
+            and type(manifest["file_count"]) is int and manifest["file_count"] == len(package_names())
+            and manifest["repeated_builds"] == 2, "release manifest metadata differs")
+    require(reproduced["schema_version"] == f"spell.v{MINOR}.reproducibility/1",
+            "reproducibility schema differs")
+
+
 def record(captures: Path) -> None:
     require(not git("status", "--porcelain"), "qualification requires clean committed source")
     config = policy()
@@ -214,8 +250,9 @@ def record(captures: Path) -> None:
         names.add("adapter-soak.json")
     if MINOR >= 15:
         names.add("pilot-soak.json")
+    if MINOR >= 16:
+        names.add("language-conformance.json")
     browser = [path for path in (captures / "browser").rglob("*") if path.is_file() and path.suffix in {".png", ".json"}]
-    require(sum(path.suffix == ".png" for path in browser) == config["browser_screenshots"], "browser screenshot inventory differs")
     names |= {path.relative_to(captures).as_posix() for path in browser}
     for name in sorted(names):
         raw = (captures / name).read_bytes()
@@ -299,6 +336,7 @@ def validate(require_tag: bool = False) -> None:
     require(manifest["source_commit"] == data["source_commit"] and manifest["source_fingerprint"] == fingerprint(), "release source differs")
     require((ROOT / (str(PACKAGE) + ".sha256")).read_bytes() == (sha(package) + "  " + PACKAGE.name + "\n").encode(), "sidecar differs")
     reproduced = json.loads((ROOT / ARTIFACT / "reproducibility.json").read_bytes())
+    verify_release_metadata(manifest, reproduced)
     require(reproduced["decision"] == "PASS" and reproduced["independent_exports"] == 2
             and reproduced["builds_per_export"] == 2, "independent export proof differs")
     require(reproduced["source_commit"] == data["source_commit"]

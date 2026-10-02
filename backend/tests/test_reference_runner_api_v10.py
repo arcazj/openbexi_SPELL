@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import pytest
 
 from fastapi.testclient import TestClient
 
@@ -8,6 +9,7 @@ from backend.app import create_app
 from backend.auth import AuthConfig
 from backend.config import Settings
 from backend.development_bundle_builder import InProcessDualBundleBuilder
+from scripts.generate_reference_runner_v10 import MENU_COUNT, ALL_INDEX
 
 from .conftest import wait_for_state
 from .test_api_execution import fenced_prompt_request
@@ -16,12 +18,14 @@ from .test_api_execution import fenced_prompt_request
 ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize("selection", [194, ALL_INDEX], ids=["example-195", "all-language-checks"])
 def test_reference_runner_selects_example_195_through_the_public_api(
     tmp_path: Path,
     procedures_dir: Path,
     auth_config: AuthConfig,
     operator_headers: dict[str, str],
     viewer_headers: dict[str, str],
+    selection: int,
 ) -> None:
     source = (ROOT / "procedures" / "language_reference_244.spell.py").read_text(
         encoding="utf-8"
@@ -57,7 +61,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         )
         assert validation.status_code == 200, validation.text
         assert validation.json()["valid"] is True
-        assert validation.json()["subset_version"] == "spell-lrm244-adapter/0.10"
+        assert validation.json()["subset_version"] == "spell-lrm244-conformance/0.16"
 
         created = client.post(
             "/api/v1/executions",
@@ -78,7 +82,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         prompt = prompting["active_prompt"]
         assert prompt["type"] == "LIST"
         assert prompt["list_mode"] == "INDEX"
-        assert len(prompt["options"]) == 195
+        assert len(prompt["options"]) == MENU_COUNT
 
         prompt_events = client.get(
             f"/api/v1/executions/{execution_id}/events", headers=viewer_headers
@@ -98,7 +102,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
             operator_headers,
             execution_id,
             prompting,
-            value=194,
+            value=selection,
             idempotency_key="v10-reference-api-select-195",
             reason="select the final reference example",
         )
@@ -114,14 +118,22 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         )
         assert completed["execution"]["state"] == "completed", completed
         variables = completed["execution"]["variables"]
-        assert variables["selected_index"] == 194
-        assert variables["example_number"] == 195
-        assert variables["result"].startswith("Example 195: PASS")
+        assert variables["selected_index"] == selection
+        assert variables["example_number"] == selection + 1
+        assert variables["result"].startswith("Example 195: PASS" if selection == 194 else "Language checks: 32 PASS")
 
         events = client.get(
             f"/api/v1/executions/{execution_id}/events", headers=viewer_headers
         )
         assert events.status_code == 200, events.text
+        if selection == ALL_INDEX:
+            report = next(item["payload"] for item in events.json()["items"]
+                          if item["event_type"] == "procedure.language_check_completed")
+            assert len(report["cases"]) == 32
+            assert len(report["adaptations"]) == 195
+            assert sum(item["variant_count"] for item in report["adaptations"]) == 257
+            assert report["full_compatibility"] is False
+            return
         reference_event = next(
             item
             for item in events.json()["items"]

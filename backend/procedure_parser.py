@@ -43,11 +43,14 @@ from .ir_v11 import (
     telecommand_dependency_variables,
     validate_ir_v11,
 )
+from .ir_v16 import IR_VERSION as V16_IR_VERSION, ALL_SELECTION, CASESET_SHA256, validate_ir_v16
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
+DISPLAY_SEVERITIES = {"INFORMATION": "info", "WARNING": "warning", "ERROR": "error"}
 V10_LANGUAGE_PROFILE = "spell-lrm244-adapter/0.10"
 V11_LANGUAGE_PROFILE = "spell-telecommand-simulator/0.11"
+V16_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.16"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -96,6 +99,8 @@ V08_DATA_CALLS = frozenset(
 
 
 def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V16_IR_VERSION:
+        return V16_LANGUAGE_PROFILE
     if ir_version == V11_IR_VERSION:
         return V11_LANGUAGE_PROFILE
     if ir_version == V10_IR_VERSION:
@@ -157,6 +162,7 @@ class ProcedureCatalog:
 
     _step_calls = {
         "Log",
+        "Display",
         "Telemetry",
         "Wait",
         "Prompt",
@@ -165,6 +171,7 @@ class ProcedureCatalog:
         "Verify",
         "WaitFor",
         "ReferenceExample",
+        "LanguageCheck",
         "Send",
         *V08_DATA_CALLS,
     }
@@ -409,7 +416,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V11_IR_VERSION
+            V16_IR_VERSION
+            if compiler.uses_v16
+            else V11_IR_VERSION
             if compiler.uses_v11
             else V10_IR_VERSION
             if compiler.uses_v10
@@ -423,7 +432,9 @@ class ProcedureCatalog:
         )
         try:
             validated_ir = (
-                validate_ir_v11(ir_version, steps)
+                validate_ir_v16(ir_version, steps)
+                if compiler.uses_v16
+                else validate_ir_v11(ir_version, steps)
                 if compiler.uses_v11
                 else validate_ir_v10(ir_version, steps)
                 if compiler.uses_v10
@@ -504,6 +515,7 @@ class ProcedureCatalog:
 class _Compiler:
     _step_calls = {
         "Log",
+        "Display",
         "Telemetry",
         "Wait",
         "Prompt",
@@ -512,10 +524,11 @@ class _Compiler:
         "Verify",
         "WaitFor",
         "ReferenceExample",
+        "LanguageCheck",
         "Send",
         *V08_DATA_CALLS,
     }
-    _reserved_calls = {*_step_calls, "ARGS", "UserAction", "Label", "BuildTC"}
+    _reserved_calls = {*_step_calls, *DISPLAY_SEVERITIES, "ARGS", "UserAction", "Label", "BuildTC"}
 
     def __init__(self, source_name: str):
         self.source_name = source_name
@@ -535,6 +548,7 @@ class _Compiler:
         self.uses_v08 = False
         self.uses_v10 = False
         self.uses_v11 = False
+        self.uses_v16 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -588,6 +602,7 @@ class _Compiler:
                 "wait_for",
                 "data_operation",
                 "reference_example",
+                "language_check",
                 "build_tc",
                 "send_tc",
             }
@@ -825,7 +840,9 @@ class _Compiler:
                 if self._is_build_tc_assignment(statement):
                     self._compile_v11_build_assignment(statement, guard)
                 else:
-                    self._compile_assignment(statement, guard)
+                    self._compile_assignment(
+                        statement, guard, infer=top_level and not call_stack and guard is None
+                    )
             elif isinstance(statement, ast.AugAssign):
                 self._compile_augmented_assignment(statement, guard)
             elif isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Call):
@@ -873,7 +890,9 @@ class _Compiler:
             declaration=True,
         )
 
-    def _compile_assignment(self, node: ast.Assign, guard: dict[str, Any] | None) -> None:
+    def _compile_assignment(
+        self, node: ast.Assign, guard: dict[str, Any] | None, *, infer: bool = False
+    ) -> None:
         if len(node.targets) != 1 or not isinstance(node.targets[0], ast.Name):
             self._reject(node, "SPELL306", "assignment requires one simple variable target")
         target = node.targets[0]
@@ -882,9 +901,12 @@ class _Compiler:
             self._reject(target, "SPELL913", "telecommand item can only be replaced by BuildTC")
         if target.id in self.opaque_declared_variables:
             self._reject(target, "SPELL718", "FileHandle variable cannot be assigned as a scalar")
-        declared_type = self._declared_type(target)
         expression, actual_type = self._expression(node.value)
+        declaration = target.id not in self.types and infer
+        declared_type = actual_type if declaration else self._declared_type(target)
         self._require_assignable(node.value, declared_type, actual_type)
+        if declaration:
+            self.types[target.id] = declared_type
         self.opaque_types.pop(target.id, None)
         self._append(
             node,
@@ -893,7 +915,7 @@ class _Compiler:
             name=target.id,
             declared_type=declared_type,
             expression=expression,
-            declaration=False,
+            declaration=declaration,
         )
 
     def _compile_augmented_assignment(
@@ -1062,11 +1084,44 @@ class _Compiler:
         call: ast.Call,
         guard: dict[str, Any] | None,
     ) -> None:
+        if name == "Display":
+            # LRM244 section 4.9: positional or keyword severity, default INFORMATION.
+            # Lower into the existing checkpointed log operation; never call Python.
+            if len(call.args) not in {1, 2}:
+                self._reject(call, "SPELL920", "Display requires text and optional severity")
+            if any(keyword.arg != "Severity" for keyword in call.keywords):
+                self._reject(call, "SPELL921", "unsupported Display modifier")
+            if len(call.keywords) > 1 or (len(call.args) == 2 and call.keywords):
+                self._reject(call, "SPELL922", "Display severity is duplicated")
+            severity = call.args[1] if len(call.args) == 2 else (
+                call.keywords[0].value if call.keywords else None
+            )
+            if severity is None:
+                level = "info"
+            elif isinstance(severity, ast.Name) and severity.id in DISPLAY_SEVERITIES:
+                level = DISPLAY_SEVERITIES[severity.id]
+            else:
+                self._reject(call, "SPELL923", "Display severity must be INFORMATION, WARNING or ERROR")
+            message = self._typed_argument(call.args[0], {"str"}, "Display text")
+            self._require_non_empty_literal(call.args[0], message, "Display text")
+            self._append(node, "log", guard=guard, message=message, level=level)
+            return
         if name == "Send":
             self._compile_v11_send(node, call, guard)
             return
         if name == "ReferenceExample":
             self._compile_v10_step(node, call, guard)
+            return
+        if name == "LanguageCheck":
+            if len(call.args) != 1 or len(call.keywords) != 1 or call.keywords[0].arg != "target":
+                self._reject(call, "SPELL924", "LanguageCheck requires one selection and target")
+            selection = self._typed_argument(call.args[0], {"int"}, "LanguageCheck selection")
+            if type(selection) is int and not 0 <= selection <= ALL_SELECTION:
+                self._reject(call, "SPELL925", "LanguageCheck selection is outside the closed registry")
+            target = self._v07_target(call.keywords[0].value, "str", "LanguageCheck")
+            self.uses_v16 = self.uses_v06 = True
+            self._append(node, "language_check", guard=guard, selection=selection,
+                         target=target, target_type="str", cases_sha256=CASESET_SHA256)
             return
         if name in V08_DATA_CALLS:
             self._compile_v08_step(node, name, call, guard)
@@ -2536,7 +2591,7 @@ class _Compiler:
         return declared_type
 
     def _validate_variable_name(self, node: ast.AST, name: str) -> None:
-        if name.startswith("__") or name in self._step_calls or name in {
+        if name.startswith("__") or name in self._step_calls or name in DISPLAY_SEVERITIES or name in {
             "ARGS",
             "IVARS",
             "BuildTC",

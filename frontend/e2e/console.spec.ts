@@ -91,7 +91,7 @@ test("shows the connected simulator procedure catalog", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText("CONNECTED");
   await expect(page.getByRole("option", { name: /Power Checkout/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start procedure" })).toBeEnabled();
-  await expect(page.getByText("No active execution")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Master", exact: true })).toBeVisible();
   const widths = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     document: document.documentElement.scrollWidth,
@@ -106,14 +106,14 @@ test("shows the connected simulator procedure catalog", async ({ page }) => {
   expect(blocking).toEqual([]);
 });
 
-test("ends the authenticated session from the console header", async ({ page }) => {
+test("reconnects from the console header without a token entry screen", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "End session" }).click();
+  await page.getByRole("button", { name: "Reconnect simulator" }).click();
 
-  await expect(page.getByRole("heading", { name: "Session access" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Session access" })).toHaveCount(0);
   await expect
     .poll(() =>
       page.evaluate(() => window.sessionStorage.getItem("openbexi.spell.access-token")),
     )
-    .toBeNull();
+    .toBe("mock.jwt.token");
 });

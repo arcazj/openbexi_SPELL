@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from backend.procedure_parser import ProcedureCatalog
+from scripts.generate_reference_runner_v10 import MENU_COUNT
 
 from .test_worker_v06 import _next, _start_worker
 
@@ -57,7 +58,7 @@ def test_single_catalog_runner_routes_prompt_index_to_example_195(
     procedures = ProcedureCatalog(ROOT / "procedures").list()
     assert [procedure.id for procedure in procedures] == ["language_reference_244"]
     procedure = procedures[0]
-    assert procedure.ir_version == "0.10"
+    assert procedure.ir_version == "0.16"
 
     thread, control, output = _start_worker(
         monkeypatch,
@@ -71,8 +72,8 @@ def test_single_catalog_runner_routes_prompt_index_to_example_195(
     )
     assert opened["prompt_type"] == "LIST"
     assert opened["list_mode"] == "INDEX"
-    assert len(opened["choices"]) == 195
-    assert opened["choices"][-1].endswith("extract TM/TC database values")
+    assert len(opened["choices"]) == MENU_COUNT
+    assert opened["choices"][194].endswith("extract TM/TC database values")
 
     control.put(
         {

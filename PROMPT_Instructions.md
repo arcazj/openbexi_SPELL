@@ -1,5 +1,15 @@
 # OpenBEXI SPELL Project Instructions
 
+## Active v0.16.0 Work
+
+The owner authorized implementation and publication of v0.16.0: complete
+language-reference coverage reporting and direct source cases, the compact GUI
+manual workspace, automatic local simulator sessions, concise current
+documentation and full qualification. The
+[entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
+and `contracts/v16/entry_gate.json` define the scope. v0.15.0 remains the
+accepted predecessor until v0.16's annotated tag passes independent validation.
+
 ## 2026-10-01 - v0.15.0 Accepted
 
 Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.
@@ -303,12 +313,22 @@ Core and GUI legacy versions remain independent version series.
   not-before, expiry, identifier, and maximum lifetime.
 - Re-evaluate WebSocket credential expiry after the connection is established
   and close an expired session with code `4401`. The frontend must close its
-  socket and erase session credentials on logout, and a `4401` close must erase
-  the stored token and return the operator to session access.
-- Development token issuance must be disabled by default and in every running
-  service, explicitly invoked through a one-shot transient issuer, loopback-only,
-  and unavailable through a general HTTP endpoint. Default and qualification
-  tokens must be short-lived.
+  socket and erase session credentials on logout. An expired local simulator
+  credential is renewed through the bounded v0.16 bootstrap flow; an explicit
+  external credential must never be silently renewed with administrator power.
+- The owner-authorized v0.16 local Compose profile automatically connects the
+  browser at its literal loopback URL. Its bootstrap endpoint requires an
+  enabled local profile, exact loopback Host/Origin, same-origin request
+  metadata, the dedicated proxy boundary and an empty typed request. It issues
+  only finite short-lived operator credentials and a separately signed HttpOnly
+  SameSite identity cookie. Backend default is disabled outside that profile.
+  No actor/role supplied by the browser grants authority, and no automatic
+  administrator identity is issued. Session renewal, expiry and failure must
+  preserve permissions and avoid exposing tokens in logs or screenshots.
+- The separate development token issuer stays disabled in running services
+  and is explicitly invoked as a one-shot transient local tool. Qualification
+  identities remain short-lived and separate from automatic browser identities.
+  Default and qualification tokens must be short-lived.
 - The sole owner-requested local-session exception may issue one effectively
   long-lived token into an ignored local file under `var/` only. Issuer
   configuration and the signing secret stay in the ignored local `.env`; the

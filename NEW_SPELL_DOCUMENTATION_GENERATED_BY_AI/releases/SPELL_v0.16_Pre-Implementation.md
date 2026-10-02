@@ -57,6 +57,16 @@ of scope.
 
 ## Release Decision
 
+Implementation refinement: direct assignment and Display still lower to
+existing typed instructions. The combined reference procedure needs a closed
+IR 0.16 selection instruction: expanding all cases as flat guarded instructions
+left Example 195 running beyond the inherited 15-second API budget. The new
+instruction selects only source-hash-bound example/direct/all-case catalog
+entries, preserves older IR dispatch, and must pass malformed-input, bounds,
+worker, recovery and existing API latency tests. It does not evaluate submitted
+Python or turn a coverage gap into a pass. This refinement implements the
+owner-authorized complete runner without weakening the latency gate.
+
 The exact product inventory is collected and frozen after implementation;
 pre-implementation proof names are plans, not passed results. Candidate and
 Final producers must reject an unfrozen inventory, mutable source, missing

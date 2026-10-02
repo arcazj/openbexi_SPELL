@@ -1,25 +1,17 @@
-import { AlertCircle, Code2, LogOut, RefreshCcw, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, Code2, RefreshCcw, ShieldCheck, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useSimulatorSession } from "../useSimulatorSession";
 import {
-  accessTokenExpiresAtMs,
-  AUTH_CHANGED_EVENT,
-  clearAccessToken,
-  getAccessToken,
-  scheduleAt,
-} from "../api";
-import { AccessTokenGate } from "../components/AccessTokenGate";
-import {
-  authenticateDevelopmentAccessToken,
   createProject,
   currentDevelopmentIdentity,
   listProjects,
 } from "./api";
 import { DevelopmentWorkspace } from "./DevelopmentWorkspace";
-import type { DevelopmentIdentity, ProjectSummary } from "./types";
+import type { ProjectSummary } from "./types";
 
 export function DevelopmentApp() {
-  const [accessToken, setCurrentAccessToken] = useState(() => getAccessToken());
-  const [identity, setIdentity] = useState<DevelopmentIdentity>(() => currentDevelopmentIdentity());
+  const { accessToken, status, error: sessionError, retry } = useSimulatorSession();
+  const identity = currentDevelopmentIdentity();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [workspaceDirty, setWorkspaceDirty] = useState(false);
@@ -45,31 +37,16 @@ export function DevelopmentApp() {
   }, []);
 
   useEffect(() => {
-    const updateAuthentication = () => {
-      const token = getAccessToken();
-      const active = Boolean(token);
-      setCurrentAccessToken(token);
-      setIdentity(currentDevelopmentIdentity());
-      if (!active) {
-        setProjects([]);
-        setSelectedProjectId(null);
-        setWorkspaceDirty(false);
-      }
-    };
-    window.addEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, updateAuthentication);
-  }, []);
+    if (!accessToken) {
+      setProjects([]);
+      setSelectedProjectId(null);
+      setWorkspaceDirty(false);
+    }
+  }, [accessToken]);
 
   useEffect(() => {
     if (accessToken) void loadProjects();
   }, [accessToken, loadProjects]);
-
-  useEffect(() => {
-    if (!accessToken) return;
-    const deadline = accessTokenExpiresAtMs(accessToken);
-    if (deadline === null) return;
-    return scheduleAt(deadline, clearAccessToken);
-  }, [accessToken]);
 
   async function addProject(name: string, casePolicy: ProjectSummary["case_policy"]): Promise<void> {
     if (workspaceDirty && !window.confirm("Discard unsaved changes and create another project?")) return;
@@ -95,11 +72,6 @@ export function DevelopmentApp() {
     setSelectedProjectId(projectId);
   }
 
-  function endSession(): void {
-    if (workspaceDirty && !window.confirm("Discard unsaved changes and end this session?")) return;
-    clearAccessToken();
-  }
-
   useEffect(() => {
     if (!workspaceDirty) return;
     const preventDraftLoss = (event: BeforeUnloadEvent) => event.preventDefault();
@@ -109,11 +81,11 @@ export function DevelopmentApp() {
 
   if (!authenticated) {
     return (
-      <AccessTokenGate
-        title="Development access"
-        subtitle="OpenBEXI SPELL authoring environment"
-        authenticate={authenticateDevelopmentAccessToken}
-      />
+      <main className="dev-app">
+        <h1>OpenBEXI SPELL development</h1>
+        <p role="status">{status === "connecting" ? "Connecting to OpenBEXI SPELL simulator..." : sessionError}</p>
+        {status !== "connecting" && <button type="button" onClick={retry}>Retry connection</button>}
+      </main>
     );
   }
 
@@ -152,8 +124,8 @@ export function DevelopmentApp() {
         <div className="dev-session">
           <ShieldCheck aria-hidden="true" size={16} />
           <span><strong>{identity.subject}</strong><small>{identity.role}</small></span>
-          <button type="button" title="End session" aria-label="End session" onClick={endSession}>
-            <LogOut aria-hidden="true" size={16} />
+          <button type="button" title="Reconnect simulator" aria-label="Reconnect simulator" onClick={retry}>
+            <RefreshCcw aria-hidden="true" size={16} />
           </button>
         </div>
       </header>

@@ -1,5 +1,15 @@
 # SPELL Release Provenance and Dependency Review
 
+## Current v0.16 Work
+
+v0.16.0 is in implementation and qualification under the
+[entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md).
+The original reference hashes remain pinned. UI and language work is independently
+authored; source manuals and legacy implementation are not copied into product
+images. Version-specific qualification and package bindings will be recorded in
+the [release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md)
+after execution. The accepted predecessor bindings below remain immutable.
+
 ## Record Status
 
 This record retains historical provenance and identifies **v0.15.0** as the

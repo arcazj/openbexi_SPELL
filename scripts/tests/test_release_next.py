@@ -10,6 +10,94 @@ import pytest
 from scripts import release_next as release
 
 
+@pytest.mark.parametrize("tamper", [None, "schema", "owner", "requirements", "predecessor", "authority", "inventory", "source"])
+def test_v16_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypatch, tamper):
+    import json
+    from scripts import validate_v16_gate as gate
+
+    references = [{"path": "manual.pdf", "sha256": release.sha(b"reference")}]
+    entry = {"schema_version": "spell.v16.entry-gate/1", "release_tag": "v0.16.0", "scope": "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE",
+             "owner_authorized": True, "operational_authorization": False,
+             "full_language_compatibility_claim": False, "requirements": sorted(gate.REQUIRED),
+             "predecessor_commit": "accepted"}
+    policy = {"release_tag": entry["release_tag"], "scope": entry["scope"],
+              "predecessor_commit": "accepted", "reference_inputs": references,
+              "operational_authorization": False, "legacy_system_qualified": False}
+    prior = json.dumps({"reference_inputs": references}).encode()
+    monkeypatch.setattr(gate.subprocess, "check_output", lambda args, **kwargs:
+                        "accepted\n" if args[1] == "rev-parse" else prior)
+    monkeypatch.setattr(gate.subprocess, "run", lambda *args, **kwargs: None)
+    (tmp_path / "contracts/v16").mkdir(parents=True)
+    record = tmp_path / "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md"
+    record.parent.mkdir(parents=True)
+    record.write_text("\n".join(gate.REQUIRED))
+    (tmp_path / "manual.pdf").write_bytes(b"reference")
+    if tamper == "schema": entry["schema_version"] = "spell.v15.entry-gate/1"
+    elif tamper == "owner": entry["owner_authorized"] = False
+    elif tamper == "requirements": entry["requirements"].pop()
+    elif tamper == "predecessor": entry["predecessor_commit"] = "unaccepted"
+    elif tamper == "authority": policy["operational_authorization"] = True
+    elif tamper == "inventory": policy["reference_inputs"] = []
+    elif tamper == "source": (tmp_path / "manual.pdf").write_bytes(b"changed")
+    release.write_json(tmp_path / "contracts/v16/entry_gate.json", entry)
+    release.write_json(tmp_path / "contracts/v16/release_policy.json", policy)
+    if tamper:
+        with pytest.raises(ValueError):
+            gate.validate(tmp_path)
+    else:
+        assert gate.validate(tmp_path)["decision"] == "PASS"
+
+
+@pytest.mark.parametrize("tamper", [None, "missing", "extra", "not_png"])
+def test_browser_evidence_rechecks_screenshot_inventory_and_format(tmp_path, tamper):
+    browser = tmp_path / "browser"
+    browser.mkdir()
+    screenshot = browser / "session.png"
+    screenshot.write_bytes(b"\x89PNG\r\n\x1a\nsynthetic-test-payload")
+    if tamper == "missing": screenshot.unlink()
+    elif tamper == "extra": (browser / "extra.png").write_bytes(screenshot.read_bytes())
+    elif tamper == "not_png": screenshot.write_bytes(b"not screenshot evidence")
+    if tamper:
+        with pytest.raises(release.ReleaseError):
+            release.verify_browser_evidence(tmp_path, {"browser_screenshots": 1})
+    else:
+        release.verify_browser_evidence(tmp_path, {"browser_screenshots": 1})
+
+
+@pytest.mark.parametrize("field", [None, "schema_version", "release_tag", "scope", "file_count", "repeated_builds", "repro_schema"])
+def test_release_metadata_rejects_tamper_even_when_package_hash_is_unchanged(monkeypatch, field):
+    monkeypatch.setattr(release, "package_names", lambda: ["backend/app.py", "README.md"])
+    manifest = {"schema_version": f"spell.v{release.MINOR}.release-manifest/1",
+                "release_tag": release.TAG, "scope": release.PROFILE,
+                "file_count": 2, "repeated_builds": 2, "package_sha256": "unchanged"}
+    reproduced = {"schema_version": f"spell.v{release.MINOR}.reproducibility/1"}
+    if field == "repro_schema": reproduced["schema_version"] = "old"
+    elif field is not None: manifest[field] = 1 if field in {"file_count", "repeated_builds"} else "tampered"
+    if field:
+        with pytest.raises(release.ReleaseError):
+            release.verify_release_metadata(manifest, reproduced)
+    else:
+        release.verify_release_metadata(manifest, reproduced)
+
+
+@pytest.mark.parametrize("tamper", [None, "missing", "ir", "cases", "adaptations", "authority", "failure"])
+def test_installed_language_runner_proof_is_exact(tamper):
+    result = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
+              "adapted_examples": 195, "adapted_variants": 257,
+              "full_compatibility": False, "decision": "PASS"}
+    if tamper == "ir": result["ir_version"] = "0.15"
+    elif tamper == "cases": result["direct_and_boundary_cases"] = 31
+    elif tamper == "adaptations": result["adapted_variants"] = 195
+    elif tamper == "authority": result["full_compatibility"] = 0
+    elif tamper == "failure": result["decision"] = "FAIL"
+    probe = {"images": {"backend": {} if tamper == "missing" else {"language_runner": result}}}
+    if tamper:
+        with pytest.raises(release.ReleaseError):
+            release.verify_installed_language_runner(probe)
+    else:
+        release.verify_installed_language_runner(probe)
+
+
 def test_junit_retains_exact_identities_and_skips(tmp_path: Path) -> None:
     path = tmp_path / "tests.xml"
     path.write_text('<testsuite><testcase classname="a" name="b" time="0.1"/><testcase classname="a" name="c"><skipped/></testcase></testsuite>')

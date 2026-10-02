@@ -1,5 +1,9 @@
 # Backup, Restore, and Disaster Recovery
 
+v0.16 retains the local report restore profile below. Automatic browser access
+does not grant administrator restore permission; see the
+[current operator guide](../../frontend/README.md).
+
 ## Accepted Local Report Restore Profile
 
 The accepted v0.15.0 workflow backs up a selected shadow-pilot report and its
