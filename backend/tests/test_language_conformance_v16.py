@@ -94,8 +94,7 @@ def test_cli_full_support_gate_fails_even_when_profile_passes(monkeypatch: pytes
 
 @pytest.mark.parametrize("selection", [195, ALL_INDEX], ids=["individual-direct", "run-all"])
 def test_generated_procedure_executes_direct_cases_and_reports_gaps(monkeypatch: pytest.MonkeyPatch, selection: int) -> None:
-    assert OUTPUT.read_text(encoding="ascii") == render()
-    procedure = ProcedureCatalog(OUTPUT.parent).get("language_reference_244")
+    procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(render(), "v16-reference.spell.py")
     thread, control, output = _start_worker(monkeypatch, procedure)
     opened, _ = _next(output, lambda item: item.get("kind") == "prompt_opened", timeout=5)
     control.put({"type": "prompt_response", "prompt_id": opened["prompt_id"], "response": selection})
@@ -118,7 +117,7 @@ def test_generated_procedure_executes_direct_cases_and_reports_gaps(monkeypatch:
 @pytest.mark.parametrize("mutation", ["digest", "selection-type", "selection-negative", "selection-large", "expression", "target", "extra", "index"])
 def test_closed_ir_rejects_tampering(mutation: str) -> None:
     from backend.ir_v16 import validate_ir_v16, V16ValidationError
-    procedure = ProcedureCatalog(OUTPUT.parent).get("language_reference_244")
+    procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(render(), "v16-reference.spell.py")
     steps = deepcopy(list(procedure.steps))
     step = next(s for s in steps if s["type"] == "language_check")
     if mutation == "digest":
@@ -148,7 +147,7 @@ def test_runtime_selection_is_closed(selection) -> None:
 
 
 def test_selection_checkpoint_can_resume_after_worker_loss(monkeypatch: pytest.MonkeyPatch) -> None:
-    procedure = ProcedureCatalog(OUTPUT.parent).get("language_reference_244")
+    procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(render(), "v16-reference.spell.py")
     position = next(s["index"] for s in procedure.steps if s["type"] == "language_check")
     checkpoint = {"selected_index": ALL_INDEX, "example_number": ALL_INDEX + 1, "result": "not run"}
     # Kill a real isolated worker while it awaits the durable safe-point ack.

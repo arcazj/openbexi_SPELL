@@ -1,4 +1,4 @@
-"""Source-bound v0.13-v0.16 qualification, deterministic packaging, and tag validation.
+"""Source-bound v0.13-v0.17 qualification, deterministic packaging, and tag validation.
 
 Run tests from clean committed source. The recorder retains raw evidence;
 validation recomputes its hashes, test identities, skips, and package bytes.
@@ -23,11 +23,12 @@ import tomllib
 
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 MINOR = int(VERSION.split(".")[1])
-if VERSION not in {"0.13.0", "0.14.0", "0.15.0", "0.16.0"}:
+if VERSION not in {"0.13.0", "0.14.0", "0.15.0", "0.16.0", "0.17.0"}:
     raise ValueError("unsupported release identity")
 PROFILE = {13: "LOCAL_SYNTHETIC_PROCEDURE_CONTROL", 14: "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER",
            15: "LOCAL_SYNTHETIC_SHADOW_PILOT",
-           16: "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"}[MINOR]
+           16: "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE",
+           17: "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"}[MINOR]
 ARTIFACT = Path(f"artifacts/v0.{MINOR}")
 TAG = "v" + VERSION
 POLICY = Path(f"contracts/v{MINOR}/release_policy.json")
@@ -66,7 +67,10 @@ def policy() -> dict:
     require(data["scope"] == PROFILE and data["legacy_system_qualified"] is False, "scope differs")
     require(data["operational_authorization"] is False, "policy authority differs")
     if MINOR >= 16:
-        from scripts.validate_v16_gate import validate as validate_entry
+        if MINOR >= 17:
+            from scripts.validate_v17_gate import validate as validate_entry
+        else:
+            from scripts.validate_v16_gate import validate as validate_entry
         require(validate_entry(ROOT)["decision"] == "PASS", "entry gate failed")
         require(data.get("catalog_frozen") is True, "release catalog is not frozen")
     require(git("rev-parse", PREDECESSOR + "^{commit}") == data["predecessor_commit"], "predecessor differs")
@@ -158,7 +162,10 @@ def verify_captures(directory: Path, config: dict) -> dict:
     if MINOR >= 15:
         verify_pilot_soak(json.loads((directory / "pilot-soak.json").read_bytes()))
     if MINOR >= 16:
-        from backend.language_conformance_v16 import validate_report
+        if MINOR >= 17:
+            from backend.language_conformance_v17 import validate_report
+        else:
+            from backend.language_conformance_v16 import validate_report
         validate_report(json.loads((directory / "language-conformance.json").read_bytes()))
     audit = json.loads((directory / "python-audit.json").read_bytes())
     require(not any(row.get("vulns") for row in audit["dependencies"]), "Python advisories remain")
@@ -213,9 +220,13 @@ def verify_browser_evidence(directory: Path, config: dict) -> None:
 
 def verify_installed_language_runner(probe: dict) -> None:
     result = probe.get("images", {}).get("backend", {}).get("language_runner")
-    expected = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
-                "adapted_examples": 195, "adapted_variants": 257,
-                "full_compatibility": False, "decision": "PASS"}
+    if MINOR >= 17:
+        from backend.language_conformance_v17 import expected_image_runner_proof
+        expected = expected_image_runner_proof()
+    else:
+        expected = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
+                    "adapted_examples": 195, "adapted_variants": 257,
+                    "full_compatibility": False, "decision": "PASS"}
     require(json.dumps(result, sort_keys=True) == json.dumps(expected, sort_keys=True),
             "installed language runner proof differs")
 

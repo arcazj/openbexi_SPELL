@@ -20,7 +20,8 @@ owns that evidence; later documentation maintenance does not replace it.
 
 ### Current Local Product Alignment
 
-Current product alignment (2026-10-01): the parent product is accepted at
+Current product alignment (2026-10-02): v0.17.0 direct-language qualification
+is pending; the parent product remains accepted at
 [v0.16.0](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding).
 Earlier increments remain indexed in [release records](../releases/README.md);
 delivered workflows are described in the [console guide](../../frontend/README.md).

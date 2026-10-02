@@ -2,11 +2,11 @@
 
 ## Current Local Increment
 
-Accepted v0.16.0 delivers language coverage/direct cases, the compact
-original-manual workspace and automatic local simulator access. Its
-[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-binds that local scope and qualification. Broader phases below retain their
-separate Draft gates.
+v0.17.0 is in qualification for direct language conformance and native
+Display/Prompt behavior. Its [release record](../releases/SPELL_v0.17_Implementation.md)
+tracks status; v0.16.0 remains the accepted predecessor with the compact
+manual workspace and automatic local access. Broader phases below retain
+their separate Draft gates.
 
 ## Roadmap Rule
 

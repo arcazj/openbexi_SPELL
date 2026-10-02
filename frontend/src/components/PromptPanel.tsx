@@ -29,10 +29,11 @@ function initialOptionIndex(prompt: ActivePrompt): number {
     const match = prompt.options.indexOf(displayValue(prompt.default_value));
     if (match >= 0) return match;
   }
-  return 0;
+  return prompt.prompt_profile === "spell-lrm244/0.17" ? -1 : 0;
 }
 
 export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
+  const nativePrompt = prompt.prompt_profile === "spell-lrm244/0.17";
   const dispatch = useAppDispatch();
   const pending = useAppSelector((state) => state.console.pendingAction);
   const connection = useAppSelector((state) => state.console.connection.phase);
@@ -44,6 +45,9 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
   const [optionQuery, setOptionQuery] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(Date.now);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const audioContext = useRef<AudioContext | null>(null);
+  const soundedWarnings = useRef(new Set<string>());
   const refreshedBoundaries = useRef(new Set<string>());
 
   useEffect(() => {
@@ -120,6 +124,27 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
   const warningActive = prompt.warning_active || (Number.isFinite(warningAtMs) && nowMs >= warningAtMs);
   const deadlineReached = Number.isFinite(deadlineMs) && nowMs >= deadlineMs;
 
+  useEffect(() => {
+    if (!nativePrompt || !warningActive || !soundEnabled || !audioContext.current) return;
+    const key = `${prompt.id}:${prompt.warning_at}`;
+    if (soundedWarnings.current.has(key)) return;
+    soundedWarnings.current.add(key);
+    try {
+      const context = audioContext.current;
+      const tone = context.createOscillator();
+      const gain = context.createGain();
+      tone.frequency.value = 660;
+      gain.gain.value = 0.08;
+      tone.connect(gain);
+      gain.connect(context.destination);
+      tone.start();
+      tone.stop(context.currentTime + 0.15);
+      tone.onended = () => { tone.disconnect(); gain.disconnect(); };
+    } catch { /* The durable visible warning remains available when audio is blocked. */ }
+  }, [nativePrompt, prompt.id, prompt.warning_at, soundEnabled, warningActive]);
+
+  useEffect(() => () => { void audioContext.current?.close().catch(() => undefined); }, []);
+
   const disabled =
     connection !== "CONNECTED" ||
     !["PROMPT", "PROMPTING"].includes(executionState ?? "") ||
@@ -148,8 +173,33 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
           )}
         </div>
         <div className="prompt-metadata"><code>{prompt.id}</code><span>Revision {prompt.revision}</span>{prompt.default_value !== undefined && <span>Default: {displayValue(prompt.default_value)}</span>}</div>
+        {nativePrompt && prompt.warning_at && <label className="prompt-sound">
+          <input type="checkbox" checked={soundEnabled} onChange={(event) => {
+            const enabled = event.target.checked;
+            setSoundEnabled(enabled);
+            if (enabled) {
+              try {
+                audioContext.current ??= new AudioContext();
+                void audioContext.current.resume().catch(() => undefined);
+              } catch { /* Browser audio support is optional. */ }
+            }
+          }} /> Warning sound
+        </label>}
         {prompt.options?.length ? (
           <>
+          {nativePrompt && prompt.prompt_type === "LIST" && <label className="prompt-input">
+            <span>Response</span>
+            <input type="text" value={value} disabled={disabled} autoComplete="off"
+              placeholder={prompt.list_mode === "INDEX" ? "Option index or label" : "Option value or label"}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setValue(nextValue);
+                const matches = (prompt.options ?? []).flatMap((label, index) =>
+                  nextValue === label || nextValue === displayValue(prompt.option_values?.[index]) ? [index] : []);
+                setSelectedOption(matches.length === 1 ? matches[0]! : -1);
+                setValidationError(null);
+              }} />
+          </label>}
           {prompt.options.length > 20 && (
             <label className="prompt-input">
               <span>Filter {prompt.options.length} examples</span>
@@ -183,7 +233,10 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
                   name={`prompt-${prompt.id}`}
                   value={index}
                   checked={selectedOption === index}
-                  onChange={() => setSelectedOption(index)}
+                  onChange={() => {
+                    setSelectedOption(index);
+                    if (nativePrompt) setValue(displayValue(prompt.option_values?.[index] ?? option));
+                  }}
                   disabled={disabled}
                 />
                 <span>{option}</span>
@@ -214,7 +267,7 @@ export function PromptPanel({ prompt }: { prompt: ActivePrompt }) {
         {validationError && <p className="prompt-validation" role="alert">{validationError}</p>}
         {!canControl && <p className="prompt-monitor-notice">Monitor mode is read-only. Acquire control to settle this prompt.</p>}
         <div className="prompt-actions">
-          <button className="toolbar-command" type="button" onClick={() => { setValue(displayValue(prompt.default_value)); setSelectedOption(initialOptionIndex(prompt)); setOptionQuery(""); setValidationError(null); }} disabled={pending !== null}><RotateCcw aria-hidden="true" size={15} /> Reset draft</button>
+          <button className="toolbar-command" type="button" onClick={() => { setValue(nativePrompt ? "" : displayValue(prompt.default_value)); setSelectedOption(nativePrompt ? -1 : initialOptionIndex(prompt)); setOptionQuery(""); setValidationError(null); }} disabled={pending !== null}><RotateCcw aria-hidden="true" size={15} /> Reset draft</button>
           <button className="danger-command" type="button" onClick={abort} disabled={disabled}><X aria-hidden="true" size={15} /> Abort prompt</button>
           <button className="prompt-submit" type="submit" disabled={disabled || (prompt.options?.length ? !selectedOptionVisible : !value)}><Check aria-hidden="true" size={17} /> Commit response</button>
         </div>

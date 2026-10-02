@@ -51,7 +51,9 @@ def main():
     require(len(identities) == len(set(identities)) == config["browser_screenshots"], "browser catalog differs")
     config["gates"]["browser"] = {"tests": len(identities), "identities": sorted(identities), "skipped": []}
     features = {13: ["synthetic_control_v13"], 14: ["telemetry_adapter_v14"],
-                15: ["shadow_pilot_v15"], 16: ["language_conformance_v16", "local_session_v16"]}[MINOR]
+                15: ["shadow_pilot_v15"], 16: ["language_conformance_v16", "local_session_v16"],
+                17: ["language_core_v17", "prompt_v17", "worker_prompt_v17", "prompt_runtime_v17",
+                     "prompt_api_v17", "language_conformance_v17"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
     prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))

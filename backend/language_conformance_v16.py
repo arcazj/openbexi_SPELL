@@ -245,7 +245,7 @@ def evaluate_fixed_case(case: dict[str, Any]) -> dict[str, Any]:
     values, logs, terminal = {}, [], "completed"
     try:
         for step in procedure.steps:
-            if step["type"] not in {"variable_set", "log"}:
+            if step["type"] not in {"variable_set", "log", "display"}:
                 raise ValueError("closed source contains an effectful instruction")
             if "guard" in step and not evaluate_expression(step["guard"], values):
                 continue
@@ -254,7 +254,7 @@ def evaluate_fixed_case(case: dict[str, Any]) -> dict[str, Any]:
                 values[step["name"]] = float(value) if step["declared_type"] == "float" else value
             else:
                 message = evaluate_expression(step["message"], values)
-                if type(message) is not str or not message:
+                if type(message) is not str or (step["type"] == "log" and not message):
                     raise ExpressionEvaluationError("Log message must be nonempty text")
                 logs.append([message, step["level"]])
     except ExpressionEvaluationError:

@@ -1,13 +1,13 @@
 # Verification And Validation Strategy
 
-## v0.16 Application
+## v0.17 Application In Qualification
 
-Accepted v0.16.0 passed language-inventory reconciliation, real parser/worker
-cases, manual UI visual/browser checks, local-session security/renewal tests
-and the complete inherited qualification. The
-[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-centralizes the evidence. Inventory completeness, passing adaptations and
-expected rejection do not imply full language support.
+v0.17 requires direct source/worker checks, separate durable deadline and
+recovery proof, real prompt interaction and complete inherited qualification.
+The [release record](../releases/SPELL_v0.17_Implementation.md) tracks execution
+status. Inventory completeness, bounded passing checks, adaptations and expected
+rejection do not imply full language support. Historical results below remain
+bound to their own tagged sources.
 
 ## Purpose
 

@@ -1,5 +1,13 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-10-02 - v0.17.0 In Progress
+
+The owner authorized direct language conformance, native Display/Prompt behavior,
+expanded coverage evidence and release publication. Entry commit `d015aef`
+records seven proof requirements and eight mandatory references. Qualification
+and publication are pending; see the
+[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md).
+
 ## 2026-10-01 - v0.16.0 Accepted
 
 Annotated `v0.16.0` passed independent clean-tag validation for language coverage,

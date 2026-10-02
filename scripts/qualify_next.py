@@ -1,4 +1,4 @@
-"""Canonical, source-bound v0.13-v0.16 qualification producer (Windows host, Linux Docker)."""
+"""Canonical, source-bound v0.13-v0.17 qualification producer (Windows host, Linux Docker)."""
 from __future__ import annotations
 
 import argparse
@@ -145,10 +145,12 @@ class Producer:
             if MINOR >= 15:
                 self.run(docker_python("-m", "scripts.qualify_shadow_pilot_v15", "--output", "/evidence/pilot-soak.json"))
         elif gate == "reference-generators":
-            self.run(docker_python("-m", "scripts.generate_reference_runner_v10", "--check"))
+            generator = "scripts.generate_reference_runner_v17" if MINOR >= 17 else "scripts.generate_reference_runner_v10"
+            self.run(docker_python("-m", generator, "--check"))
             self.run(docker_python("-m", "scripts.qualify_reference_examples_v10", "--output", "/evidence/reference-examples.json"))
             if MINOR >= 16:
-                self.run(docker_python("-m", "scripts.qualify_language_v16", "--output", "/evidence/language-conformance.json"))
+                language_qualifier = "scripts.qualify_language_v17" if MINOR >= 17 else "scripts.qualify_language_v16"
+                self.run(docker_python("-m", language_qualifier, "--output", "/evidence/language-conformance.json"))
         elif gate == "browser":
             token = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
                 "backend", "python", "/app/scripts/issue_dev_token.py", "--subject", f"v0{MINOR}-browser-qualification",

@@ -54,21 +54,28 @@ def main():
                 assert contract["profile"] == "LOCAL_SYNTHETIC_SHADOW_PILOT" and contract["operational_authorization"] is False
                 row["pilot_profile"] = contract
             if MINOR >= 16:
+                language_module = "backend.language_conformance_v17" if MINOR >= 17 else "backend.language_conformance_v16"
+                expected_ir = "0.17" if MINOR >= 17 else "0.16"
                 code = (
                     "import json; from pathlib import Path; "
                     "from backend.procedure_parser import ProcedureCatalog; "
-                    "from backend.language_conformance_v16 import execute_selection, CASES; "
+                    f"from {language_module} import execute_selection, CASES; "
                     "p=ProcedureCatalog(Path('/app/procedures')).get('language_reference_244'); "
-                    "assert p.ir_version=='0.16' and len(p.steps)==7; "
+                    f"assert p.ir_version=='{expected_ir}' and len(p.steps)==7; "
                     "summary,effects=execute_selection(195+len(CASES)); r=effects[0]['payload']; "
-                    "assert len(r['cases'])==32 and all(c['passed'] for c in r['cases']); "
+                    "assert len(r['cases'])==len(CASES) and all(c['passed'] for c in r['cases']); "
                     "assert len(r['adaptations'])==195 and sum(x['variant_count'] for x in r['adaptations'])==257; "
                     "assert r['full_compatibility'] is False; "
                     "print(json.dumps({'ir_version':p.ir_version,'steps':len(p.steps),"
                     "'direct_and_boundary_cases':len(r['cases']),'adapted_examples':len(r['adaptations']),"
-                    "'adapted_variants':257,'full_compatibility':False,'decision':'PASS'}))"
+                    "'adapted_variants':sum(x['variant_count'] for x in r['adaptations']),"
+                    "'full_compatibility':r['full_compatibility'],'decision':'PASS'"
+                    + (",'cases_sha256':r['cases_sha256']" if MINOR >= 17 else "") + "}))"
                 )
                 row["language_runner"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
+                if MINOR >= 17:
+                    from backend.language_conformance_v17 import expected_image_runner_proof
+                    assert row["language_runner"] == expected_image_runner_proof()
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):

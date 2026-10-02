@@ -24,6 +24,7 @@ from .ir_v06 import (
     validate_user_action_block,
 )
 from .ir_v11 import telecommand_dependency_variables
+from .prompt_v17 import PROMPT_PROFILE, MAX_TIMEOUT_SECONDS, validate_native_prompt_step, normalize_native_prompt_response
 from .models import Event, Execution, Prompt
 from .operator_models import (
     ControllerLease,
@@ -71,7 +72,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
-_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16"})
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16", "0.17"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,
@@ -3639,6 +3640,7 @@ class OperatorService:
             "warning_delay_seconds",
             "response_timeout_seconds",
             "no_controller_grace_seconds",
+            "prompt_profile",
         }:
             raise OperatorValidationError(
                 "prompt declaration contains unsupported fields"
@@ -3656,15 +3658,26 @@ class OperatorService:
         raw_options = declaration.get("options")
         raw_default = declaration.get("default")
         raw_list_mode = declaration.get("list_mode")
+        native = declaration.get("prompt_profile") == PROMPT_PROFILE
+        if "prompt_profile" in declaration and not native:
+            raise OperatorValidationError("prompt profile is invalid")
         try:
+            native_fields = validate_native_prompt_step({
+                "prompt_profile": PROMPT_PROFILE,
+                "prompt_type": raw_prompt_type, "question": raw_question,
+                "choices": raw_options, "default": raw_default, "list_mode": raw_list_mode,
+                "warning_delay_seconds": declaration.get("warning_delay_seconds"),
+                "response_timeout_seconds": declaration.get("response_timeout_seconds"),
+                "no_controller_grace_seconds": None,
+            }) if native else None
             spec = validate_prompt_declaration(
                 raw_question,
                 prompt_type=raw_prompt_type,
                 choices=raw_options,
                 default=raw_default,
                 list_mode=raw_list_mode,
-                warning_delay_seconds=declaration.get("warning_delay_seconds"),
-                response_timeout_seconds=declaration.get("response_timeout_seconds"),
+                warning_delay_seconds=None if native else declaration.get("warning_delay_seconds"),
+                response_timeout_seconds=None if native else declaration.get("response_timeout_seconds"),
                 no_controller_grace_seconds=declaration.get(
                     "no_controller_grace_seconds"
                 ),
@@ -3689,6 +3702,14 @@ class OperatorService:
             )
             existing = session.get(OperatorPrompt, prompt_id, with_for_update=True)
             if existing is not None:
+                if (existing.settings_snapshot.get("PROMPT_PROFILE") == PROMPT_PROFILE) != native:
+                    raise OperatorConflictError("PromptId is bound to another prompt profile")
+                if native and (
+                    existing.settings_snapshot.get("PROMPT_PROFILE") != PROMPT_PROFILE
+                    or existing.settings_snapshot.get("PROMPT_WARNING_DELAY") != native_fields["warning_delay_seconds"]
+                    or existing.settings_snapshot.get("PROMPT_RESPONSE_TIMEOUT") != native_fields["response_timeout_seconds"]
+                ):
+                    raise OperatorConflictError("PromptId is bound to another native timeout policy")
                 requested = canonical_digest(
                     {
                         "execution_id": execution_id,
@@ -3759,13 +3780,15 @@ class OperatorService:
             }
             for key, (declaration_key, value) in explicit_settings.items():
                 if declaration_key in declaration:
-                    resolved_settings[key] = value
+                    resolved_settings[key] = native_fields[declaration_key] if native and key != "NO_CONTROLLER_GRACE" else value
+            if native:
+                resolved_settings["PROMPT_PROFILE"] = PROMPT_PROFILE
             settings_snapshot = resolved_settings
             now = self._database_now(session)
             warning_delay = self._optional_duration(
                 settings_snapshot.get("PROMPT_WARNING_DELAY"),
                 "PROMPT_WARNING_DELAY",
-                maximum=86_400,
+                maximum=MAX_TIMEOUT_SECONDS if native else 86_400,
             )
             response_timeout = self._optional_duration(
                 settings_snapshot.get("PROMPT_RESPONSE_TIMEOUT"),
@@ -4041,6 +4064,11 @@ class OperatorService:
     @staticmethod
     def _validate_prompt_value(prompt: OperatorPrompt, value: Any) -> Any:
         try:
+            if prompt.settings_snapshot.get("PROMPT_PROFILE") == PROMPT_PROFILE:
+                return normalize_native_prompt_response({
+                    "prompt_type": prompt.prompt_type, "choices": prompt.options,
+                    "list_mode": prompt.list_mode,
+                }, value)
             return normalize_prompt_value(
                 prompt.prompt_type,
                 value,
@@ -4615,7 +4643,9 @@ class OperatorService:
                     continue
                 outcome = "NO_CONTROLLER" if no_controller_due else "TIMED_OUT"
                 value = None
-                if deadline_due and prompt.default_value is not None:
+                if deadline_due and prompt.default_value is not None and not (
+                    no_controller_due and prompt.settings_snapshot.get("PROMPT_PROFILE") == PROMPT_PROFILE
+                ):
                     outcome = "ANSWERED"
                     value = prompt.default_value
                 prompt.state = "SETTLED"

@@ -3,6 +3,13 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## v0.17 Product Documentation - 2026-10-02
+
+- Added bounded core/native Prompt behavior and migration notes, including the
+  timeout conflict, typed results and remaining conformance gaps.
+- Linked current instructions to the v0.17 scope and qualification record;
+  acceptance remains pending and historical evidence stays unchanged.
+
 ## v0.16 Product Documentation - 2026-10-01
 
 - Recorded accepted [v0.16.0](releases/SPELL_v0.16_Implementation.md#accepted-release-binding)

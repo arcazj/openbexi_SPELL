@@ -1,15 +1,28 @@
 # SPELL Compatibility and Migration
 
-## v0.16 Coverage And Direct Source Tests
+## v0.17 Direct Language Increment
 
-The [complete language inventory](../../contracts/v16/language_coverage.json)
-tracks original source artifacts, direct cases, adaptations and gaps. The
+The [complete language inventory](../../contracts/v17/language_coverage.json)
+separates missing implementation, missing proof and manual conflicts. The
 [reference procedure](../../procedures/language_reference_244.spell.py) supports
-individual and complete-suite choices. v0.16 adds bounded inferred scalar
-assignment and Display severity through the existing typed IR. Correct
-unsupported-syntax rejection is test evidence, not language support. See the
-[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-for exact scope and qualification.
+individual and complete-suite choices. v0.17 adds bounded integer operators,
+empty ranges and native Display/Prompt forms with typed results. Bare newly
+compiled `Prompt(message)` now defaults to OK; explicit lowercase project forms
+and stored earlier IR retain their contract. The native timeout interpretation
+follows section 4.12, and DATE returns ISO text. See the
+[scope and compatibility decisions](../releases/SPELL_v0.17_Pre-Implementation.md)
+and [qualification status](../releases/SPELL_v0.17_Implementation.md).
+Correct unsupported-syntax rejection is test evidence, not language support.
+
+IR 0.17 native features cannot be combined with earlier data/argument, file,
+environment or telecommand service profiles. Existing Display calls in those
+profiles keep their previous nonempty log contract. These combinations remain
+explicit gaps; typed read-only observation capabilities retain their own bounds.
+
+Native Prompt assignments require the exact result type: string, finite float
+for NUM, or integer for LIST indexes. They do not widen an integer result into a
+float target. LIST accepts 1-1000 choices; literal ranges allow at most 1000
+iterations. Timeout is bounded to seven days.
 
 ## Accepted Local Product Profile
 

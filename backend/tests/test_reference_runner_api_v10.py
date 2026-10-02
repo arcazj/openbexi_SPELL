@@ -9,7 +9,7 @@ from backend.app import create_app
 from backend.auth import AuthConfig
 from backend.config import Settings
 from backend.development_bundle_builder import InProcessDualBundleBuilder
-from scripts.generate_reference_runner_v10 import MENU_COUNT, ALL_INDEX
+from scripts.generate_reference_runner_v17 import MENU_COUNT, ALL_INDEX, DIRECT_CASES
 
 from .conftest import wait_for_state
 from .test_api_execution import fenced_prompt_request
@@ -61,7 +61,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         )
         assert validation.status_code == 200, validation.text
         assert validation.json()["valid"] is True
-        assert validation.json()["subset_version"] == "spell-lrm244-conformance/0.16"
+        assert validation.json()["subset_version"] == "spell-lrm244-conformance/0.17"
 
         created = client.post(
             "/api/v1/executions",
@@ -120,7 +120,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         variables = completed["execution"]["variables"]
         assert variables["selected_index"] == selection
         assert variables["example_number"] == selection + 1
-        assert variables["result"].startswith("Example 195: PASS" if selection == 194 else "Language checks: 32 PASS")
+        assert variables["result"].startswith("Example 195: PASS" if selection == 194 else f"Language checks: {len(DIRECT_CASES)} PASS")
 
         events = client.get(
             f"/api/v1/executions/{execution_id}/events", headers=viewer_headers
@@ -129,7 +129,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         if selection == ALL_INDEX:
             report = next(item["payload"] for item in events.json()["items"]
                           if item["event_type"] == "procedure.language_check_completed")
-            assert len(report["cases"]) == 32
+            assert len(report["cases"]) == len(DIRECT_CASES)
             assert len(report["adaptations"]) == 195
             assert sum(item["variant_count"] for item in report["adaptations"]) == 257
             assert report["full_compatibility"] is False

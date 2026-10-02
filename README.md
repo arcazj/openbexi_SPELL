@@ -4,11 +4,11 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-**v0.16.0 is accepted** for language coverage, a GUI-manual workspace and
-automatic local simulator access. Its annotated tag passed independent
-clean-checkout validation. See the
-[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-for exact scope, results and immutable bindings.
+**v0.17.0 is in qualification** for direct language conformance and native
+Display/Prompt behavior. See its
+[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md)
+for scope and status. v0.16.0 remains the accepted predecessor until the new
+annotated tag passes independent clean-checkout validation.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -41,7 +41,7 @@ Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
 
 Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). The local profile connects
 as a simulator operator automatically; no Session access screen or pasted token
-is needed. Health reports `0.16.0`, `simulator-only` and
+is needed. Health reports `0.17.0`, `simulator-only` and
 `operational_use: false`. Keep `.env` private and untracked.
 
 The [development workspace](http://127.0.0.1:8080/development.html) provides
@@ -72,18 +72,21 @@ disabled. Administrator permissions are never granted automatically.
 
 Find **Language Reference 244** (`language_reference_244`) in the catalog and start
 [language_reference_244.spell.py](procedures/language_reference_244.spell.py).
-Its 228 choices include 195 adapted examples, 32 direct or rejection checks,
-and **Run all language checks**. The inventory covers 763 reference entries:
-195 adapted, 59 partially covered and 509 gaps.
+Its 292 choices include 195 adapted examples, 96 direct or rejection checks,
+and **Run all language checks**. The inventory covers 763 reference entries.
 
-The language inventory distinguishes direct source tests, partial coverage,
-semantic adaptations and unresolved gaps. The inherited 195 numbered examples
+The language inventory distinguishes missing implementation, missing direct
+proof and manual conflicts. Bounded passing checks do not establish support for
+an entire manual entry. The inherited 195 numbered examples
 and 257 variants are independently authored adaptations; they are not proof
 that arbitrary manual snippets or Python programs execute unchanged. A correct
 rejection of unsupported syntax does not count as language support.
 
-See the [v0.16 scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
-and [language coverage](contracts/v16/language_coverage.json) for exact bounds.
+See the [v0.17 scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+and [language coverage](contracts/v17/language_coverage.json) for exact bounds.
+
+**Native prompt walkthrough** is a separate catalog procedure for interactive
+LIST, numeric-default, text and OK/CANCEL input.
 
 ## Architecture
 
@@ -121,8 +124,8 @@ Python dependencies are hash-locked; see
 
 The canonical producer is `scripts.qualify_next`; the validator and packager
 are `scripts.release_next`. The active
-[release policy](contracts/v16/release_policy.json) freezes exact test identities
-and references. Passed gates include SQLite/PostgreSQL/Compose regression,
+[release policy](contracts/v17/release_policy.json) freezes exact test identities
+and references. Required gates include SQLite/PostgreSQL/Compose regression,
 frontend/build/browser checks, language results, documentation rendering,
 soaks, image checks, four SBOMs, vulnerability review and four identical package
 builds from two independent source exports.

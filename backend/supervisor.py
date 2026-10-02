@@ -75,6 +75,8 @@ from .ir_v11 import (
 )
 from .models import Command, Event, Execution, Prompt
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
+from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
+from .prompt_v17 import PROMPT_PROFILE, PROMPT_FIELDS, validate_native_prompt_step, native_prompt_result
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
 from .procedure_parser import (
@@ -130,7 +132,7 @@ _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION}
 )
 _V11_PROMPT_INPUT_KINDS = {
     "OK": "FIXED_CHOICE",
@@ -2665,7 +2667,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v16
+                    validate_ir_v17
+                    if ir_version == V17_IR_VERSION
+                    else validate_ir_v16
                     if ir_version == V16_IR_VERSION
                     else validate_ir_v11
                     if ir_version == V11_IR_VERSION
@@ -2695,6 +2699,7 @@ class Supervisor:
                 V08ValidationError,
                 V10ValidationError,
                 V11ValidationError,
+                V17ValidationError,
             ) as exc:
                 rejection = self._add_event(
                     session,
@@ -3004,6 +3009,12 @@ class Supervisor:
                 raise ConflictError(
                     "consumed prompt settlement differs from durable state"
                 )
+            if execution.ir_version == V17_IR_VERSION:
+                step = execution.steps[execution.current_step]
+                if step.get("prompt_profile") == PROMPT_PROFILE and not self._native_operator_prompt_matches(
+                    execution, prompt, execution.current_step, dict(execution.variables or {})
+                ):
+                    raise ConflictError("consumed native prompt differs from its authoritative declaration")
             revision = execution.revision
             current_step = execution.current_step
         try:
@@ -3739,6 +3750,48 @@ class Supervisor:
             if prompt is not None and prompt.state in {"OPEN", "SETTLED"}:
                 return prompt
         return None
+
+    @staticmethod
+    def _native_prompt_declaration(step: Mapping[str, Any], variables: Mapping[str, Any]) -> dict[str, Any]:
+        try:
+            fields = validate_native_prompt_step(step)
+            fields["question"] = evaluate_expression(fields["question"], dict(variables))
+            return validate_native_prompt_step(fields)
+        except Exception as exc:
+            raise ConflictError("native prompt declaration is not authoritative") from exc
+
+    @classmethod
+    def _native_prompt_message_matches(cls, execution: Execution, message: Mapping[str, Any]) -> bool:
+        index = execution.current_step
+        if not 0 <= index < len(execution.steps):
+            return False
+        step = execution.steps[index]
+        if step.get("type") != "prompt" or step.get("prompt_profile") != PROMPT_PROFILE:
+            return False
+        variables = dict(execution.variables or {})
+        try:
+            if step.get("guard") is not None and evaluate_expression(step["guard"], variables) is not True:
+                return False
+            fields = cls._native_prompt_declaration(step, variables)
+        except Exception:
+            return False
+        return (message.get("prompt_id") == ordinary_prompt_id(execution.id, index)
+                and message.get("step_index") == index
+                and all(message.get(key) == fields[key] for key in PROMPT_FIELDS))
+
+    @classmethod
+    def _native_operator_prompt_matches(cls, execution: Execution, prompt: OperatorPrompt,
+                                       index: int, variables: Mapping[str, Any]) -> bool:
+        fields = cls._native_prompt_declaration(execution.steps[index], variables)
+        return (prompt.id == ordinary_prompt_id(execution.id, index)
+                and prompt.execution_id == execution.id and prompt.step_index == index
+                and prompt.prompt_type == fields["prompt_type"]
+                and prompt.input_kind == _V11_PROMPT_INPUT_KINDS[fields["prompt_type"]]
+                and prompt.question == fields["question"] and prompt.options == fields["choices"]
+                and prompt.default_value == fields["default"] and prompt.list_mode == fields["list_mode"]
+                and prompt.settings_snapshot.get("PROMPT_PROFILE") == PROMPT_PROFILE
+                and prompt.settings_snapshot.get("PROMPT_WARNING_DELAY") == fields["warning_delay_seconds"]
+                and prompt.settings_snapshot.get("PROMPT_RESPONSE_TIMEOUT") == fields["response_timeout_seconds"])
 
     @staticmethod
     def _v11_prompt_declaration(
@@ -5228,6 +5281,37 @@ class Supervisor:
                 if isinstance(execution.variables, dict)
                 else {}
             )
+            if execution.ir_version == V17_IR_VERSION:
+                native_step = execution.steps[step_index]
+                if native_step.get("prompt_profile") == PROMPT_PROFILE:
+                    guard = native_step.get("guard")
+                    try:
+                        should_run = True if guard is None else evaluate_expression(guard, prior_checkpoint_variables)
+                    except Exception as exc:
+                        raise ConflictError("native Prompt guard cannot be authoritatively evaluated") from exc
+                    if type(should_run) is not bool:
+                        raise ConflictError("native Prompt guard did not produce a Boolean")
+                    expected_variables = dict(prior_checkpoint_variables)
+                    expected_variables.setdefault("ARGS", {})
+                    if should_run:
+                        prompt_id = ordinary_prompt_id(execution.id, step_index)
+                        durable_prompt = session.get(OperatorPrompt, prompt_id)
+                        if (type(prompt_resolution) is not dict or prompt_resolution.get("prompt_id") != prompt_id
+                            or durable_prompt is None
+                            or not self._native_operator_prompt_matches(execution, durable_prompt, step_index, prior_checkpoint_variables)
+                            or durable_prompt.state != "SETTLED" or durable_prompt.settlement_outcome != "ANSWERED"):
+                            raise ConflictError("native Prompt checkpoint requires its authoritative answered settlement")
+                        expected = native_prompt_result(native_step, {"outcome": "ANSWERED", "response": durable_prompt.settled_value})
+                        target = native_step.get("response_target")
+                        if target is not None:
+                            expected_variables[target] = expected
+                        if target is not None and (type(checkpoint_variables.get(target)) is not type(expected)
+                                                  or checkpoint_variables.get(target) != expected):
+                            raise ConflictError("native Prompt returned value differs from durable settlement")
+                    elif prompt_resolution is not None:
+                        raise ConflictError("skipped native Prompt cannot include a settlement")
+                    if canonical_hash(checkpoint_variables) != canonical_hash(expected_variables):
+                        raise ConflictError("native Prompt checkpoint changed unrelated or skipped variables")
             if execution.ir_version == V11_IR_VERSION:
                 current_step = execution.steps[step_index]
                 authoritative_variables = dict(prior_checkpoint_variables)
@@ -5901,7 +5985,7 @@ class Supervisor:
             }:
                 return
             if (
-                execution.ir_version == V11_IR_VERSION
+                execution.ir_version in {V11_IR_VERSION, V17_IR_VERSION}
                 and not self._v11_prompt_message_matches(execution, message)
             ):
                 raise ConflictError(
@@ -6029,6 +6113,16 @@ class Supervisor:
                 if 0 <= execution.current_step < len(execution.steps)
                 else {}
             )
+            native = (execution.ir_version == V17_IR_VERSION
+                      and current_step.get("prompt_profile") == PROMPT_PROFILE)
+            if "prompt_profile" in message and not native:
+                raise ConflictError("native prompt policy is outside its authoritative IR boundary")
+            if execution.ir_version == V17_IR_VERSION:
+                matches = (self._native_prompt_message_matches(execution, message)
+                           if current_step.get("prompt_profile") == PROMPT_PROFILE
+                           else self._v11_prompt_message_matches(execution, message))
+                if not matches:
+                    raise ConflictError("v0.17 prompt request does not match its authoritative step")
             if (
                 execution.ir_version == V11_IR_VERSION
                 and current_step.get("type") == "prompt"
@@ -6049,6 +6143,10 @@ class Supervisor:
             "list_mode": message.get("list_mode"),
             "default": message.get("default"),
         }
+        if native:
+            declaration.update(prompt_profile=PROMPT_PROFILE,
+                               warning_delay_seconds=message.get("warning_delay_seconds"),
+                               response_timeout_seconds=message.get("response_timeout_seconds"))
         settings = {
             key: value
             for key, value in {
@@ -6056,8 +6154,13 @@ class Supervisor:
                 "PROMPT_RESPONSE_TIMEOUT": message.get("response_timeout_seconds"),
                 "NO_CONTROLLER_GRACE": message.get("no_controller_grace_seconds"),
             }.items()
-            if value is not None
+                if value is not None
         }
+        if native:
+            # Native source explicitly owns its timeout; context/execution
+            # response settings cannot turn an indefinite wait into settlement.
+            settings.pop("PROMPT_WARNING_DELAY", None)
+            settings.pop("PROMPT_RESPONSE_TIMEOUT", None)
         from .operator_service import OperatorNotFoundError
 
         try:
@@ -6117,6 +6220,9 @@ class Supervisor:
                             "question": prompt["question"],
                             "options": prompt["options"],
                             "default": prompt["default"],
+                            "prompt_profile": prompt.get("prompt_profile"),
+                            "warning_at": prompt.get("warning_at"),
+                            "response_deadline": prompt.get("response_deadline"),
                             "prompt_revision": prompt["revision"],
                             "execution_revision": execution.revision,
                         },

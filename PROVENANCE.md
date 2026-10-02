@@ -1,5 +1,14 @@
 # SPELL Release Provenance and Dependency Review
 
+## v0.17 Work In Progress
+
+The direct-language increment uses independently authored tests against the
+same eight hash-pinned source references. Original manuals and legacy code
+remain read-only and excluded from product images and release packages.
+The [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+documents bounded behavior and the Prompt timeout conflict. Final qualification,
+package and supply-chain results are pending.
+
 ## Accepted v0.16 Release
 
 v0.16.0 passed independent clean-tag validation for local language coverage,

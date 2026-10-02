@@ -1,33 +1,31 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-01. **v0.16.0 is the accepted local product baseline**;
-v0.15.0 is its predecessor. Acceptance is bound to the independently validated
-annotated tag and its committed evidence.
+Updated 2026-10-02. **v0.17.0 is in implementation and qualification**;
+v0.16.0 remains the accepted predecessor. Acceptance requires an independently
+validated annotated tag and committed evidence.
 
 This roadmap describes local simulator engineering. It does not authorize live
 GCS/spacecraft connectivity, deployment or operational use. All documents under
 `SPELL_DOCUMENTATION/` remain mandatory source references; the broader generated
 specification `0.1.0-draft.1` remains Draft.
 
-## v0.16.0 - Delivered Scope
+## v0.17.0 - Current Scope
 
-The [entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
-is delivered. The
-[accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-contains actual results and bindings.
+The [entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+defines the approved bounded increment. The
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md)
+tracks qualification and release status.
 
-| Work | Delivered result |
+| Work | Required result |
 | --- | --- |
-| Language coverage | 763 reference entries: 195 adapted examples, 59 partially covered entries and 509 explicit gaps |
-| Direct language increment | Inferred scalar assignment and documented Display severity, with real parser/worker assertions and negative tests |
-| Reference procedure | 195 example choices and 257 adaptations retained; 32 direct/rejection checks and complete-suite execution added |
-| GUI-manual workspace | Compact navigation/utilities, Master and procedure tabs, tabular Code/Data/Result, lower controls/prompts/logs; visual and browser verification |
-| Automatic simulator access | Open the loopback URL directly as a local operator; finite credentials, renewal/reconnect/retry, strict origin/ingress boundary and no automatic administrator grant |
-| Concise documentation | Current instructions in the READMEs/operator guide; one canonical source for detailed contracts and evidence |
-| Release | Candidate and Final gates passed; four identical builds across two exports and independently validated annotated tag |
+| Core language | Direct scalar/operator/conditional/short-circuit/range cases; bounded integer power, AND and OR; validated empty ranges |
+| Native Display/Prompt | Documented call forms and typed results, explicit timeout interpretation, cancellation and durable recovery checks |
+| Coverage and runner | Preserve numbered adaptations; add direct checks and distinguish missing implementation, missing proof and manual conflicts |
+| Documentation | Concise current instructions, explicit bounds and one canonical release record |
+| Release | Frozen candidate, complete source-bound qualification, reproducible package and published validated tag |
 
 A complete reference inventory is different from complete language support.
-The [coverage matrix](contracts/v16/language_coverage.json) must retain missing
+The [coverage matrix](contracts/v17/language_coverage.json) must retain missing
 semantics as gaps. Expected rejection tests and example adaptations cannot be
 counted as successful full-language conformance.
 

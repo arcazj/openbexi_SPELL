@@ -56,10 +56,11 @@ def qualify() -> dict[str, object]:
         VARIANT_CONTRACT, example_contracts=contract
     )
     catalog = ProcedureCatalog(PROCEDURES).list()
-    if len(catalog) != 1 or catalog[0].id != "language_reference_244":
-        raise RuntimeError("v0.10 must expose exactly the reference-example runner")
+    expected_catalog = ["language_reference_244", "prompt_workflow_v17"] if catalog and catalog[0].ir_version == "0.17" else ["language_reference_244"]
+    if [item.id for item in catalog] != expected_catalog:
+        raise RuntimeError("bundled procedure catalog differs from the versioned reference profile")
     runner = catalog[0]
-    if runner.ir_version not in {"0.10", "0.16"}:
+    if runner.ir_version not in {"0.10", "0.16", "0.17"}:
         raise RuntimeError("reference-example runner did not compile to an accepted reference IR")
     analysis = analyze_source(
         runner.source,
@@ -114,7 +115,7 @@ def qualify() -> dict[str, object]:
                 )
     core: dict[str, object] = {
         "schema_version": "spell.v10.reference-example-qualification/1",
-        "release": "v0.16.0" if runner.ir_version == "0.16" else "v0.10.0",
+        "release": {"0.10": "v0.10.0", "0.16": "v0.16.0", "0.17": "v0.17.0"}[runner.ir_version],
         "authority_sha256": REFERENCE_SOURCE_SHA256,
         "contract_sha256": hashlib.sha256(CONTRACT.read_bytes()).hexdigest(),
         "variant_contract_sha256": hashlib.sha256(VARIANT_CONTRACT.read_bytes()).hexdigest(),

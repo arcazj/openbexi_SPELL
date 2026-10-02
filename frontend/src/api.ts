@@ -517,6 +517,7 @@ export function normalizeActivePrompt(value: unknown, fallbackRevision = 0): Act
     message: String(raw.message ?? raw.question ?? "Operator response required"),
     type: promptInputType(raw),
     prompt_type: optionalString(raw.prompt_type ?? raw.type) as ActivePrompt["prompt_type"],
+    prompt_profile: optionalString(raw.prompt_profile),
     options: options?.map(promptOptionLabel),
     option_values: Array.isArray(raw.option_values)
       ? raw.option_values

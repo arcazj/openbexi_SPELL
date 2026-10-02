@@ -24,9 +24,10 @@ as `PROJECT_ROADMAP.md`, `VERSION_TIMELINE.md`, `Test_and_Integration.md`, and
 | v0.14 | [Pre-Implementation](SPELL_v0.14_Pre-Implementation.md) | [Accepted `v0.14.0`](SPELL_v0.14_Implementation.md); bounded read-only `GetTM` adapter |
 | v0.15 | [Pre-Implementation](SPELL_v0.15_Pre-Implementation.md) | [Accepted `v0.15.0`](SPELL_v0.15_Implementation.md); local shadow-pilot review and recovery |
 | v0.16 | [Pre-Implementation](SPELL_v0.16_Pre-Implementation.md) | [Accepted `v0.16.0`](SPELL_v0.16_Implementation.md#accepted-release-binding); language coverage, compact manual workspace and automatic local sessions |
+| v0.17 | [Pre-Implementation](SPELL_v0.17_Pre-Implementation.md) | [Implementation and qualification](SPELL_v0.17_Implementation.md); direct language conformance and native Display/Prompt behavior |
 
-**v0.16.0** is the accepted local simulator release as of 2026-10-01;
-**v0.15.0** is its accepted predecessor. The
+**v0.17.0** is in qualification; **v0.16.0** remains the accepted predecessor.
+The
 [console guide](../../frontend/README.md) describes current operator workflows.
 These local synthetic releases do not establish full SPELL 2.4.4 language
 compatibility, real legacy-system qualification, or operational authorization.

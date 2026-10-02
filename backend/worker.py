@@ -52,6 +52,9 @@ from .ir_v11 import (
 from .reference_examples_v10 import ReferenceExampleError, execute_reference_example
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .language_conformance_v16 import execute_selection
+from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
+from .core_v17 import CoreV17Error, evaluate_integer_binary
+from .prompt_v17 import PROMPT_PROFILE, native_prompt_result, normalize_native_prompt_response
 from .telecommand_runtime_v11 import (
     TelecommandRuntimeError,
     build_item_checkpoint_for_step,
@@ -157,6 +160,15 @@ def evaluate_expression(expression: Any, variables: dict[str, Any]) -> Any:
                 raise ExpressionEvaluationError(str(exc)) from exc
         else:
             raise ExpressionEvaluationError(f"invalid operands for {binary}")
+    elif kind == "integer_binary":
+        try:
+            value = evaluate_integer_binary(
+                expression.get("operator"),
+                evaluate_expression(expression.get("left"), variables),
+                evaluate_expression(expression.get("right"), variables),
+            )
+        except CoreV17Error as exc:
+            raise ExpressionEvaluationError(exc.message) from exc
     elif kind == "boolean":
         values = expression.get("values")
         if not isinstance(values, list) or not values:
@@ -365,6 +377,7 @@ def worker_main(
 
     try:
         v11_preflight = ir_version == V11_IR_VERSION
+        v17_preflight = ir_version == V17_IR_VERSION
         v16_preflight = ir_version == V16_IR_VERSION
         v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
@@ -376,9 +389,12 @@ def worker_main(
             V10_IR_VERSION,
             V11_IR_VERSION,
             V16_IR_VERSION,
+            V17_IR_VERSION,
         }
         validator = (
-            validate_ir_v16
+            validate_ir_v17
+            if v17_preflight
+            else validate_ir_v16
             if v16_preflight
             else validate_ir_v11
             if v11_preflight
@@ -502,6 +518,7 @@ def worker_main(
         V08ValidationError,
         V10ValidationError,
         V11ValidationError,
+        V17ValidationError,
     ) as exc:
         send(
             "event",
@@ -526,6 +543,7 @@ def worker_main(
         V10_IR_VERSION,
         V11_IR_VERSION,
         V16_IR_VERSION,
+        V17_IR_VERSION,
     }
     file_handle_variables = {
         step["target"]
@@ -1190,10 +1208,12 @@ def worker_main(
                 variables[step["name"]] = (
                     float(value) if step["declared_type"] == "float" and type(value) is int else value
                 )
-            elif should_run and step["type"] == "log":
-                message = _non_empty_string(
-                    evaluate_expression(step["message"], variables), "Log message"
-                )
+            elif should_run and step["type"] in {"log", "display"}:
+                message = evaluate_expression(step["message"], variables)
+                if step["type"] == "log":
+                    message = _non_empty_string(message, "Log message")
+                elif type(message) is not str:
+                    raise ExpressionEvaluationError("Display message must be a string")
                 effects.append(
                     {
                         "event_type": "procedure.log",
@@ -1251,7 +1271,7 @@ def worker_main(
             elif should_run and step["type"] == "prompt":
                 expected_prompt_id = (
                     ordinary_prompt_id(execution_id, step_index)
-                    if v11_preflight
+                    if v11_preflight or v17_preflight
                     else None
                 )
                 if (
@@ -1308,6 +1328,8 @@ def worker_main(
                             response_timeout_seconds=step["response_timeout_seconds"],
                             no_controller_grace_seconds=step["no_controller_grace_seconds"],
                         )
+                    if step.get("prompt_profile") == PROMPT_PROFILE:
+                        prompt_fields["prompt_profile"] = PROMPT_PROFILE
                     send("prompt_opened", **prompt_fields)
                     send_safe_point("PROMPT_BOUNDARY", step_index)
                     send("state", state="prompting")
@@ -1351,11 +1373,11 @@ def worker_main(
                     response = message.get("response", message.get("value"))
                     if v06_runtime and "prompt_type" in step and outcome == "ANSWERED":
                         try:
-                            response = normalize_prompt_value(
-                                step["prompt_type"],
-                                response,
-                                choices=step["choices"],
-                                list_mode=step["list_mode"],
+                            response = (
+                                normalize_native_prompt_response(step, response)
+                                if step.get("prompt_profile") == PROMPT_PROFILE
+                                else normalize_prompt_value(step["prompt_type"], response,
+                                    choices=step["choices"], list_mode=step["list_mode"])
                             )
                         except V06ValidationError as exc:
                             reject_control(message, exc.code, exc.message)
@@ -1389,7 +1411,17 @@ def worker_main(
                     if type(settlement_id) is str:
                         completed_prompt_settlement_ids.add(settlement_id)
                     break
-                if "response_target" in step:
+                if step.get("prompt_profile") == PROMPT_PROFILE:
+                    if prompt_resolution.get("outcome") != "ANSWERED":
+                        send("prompt_settlement_consumed", **prompt_resolution)
+                        if prompt_resolution.get("outcome") == "CANCELLED":
+                            send("state", state="aborted")
+                            send("terminal", state="aborted")
+                            return
+                    response = native_prompt_result(step, prompt_resolution)
+                    if "response_target" in step:
+                        variables[step["response_target"]] = response
+                elif "response_target" in step:
                     if prompt_resolution.get("outcome") != "ANSWERED":
                         raise ExpressionEvaluationError(
                             "Prompt target requires an answered settlement"
@@ -1402,7 +1434,11 @@ def worker_main(
                     variables[step["response_target"]] = response
             elif should_run and step["type"] == "language_check":
                 try:
-                    summary, check_effects = execute_selection(evaluate_expression(step["selection"], variables))
+                    if v17_preflight:
+                        from .language_conformance_v17 import execute_selection as execute_v17_selection
+                        summary, check_effects = execute_v17_selection(evaluate_expression(step["selection"], variables))
+                    else:
+                        summary, check_effects = execute_selection(evaluate_expression(step["selection"], variables))
                 except ValueError as exc:
                     raise ReferenceExampleError("language check did not satisfy its closed oracle") from exc
                 variables[step["target"]] = summary
@@ -2062,6 +2098,7 @@ def worker_main(
             V08ValidationError,
             V10ValidationError,
             V11ValidationError,
+            V17ValidationError,
             ReferenceExampleError,
             TelecommandError,
             TelecommandRuntimeError,

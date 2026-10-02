@@ -19,7 +19,8 @@ The specification version is independent of product releases, the legacy SPELL
 2.4.4 manuals, later legacy binaries, procedure repositories, driver versions,
 and deployment configuration versions.
 
-As of 2026-10-01, the parent product is accepted at
+As of 2026-10-02, v0.17.0 is in qualification for direct language conformance.
+The parent product remains accepted at
 [`v0.16.0`](releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
 for local simulator language coverage, the compact GUI-manual workspace and
 automatic loopback sessions. See the [release index](releases/README.md) and

@@ -1,5 +1,13 @@
 # Test and Integration Plan
 
+## v0.17.0 Qualification In Progress
+
+The approved scope requires direct source and worker cases, durable Prompt/API
+checks, real browser interaction, both database profiles and every release gate.
+Results will be recorded after the exact candidate and final catalogs pass.
+The [v0.17 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md)
+is the current status source. Results below remain historical v0.16 evidence.
+
 ## v0.16.0 Qualification
 
 Annotated `v0.16.0` passed independent clean-tag validation on 2026-10-01.

@@ -48,6 +48,42 @@ function renderPrompt(prompt: ActivePrompt, mode: "C" | "B" = "C", leaseState: "
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe("durable prompt panel", () => {
+  it("starts native LIST empty, accepts a typed key and clears every draft selection on Reset", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ prompt: { id: "native", state: "SETTLED" } }), { status: 202, headers: { "Content-Type": "application/json" } }));
+    renderPrompt({ id: "native", message: "Choose route", type: "list", prompt_type: "LIST", prompt_profile: "spell-lrm244/0.17", list_mode: "KEY", options: ["Primary", "Backup"], option_values: ["A", "B"], revision: 1 });
+    expect(screen.getByRole("button", { name: "Commit response" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("radio", { name: "Backup" }));
+    expect(screen.getByLabelText("Response")).toHaveValue("B");
+    await userEvent.click(screen.getByRole("button", { name: "Reset draft" }));
+    expect(screen.getByLabelText("Response")).toHaveValue("");
+    expect(screen.getByRole("radio", { name: "Backup" })).not.toBeChecked();
+    await userEvent.type(screen.getByLabelText("Response"), "B");
+    expect(screen.getByRole("radio", { name: "Backup" })).toBeChecked();
+    await userEvent.click(screen.getByRole("button", { name: "Commit response" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toMatchObject({ action: "COMMIT", value: "B" });
+  });
+
+  it("keeps a persisted native warning answerable when optional browser audio is unavailable", async () => {
+    renderPrompt({ id: "native-warning", message: "Choose route", type: "choice", prompt_type: "YES_NO", prompt_profile: "spell-lrm244/0.17", options: ["YES", "NO"], option_values: ["YES", "NO"], revision: 1, warning_at: "2099-01-01T00:00:00Z", warning_active: true });
+    expect(screen.getByText("Response warning threshold reached.")).toBeVisible();
+    await userEvent.click(screen.getByRole("checkbox", { name: "Warning sound" }));
+    await userEvent.click(screen.getByRole("radio", { name: "YES" }));
+    expect(screen.getByRole("button", { name: "Commit response" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Abort prompt" })).toBeEnabled();
+  });
+
+  it.each(["COMMIT", "ABORT"] as const)("keeps native CANCEL distinct from the %s action", async (action) => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ prompt: { id: "native-cancel", state: "SETTLED" } }), { status: 202, headers: { "Content-Type": "application/json" } }));
+    renderPrompt({ id: "native-cancel", message: "Finish", type: "choice", prompt_type: "OK_CANCEL", prompt_profile: "spell-lrm244/0.17", options: ["OK", "CANCEL"], option_values: ["OK", "CANCEL"], revision: 1 });
+    await userEvent.click(screen.getByRole("radio", { name: /^CANCEL$/ }));
+    await userEvent.click(screen.getByRole("button", { name: action === "COMMIT" ? "Commit response" : "Abort prompt" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
+    expect(body.action).toBe(action);
+    expect(body.value).toBe(action === "COMMIT" ? "CANCEL" : undefined);
+  });
+
   it("rejects a calendar rollover before sending a DATE settlement", async () => {
     const fetch = vi.spyOn(globalThis, "fetch");
     renderPrompt({ id: "prompt-date", message: "Select date", type: "date", prompt_type: "DATE", revision: 4 });

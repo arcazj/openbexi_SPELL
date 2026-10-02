@@ -17,8 +17,9 @@ def test_parser_creates_ir_without_executing_source(tmp_path: Path) -> None:
     parsed = ProcedureCatalog(tmp_path).get("safe")
 
     assert [step["type"] for step in parsed.steps] == ["log", "telemetry", "wait", "prompt"]
-    assert parsed.steps[-1]["choices"] == ["continue"]
-    assert parsed.ir_version == IR_VERSION
+    assert parsed.steps[-1]["choices"] == ["OK"]
+    assert parsed.steps[-1]["prompt_profile"] == "spell-lrm244/0.17"
+    assert parsed.ir_version == "0.17"
     assert parsed.source == procedure.read_bytes().decode("utf-8")
     assert parsed.sha256 == hashlib.sha256(parsed.source.encode("utf-8")).hexdigest()
     assert not marker.exists()
@@ -138,7 +139,7 @@ def test_validation_error_exposes_structured_diagnostic(tmp_path: Path) -> None:
         ("count: int = 1\ncount = 'wrong'\nLog('x')\n", "SPELL310"),
         ("flag: bool = True\nif 1:\n    Log('x')\n", "SPELL501"),
         ("for item in range(unknown):\n    Log('x')\n", "SPELL604"),
-        ("for item in range(0):\n    import os\n", "SPELL607"),
+        ("for item in range(0):\n    import os\n", "SPELL103"),
         ("def unused():\n    Log('x')\nLog('main')\n", "SPELL203"),
         ("for item in range(0, 999999999999999999999999999):\n    Log('x')\n", "SPELL606"),
         (f"for item in range({1 << 4096}):\n    Log('x')\n", "SPELL714"),

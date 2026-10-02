@@ -9,8 +9,8 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | v0.16.0 accepted local language/manual-workspace profile; predecessor v0.15.0 |
-| Product alignment updated | 2026-10-01; original source-review date and evidence remain historical |
+| Current release context | v0.17.0 in qualification for direct language behavior; accepted predecessor v0.16.0 |
+| Product alignment updated | 2026-10-02; original source-review date and evidence remain historical |
 | Product implementation change | None |
 | Operational authorization | None |
 | Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |
@@ -37,6 +37,16 @@ intentional incompatibility require an explicit compatibility or architecture
 decision with verification evidence. The manuals define what forward work must
 address; versioned code and tests define the approved implementation; validated
 annotated tags and committed evidence define release status.
+
+## v0.17 Application In Qualification
+
+Language Reference pages 17-23, 68 and 70-72 define the direct scalar/control-flow
+and native Display/Prompt increment. GUI Manual pages 19-20 guide prompt input
+and reset. The [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+documents integer bounds, fixed scalar typing, ISO DATE results and the decision
+to follow dedicated section 4.12 over the contradictory timeout summary.
+Whole-artifact conformance remains unclaimed; missing implementation, direct
+proof and manual conflicts are recorded separately.
 
 ## v0.16 Accepted Application
 

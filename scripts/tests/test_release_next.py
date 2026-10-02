@@ -10,13 +10,18 @@ import pytest
 from scripts import release_next as release
 
 
+@pytest.mark.parametrize("minor,scope", [
+    (16, "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"),
+    (17, "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"),
+])
 @pytest.mark.parametrize("tamper", [None, "schema", "owner", "requirements", "predecessor", "authority", "inventory", "source"])
-def test_v16_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypatch, tamper):
+def test_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypatch, minor, scope, tamper):
+    import importlib
     import json
-    from scripts import validate_v16_gate as gate
+    gate = importlib.import_module(f"scripts.validate_v{minor}_gate")
 
     references = [{"path": "manual.pdf", "sha256": release.sha(b"reference")}]
-    entry = {"schema_version": "spell.v16.entry-gate/1", "release_tag": "v0.16.0", "scope": "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE",
+    entry = {"schema_version": f"spell.v{minor}.entry-gate/1", "release_tag": f"v0.{minor}.0", "scope": scope,
              "owner_authorized": True, "operational_authorization": False,
              "full_language_compatibility_claim": False, "requirements": sorted(gate.REQUIRED),
              "predecessor_commit": "accepted"}
@@ -27,20 +32,20 @@ def test_v16_entry_gate_rejects_changed_authority_and_references(tmp_path, monke
     monkeypatch.setattr(gate.subprocess, "check_output", lambda args, **kwargs:
                         "accepted\n" if args[1] == "rev-parse" else prior)
     monkeypatch.setattr(gate.subprocess, "run", lambda *args, **kwargs: None)
-    (tmp_path / "contracts/v16").mkdir(parents=True)
-    record = tmp_path / "NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md"
+    (tmp_path / f"contracts/v{minor}").mkdir(parents=True)
+    record = tmp_path / f"NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.{minor}_Pre-Implementation.md"
     record.parent.mkdir(parents=True)
     record.write_text("\n".join(gate.REQUIRED))
     (tmp_path / "manual.pdf").write_bytes(b"reference")
-    if tamper == "schema": entry["schema_version"] = "spell.v15.entry-gate/1"
+    if tamper == "schema": entry["schema_version"] = f"spell.v{minor-1}.entry-gate/1"
     elif tamper == "owner": entry["owner_authorized"] = False
     elif tamper == "requirements": entry["requirements"].pop()
     elif tamper == "predecessor": entry["predecessor_commit"] = "unaccepted"
     elif tamper == "authority": policy["operational_authorization"] = True
     elif tamper == "inventory": policy["reference_inputs"] = []
     elif tamper == "source": (tmp_path / "manual.pdf").write_bytes(b"changed")
-    release.write_json(tmp_path / "contracts/v16/entry_gate.json", entry)
-    release.write_json(tmp_path / "contracts/v16/release_policy.json", policy)
+    release.write_json(tmp_path / f"contracts/v{minor}/entry_gate.json", entry)
+    release.write_json(tmp_path / f"contracts/v{minor}/release_policy.json", policy)
     if tamper:
         with pytest.raises(ValueError):
             gate.validate(tmp_path)
@@ -80,13 +85,19 @@ def test_release_metadata_rejects_tamper_even_when_package_hash_is_unchanged(mon
         release.verify_release_metadata(manifest, reproduced)
 
 
-@pytest.mark.parametrize("tamper", [None, "missing", "ir", "cases", "adaptations", "authority", "failure"])
-def test_installed_language_runner_proof_is_exact(tamper):
+@pytest.mark.parametrize("minor", [16, 17])
+@pytest.mark.parametrize("tamper", [None, "missing", "extra", "ir", "cases", "adaptations", "authority", "failure"])
+def test_installed_language_runner_proof_is_exact(monkeypatch, minor, tamper):
+    monkeypatch.setattr(release, "MINOR", minor)
     result = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
               "adapted_examples": 195, "adapted_variants": 257,
               "full_compatibility": False, "decision": "PASS"}
+    if minor == 17:
+        from backend.language_conformance_v17 import expected_image_runner_proof
+        result = expected_image_runner_proof()
+    if tamper == "extra": result["unbound"] = True
     if tamper == "ir": result["ir_version"] = "0.15"
-    elif tamper == "cases": result["direct_and_boundary_cases"] = 31
+    elif tamper == "cases": result["direct_and_boundary_cases"] -= 1
     elif tamper == "adaptations": result["adapted_variants"] = 195
     elif tamper == "authority": result["full_compatibility"] = 0
     elif tamper == "failure": result["decision"] = "FAIL"

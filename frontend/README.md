@@ -1,4 +1,4 @@
-# SPELL v0.16 Console
+# SPELL v0.17 Console
 
 Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
 simulator. No token entry is needed. If the backend is unavailable, use
@@ -43,6 +43,27 @@ to controls or opens prompt settings.
 Browser differences are recorded in the [UI profile](../contracts/v16/ui_profile.json):
 panes stack on narrow screens, native detached windows are unavailable, and the
 unrestricted legacy Python Shell remains excluded. Original manuals are unchanged.
+
+## Native Language Prompts
+
+Start **Native prompt walkthrough** from Navigation to try the local LIST,
+automatic numeric default, text and OK/CANCEL examples.
+
+Native `Prompt` calls provide fixed answers, text, numbers, dates or list
+selection. **Reset draft** clears the current input. **CANCEL**, when offered as
+an answer, is returned to the procedure; **Abort prompt** stops the native call
+and its execution without inventing a result.
+
+A positive `Timeout` with `Default` selects that answer when time expires.
+Without `Default`, expiry gives a visible warning and the prompt keeps waiting.
+Zero or omitted `Timeout` waits indefinitely. Reconnecting retains the original
+deadline. This follows Language Reference section 4.12 where its Appendix B
+summary differs. Existing lowercase project prompt options keep their behavior.
+
+NUM returns a finite number; DATE returns validated ISO text in this simulator.
+Full legacy date-object compatibility is not claimed. See the
+[compatibility guide](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/COMPATIBILITY_AND_MIGRATION.md#v017-direct-language-increment)
+for argument and size limits.
 
 ## Compatibility Control
 

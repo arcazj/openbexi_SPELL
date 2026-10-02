@@ -210,6 +210,7 @@ def prompt_dict(prompt: OperatorPrompt) -> dict[str, Any]:
         "revision": prompt.revision,
         "state": prompt.state,
         "type": prompt.prompt_type,
+        "prompt_profile": prompt.settings_snapshot.get("PROMPT_PROFILE"),
         "input_kind": prompt.input_kind,
         "list_mode": prompt.list_mode,
         "question": prompt.question,

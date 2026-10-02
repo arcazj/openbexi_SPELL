@@ -12,6 +12,10 @@ for current behavior and qualification. The broader design below remains Draft.
 
 ## Accepted Local Product Profile
 
+v0.17 is in qualification for native prompt input, reset, typed results and
+durable warnings/deadlines within this workspace. The
+[v0.17 record](../releases/SPELL_v0.17_Implementation.md) tracks those checks.
+
 As of 2026-10-01, accepted v0.16.0 delivers the compact manual workspace and
 automatic local operator sessions. It retains v0.13 fenced procedure controls,
 v0.14 read-only telemetry comparison and v0.15 shadow-pilot review and recovery.

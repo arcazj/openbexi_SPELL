@@ -36,7 +36,7 @@ accountable human roles in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) accept it.
 | Source review | 304 of 304 supplied pages reviewed |
 | Project-declared AI assistance tool | ChatGPT 5.6 SOL |
 | Product implementation from this Draft baseline | None claimed by the specification itself |
-| Parent product | Accepted local simulator v0.16.0; updated 2026-10-01 |
+| Parent product | v0.17.0 in qualification; accepted local simulator predecessor v0.16.0; updated 2026-10-02 |
 | Operational authorization | None |
 | Approval state | Draft; multidisciplinary review required |
 | Local v0.4 Gate G0 readiness | `PASS`; Candidate A scope, exclusions, budgets, and test plan project-owner approved; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |

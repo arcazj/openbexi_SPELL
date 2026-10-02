@@ -249,6 +249,7 @@ export interface ActivePrompt {
   message: string;
   type: "text" | "number" | "choice" | "confirm" | "date" | "list";
   prompt_type?: "OK" | "CANCEL" | "OK_CANCEL" | "YES" | "NO" | "YES_NO" | "ALPHA" | "NUM" | "DATE" | "LIST";
+  prompt_profile?: string;
   options?: string[];
   option_values?: unknown[];
   list_mode?: "KEY" | "INDEX" | "VALUE";

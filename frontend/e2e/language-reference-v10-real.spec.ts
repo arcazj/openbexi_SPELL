@@ -73,8 +73,8 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   const catalogResponse = await catalogPromise;
   expect(catalogResponse.status()).toBe(200);
   const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string }> };
-  expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244"]);
-  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.16" }));
+  expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244", "prompt_workflow_v17"]);
+  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.17" }));
   await expect(
     page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: catalog.items[0]!.name }),
   ).toBeVisible();
@@ -121,9 +121,9 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(initialGeometry.clientHeight).toBeLessThanOrEqual(380);
   expect(initialGeometry.scrollWidth).toBeLessThanOrEqual(initialGeometry.clientWidth);
 
-  const search = page.getByRole("searchbox", { name: "Filter 228 examples" });
+  const search = page.getByRole("searchbox", { name: "Filter 292 examples" });
   await search.fill("195");
-  await expect(page.getByText("Showing 1 of 228 examples")).toBeVisible();
+  await expect(page.getByText("Showing 1 of 292 examples")).toBeVisible();
   await expect(page.getByRole("button", { name: "Commit response" })).toBeDisabled();
   const example195 = page.getByRole("radio", { name: /Example 195.*extract TM\/TC database values/ });
   await expect(example195).toBeVisible();

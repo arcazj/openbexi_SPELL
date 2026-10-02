@@ -20,6 +20,7 @@ from .ir_v06 import (
     validate_startproc_declaration,
     validate_user_action,
     validate_user_action_block,
+    PROMPT_TYPES,
 )
 from .ir_v07 import (
     IR_VERSION as V07_IR_VERSION,
@@ -44,13 +45,18 @@ from .ir_v11 import (
     validate_ir_v11,
 )
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, ALL_SELECTION, CASESET_SHA256, validate_ir_v16
+from .core_v17 import MAX_POWER_EXPONENT, has_core_expressions
+from .prompt_v17 import normalize_native_prompt_declaration, native_prompt_result_type
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
 DISPLAY_SEVERITIES = {"INFORMATION": "info", "WARNING": "warning", "ERROR": "error"}
+NATIVE_PROMPT_CONSTANTS = {*PROMPT_TYPES, "SECOND", "MINUTE", "HOUR"}
 V10_LANGUAGE_PROFILE = "spell-lrm244-adapter/0.10"
 V11_LANGUAGE_PROFILE = "spell-telecommand-simulator/0.11"
 V16_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.16"
+V17_IR_VERSION = "0.17"
+V17_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.17"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -99,6 +105,8 @@ V08_DATA_CALLS = frozenset(
 
 
 def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V17_IR_VERSION:
+        return V17_LANGUAGE_PROFILE
     if ir_version == V16_IR_VERSION:
         return V16_LANGUAGE_PROFILE
     if ir_version == V11_IR_VERSION:
@@ -416,7 +424,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V16_IR_VERSION
+            V17_IR_VERSION
+            if compiler.uses_v17
+            else V16_IR_VERSION
             if compiler.uses_v16
             else V11_IR_VERSION
             if compiler.uses_v11
@@ -431,8 +441,12 @@ class ProcedureCatalog:
             else IR_VERSION
         )
         try:
+            if compiler.uses_v17:
+                from .ir_v17 import validate_ir_v17
             validated_ir = (
-                validate_ir_v16(ir_version, steps)
+                validate_ir_v17(ir_version, steps)
+                if compiler.uses_v17
+                else validate_ir_v16(ir_version, steps)
                 if compiler.uses_v16
                 else validate_ir_v11(ir_version, steps)
                 if compiler.uses_v11
@@ -528,7 +542,8 @@ class _Compiler:
         "Send",
         *V08_DATA_CALLS,
     }
-    _reserved_calls = {*_step_calls, *DISPLAY_SEVERITIES, "ARGS", "UserAction", "Label", "BuildTC"}
+    _reserved_calls = {*_step_calls, *DISPLAY_SEVERITIES, *NATIVE_PROMPT_CONSTANTS,
+                       "ARGS", "UserAction", "Label", "BuildTC"}
 
     def __init__(self, source_name: str):
         self.source_name = source_name
@@ -549,6 +564,7 @@ class _Compiler:
         self.uses_v10 = False
         self.uses_v11 = False
         self.uses_v16 = False
+        self.uses_v17 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -579,6 +595,7 @@ class _Compiler:
                 executable.append(statement)
 
         self._compile_block(executable, guard=None, call_stack=(), top_level=True)
+        self._preserve_legacy_service_display(tree)
         self._reject_unbound_labels("root")
         self._validate_user_action_targets()
         unused_functions = set(self.functions) - self.called_functions
@@ -603,6 +620,7 @@ class _Compiler:
                 "data_operation",
                 "reference_example",
                 "language_check",
+                "display",
                 "build_tc",
                 "send_tc",
             }
@@ -624,6 +642,22 @@ class _Compiler:
         if self.uses_v06:
             self._attach_v06_target_metadata(tree)
         return description, self.steps
+
+    def _preserve_legacy_service_display(self, tree: ast.Module) -> None:
+        if not self.uses_v17 or not (self.uses_v08 or self.uses_v11):
+            return
+        if (has_core_expressions(self.steps)
+                or any(step.get("prompt_profile") is not None for step in self.steps)
+                or any(step["type"] == "language_check" for step in self.steps)):
+            self._reject(tree, "SPELL937", "native v0.17 capabilities cannot be combined with legacy data or telecommand services")
+        # These service profiles have authoritative version-specific broker and
+        # recovery paths. Preserve their accepted nonempty Display/log contract.
+        for step in self.steps:
+            if step["type"] == "display":
+                if type(step["message"]) is str and not step["message"].strip():
+                    self._reject(tree, "SPELL937", "empty Display is unavailable in the legacy service profile")
+                step["type"] = "log"
+        self.uses_v17 = False
 
     @staticmethod
     def _is_docstring(statement: ast.stmt) -> bool:
@@ -878,6 +912,10 @@ class _Compiler:
             self._reject(node.target, "SPELL304", f"variable {name} is already declared")
         if node.value is None:
             self._reject(node, "SPELL305", "declarations require an initializer")
+        if self._is_prompt_call(node.value):
+            self._compile_native_prompt(node, node.value, None, target=name,
+                                        declared_type=declared_type, declaration=True)
+            return
         expression, actual_type = self._expression(node.value)
         self._require_assignable(node.value, declared_type, actual_type)
         self.types[name] = declared_type
@@ -901,6 +939,12 @@ class _Compiler:
             self._reject(target, "SPELL913", "telecommand item can only be replaced by BuildTC")
         if target.id in self.opaque_declared_variables:
             self._reject(target, "SPELL718", "FileHandle variable cannot be assigned as a scalar")
+        if self._is_prompt_call(node.value):
+            declaration = target.id not in self.types and infer
+            declared_type = None if declaration else self._declared_type(target)
+            self._compile_native_prompt(node, node.value, guard, target=target.id,
+                                        declared_type=declared_type, declaration=declaration)
+            return
         expression, actual_type = self._expression(node.value)
         declaration = target.id not in self.types and infer
         declared_type = actual_type if declaration else self._declared_type(target)
@@ -945,6 +989,91 @@ class _Compiler:
             expression=expression,
             declaration=False,
         )
+
+    @staticmethod
+    def _is_prompt_call(node: ast.AST) -> bool:
+        return isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "Prompt"
+
+    def _is_native_prompt(self, call: ast.Call) -> bool:
+        lowercase = any(keyword.arg is not None and keyword.arg.islower() for keyword in call.keywords)
+        uppercase = any(keyword.arg is not None and not keyword.arg.islower() for keyword in call.keywords)
+        if lowercase and (uppercase or len(call.args) > 1):
+            self._reject(call, "SPELL932", "native and lowercase Prompt forms cannot be mixed")
+        return not lowercase
+
+    def _native_prompt_type(self, node: ast.AST) -> str:
+        if isinstance(node, ast.Name) and node.id in PROMPT_TYPES:
+            return node.id
+        if (isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr)
+                and isinstance(node.left, ast.Name) and isinstance(node.right, ast.Name)):
+            names = {node.left.id, node.right.id}
+            if names == {"LIST", "NUM"}:
+                return "LIST|NUM"
+            if names == {"LIST", "ALPHA"}:
+                return "LIST|ALPHA"
+        self._reject(node, "SPELL933", "Prompt Type must be a supported constant or LIST|NUM/ALPHA")
+
+    def _compile_native_prompt(
+        self, node: ast.AST, call: ast.Call, guard: dict[str, Any] | None,
+        *, target: str | None = None, declared_type: str | None = None,
+        declaration: bool = False,
+    ) -> None:
+        if not self._is_native_prompt(call):
+            self._reject(call, "SPELL932", "assigned Prompt requires the native argument form")
+        if any(keyword.arg is None for keyword in call.keywords):
+            self._reject(call, "SPELL407", "keyword expansion is not allowed")
+        names = [keyword.arg for keyword in call.keywords]
+        if len(call.args) not in {1, 2} or len(names) != len(set(names)) or set(names) - {"Type", "Default", "Timeout"}:
+            self._reject(call, "SPELL932", "Prompt requires a message, optional type/options and unique native modifiers")
+        values = {keyword.arg: keyword.value for keyword in call.keywords}
+        prompt_type, choices = "OK", None
+        if len(call.args) == 2:
+            if isinstance(call.args[1], ast.List):
+                choices = self._literal_string_list(call.args[1], [], "Prompt choices")
+                if "Type" not in values:
+                    self._reject(call, "SPELL932", "native list options require an explicit LIST Type")
+            else:
+                if "Type" in values:
+                    self._reject(call, "SPELL932", "Prompt Type is duplicated")
+                prompt_type = self._native_prompt_type(call.args[1])
+        if "Type" in values:
+            prompt_type = self._native_prompt_type(values["Type"])
+        default = None
+        if "Default" in values:
+            default_node = values["Default"]
+            if isinstance(default_node, ast.Name) and default_node.id in {"OK", "CANCEL", "YES", "NO"}:
+                default = default_node.id
+            else:
+                default = self._literal_value(default_node, None, "Prompt Default")
+            if type(default) not in {str, int, float}:
+                self._reject(default_node, "SPELL934", "Prompt Default must be a supported scalar literal or answer constant")
+        timeout = None
+        if "Timeout" in values:
+            timeout_node = values["Timeout"]
+            if any(isinstance(item, ast.Name) and item.id not in {"SECOND", "MINUTE", "HOUR"}
+                   for item in ast.walk(timeout_node)):
+                self._reject(timeout_node, "SPELL935", "Prompt Timeout accepts only SECOND, MINUTE and HOUR constants")
+            timeout = self._v11_duration(timeout_node, "Prompt Timeout")
+        question = self._typed_argument(call.args[0], {"str"}, "Prompt question")
+        self._require_non_empty_literal(call.args[0], question, "Prompt question")
+        try:
+            fields = normalize_native_prompt_declaration(
+                question, prompt_type=prompt_type, choices=choices,
+                default=default, timeout_seconds=timeout,
+            )
+        except V06ValidationError as exc:
+            self._reject(call, "SPELL935", exc.message)
+        if target is not None:
+            result_type = native_prompt_result_type(fields["prompt_type"], fields["list_mode"])
+            declared_type = declared_type or result_type
+            if declared_type != result_type:
+                self._reject(call, "SPELL936", f"native Prompt target must have exact result type {result_type}")
+            fields.update(response_target=target, response_target_type=declared_type,
+                          response_target_declaration=declaration)
+            self.types[target] = declared_type
+            self.opaque_types.pop(target, None)
+        self.uses_v17 = self.uses_v06 = True
+        self._append(node, "prompt", guard=guard, **fields)
 
     def _compile_call(
         self,
@@ -1086,7 +1215,7 @@ class _Compiler:
     ) -> None:
         if name == "Display":
             # LRM244 section 4.9: positional or keyword severity, default INFORMATION.
-            # Lower into the existing checkpointed log operation; never call Python.
+            # IR 0.17 accepts bounded empty text; historical log IR stays unchanged.
             if len(call.args) not in {1, 2}:
                 self._reject(call, "SPELL920", "Display requires text and optional severity")
             if any(keyword.arg != "Severity" for keyword in call.keywords):
@@ -1103,8 +1232,14 @@ class _Compiler:
             else:
                 self._reject(call, "SPELL923", "Display severity must be INFORMATION, WARNING or ERROR")
             message = self._typed_argument(call.args[0], {"str"}, "Display text")
-            self._require_non_empty_literal(call.args[0], message, "Display text")
-            self._append(node, "log", guard=guard, message=message, level=level)
+            if type(message) is str and message.strip():
+                self._append(node, "log", guard=guard, message=message, level=level)
+            else:
+                self.uses_v17 = True
+                self._append(node, "display", guard=guard, message=message, level=level)
+            return
+        if name == "Prompt" and self._is_native_prompt(call):
+            self._compile_native_prompt(node, call, guard)
             return
         if name == "Send":
             self._compile_v11_send(node, call, guard)
@@ -1113,15 +1248,24 @@ class _Compiler:
             self._compile_v10_step(node, call, guard)
             return
         if name == "LanguageCheck":
-            if len(call.args) != 1 or len(call.keywords) != 1 or call.keywords[0].arg != "target":
+            options = {keyword.arg: keyword.value for keyword in call.keywords}
+            if (len(call.args) != 1 or len(options) != len(call.keywords)
+                    or set(options) not in ({"target"}, {"target", "profile"})):
                 self._reject(call, "SPELL924", "LanguageCheck requires one selection and target")
+            all_selection, cases_sha256 = ALL_SELECTION, CASESET_SHA256
+            if "profile" in options:
+                if not isinstance(options["profile"], ast.Constant) or options["profile"].value != "0.17":
+                    self._reject(options["profile"], "SPELL924", "LanguageCheck profile must be the literal 0.17")
+                from .ir_v17 import ALL_SELECTION as V17_ALL_SELECTION, CASESET_SHA256 as V17_CASESET_SHA256
+                all_selection, cases_sha256 = V17_ALL_SELECTION, V17_CASESET_SHA256
+                self.uses_v17 = True
             selection = self._typed_argument(call.args[0], {"int"}, "LanguageCheck selection")
-            if type(selection) is int and not 0 <= selection <= ALL_SELECTION:
+            if type(selection) is int and not 0 <= selection <= all_selection:
                 self._reject(call, "SPELL925", "LanguageCheck selection is outside the closed registry")
-            target = self._v07_target(call.keywords[0].value, "str", "LanguageCheck")
+            target = self._v07_target(options["target"], "str", "LanguageCheck")
             self.uses_v16 = self.uses_v06 = True
             self._append(node, "language_check", guard=guard, selection=selection,
-                         target=target, target_type="str", cases_sha256=CASESET_SHA256)
+                         target=target, target_type="str", cases_sha256=cases_sha256)
             return
         if name in V08_DATA_CALLS:
             self._compile_v08_step(node, name, call, guard)
@@ -2342,8 +2486,17 @@ class _Compiler:
             self._reject(node.target, "SPELL602", "loop target must be a simple variable")
         self._validate_variable_name(node.target, node.target.id)
         values = self._literal_range(node.iter)
-        if len(values) == 0:
-            self._reject(node.iter, "SPELL607", "range loops must execute at least once")
+        if not values:
+            # Validate the complete body, including nested calls and type/budget
+            # checks, while ensuring neither the binding nor effects can execute.
+            branch_name = f"__spell_branch_{self.branch_counter}"
+            self.branch_counter += 1
+            self.types[branch_name] = "bool"
+            self._append(node, "variable_set", guard=guard, name=branch_name,
+                         declared_type="bool", expression={"expr": "literal", "value": False},
+                         declaration=True, internal=True)
+            guard = self._combine_guards(guard, {"expr": "variable", "name": branch_name})
+            values = range(1)
         existing_type = self.types.get(node.target.id)
         if existing_type is not None and existing_type != "int":
             self._reject(node.target, "SPELL603", "range loop variable must have type int")
@@ -2439,6 +2592,20 @@ class _Compiler:
         if isinstance(node, ast.BinOp):
             left, left_type = self._expression(node.left)
             right, right_type = self._expression(node.right)
+            integer_operator = {ast.Pow: "**", ast.BitAnd: "&", ast.BitOr: "|"}.get(type(node.op))
+            if integer_operator is not None:
+                if left_type != "int" or right_type != "int":
+                    self._reject(node, "SPELL930", "integer operators require int operands, not bool or float")
+                if integer_operator == "**":
+                    try:
+                        exponent = ast.literal_eval(node.right)
+                    except (ValueError, TypeError):
+                        exponent = None
+                    if type(exponent) is int and not 0 <= exponent <= MAX_POWER_EXPONENT:
+                        self._reject(node.right, "SPELL931", "power exponent must be 0 through 4096")
+                self.uses_v17 = True
+                return {"expr": "integer_binary", "operator": integer_operator,
+                        "left": left, "right": right}, "int"
             operator = self._binary_operator(node.op)
             result_type = self._binary_result_type(node, operator, left_type, right_type)
             return {
@@ -2591,7 +2758,7 @@ class _Compiler:
         return declared_type
 
     def _validate_variable_name(self, node: ast.AST, name: str) -> None:
-        if name.startswith("__") or name in self._step_calls or name in DISPLAY_SEVERITIES or name in {
+        if name.startswith("__") or name in self._step_calls or name in DISPLAY_SEVERITIES or name in NATIVE_PROMPT_CONSTANTS or name in {
             "ARGS",
             "IVARS",
             "BuildTC",
