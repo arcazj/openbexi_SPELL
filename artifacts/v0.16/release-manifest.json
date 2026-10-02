@@ -1,0 +1,11 @@
+{
+  "file_count": 777,
+  "package_sha256": "91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc",
+  "qualification_sha256": "cc22286bc264e74f9eafcbe3cca33c517caf221b07566fd699cdbc77d2169620",
+  "release_tag": "v0.16.0",
+  "repeated_builds": 2,
+  "schema_version": "spell.v16.release-manifest/1",
+  "scope": "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE",
+  "source_commit": "f9bb4defc6fef0a6034c5783c1bef107162d24e1",
+  "source_fingerprint": "ccc1cdf5097208a9ed1635b4dff1562d022ff900fa1f75008fd11fe473fcc76f"
+}

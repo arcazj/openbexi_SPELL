@@ -1,0 +1,66 @@
+<testsuites id="" name="" tests="18" failures="0" skipped="0" errors="0" time="57.299897">
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.544" errors="0">
+<testcase name="[chromium] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="4.544">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.178" errors="0">
+<testcase name="[chromium] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.178">
+</testcase>
+</testsuite>
+<testsuite name="local-session-v16-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="3" failures="0" skipped="0" time="2.659" errors="0">
+<testcase name="[chromium] automatically connects, reloads and renews the same local operator" classname="local-session-v16-real.spec.ts" time="1.751">
+</testcase>
+<testcase name="[chromium] recovers a fresh browser after the simulator is unavailable" classname="local-session-v16-real.spec.ts" time="0.44">
+</testcase>
+<testcase name="[chromium] rejects non-browser bootstrap and leaves API authentication enforced" classname="local-session-v16-real.spec.ts" time="0.468">
+</testcase>
+</testsuite>
+<testsuite name="manual-workspace-v16-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.425" errors="0">
+<testcase name="[chromium] opens the manual workspace directly and operates its compact procedure views" classname="manual-workspace-v16-real.spec.ts" time="7.425">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.77" errors="0">
+<testcase name="[chromium] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="1.77">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.735" errors="0">
+<testcase name="[chromium] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.735">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.442" errors="0">
+<testcase name="[chromium] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="1.442">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="4.001" errors="0">
+<testcase name="[mobile] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="4.001">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.175" errors="0">
+<testcase name="[mobile] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.175">
+</testcase>
+</testsuite>
+<testsuite name="local-session-v16-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="3" failures="0" skipped="0" time="3.219" errors="0">
+<testcase name="[mobile] automatically connects, reloads and renews the same local operator" classname="local-session-v16-real.spec.ts" time="2.073">
+</testcase>
+<testcase name="[mobile] recovers a fresh browser after the simulator is unavailable" classname="local-session-v16-real.spec.ts" time="0.642">
+</testcase>
+<testcase name="[mobile] rejects non-browser bootstrap and leaves API authentication enforced" classname="local-session-v16-real.spec.ts" time="0.504">
+</testcase>
+</testsuite>
+<testsuite name="manual-workspace-v16-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="7.97" errors="0">
+<testcase name="[mobile] opens the manual workspace directly and operates its compact procedure views" classname="manual-workspace-v16-real.spec.ts" time="7.97">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.916" errors="0">
+<testcase name="[mobile] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="1.916">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="7.593" errors="0">
+<testcase name="[mobile] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="7.593">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-02T03:06:49.564Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.519" errors="0">
+<testcase name="[mobile] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="1.519">
+</testcase>
+</testsuite>
+</testsuites>

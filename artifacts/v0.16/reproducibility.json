@@ -1,0 +1,15 @@
+{
+  "builds_per_export": 2,
+  "decision": "PASS",
+  "export_method": "independent detached Git worktrees of the clean evidence commit",
+  "independent_exports": 2,
+  "package_sha256_results": [
+    "91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc",
+    "91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc",
+    "91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc",
+    "91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc"
+  ],
+  "schema_version": "spell.v16.reproducibility/1",
+  "source_commit": "f9bb4defc6fef0a6034c5783c1bef107162d24e1",
+  "source_fingerprint": "ccc1cdf5097208a9ed1635b4dff1562d022ff900fa1f75008fd11fe473fcc76f"
+}

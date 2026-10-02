@@ -1,0 +1,1 @@
+{"negative_tamper_rejected": true, "schemas": {"backend": "1.4", "driver": "1.4", "frontend": "1.4", "proxy": "1.4"}, "validator": "cyclonedx-python-lib/11.11.0"}

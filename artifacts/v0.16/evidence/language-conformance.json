@@ -1,0 +1,450 @@
+{
+  "artifact_count": 763,
+  "case_count": 32,
+  "cases": [
+    {
+      "diagnostic": null,
+      "id": "scalar-inference",
+      "logs": [
+        [
+          "simulator",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "ba1c5bac25c25a867c25e870e8d5c1d2f65d458da38dd685354fdcb7857eaadc",
+      "terminal": "completed",
+      "variables": {
+        "count": 12,
+        "enabled": true,
+        "name": "simulator",
+        "voltage": 2.5
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "arithmetic",
+      "logs": [
+        [
+          "arithmetic",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "7da4d1c0ec6378a026358ba7b4c3eaf8f3bf34f1d70027c3e5f27598c144f639",
+      "terminal": "completed",
+      "variables": {
+        "ratio": 4.5,
+        "remainder": 2,
+        "value": 43
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "boolean-and-comparison",
+      "logs": [
+        [
+          "boolean",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "25f179bb0574e36d73211d5cfe913b2f7bdce6cdbe0886b618c2beb342a34adb",
+      "terminal": "completed",
+      "variables": {
+        "choice": true,
+        "enabled": true,
+        "valid": true
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "short-circuit",
+      "logs": [
+        [
+          "short circuit",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "92c7ce60616ecd61f5059e6b26cb4fbf9fd5964c79b1023576e3c3c000575f21",
+      "terminal": "completed",
+      "variables": {
+        "ready": true,
+        "valid": false
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "comments-and-continuation",
+      "logs": [
+        [
+          "local simulator",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "e5392c9c2556d2fcbe63a70eb055c292dbf63b13fe946286e6e8afd77e92b411",
+      "terminal": "completed",
+      "variables": {
+        "message": "local simulator",
+        "value": 11
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "case-sensitive-names",
+      "logs": [
+        [
+          "case sensitive",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "896cf8785dbd1f3a8e739aba497dbd40ced7b323534fa920d982df43c335e3a4",
+      "terminal": "completed",
+      "variables": {
+        "Value": 7,
+        "value": 2
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "conditional",
+      "logs": [
+        [
+          "second",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "58318543584b3436aca10fd361478ebdb48ed226210eb7ef770bf996577486bb",
+      "terminal": "completed",
+      "variables": {
+        "result": "second"
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "bounded-range",
+      "logs": [
+        [
+          "range",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "a2bb7fb34dda0ffaf472612eb7a81540691a1f3ec6e8597f2eeef367d75c0f94",
+      "terminal": "completed",
+      "variables": {
+        "total": 12
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "reverse-range",
+      "logs": [
+        [
+          "reverse",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "502e1b0c6c4b01751c57e3cb0c99fe7a349702e0f57183d062c828ea515e5e0b",
+      "terminal": "completed",
+      "variables": {
+        "total": 9
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "local-function",
+      "logs": [
+        [
+          "local call",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "944076ec11eb97fe9f0449a11dbde639d91e63f202946bd6ecd3c71b9058e0a4",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "diagnostic": null,
+      "id": "display-default",
+      "logs": [
+        [
+          "default severity",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "e8cb8eac3e0e58530c3ce920ecea168ad74fd32625b870a00aaae631574e021e",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "diagnostic": null,
+      "id": "display-positional",
+      "logs": [
+        [
+          "warning severity",
+          "warning"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "c4c2ee8ee372d2cc6132403dcc9b8e4d3de88ab7936627663301b6e12f9d85ca",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "diagnostic": null,
+      "id": "display-keyword",
+      "logs": [
+        [
+          "error severity",
+          "error"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "4fed32ae6d8c34e2030251fbd5dc68323e275bc5901651f725fba5f9c62fbfb6",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "diagnostic": null,
+      "id": "integer-literals",
+      "logs": [
+        [
+          "integer literals",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "4c1c00a81318758df0fea02340bc2fbc53c5fd3df3fa1150fbc96ca64b73a09f",
+      "terminal": "completed",
+      "variables": {
+        "binary": 42,
+        "hexadecimal": 42
+      }
+    },
+    {
+      "diagnostic": null,
+      "id": "runtime-division-error",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "ce87ca75e72e6a28caa5e56f1104b2701a0967d8fbdb86024c9c3532fb9f745c",
+      "terminal": "failed",
+      "variables": {}
+    },
+    {
+      "diagnostic": null,
+      "id": "recovery-fresh-run",
+      "logs": [
+        [
+          "recovered",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "source_sha256": "e815271d03c9053c196d9f6b464f1344fc7d68a3f3dff4137644a2f036c980a0",
+      "terminal": "completed",
+      "variables": {
+        "value": 3.0
+      }
+    },
+    {
+      "diagnostic": "SPELL310",
+      "id": "reject-type-change",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "c791f2bfdf57c2378c695ba03480ce04253bcccd74f860b6964b41d29674669e",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL308",
+      "id": "reject-branch-declaration",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "e73490cc6cd4ea6dd8d8bee4b7f1a80a4ac16ece085c7c00cf03e34d892edeff",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL103",
+      "id": "reject-import",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "3da4f4ee79cf47a28ad75ca4ed5cc71485ec2ca1bb4d0f53b0d4151cfb427cad",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL103",
+      "id": "reject-while",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "f7d73d1291f1b8b7cfd8e92ba154c5b70842086a5a898b8b6bc69e471c26c214",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL705",
+      "id": "reject-list",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "aaddfb5004f058ba529cdfccd52c9a001aa0ef810341c2b2fe09359105a9b95d",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL705",
+      "id": "reject-dictionary",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "d89639141ea66f9252a6dce6cfd8fe1062ab46188dfdd0bad50af4cdcade9432",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL202",
+      "id": "reject-function-arguments",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "aaaf7d5c343eb3a4f8850878e460b3782c4b483011fd6f1b41cef67ac8c4dfb5",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL103",
+      "id": "reject-exception-syntax",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "2a9a52edc43e983e6279604ca04f45e7190fd2756a0b642236b38910f66ae2a6",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL921",
+      "id": "reject-silent-display",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "177cb42bdd51355d468a833ff7d09fadaa03016c1f021fdcf2016ff37f056211",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL922",
+      "id": "reject-display-duplicate",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "1714190469fbaec54c077a4f8b6eadab3a66b892fe0e0a4f14341ec0a93c95e8",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL923",
+      "id": "reject-display-invalid-severity",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "7f9f405ac0527fd882308aa2d91fe05dd85b0d1e1894c924e2aa6d27610cd300",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL920",
+      "id": "reject-display-missing-text",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "f245cb4087687821298c12602d7aeef7af3d526ac776d0472fb88fedbe9819d3",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL706",
+      "id": "reject-display-type",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "6a524d492e17895440ace681724e5be7cf89b5dea0dff3d0f98b54b199149260",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL309",
+      "id": "reject-severity-shadow",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "4a9192cee051e7c69560f5814b347ca894dec9349e5c14ddd91458f126aa9df8",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL705",
+      "id": "reject-attribute",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "24ae1e9642f4f2780da90fd7234c3d077a504241f03238eae3ec626d26817c53",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "diagnostic": "SPELL705",
+      "id": "reject-source-evaluation",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "source_sha256": "4d0a84154c6145d78893151b858e43ec9a4ae321c8479775805cb145574f2965",
+      "terminal": null,
+      "variables": {}
+    }
+  ],
+  "coverage_counts": {
+    "ADAPTED": 195,
+    "GAP": 509,
+    "PARTIAL": 59
+  },
+  "coverage_sha256": "3984eb30c39ba97ec891e60f8f58bdda7fa3186087fc2e7eb29c94c290598a65",
+  "direct_count": 16,
+  "full_compatibility": false,
+  "profile_result": "PASS",
+  "rejection_count": 16,
+  "release": "v0.16.0",
+  "schema_version": "spell.v16.language-conformance/1",
+  "scope": "Local simulator; successful boundary tests do not close compatibility gaps.",
+  "selection": "ALL",
+  "source_sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+  "unqualified_default_count": 20
+}
