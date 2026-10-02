@@ -1,5 +1,22 @@
 # Prompt History
 
+## 2026-10-01 - v0.16.0 Published
+
+The authorized work completed with the compact manual-based workspace,
+automatic local simulator connection, expanded language-reference runner and
+concise current documentation. Qualification recorded 3,976 passed executions;
+24 environment-selected skips were resolved by complementary runs. Four
+package builds matched, and the annotated tag passed independent clean-checkout
+validation before the branch and tag were pushed. The
+[GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.16.0)
+includes the package, checksum, manifest and qualification record.
+
+The [accepted release binding](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+is authoritative. This documentation closeout preserves that tag and its
+evidence. The 763-entry language inventory retains 195 adapted entries, 59
+partial entries and 509 gaps; full SPELL 2.4.4 compatibility and operational
+authorization are not claimed.
+
 ## 2026-10-01 - v0.16.0 Implementation Authorized
 
 The owner approved execution of the rewritten v0.16.0 prompt. Required work:

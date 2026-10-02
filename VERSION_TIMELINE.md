@@ -1,13 +1,38 @@
 # OpenBEXI SPELL Version Timeline
 
-## 2026-10-01 - v0.16.0 Entry Gate
+## 2026-10-01 - v0.16.0 Accepted
 
-The owner authorized complete implementation, qualification and publication.
-Entry commit `7ebf580` records eight proof requirements; validation passed for
-all eight mandatory source inputs. The scope is language coverage/direct cases,
-the compact original-manual workspace, automatic local simulator sessions and
-concise current documentation. Product acceptance and duration endpoints remain
-pending. See the [v0.16 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md).
+Annotated `v0.16.0` passed independent clean-tag validation for language coverage,
+the compact original-manual workspace and automatic local simulator sessions.
+The seven Final suites recorded 3,976 passed executions; all 24 environment
+skips were resolved by complementary PostgreSQL and Compose runs. The candidate
+gate separately passed 159 cases. Four package builds across two independent
+exports produced identical bytes. No exceptions were accepted.
+
+Entry commit `7ebf580` records the eight approved proof requirements and eight
+mandatory source inputs. The final source includes the PCRE2 advisory fix and
+deterministic broker-timeout test; failed captures remain in ignored local
+directories, separate from published evidence. Full SPELL 2.4.4 support, real
+legacy-system qualification and operational authorization remain outside the
+accepted scope. See the
+[release binding](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding).
+
+All timestamps below are on **2026-10-01 in America/New_York (EDT, UTC-04:00)**.
+
+| Milestone | Local time | Immutable endpoint |
+| --- | --- | --- |
+| Approved entry gate | 20:55:04 | Commit `7ebf580` |
+| Initial implementation source | 21:30:19 | Commit `fae529f` |
+| Qualified source / revised candidate | 22:29:51 | Commit `f9bb4de` |
+| Release commit | 23:15:18 | Commit `1b0aa8e` |
+| Annotated release tag | 23:15:47 | Tag object `d280229` |
+
+Exact Git intervals are **2h 20m 43s gate-to-tag**, **1h 45m 28s initial
+source-to-tag**, **45m 56s qualified-source-to-tag**, and **29s release-commit-to-tag**.
+These are elapsed calendar intervals; active engineering effort is unknown.
+Master and the tag were pushed and verified. The
+[GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.16.0)
+was published at 23:18:03 EDT with four verified assets.
 
 ## 2026-10-01 - v0.15.0 Accepted
 
@@ -68,11 +93,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.15.0 local synthetic baseline |
-| Update type | Record v0.15.0 acceptance and align current documentation |
+| Document revision | Accepted v0.16.0 local simulator baseline |
+| Update type | Record v0.16.0 acceptance, publication and exact Git intervals |
 | Updated | 2026-10-01 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through October 2026 events |
-| Accepted product baseline | SPELL v0.15.0, tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
+| Accepted product baseline | SPELL v0.16.0, tag object `d28022996f9b5d6216c15c289024905cb1a21f38`, release commit `1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
@@ -88,6 +113,7 @@ this planning/source record does not independently claim completed tests.
 | v0.13 current status | Accepted 2026-10-01 at annotated tag `v0.13.0`; 3,544 passed executions, 22 resolved environment skips, and no accepted exceptions |
 | v0.14 current status | Accepted 2026-10-01 at annotated tag `v0.14.0`; 3,630 passed executions, 22 resolved environment skips, and no accepted exceptions |
 | v0.15 current status | Accepted 2026-10-01 at annotated tag `v0.15.0`; 3,732 passed executions, 24 resolved environment skips, and no accepted exceptions |
+| v0.16 current status | Accepted 2026-10-01 at annotated tag `v0.16.0`; 3,976 passed executions, 24 resolved environment skips, 159 candidate checks, and no accepted exceptions |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -157,6 +183,7 @@ Conventions:
 | v0.13 | Fenced synthetic procedure control | Qualified source `0f85a4a` at 2026-10-01 04:58:46 EDT | Annotated tag `v0.13.0` at 2026-10-01 05:34:07 EDT | Qualified-source-to-tag 35m 21s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
 | v0.14 | Bounded read-only GetTM adapter | Qualified source `4951cad` at 2026-10-01 05:39:20 EDT | Annotated tag `v0.14.0` at 2026-10-01 06:15:34 EDT | Qualified-source-to-tag 36m 14s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
 | v0.15 | Local shadow-pilot review and recovery | Qualified source `fe33faf` at 2026-10-01 06:31:20 EDT | Annotated tag `v0.15.0` at 2026-10-01 07:11:00 EDT | Qualified-source-to-tag 39m 40s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
+| v0.16 | Language coverage, manual workspace and automatic local simulator sessions | Entry-gate commit `7ebf580` at 2026-10-01 20:55:04 EDT | Annotated tag `v0.16.0` at 2026-10-01 23:15:47 EDT | Gate-to-tag 2h 20m 43s; qualified-source-to-tag 45m 56s; release-commit-to-tag 29s; active effort unknown | Exact Git intervals; independent clean-tag validation passed |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
@@ -1050,6 +1077,7 @@ Records:
 | v0.2 tag to v0.3 tag | 3d 23h 32m 59s | Exact Git/tag interval |
 | v0.4 tag to v0.5 tag | 2d 0h 48m 50s | Exact annotated-tag interval |
 | v0.5 qualified-source commit to v0.5 tag | 13m 21s | Exact Git/tag interval; not total implementation effort |
+| v0.15 tag to v0.16 tag | 16h 04m 47s | Exact annotated-tag interval; not active engineering effort |
 | v0.1 completion date to v0.3 release date | Four calendar days between 2026-07-12 and 2026-07-16; five inclusive calendar dates | Recorded dates only; not an exact elapsed-time interval because v0.1 completion time is absent |
 
 ## Known Evidence Gaps

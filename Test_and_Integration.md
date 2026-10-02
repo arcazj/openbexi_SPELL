@@ -2,19 +2,27 @@
 
 ## v0.16.0 Qualification
 
-The [entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
-defines eight requirements. Focused work tests the complete language inventory,
-direct parser/worker semantics, runner selection/all-suite behavior, loopback
-session authorization/expiry, and the manual workspace on desktop and mobile.
-Release qualification additionally reruns the complete inherited product suites,
-soaks, image/SBOM/audit checks and independent package builds. Exact identities
-must be collected and frozen before a candidate can qualify.
+Annotated `v0.16.0` passed independent clean-tag validation on 2026-10-01.
+The candidate gate passed 159 tests. Final qualification recorded **3,976 passed
+executions**; all 24 environment-selected skips were resolved by complementary
+runs. No exceptions were accepted.
 
-The canonical producer is `scripts.qualify_next`; the independent validator is
-`scripts.release_next`. Release results are recorded in the
-[v0.16 implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md).
-No planned test is counted as passed. Full language compatibility remains false
-while the complete coverage inventory contains unresolved semantics.
+| Final gate | Passed executions | Environment-selected skips |
+| --- | --- | --- |
+| SQLite | 1,887 | 21 |
+| PostgreSQL | 1,823 | 3 |
+| Frontend | 146 | 0 |
+| Desktop/mobile browser | 18 | 0 |
+| Compose | 3 | 0 |
+| Documentation | 18 | 0 |
+| Release tooling | 81 | 0 |
+
+Language, build, soak, image, SBOM and audit gates also passed. Four package
+builds across two independent exports produced identical bytes. The
+[accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+binds these results to qualified source and raw evidence. Full SPELL 2.4.4
+compatibility, real legacy qualification and operational authorization remain
+outside the accepted local profile.
 
 ## 2026-10-01 - Post-v0.15 Documentation Audit
 
@@ -112,14 +120,15 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | `v0.14.0`, release commit `4adec1be10eae1aa4fac0293db47e7bbf692b243`; bounded read-only telemetry adapter |
-| Current release state | v0.15.0 accepted; tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
+| Accepted predecessor | `v0.15.0`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1`; local shadow-pilot review and recovery |
+| Current release state | v0.16.0 accepted; tag object `d28022996f9b5d6216c15c289024905cb1a21f38`, release commit `1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |
 | v0.13 direction | Qualified fenced simulator procedure control, exact operation readback/retry, and confirmed return to read-only |
 | v0.14 direction | Qualified bounded read-only GetTM adapter, quality-aware comparison, logical time, and explicit simulator fallback |
 | v0.15 direction | Qualified local shadow-pilot reports, independent review, incident/rollback, and read-only report restore |
+| v0.16 direction | Qualified language inventory/direct cases, manual workspace and automatic finite local operator sessions |
 | Date | Updated 2026-10-01 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |

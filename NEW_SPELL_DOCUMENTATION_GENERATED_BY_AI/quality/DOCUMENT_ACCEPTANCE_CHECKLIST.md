@@ -12,18 +12,18 @@ and other broader unchecked items do not block the local gate.
 
 ### v0.16 Documentation Check
 
-Verify concise current instructions, complete coverage/gap reporting, manual UI
-traceability, automatic loopback access and correct release status. The
-[version record](../releases/SPELL_v0.16_Implementation.md) owns executed evidence;
-this check does not approve the broader Draft or its historical manual/PDF.
+Accepted v0.16.0 includes concise current instructions, complete coverage/gap
+reporting, manual UI traceability and automatic loopback access. All 18
+documentation checks passed in the tagged qualification. The
+[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+owns that evidence; later documentation maintenance does not replace it.
 
 ### Current Local Product Alignment
 
 Current product alignment (2026-10-01): the parent product is accepted at
-[v0.15.0](../releases/SPELL_v0.15_Implementation.md), with the preceding v0.13
-and v0.14 increments indexed in [release records](../releases/README.md).
-Its canonical qualification includes 18 documentation checks; delivered
-workflows are described in the [console guide](../../frontend/README.md).
+[v0.16.0](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding).
+Earlier increments remain indexed in [release records](../releases/README.md);
+delivered workflows are described in the [console guide](../../frontend/README.md).
 This factual alignment does not mark the broader unchecked review, publication,
 or approval requirements below as complete.
 

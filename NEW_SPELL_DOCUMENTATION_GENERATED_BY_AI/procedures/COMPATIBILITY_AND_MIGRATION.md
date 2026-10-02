@@ -8,12 +8,14 @@ tracks original source artifacts, direct cases, adaptations and gaps. The
 individual and complete-suite choices. v0.16 adds bounded inferred scalar
 assignment and Display severity through the existing typed IR. Correct
 unsupported-syntax rejection is test evidence, not language support. See the
-[version record](../releases/SPELL_v0.16_Implementation.md) for qualification.
+[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+for exact scope and qualification.
 
 ## Accepted Local Product Profile
 
-The accepted product baseline is v0.15.0 as of 2026-10-01. Its latest bounded
-profiles cover [v0.13 fenced procedure control](../releases/SPELL_v0.13_Implementation.md),
+The accepted product baseline is v0.16.0 as of 2026-10-01. Alongside its language
+coverage and manual workspace, it retains
+[v0.13 fenced procedure control](../releases/SPELL_v0.13_Implementation.md),
 [v0.14 read-only telemetry adaptation](../releases/SPELL_v0.14_Implementation.md),
 and [v0.15 shadow-pilot review and report recovery](../releases/SPELL_v0.15_Implementation.md).
 The `GetTM` adapter uses synthetic reference/simulator sources and recorded

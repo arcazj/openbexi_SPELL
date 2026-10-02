@@ -1,30 +1,30 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-01. **v0.16.0 is in implementation and qualification**;
-**v0.15.0 remains the accepted predecessor**. Release acceptance is determined
-by independently validated annotated tags and their committed evidence.
+Updated 2026-10-01. **v0.16.0 is the accepted local product baseline**;
+v0.15.0 is its predecessor. Acceptance is bound to the independently validated
+annotated tag and its committed evidence.
 
 This roadmap describes local simulator engineering. It does not authorize live
 GCS/spacecraft connectivity, deployment or operational use. All documents under
 `SPELL_DOCUMENTATION/` remain mandatory source references; the broader generated
 specification `0.1.0-draft.1` remains Draft.
 
-## v0.16.0 - Current Work
+## v0.16.0 - Delivered Scope
 
-The owner authorized execution and publication of the
-[v0.16 entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md).
-The [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md)
-tracks actual results.
+The [entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
+is delivered. The
+[accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+contains actual results and bindings.
 
-| Work | Completion criteria |
+| Work | Delivered result |
 | --- | --- |
-| Language coverage | Inventory the complete 2.4.4 reference, distinguish direct/partial/adapted/gap evidence, and retain explicit unsupported behavior |
+| Language coverage | 763 reference entries: 195 adapted examples, 59 partially covered entries and 509 explicit gaps |
 | Direct language increment | Inferred scalar assignment and documented Display severity, with real parser/worker assertions and negative tests |
-| Reference procedure | Preserve all 195 example choices and 257 adaptations; add direct-case selection and automated complete-suite execution |
+| Reference procedure | 195 example choices and 257 adaptations retained; 32 direct/rejection checks and complete-suite execution added |
 | GUI-manual workspace | Compact navigation/utilities, Master and procedure tabs, tabular Code/Data/Result, lower controls/prompts/logs; visual and browser verification |
 | Automatic simulator access | Open the loopback URL directly as a local operator; finite credentials, renewal/reconnect/retry, strict origin/ingress boundary and no automatic administrator grant |
 | Concise documentation | Current instructions in the READMEs/operator guide; one canonical source for detailed contracts and evidence |
-| Release | Frozen-source candidate and Final checks, all selected environments, browser evidence, audits/SBOMs, four reproducible builds and validated annotated tag |
+| Release | Candidate and Final gates passed; four identical builds across two exports and independently validated annotated tag |
 
 A complete reference inventory is different from complete language support.
 The [coverage matrix](contracts/v16/language_coverage.json) must retain missing
@@ -54,10 +54,11 @@ Detailed gates, immutable bindings and results live in the
 | v0.13.0 | Fenced procedure control and confirmed return to read-only |
 | v0.14.0 | Bounded read-only GetTM adapter |
 | v0.15.0 | Local shadow-pilot review, incidents, rollback and report restore |
+| v0.16.0 | Language coverage and direct cases, compact GUI-manual workspace and automatic local operator sessions |
 
-The accepted v0.15.0 tag object is
-`8c72974f6a0a5deee766d6358fb219b73eab91ef`, pointing to release commit
-`b7bceaf2489156271c91a939d897d040caeb0be1`. Exact durations are in
+The accepted v0.16.0 tag object is
+`d28022996f9b5d6216c15c289024905cb1a21f38`, pointing to release commit
+`1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10`. Exact durations are in
 [VERSION_TIMELINE.md](VERSION_TIMELINE.md). Historical planning, including
 v0.3.1 and the original v0.4 alternatives, is preserved in the
 [roadmap snapshot through v0.15](https://github.com/arcazj/openbexi_SPELL/blob/8b3c4b2facc0be2184201dbcbf98f4879f78c334/PROJECT_ROADMAP.md)

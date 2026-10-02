@@ -9,7 +9,7 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | v0.16.0 implementation/qualification; accepted predecessor v0.15.0 |
+| Current release context | v0.16.0 accepted local language/manual-workspace profile; predecessor v0.15.0 |
 | Product alignment updated | 2026-10-01; original source-review date and evidence remain historical |
 | Product implementation change | None |
 | Operational authorization | None |
@@ -38,7 +38,7 @@ decision with verification evidence. The manuals define what forward work must
 address; versioned code and tests define the approved implementation; validated
 annotated tags and committed evidence define release status.
 
-## v0.16 Application
+## v0.16 Accepted Application
 
 The [v0.16 gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
 uses original GUI Manual pages 6-29 for the compact workspace and Language
@@ -46,7 +46,10 @@ Reference sections 2-4/appendices for complete coverage reporting and direct
 source tests. The owner's automatic local connection deliberately replaces the
 manual listener dialog for the fixed simulator. Browser-specific differences,
 unsupported syntax and remaining language gaps are explicit. The
-[operator guide](frontend/README.md) describes the actual workspace.
+[operator guide](frontend/README.md) describes the actual workspace. The
+[accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+binds this local implementation to executed qualification; the broader
+compatibility ledger remains open.
 
 ## v0.13 Through v0.15 Application
 

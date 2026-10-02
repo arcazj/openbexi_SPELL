@@ -2,11 +2,11 @@
 
 ## Current Local Increment
 
-v0.16.0 implements language coverage/direct cases, the compact original-manual
-workspace and automatic local simulator access. Its
-[entry gate](../releases/SPELL_v0.16_Pre-Implementation.md) and
-[implementation record](../releases/SPELL_v0.16_Implementation.md) control that
-local scope. Broader phases below retain their separate Draft gates.
+Accepted v0.16.0 delivers language coverage/direct cases, the compact
+original-manual workspace and automatic local simulator access. Its
+[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+binds that local scope and qualification. Broader phases below retain their
+separate Draft gates.
 
 ## Roadmap Rule
 
@@ -18,10 +18,9 @@ combine read-only and effect-bearing risk.
 The OpenBEXI SPELL product history is not renumbered by this specification.
 At the original July 2026 draft, v0.4 was the proposed typed simulator
 driver/context foundation. As of 2026-10-01, the parent product is accepted at
-[`v0.15.0`](../releases/SPELL_v0.15_Implementation.md) for local synthetic
-shadow-pilot readiness, following accepted v0.13 procedure control and v0.14
-read-only telemetry adaptation. The [release index](../releases/README.md)
-records those bounded increments. `OD-001` still requires the product owner to
+`v0.16.0`, retaining v0.13 procedure control, v0.14 read-only telemetry adaptation
+and v0.15 shadow-pilot readiness. The [release index](../releases/README.md)
+records these bounded increments. `OD-001` still requires the product owner to
 map the broader phases below after this specification gate is accepted; local
 pilot evidence does not establish completion of the program's operational
 readiness phase.

@@ -20,17 +20,13 @@ The specification version is independent of product releases, the legacy SPELL
 and deployment configuration versions.
 
 As of 2026-10-01, the parent product is accepted at
-[`v0.15.0`](releases/SPELL_v0.15_Implementation.md) for the local synthetic
-shadow-pilot profile, following accepted v0.13 control and v0.14 telemetry
-increments. See the [release index](releases/README.md) and
-[current console guide](../frontend/README.md). These bounded product releases
-do not approve this broader Draft specification or its Draft GUI manual, and
-do not establish full language compatibility or operational authorization.
-
-The parent v0.16.0 increment is in implementation and qualification under its
-[entry gate](releases/SPELL_v0.16_Pre-Implementation.md). The current operator
-guide is [frontend/README.md](../frontend/README.md); this broader Draft and its
-manual/PDF retain their separate version and approval status.
+[`v0.16.0`](releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+for local simulator language coverage, the compact GUI-manual workspace and
+automatic loopback sessions. See the [release index](releases/README.md) and
+[current console guide](../frontend/README.md). This acceptance does not approve
+the broader Draft specification or its Draft GUI manual/PDF, or establish full
+language compatibility, real legacy-system qualification or operational
+authorization. Their separate versions and approval boundaries remain unchanged.
 
 ## Normative Language
 

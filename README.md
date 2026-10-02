@@ -4,12 +4,11 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-This checkout targets **v0.16.0**: language coverage, a GUI-manual workspace
-and automatic local simulator access. Release qualification is in progress;
-[v0.15.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
-remains the accepted predecessor. See the
-[v0.16 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md)
-for the exact scope and evidence.
+**v0.16.0 is accepted** for language coverage, a GUI-manual workspace and
+automatic local simulator access. Its annotated tag passed independent
+clean-checkout validation. See the
+[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+for exact scope, results and immutable bindings.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -123,12 +122,12 @@ Python dependencies are hash-locked; see
 The canonical producer is `scripts.qualify_next`; the validator and packager
 are `scripts.release_next`. The active
 [release policy](contracts/v16/release_policy.json) freezes exact test identities
-and references. Required evidence includes SQLite/PostgreSQL/Compose regression,
+and references. Passed gates include SQLite/PostgreSQL/Compose regression,
 frontend/build/browser checks, language results, documentation rendering,
 soaks, image checks, four SBOMs, vulnerability review and four identical package
 builds from two independent source exports.
 
-After release acceptance, validate a clean checkout of the annotated tag:
+Validate a clean checkout of the accepted annotated `v0.16.0` tag:
 
 ```powershell
 .\scripts\run_release_next.ps1 -Module scripts.release_next `

@@ -2,12 +2,12 @@
 
 ## v0.16 Application
 
-The [v0.16 gate](../releases/SPELL_v0.16_Pre-Implementation.md) requires complete
-language-inventory reconciliation, real parser/worker cases, manual UI visual
-and browser evidence, and default local-session security/renewal tests. The
-complete inherited qualification still applies. Inventory completeness,
-passing adaptations and expected rejection do not imply full language support.
-Actual results are centralized in the [version record](../releases/SPELL_v0.16_Implementation.md).
+Accepted v0.16.0 passed language-inventory reconciliation, real parser/worker
+cases, manual UI visual/browser checks, local-session security/renewal tests
+and the complete inherited qualification. The
+[accepted release record](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+centralizes the evidence. Inventory completeness, passing adaptations and
+expected rejection do not imply full language support.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ No live spacecraft or operational GCS connection is in scope until the specific
 adapter, environment, effect class, procedures, organization, and operational
 authority pass their independent gates.
 
-## Accepted v0.13 Through v0.15 Application
+## Accepted v0.13 Through v0.16 Application
 
 These local synthetic releases passed independent clean-tag validation. Counts
 are test executions across complementary environments, not distinct test IDs:
@@ -30,12 +30,13 @@ are test executions across complementary environments, not distinct test IDs:
 | [v0.13.0](../releases/SPELL_v0.13_Implementation.md) | Fenced procedure control | 3,544 | 22 |
 | [v0.14.0](../releases/SPELL_v0.14_Implementation.md) | Bounded read-only GetTM adapter | 3,630 | 22 |
 | [v0.15.0](../releases/SPELL_v0.15_Implementation.md) | Local shadow-pilot review and recovery | 3,732 | 24 |
+| [v0.16.0](../releases/SPELL_v0.16_Implementation.md#accepted-release-binding) | Language coverage, manual workspace and automatic local access | 3,976 | 24 |
 
 Each release retains its source binding, full regression and environment
 results, frontend/build/browser evidence, documentation checks, four image
 SBOMs, supply-chain dispositions, and four identical package builds. There are
 no unresolved skips or accepted exceptions. The latest machine record is
-[v0.15 qualification.json](../../artifacts/v0.15/qualification.json).
+[v0.16 qualification.json](../../artifacts/v0.16/qualification.json).
 
 The [current validation instructions](../../README.md#release-qualification)
 require a clean annotated-tag checkout. Later documentation maintenance has a

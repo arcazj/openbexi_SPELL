@@ -5,6 +5,9 @@ history remains in the parent project and is not duplicated as document history.
 
 ## v0.16 Product Documentation - 2026-10-01
 
+- Recorded accepted [v0.16.0](releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
+  after independent clean-tag validation, with current status and qualification
+  pointers. Documentation closeout does not change the immutable release.
 - Added current language coverage, manual-workspace and automatic local-access
   instructions, with release status and evidence in one version record.
 - Shortened the root README and roadmap; historical detail remains available
