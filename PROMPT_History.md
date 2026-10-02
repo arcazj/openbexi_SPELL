@@ -1,5 +1,21 @@
 # Prompt History
 
+## 2026-10-01 - v0.16.0 Implementation Authorized
+
+The owner approved execution of the rewritten v0.16.0 prompt. Required work:
+complete language-reference coverage inventory and direct source tests; update
+`procedures/language_reference_244.spell.py` with individual and complete-suite
+execution; replace the bulky UI with the original GUI User Manual's compact
+workspace; update current documentation concisely; remove manual Session access
+from the default loopback simulator; and continue through tested, published
+release completion. Missing language semantics must remain explicit gaps.
+
+The [v0.16 entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Pre-Implementation.md)
+defines eight proof requirements and the bounded local session exception.
+Implementation and publication are authorized by the owner's **execute**
+instruction; no additional routine approval is required. Product acceptance
+remains conditional on frozen-source qualification and the validated tag.
+
 ## 2026-10-01 - Documentation Audit After v0.15.0
 
 The owner asked: "did you update all doc, readme? etc." The release summaries

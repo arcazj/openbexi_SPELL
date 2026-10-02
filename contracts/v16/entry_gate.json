@@ -1,0 +1,19 @@
+{
+  "full_language_compatibility_claim": false,
+  "operational_authorization": false,
+  "owner_authorized": true,
+  "predecessor_commit": "b7bceaf2489156271c91a939d897d040caeb0be1",
+  "release_tag": "v0.16.0",
+  "requirements": [
+    "V16-LANG-001",
+    "V16-LANG-002",
+    "V16-RUNNER-001",
+    "V16-UI-001",
+    "V16-SESSION-001",
+    "V16-SESSION-002",
+    "V16-DOC-001",
+    "V16-RELEASE-001"
+  ],
+  "schema_version": "spell.v16.entry-gate/1",
+  "scope": "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"
+}
