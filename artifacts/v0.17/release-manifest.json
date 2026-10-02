@@ -1,0 +1,11 @@
+{
+  "file_count": 799,
+  "package_sha256": "14a532ccbde01b5a33970e04a7594a25d34d3d6fc6c1fbfcca36c9f105cfb69d",
+  "qualification_sha256": "996132c5897939e2d0b145cd873d0c0edfbfad873c1a6b07df123d0f2f731b90",
+  "release_tag": "v0.17.0",
+  "repeated_builds": 2,
+  "schema_version": "spell.v17.release-manifest/1",
+  "scope": "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE",
+  "source_commit": "b4e5382010050bc56346c77628b9ddaf425e3d7e",
+  "source_fingerprint": "088790991cf1b2412b57d89a8df4ad31cb41a7dedb360c15b2ae7937734b0cf9"
+}

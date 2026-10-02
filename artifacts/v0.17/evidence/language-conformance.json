@@ -1,0 +1,1997 @@
+{
+  "artifact_count": 763,
+  "case_count": 96,
+  "cases": [
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "scalar-inference",
+      "logs": [
+        [
+          "simulator",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "ba1c5bac25c25a867c25e870e8d5c1d2f65d458da38dd685354fdcb7857eaadc",
+      "terminal": "completed",
+      "variables": {
+        "count": 12,
+        "enabled": true,
+        "name": "simulator",
+        "voltage": 2.5
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "arithmetic",
+      "logs": [
+        [
+          "arithmetic",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "7da4d1c0ec6378a026358ba7b4c3eaf8f3bf34f1d70027c3e5f27598c144f639",
+      "terminal": "completed",
+      "variables": {
+        "ratio": 4.5,
+        "remainder": 2,
+        "value": 43
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "boolean-and-comparison",
+      "logs": [
+        [
+          "boolean",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "25f179bb0574e36d73211d5cfe913b2f7bdce6cdbe0886b618c2beb342a34adb",
+      "terminal": "completed",
+      "variables": {
+        "choice": true,
+        "enabled": true,
+        "valid": true
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "short-circuit",
+      "logs": [
+        [
+          "short circuit",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "92c7ce60616ecd61f5059e6b26cb4fbf9fd5964c79b1023576e3c3c000575f21",
+      "terminal": "completed",
+      "variables": {
+        "ready": true,
+        "valid": false
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "comments-and-continuation",
+      "logs": [
+        [
+          "local simulator",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "e5392c9c2556d2fcbe63a70eb055c292dbf63b13fe946286e6e8afd77e92b411",
+      "terminal": "completed",
+      "variables": {
+        "message": "local simulator",
+        "value": 11
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "case-sensitive-names",
+      "logs": [
+        [
+          "case sensitive",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "896cf8785dbd1f3a8e739aba497dbd40ced7b323534fa920d982df43c335e3a4",
+      "terminal": "completed",
+      "variables": {
+        "Value": 7,
+        "value": 2
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "conditional",
+      "logs": [
+        [
+          "second",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "58318543584b3436aca10fd361478ebdb48ed226210eb7ef770bf996577486bb",
+      "terminal": "completed",
+      "variables": {
+        "result": "second"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "bounded-range",
+      "logs": [
+        [
+          "range",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "a2bb7fb34dda0ffaf472612eb7a81540691a1f3ec6e8597f2eeef367d75c0f94",
+      "terminal": "completed",
+      "variables": {
+        "total": 12
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "reverse-range",
+      "logs": [
+        [
+          "reverse",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "502e1b0c6c4b01751c57e3cb0c99fe7a349702e0f57183d062c828ea515e5e0b",
+      "terminal": "completed",
+      "variables": {
+        "total": 9
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "local-function",
+      "logs": [
+        [
+          "local call",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "944076ec11eb97fe9f0449a11dbde639d91e63f202946bd6ecd3c71b9058e0a4",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "display-default",
+      "logs": [
+        [
+          "default severity",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "e8cb8eac3e0e58530c3ce920ecea168ad74fd32625b870a00aaae631574e021e",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "display-positional",
+      "logs": [
+        [
+          "warning severity",
+          "warning"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "c4c2ee8ee372d2cc6132403dcc9b8e4d3de88ab7936627663301b6e12f9d85ca",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "display-keyword",
+      "logs": [
+        [
+          "error severity",
+          "error"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "4fed32ae6d8c34e2030251fbd5dc68323e275bc5901651f725fba5f9c62fbfb6",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "integer-literals",
+      "logs": [
+        [
+          "integer literals",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "4c1c00a81318758df0fea02340bc2fbc53c5fd3df3fa1150fbc96ca64b73a09f",
+      "terminal": "completed",
+      "variables": {
+        "binary": 42,
+        "hexadecimal": 42
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "runtime-division-error",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "ce87ca75e72e6a28caa5e56f1104b2701a0967d8fbdb86024c9c3532fb9f745c",
+      "terminal": "failed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "recovery-fresh-run",
+      "logs": [
+        [
+          "recovered",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "e815271d03c9053c196d9f6b464f1344fc7d68a3f3dff4137644a2f036c980a0",
+      "terminal": "completed",
+      "variables": {
+        "value": 3.0
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL310",
+      "id": "reject-type-change",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "c791f2bfdf57c2378c695ba03480ce04253bcccd74f860b6964b41d29674669e",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL308",
+      "id": "reject-branch-declaration",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "e73490cc6cd4ea6dd8d8bee4b7f1a80a4ac16ece085c7c00cf03e34d892edeff",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL103",
+      "id": "reject-import",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "3da4f4ee79cf47a28ad75ca4ed5cc71485ec2ca1bb4d0f53b0d4151cfb427cad",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL103",
+      "id": "reject-while",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "f7d73d1291f1b8b7cfd8e92ba154c5b70842086a5a898b8b6bc69e471c26c214",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL705",
+      "id": "reject-list",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "aaddfb5004f058ba529cdfccd52c9a001aa0ef810341c2b2fe09359105a9b95d",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL705",
+      "id": "reject-dictionary",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "d89639141ea66f9252a6dce6cfd8fe1062ab46188dfdd0bad50af4cdcade9432",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL202",
+      "id": "reject-function-arguments",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "aaaf7d5c343eb3a4f8850878e460b3782c4b483011fd6f1b41cef67ac8c4dfb5",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL103",
+      "id": "reject-exception-syntax",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "2a9a52edc43e983e6279604ca04f45e7190fd2756a0b642236b38910f66ae2a6",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL921",
+      "id": "reject-silent-display",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "177cb42bdd51355d468a833ff7d09fadaa03016c1f021fdcf2016ff37f056211",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL922",
+      "id": "reject-display-duplicate",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "1714190469fbaec54c077a4f8b6eadab3a66b892fe0e0a4f14341ec0a93c95e8",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL923",
+      "id": "reject-display-invalid-severity",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "7f9f405ac0527fd882308aa2d91fe05dd85b0d1e1894c924e2aa6d27610cd300",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL920",
+      "id": "reject-display-missing-text",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "f245cb4087687821298c12602d7aeef7af3d526ac776d0472fb88fedbe9819d3",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL706",
+      "id": "reject-display-type",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "6a524d492e17895440ace681724e5be7cf89b5dea0dff3d0f98b54b199149260",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL309",
+      "id": "reject-severity-shadow",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "4a9192cee051e7c69560f5814b347ca894dec9349e5c14ddd91458f126aa9df8",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL705",
+      "id": "reject-attribute",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "24ae1e9642f4f2780da90fd7234c3d077a504241f03238eae3ec626d26817c53",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL705",
+      "id": "reject-source-evaluation",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "4d0a84154c6145d78893151b858e43ec9a4ae321c8479775805cb145574f2965",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-arithmetic-precedence",
+      "logs": [
+        [
+          "precedence",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "8af12e5d918054755164166cd5a9d6845b3c5cc47f294374b7781261b464edfb",
+      "terminal": "completed",
+      "variables": {
+        "positive": 7,
+        "ratio": 4.5,
+        "value": 17
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-signed-modulus",
+      "logs": [
+        [
+          "signed modulus",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "eb2180318d1a3821291470bf1a7bee61aa87f2b8fd06b941a38adaae3bc079f2",
+      "terminal": "completed",
+      "variables": {
+        "left": 2,
+        "right": -2
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-mixed-numeric",
+      "logs": [
+        [
+          "numeric",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "af40de513842a7af3fa71f8c55127615088f7d6dab20729afc9fc30782451967",
+      "terminal": "completed",
+      "variables": {
+        "valid": true,
+        "value": 2.5
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-chained-short-circuit",
+      "logs": [
+        [
+          "comparison stopped",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "b8ef46d29ecddb7e9d1dcaef1a13ba80dc5bca3bc2c5f9040a91d9afbbb527fa",
+      "terminal": "completed",
+      "variables": {
+        "valid": false
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-chained-all-true",
+      "logs": [
+        [
+          "comparison",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "948ca0fccf81459ed4f53b1762f942914f7b98381f2c4310cb9dbe532892aeeb",
+      "terminal": "completed",
+      "variables": {
+        "valid": true
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-boolean-short-circuit",
+      "logs": [
+        [
+          "short circuit",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "bf937a3cafd59c8b64bf6840a1b862f97aac1deec6a2be343775b9edd0edc361",
+      "terminal": "completed",
+      "variables": {
+        "left": false,
+        "right": true,
+        "value": true
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-boolean-evaluated-error",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "be17ad8d0a16d8abf161a448bbb046bfd1cf55ef4e84508ec7ef4a9584a5384a",
+      "terminal": "failed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-if-first-captured",
+      "logs": [
+        [
+          "first",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "3ed435ff9bcb15e360c33026107871847610ee55c1542169930109b5cc56b1b8",
+      "terminal": "completed",
+      "variables": {
+        "choice": 2,
+        "result": "first"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-if-elif",
+      "logs": [
+        [
+          "second",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "2718c8077cc0b5dc0f7046f3c456b976da2b0506d52c2ad68bf05fba7f584f71",
+      "terminal": "completed",
+      "variables": {
+        "result": "second"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-if-else",
+      "logs": [
+        [
+          "last",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "7e6a04a7dfc2357f2ec22530c0a4f85033bf588aee046624fb03ab742300ddd8",
+      "terminal": "completed",
+      "variables": {
+        "result": "last"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-if-no-else",
+      "logs": [
+        [
+          "retained",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "4c0c5f19bf1366fafc7d1a00d4a11915e7930464e68f6dcf5aa8805778414596",
+      "terminal": "completed",
+      "variables": {
+        "result": "retained"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-nested-dead-condition",
+      "logs": [
+        [
+          "retained",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "55173f4835fc5c776bcc4110b9faf93ce00c4d82467f798d7336e9365a50e361",
+      "terminal": "completed",
+      "variables": {
+        "result": "retained"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-empty-range",
+      "logs": [
+        [
+          "empty",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "a2bdc2468acd420e58eed78af1462aa7184bdd1a700635c7506764840da32fb9",
+      "terminal": "completed",
+      "variables": {
+        "total": 7
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-equal-range",
+      "logs": [
+        [
+          "equal",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "c7cee705865413d91a0d6a89fe8b38c5b5dbf66e6cc724a18be3ab4a42621076",
+      "terminal": "completed",
+      "variables": {
+        "total": 7
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-wrong-direction-ranges",
+      "logs": [
+        [
+          "directions",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "fa6528a5f3fc6e0f035106d61b86bb3098e4d2a0e0e108306b8001d88ffdd642",
+      "terminal": "completed",
+      "variables": {
+        "total": 7
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-empty-retains-prior-index",
+      "logs": [
+        [
+          "retained",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "6c938f38c9fbb5673f88e2cc45d0f74d9587127f7879ffc9dd6f17e9e948e58f",
+      "terminal": "completed",
+      "variables": {
+        "item": 9
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-singleton-range",
+      "logs": [
+        [
+          "singleton",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "9cf79f556eadb163f1ab199907881dd1401948f6bacd57c47bee0a46d8389765",
+      "terminal": "completed",
+      "variables": {
+        "total": -3
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-negative-step-range",
+      "logs": [
+        [
+          "descending",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "5ef364beda4d728e605fe9351f72711134105f803fdb3162c8e8e28a8b247dc0",
+      "terminal": "completed",
+      "variables": {
+        "total": 8
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-maximum-range",
+      "logs": [
+        [
+          "bounded",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "58eda29ecf77208fa89ce86a84800c99315ade2bd71be4789b781fb44ac9f849",
+      "terminal": "completed",
+      "variables": {
+        "total": 499500
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-nested-empty-range",
+      "logs": [
+        [
+          "nested",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "37479b1bb0d21452207f2f910a3abccd112333f9142f6271b0f312fae51c7f3e",
+      "terminal": "completed",
+      "variables": {
+        "total": 3
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-bitwise-signed",
+      "logs": [
+        [
+          "bits",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "f7dc1d1b0eb14c6f11bc4e888e39f8d53fedbffe8445a13153747d4c9dcf4284",
+      "terminal": "completed",
+      "variables": {
+        "both": 2,
+        "either": -5,
+        "precedence": 2
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-bitwise-bound",
+      "logs": [
+        [
+          "bit bound",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "d3430b495776af598d6492ac003db2f29c3ec5da7d4def5d295c521e4a483c4c",
+      "terminal": "completed",
+      "variables": {
+        "result": 1044388881413152506691752710716624382579964249047383780384233483283953907971557456848826811934997558340890106714439262837987573438185793607263236087851365277945956976543709998340361590134383718314428070011855946226376318839397712745672334684344586617496807908705803704071284048740118609114467977783598029006686938976881787785946905630190260940599579453432823469303026696443059025015972399867714215541693835559885291486318237914434496734087811872639496475100189041349008417061675093668333850551032972088269550769983616369411933015213796825837188091833656751221318492846368125550225998300412344784862595674492194617023806505913245610825731835380087608622102834270197698202313169017678006675195485079921636419370285375124784014907159135459982790513399611551794271106831134090584272884279791554849782954323534517065223269061394905987693002122963395687782878948440616007412945674919823050571642377154816321380631045902916136926708342856440730447899971901781465763473223850267253059899795996090799469201774624817718449867455659250178329070473119433165550807568221846571746373296884912819520317457002440926616910874148385078411929804522981857338977648103126085903001302413467189726673216491511131602920781738033436090243804708340403154190335
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-sign-precedence",
+      "logs": [
+        [
+          "powers",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "655fcbe7825cf145628dacb58e87950f3788fdfb79eced8867ea70430c9f3c48",
+      "terminal": "completed",
+      "variables": {
+        "negative": -4,
+        "odd": -8,
+        "positive": 4,
+        "right_associative": 512
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-zero-one",
+      "logs": [
+        [
+          "identities",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "2214bfcbcfff76e9ac9f2ab6a44d0c890e57bd7d099df41a86257672db25a8ca",
+      "terminal": "completed",
+      "variables": {
+        "identity": 1,
+        "unit": 1,
+        "variable": 8,
+        "zero": 0
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-result-bound",
+      "logs": [
+        [
+          "power bound",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "b4971aea27d13c0c9603b674263b301a94fb203b44d9e7e00c27756a28e3b0eb",
+      "terminal": "completed",
+      "variables": {
+        "result": 522194440706576253345876355358312191289982124523691890192116741641976953985778728424413405967498779170445053357219631418993786719092896803631618043925682638972978488271854999170180795067191859157214035005927973113188159419698856372836167342172293308748403954352901852035642024370059304557233988891799014503343469488440893892973452815095130470299789726716411734651513348221529512507986199933857107770846917779942645743159118957217248367043905936319748237550094520674504208530837546834166925275516486044134775384991808184705966507606898412918594045916828375610659246423184062775112999150206172392431297837246097308511903252956622805412865917690043804311051417135098849101156584508839003337597742539960818209685142687562392007453579567729991395256699805775897135553415567045292136442139895777424891477161767258532611634530697452993846501061481697843891439474220308003706472837459911525285821188577408160690315522951458068463354171428220365223949985950890732881736611925133626529949897998045399734600887312408859224933727829625089164535236559716582775403784110923285873186648442456409760158728501220463308455437074192539205964902261490928669488824051563042951500651206733594863336608245755565801460390869016718045121902354170201577095168
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-result-overflow",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "bd7a620d4d081850ab5b0069766225562fab70c66044284f0edb673942527973",
+      "terminal": "failed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-variable-negative",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "5dde846f17d6adf4b8257aff6e346b75cb4eb6da8d6c6609cd638fde867d386e",
+      "terminal": "failed",
+      "variables": {
+        "exponent": -1
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-power-variable-overflow",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "61318dc31e661a71985b33066a2539283b7b89afeeb21ab6cdcdbe147c997070",
+      "terminal": "failed",
+      "variables": {
+        "exponent": 4097
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-core-float-result-overflow",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "326cc363fc1ada8d8b42c1055cbdf4984b1901701b8febe3ce48f0345e89cb0f",
+      "terminal": "failed",
+      "variables": {
+        "limit": 1e+308
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL605",
+      "id": "v17-core-reject-zero-step",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "f5920bcec7641c8b22feb4ac01b53b6aa6582d26dfb54ef1d5ea45319601e8f6",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL606",
+      "id": "v17-core-reject-range-overflow",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "cd6a99a8fde82ac1bee32ae3e74c9a3e6dbc428c1d5d17783946bd30ea6ade57",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL604",
+      "id": "v17-core-reject-dynamic-range",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "28ee0adf5e24e4ce74d730189a805db2ef171446af443d45f6cd333b1a321ac8",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL103",
+      "id": "v17-core-reject-dead-body-import",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "0a0823d4ea898421e8d38b339215cbcb30d2784341d64c80f7b41fe28a6435e7",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL402",
+      "id": "v17-core-reject-dead-body-call",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "7ec55b46201566769c67301df5dca6db7e8b46bc7ff47300fd26a631ef2c98a4",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL308",
+      "id": "v17-core-reject-empty-index-read",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "3ecca0585b8f85e26246ccd6cec4e2ddd6ef62b45b9bd1a1bb12478d9ffb227f",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL714",
+      "id": "v17-core-reject-integer-literal-overflow",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "10c270399eaf68111c02db37e78777bbe2a7ae67bcabe4f4c48aa972c8952801",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL714",
+      "id": "v17-core-reject-nonfinite-literal",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "eb126610dfaa27e7ff2e2b27b910b3d8bf6248d8efae0a79666cb4b063dc5814",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL931",
+      "id": "v17-core-reject-power-negative-literal",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "abf84cec77d09a4b8e998742430a6233630ec8776b94a986c6462a5fa61f5895",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL931",
+      "id": "v17-core-reject-power-exponent-bound",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "f63c1352f8bc5f461016767482a468c1546554176d1f105df0815b60bedad322",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL930",
+      "id": "v17-core-reject-power-float",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "bc60e4520ecfabe7d5df2b79f42c1af35c5637ff839005b6b64f738de6dd7eb7",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL930",
+      "id": "v17-core-reject-bitwise-bool",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "32459a18adcd938f62f71e7c3c699db6609410bd6da18c881521f59e6a57d28e",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": "SPELL501",
+      "id": "v17-core-reject-numeric-condition",
+      "logs": [],
+      "mode": "EXPECTED_REJECTION",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "a90f1849f3c90ebd81816fab0508c141d22ba9ed1d8088d30643ae21d867c1e2",
+      "terminal": null,
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-ok",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "OK"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "OK",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "12269bf2963078c99645124afa1bc53aa49efe51ea13c7757b0fd6eb4232c808",
+      "terminal": "completed",
+      "variables": {
+        "answer": "OK"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-cancel",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "CANCEL"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "CANCEL",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "578d7592280ae688785847e49b425a09a93091ef8ffa8449897a8031f3cd5664",
+      "terminal": "completed",
+      "variables": {
+        "answer": "CANCEL"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-ok-cancel",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "OK",
+            "CANCEL"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "OK_CANCEL",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "21ea5d709e6d764dbf298cba90342c0241ba80d8e755b79f5af67b3fcf6b5441",
+      "terminal": "completed",
+      "variables": {
+        "answer": "CANCEL"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-yes",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "f43540eb6309e371783134442ec062ca1152f596700f9fd92e0e01d128df1423",
+      "terminal": "completed",
+      "variables": {
+        "answer": "YES"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-no",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "NO",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "1fe2f84dc341fbcf1eeb41ddd2333c39d0d42e3cc58aacb10a3066b2fa11621d",
+      "terminal": "completed",
+      "variables": {
+        "answer": "NO"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-yes-no",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES",
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES_NO",
+          "question": "Choice",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "9af99706e46e13bc8d511b51e4b3b8e34aeb3476cce96d586a113c0ce9d1849d",
+      "terminal": "completed",
+      "variables": {
+        "answer": "NO"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-default-type",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "OK"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "OK",
+          "question": "Ready",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "4a539e5fb3288845c938bfed9fd669bc2008a6ff877fcb57785380c6a003f2df",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-alpha",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "ALPHA",
+          "question": "Note",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "25ba5e824d0b18d5d47f5ee68238a6839a5237246b608b792c8e472f8ff3c28b",
+      "terminal": "completed",
+      "variables": {
+        "answer": "nominal"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-number",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "NUM",
+          "question": "Rate",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "e8548cfc90604587e08b1cf23729b45a819fa02859d3cd97845ad4664121e7dc",
+      "terminal": "completed",
+      "variables": {
+        "answer": 2.5
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-date",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "DATE",
+          "question": "Date",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "ec614ffdced9d21fad121ccb480dd442603a218d4bffab1ad7aaf9cd0c211081",
+      "terminal": "completed",
+      "variables": {
+        "answer": "2026-10-02"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-list-key",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            {
+              "key": "A",
+              "label": "Primary"
+            },
+            {
+              "key": "B",
+              "label": "Backup"
+            }
+          ],
+          "default": null,
+          "list_mode": "KEY",
+          "no_controller_grace_seconds": null,
+          "prompt_type": "LIST",
+          "question": "Route",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "ee67bfc62352a0b53e816592950afb1a57527ce687f0f2d30a42d7ff26768012",
+      "terminal": "completed",
+      "variables": {
+        "answer": "B"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-list-numeric-key",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            {
+              "key": "1",
+              "label": "Primary"
+            },
+            {
+              "key": "2",
+              "label": "Backup"
+            }
+          ],
+          "default": null,
+          "list_mode": "KEY",
+          "no_controller_grace_seconds": null,
+          "prompt_type": "LIST",
+          "question": "Route",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "2d373a2b1a305721d4af0c39a9945c5c2eafa95ce2d0f3bd8df211d5468f28ae",
+      "terminal": "completed",
+      "variables": {
+        "answer": "2"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-list-index",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "Primary",
+            "Backup"
+          ],
+          "default": null,
+          "list_mode": "INDEX",
+          "no_controller_grace_seconds": null,
+          "prompt_type": "LIST",
+          "question": "Route",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "a6364be1fd5390ec823b2cd6563b4703ea6bd6c877b558c1b924bb3a288edff6",
+      "terminal": "completed",
+      "variables": {
+        "answer": 1
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-list-value",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            {
+              "label": "Primary",
+              "value": "Primary"
+            },
+            {
+              "label": "Backup",
+              "value": "Backup"
+            }
+          ],
+          "default": null,
+          "list_mode": "VALUE",
+          "no_controller_grace_seconds": null,
+          "prompt_type": "LIST",
+          "question": "Route",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "a6bf2e83b2ce46fe62d3115490bed66dfd62a26412c40e005fc2628656071085",
+      "terminal": "completed",
+      "variables": {
+        "answer": "Backup"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-default-deadline-declaration",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            {
+              "key": "A",
+              "label": "Primary"
+            },
+            {
+              "key": "B",
+              "label": "Backup"
+            }
+          ],
+          "default": "A",
+          "list_mode": "KEY",
+          "no_controller_grace_seconds": null,
+          "prompt_type": "LIST",
+          "question": "Route",
+          "response_timeout_seconds": 60.0,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "fa7c971ac7ab678fc57fc80726644ea7654bd96a95dcc8398aae1ab8de170e13",
+      "terminal": "completed",
+      "variables": {
+        "answer": "A"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-warning-only-declaration",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES",
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES_NO",
+          "question": "Continue",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": 60.0
+        }
+      ],
+      "source_sha256": "b4b06eb5dbc3e78587ca51043c3ecc521a5fb533a1e14afdca51836090172e14",
+      "terminal": "completed",
+      "variables": {
+        "answer": "YES"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-zero-timeout",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES",
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES_NO",
+          "question": "Continue",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "03d7be5f07d9e2a34d2aa839e92aa65764a4072c884edab8fe1716e95bcdc69e",
+      "terminal": "completed",
+      "variables": {
+        "answer": "YES"
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-prompt-default-without-timeout",
+      "logs": [
+        [
+          "settled",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES",
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES_NO",
+          "question": "Continue",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "a68e54ab35a065c1ace8059af54a74194501cbbaa7adbe63fa101c3c53b31511",
+      "terminal": "completed",
+      "variables": {
+        "answer": "YES"
+      }
+    },
+    {
+      "absent_variables": [
+        "answer"
+      ],
+      "diagnostic": null,
+      "id": "v17-prompt-cancel-no-result",
+      "logs": [],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [
+        {
+          "choices": [
+            "YES",
+            "NO"
+          ],
+          "default": null,
+          "list_mode": null,
+          "no_controller_grace_seconds": null,
+          "prompt_type": "YES_NO",
+          "question": "Continue",
+          "response_timeout_seconds": null,
+          "warning_delay_seconds": null
+        }
+      ],
+      "source_sha256": "374af77e25bb5d4096383c029331c8ae977b2da297457c426045c0a7ca6bdc17",
+      "terminal": "aborted",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-display-empty",
+      "logs": [
+        [
+          "",
+          "info"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "97bae64eb5ef0614572f13d7a72de9116d0fd78bb692d5143456adb2982402aa",
+      "terminal": "completed",
+      "variables": {}
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-display-dynamic-empty",
+      "logs": [
+        [
+          "",
+          "warning"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "5312b35f7705c14b342331476a9948b1866a5529528eb2a6c67f382183ef6eb7",
+      "terminal": "completed",
+      "variables": {
+        "message": ""
+      }
+    },
+    {
+      "absent_variables": [],
+      "diagnostic": null,
+      "id": "v17-display-whitespace",
+      "logs": [
+        [
+          "  ",
+          "error"
+        ]
+      ],
+      "mode": "DIRECT_SOURCE",
+      "passed": true,
+      "prompts": [],
+      "source_sha256": "dc464095472f60d01ebd23a6a756b33cd2220e9a993e1e1c0cc1af83debe7aed",
+      "terminal": "completed",
+      "variables": {}
+    }
+  ],
+  "cases_sha256": "57c865149f4ca70a9fa21d2cc7ffc47fa73ab30d79ae15bbae74f21e2e9f2e35",
+  "coverage_counts": {
+    "ADAPTED": 195,
+    "GAP": 492,
+    "PARTIAL": 76
+  },
+  "coverage_sha256": "1fc6bb8b5b7f581b7b4a70981311d644eba9d0a736d11b5c5e98df17b2499af9",
+  "direct_count": 67,
+  "evidence_kind": "REAL_WORKER_AND_PARSER",
+  "full_compatibility": false,
+  "gap_reason_counts": {
+    "MANUAL_CONFLICT": 7,
+    "MISSING_IMPLEMENTATION": 8,
+    "MISSING_PROOF": 748
+  },
+  "profile_result": "PASS",
+  "qualified_scopes": [
+    {
+      "checks": [
+        "v17-core-arithmetic-precedence",
+        "v17-core-signed-modulus",
+        "v17-core-mixed-numeric",
+        "v17-core-chained-short-circuit",
+        "v17-core-chained-all-true",
+        "v17-core-boolean-short-circuit",
+        "v17-core-boolean-evaluated-error",
+        "v17-core-if-first-captured",
+        "v17-core-if-elif",
+        "v17-core-if-else",
+        "v17-core-if-no-else",
+        "v17-core-nested-dead-condition",
+        "v17-core-empty-range",
+        "v17-core-equal-range",
+        "v17-core-wrong-direction-ranges",
+        "v17-core-empty-retains-prior-index",
+        "v17-core-singleton-range",
+        "v17-core-negative-step-range",
+        "v17-core-maximum-range",
+        "v17-core-nested-empty-range",
+        "v17-core-bitwise-signed",
+        "v17-core-bitwise-bound",
+        "v17-core-power-sign-precedence",
+        "v17-core-power-zero-one",
+        "v17-core-power-result-bound",
+        "v17-core-power-result-overflow",
+        "v17-core-power-variable-negative",
+        "v17-core-power-variable-overflow",
+        "v17-core-float-result-overflow",
+        "v17-core-reject-zero-step",
+        "v17-core-reject-range-overflow",
+        "v17-core-reject-dynamic-range",
+        "v17-core-reject-dead-body-import",
+        "v17-core-reject-dead-body-call",
+        "v17-core-reject-empty-index-read",
+        "v17-core-reject-integer-literal-overflow",
+        "v17-core-reject-nonfinite-literal",
+        "v17-core-reject-power-negative-literal",
+        "v17-core-reject-power-exponent-bound",
+        "v17-core-reject-power-float",
+        "v17-core-reject-bitwise-bool",
+        "v17-core-reject-numeric-condition"
+      ],
+      "description": "Exact scalar, operator, branch and literal range source cases listed here; fixed scalar types, finite numbers and bounded loops.",
+      "excludes": [
+        "dynamic type changes",
+        "collections",
+        "general Python evaluation",
+        "IR0.17 mixed with earlier data, argument, file, environment or telecommand service profiles"
+      ],
+      "id": "V17-CORE",
+      "manual_pages": "17-23",
+      "proof_kind": "EXPLICIT_BOUNDED_SOURCE_OBLIGATIONS",
+      "source_sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+      "status": "SUPPORTED",
+      "whole_artifact_supported": false
+    },
+    {
+      "checks": [
+        "v17-prompt-ok",
+        "v17-prompt-cancel",
+        "v17-prompt-ok-cancel",
+        "v17-prompt-yes",
+        "v17-prompt-no",
+        "v17-prompt-yes-no",
+        "v17-prompt-default-type",
+        "v17-prompt-alpha",
+        "v17-prompt-number",
+        "v17-prompt-date",
+        "v17-prompt-list-key",
+        "v17-prompt-list-numeric-key",
+        "v17-prompt-list-index",
+        "v17-prompt-list-value",
+        "v17-prompt-default-deadline-declaration",
+        "v17-prompt-warning-only-declaration",
+        "v17-prompt-zero-timeout",
+        "v17-prompt-default-without-timeout",
+        "v17-prompt-cancel-no-result",
+        "v17-display-empty",
+        "v17-display-dynamic-empty",
+        "v17-display-whitespace"
+      ],
+      "description": "Exact native Display/Prompt declarations, answered typed results and cancellation cases listed here; scripted external settlements.",
+      "excludes": [
+        "supervisor deadline scheduling",
+        "durable recovery",
+        "external GUI/driver parity",
+        "IR0.17 mixed with earlier data, argument, file, environment or telecommand service profiles"
+      ],
+      "id": "V17-DISPLAY-PROMPT",
+      "manual_pages": "68, 70-72",
+      "proof_kind": "EXPLICIT_BOUNDED_SOURCE_OBLIGATIONS",
+      "source_sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+      "status": "SUPPORTED",
+      "whole_artifact_supported": false
+    }
+  ],
+  "rejection_count": 29,
+  "release": "v0.17.0",
+  "schema_version": "spell.v17.language-conformance/1",
+  "scope": "Fixed local source cases only. Runtime deadline scheduling, recovery and browser evidence are qualified separately; full SPELL support remains incomplete.",
+  "selection": "ALL",
+  "source_sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3",
+  "unqualified_default_count": 19
+}
