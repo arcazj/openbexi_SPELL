@@ -7,10 +7,16 @@ starts only after its entry gate is approved and ends only when its evidence is
 accepted. Parallel work is allowed only when it cannot bypass a dependency or
 combine read-only and effect-bearing risk.
 
-The existing OpenBEXI SPELL v0.1 through v0.3 history is not renumbered by this
-repository. The current project roadmap identifies a candidate v0.4 typed
-simulator driver/context foundation. `OD-001` requires the product owner to map
-the phases below to release numbers after this specification gate is accepted.
+The OpenBEXI SPELL product history is not renumbered by this specification.
+At the original July 2026 draft, v0.4 was the proposed typed simulator
+driver/context foundation. As of 2026-10-01, the parent product is accepted at
+[`v0.15.0`](../releases/SPELL_v0.15_Implementation.md) for local synthetic
+shadow-pilot readiness, following accepted v0.13 procedure control and v0.14
+read-only telemetry adaptation. The [release index](../releases/README.md)
+records those bounded increments. `OD-001` still requires the product owner to
+map the broader phases below after this specification gate is accepted; local
+pilot evidence does not establish completion of the program's operational
+readiness phase.
 
 Every document under the parent repository's `SPELL_DOCUMENTATION/` directory
 is a mandatory source reference for next-generation scope. This generated

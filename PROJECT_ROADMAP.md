@@ -60,7 +60,7 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Document revision | Accepted v0.15.0 local synthetic baseline |
-| Update type | Record immutable v0.15.0 qualification and acceptance |
+| Update type | Record v0.15.0 acceptance and align current documentation |
 | Updated | 2026-10-01 |
 | Accepted product baseline | SPELL v0.15.0, tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
 | v0.3.1 status | Documentation set prepared; formal release commit and tag not claimed |
@@ -75,8 +75,11 @@ this planning/source record does not independently claim completed tests.
 | v0.11 current status | Accepted at annotated tag `v0.11.0`; all policy gates, deterministic package, evidence validation, and strict tag validation passed with no accepted exceptions |
 | v0.11.1 current status | Accepted at annotated tag `v0.11.1`; documentation maintenance; 18 tests passed |
 | v0.12 current status | Accepted synthetic profile at annotated tag `v0.12.0`; 3,450 passed executions, 22 resolved environment skips, four identical package builds, and no accepted exceptions |
+| v0.13 current status | Accepted `v0.13.0` fenced synthetic procedure control; 3,544 passed executions and 22 resolved environment skips |
+| v0.14 current status | Accepted `v0.14.0` bounded read-only `GetTM` adapter; 3,630 passed executions and 22 resolved environment skips |
+| v0.15 current status | Accepted `v0.15.0` local shadow-pilot review and recovery; 3,732 passed executions and 24 resolved environment skips; four identical package builds and no accepted exceptions |
 | Next-generation design status | Broader specification `0.1.0-draft.1` remains Draft; organization-only acceptance is outside the local v0.4 gate |
-| Runtime, API, schema, frontend, dependency, or driver change | v0.12 adds typed synthetic capture replay, authenticated GET APIs, comparison, console integration, and dependency updates; no parser or database migration |
+| Runtime, API, schema, frontend, dependency, or driver change | v0.13-v0.15 add fenced control, read-only telemetry adaptation, and durable local pilot reports with review, incident, rollback, and read-only restore; migration `0010_shadow_pilot` adds the pilot ledger |
 | Operational authorization | None |
 | Update model | Living document; revise at every version gate and release |
 
@@ -91,7 +94,7 @@ runtime baseline of that maintenance release remains v0.11.0. See the
 ## Purpose And Authority
 
 This document is the living, forward-looking roadmap for OpenBEXI SPELL. It
-connects the delivered v0.1 through accepted v0.12 foundations to candidate v0.x work,
+connects the delivered v0.1 through accepted v0.15 foundations to candidate v0.x work,
 records dependencies and decision points, and makes deferred scope explicit.
 
 The roadmap is an index and planning aid. It does not authorize implementation,
@@ -100,11 +103,14 @@ approved only after its request, scope, exclusions, requirements, acceptance
 tests, and entry decision are recorded through the version workflow in
 [`PROMPT_Instructions.md`](PROMPT_Instructions.md).
 
-SPELL v0.12.0 is the accepted product baseline for the synthetic observation
-profile. Its immutable bindings and qualification results are recorded above
-and in the implementation record. A real legacy environment remains unqualified.
+SPELL v0.15.0 is the accepted product baseline for local synthetic shadow-pilot
+readiness, following accepted v0.14.0 telemetry adaptation. Its immutable
+bindings and qualification results are recorded above and in the
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md).
+A real legacy environment and full SPELL 2.4.4 language compatibility remain
+unqualified.
 
-SPELL v0.11.0 is the previous product baseline. Its annotated tag object
+SPELL v0.11.0 is the historical telecommand foundation. Its annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`. Source-bound qualification,
 deterministic packaging, evidence validation, and strict annotated-tag
@@ -325,7 +331,7 @@ acceptance is authoritative only through the strictly validated annotated tag.
 | v0.11 | Simulator Telecommand Semantics | Product | Accepted at v0.11.0 | Closed catalog-backed BuildTC/Send, staged results, confirmation, certainty, recovery, and reconciliation. | Source-bound qualification, reproducible package, and validated annotated tag. |
 | v0.12 | Read-Only Legacy Observation | Product | Accepted synthetic profile at `v0.12.0` | Replay independently authored synthetic traces with zero command authority; real legacy environment qualification is deferred. | Exact typed contracts, source-bound tests, fault cases, comparison report, and read-only enforcement passed. |
 | v0.13 | Fenced local synthetic procedure control | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.13.0` and committed evidence. |
-| v0.14 | Bounded read-only gettm adapter migration | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.14.0` and committed evidence. |
+| v0.14 | Bounded read-only `GetTM` adapter migration | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.14.0` and committed evidence. |
 | v0.15 | Local synthetic shadow-pilot readiness | Product | Accepted local profile | See [qualified scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md); broader legacy and operational phases remain deferred. | Annotated `v0.15.0` and committed evidence. |
 
 ## Delivered Foundation
@@ -972,7 +978,12 @@ endpoint independently; older evidence is not relabeled.
 
 ### v0.12 - Read-Only Legacy Observation
 
-Goal: compare only proven typed read-only APIs with an isolated approved legacy
+Accepted local scope: `v0.12.0` qualifies independently authored synthetic
+capture replay, comparison, and explicit simulator fallback. See the
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.12_Implementation.md).
+The real legacy environment described below remains deferred.
+
+Remaining legacy goal: compare only proven typed read-only APIs with an isolated approved legacy
 test environment.
 
 Required properties:
@@ -988,7 +999,12 @@ command authority and produces a bounded compatibility report.
 
 ### v0.13 - Controlled Non-Operational Procedure Control
 
-Goal: introduce audited legacy procedure control only in an explicitly
+Accepted local scope: `v0.13.0` qualifies fenced simulator procedure control,
+stable operation readback/retry, and confirmed return to read-only. See the
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md).
+No real legacy procedure-control environment was qualified.
+
+Remaining legacy goal: introduce audited legacy procedure control only in an explicitly
 approved non-operational environment.
 
 Required properties:
@@ -1002,6 +1018,12 @@ Exit gate: the dedicated environment safety plan and full control failure
 matrix prove one authoritative outcome for every accepted operation.
 
 ### v0.14 - Bounded Adapter Migration
+
+Accepted tranche: `v0.14.0` qualifies the read-only synthetic `GetTM` adapter,
+logical recorded time, RAW/ENG values, quality-aware comparison, and explicit
+simulator fallback. See the
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md).
+Other capabilities and real environments require separate future gates.
 
 Goal: migrate one specifically approved adapter capability per tranche.
 
@@ -1017,6 +1039,13 @@ Exit gate: capability-specific acceptance only; no tranche implies full driver,
 GCS, spacecraft, or operational acceptance.
 
 ### v0.15+ - Parallel Pilot Readiness
+
+Accepted local scope: `v0.15.0` qualifies bounded shadow comparison reports,
+independent administrator review, incident recording, simulator rollback, and
+report backup/restore into a new read-only record. See the
+[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
+and [console guide](frontend/README.md#shadow-pilot-readiness). Real legacy
+pilots, whole-service disaster recovery, and operational approval remain deferred.
 
 Goal: progress through read-only shadow and supervised non-commanding pilots
 before any separately authorized commanding consideration.
@@ -1036,16 +1065,16 @@ Exit gate: a version tag alone never authorizes mission or command use.
 | --- | --- | --- |
 | Documentation conformance | Complete review of seven supplied PDFs and 304 pages plus next-generation specification `0.1.0-draft.1` with hash-pinned core authorities, requirements, ADRs, security/operations allocation, verification, externally anchored assignment, legacy adoption, final-effect authorization, roadmap, and the produced `DOC-011` Draft manual source/PDF artifact set | `NG-WP-00` closes immediate entry blockers and proves complete requirement-family allocation; `NG-WP-05` later binds the produced Draft manual to accepted behavior and the exact candidate build and obtains operator/publication acceptance. Later phases add source/trace comparison and claim-specific conformance reports. |
 | Governance and evidence | Version gates, traceability, release records, source fingerprints | Governed package IDs, immutable per-version evidence, 100-percent bidirectional requirement coverage, explicit scope decisions, and maintained roadmap/timeline/review/manual records. |
-| Procedure language | Bounded typed expressions, branches, loops, local calls, logs, simulated telemetry, waits, and unbound prompts | Documented safe Python profile, common modifier/outcome engine, exact public-name compatibility where safe, and per-family golden traces; never unrestricted source execution. |
+| Procedure language | Bounded language/runtime, 195 reference examples represented by 257 semantic variants, and closed simulator `BuildTC`/`Send` behavior | Complete claim-specific safe-profile compatibility and per-family golden traces; the example adapter does not establish full SPELL 2.4.4 support. |
 | Execution and recovery | Isolated worker, atomic checkpoints, durable commands/prompts, fencing, crash recovery | External-effect reconciliation, driver lifecycle fencing, and compatibility recovery evidence. |
-| Context and integration boundary | No driver host or GCS path | Typed host/context/execution binding, configuration precedence, granular capability/capacity contract, and simulator conformance before any legacy adapter. |
-| Operator console | Accessible responsive 2D control, validation, prompt, recovery, report, reconnect | `NG-WP-03` completes the web UI modernization; `NG-WP-04` adds secure two-party controller handover and complete audit; `NG-WP-05` promotes the produced Draft GUI User Manual into a build-bound, operator-accepted publication. |
-| Development environment | Transient source validation only | Separate non-executing web project/editor/dictionary/catalog/Problems/semantic-check/collaboration surface with immutable promotion. |
-| Data services | Typed v0.3 variables and checkpoints | Documented containers, databases, dictionaries, shared scopes, files, immutable dependencies, and typed safe URI/storage rules. |
+| Context and integration boundary | Typed synthetic driver lifecycle, observation replay, and read-only `GetTM` adaptation; no live GCS path | Capability-specific qualification of real legacy environments, including credentials, capacity, conformance, and rollback. |
+| Operator console | Responsive procedure/data/development workflows, fenced compatibility controls, telemetry comparison, and local pilot review/recovery | Broader `NG-WP-03` modernization and `NG-WP-04` controller handover; `NG-WP-05` binds the Draft GUI User Manual to an accepted build and operator/publication review. |
+| Development environment | Accepted v0.9 separate web editing, semantic checks, history, dictionaries, immutable bundles, review, and simulator promotion | Separately scoped collaboration, enterprise integration, and further documented development compatibility. |
+| Data services | Accepted v0.8 revisioned catalogs, dictionaries, containers, shared data, and fixed virtual file roots | Additional documented service and storage compatibility with claim-specific contracts and evidence. |
 | Identity and authorization | Signed local JWT with viewer/operator/admin roles | `NG-WP-01` adds deny-by-default, server-evaluated RBAC startup without conflating role, mode, or lease; separately approved enterprise identity and policy remain deployment prerequisites. |
-| Persistence and APIs | Versioned REST/WebSocket contracts and SQLite/PostgreSQL migrations | `NG-WP-02` implements the next-generation Python/PostgreSQL backend, typed driver/adapter schemas, compatibility migrations, operation/reconciliation resources, and immutable audit projections. |
+| Persistence and APIs | Versioned REST/WebSocket contracts, SQLite/PostgreSQL migrations through `0010_shadow_pilot`, and snapshot-consistent pilot reports/audit | Broader `NG-WP-02` schemas, operation/reconciliation resources, and audit projections require their own approved scope and qualification. |
 | NIST security evidence | Security controls and evidence planning; no compliance claim | `NG-WP-06` reconciles all 17 SP 800-171 Rev. 3 families and every applicable 171/171A row to the exact deployed baseline, owners, ODPs, evidence, assessment results, and risk disposition. |
-| Reliability and acceptance | Simulator crash recovery and version-specific qualification | `NG-WP-07` qualifies the approved fault/recovery profile; `NG-WP-08` executes full V&V, acceptance, traceability, and G0-through-G9 release evidence. |
+| Reliability and acceptance | Simulator crash recovery, version-specific qualification, and v0.15 local pilot incident/rollback/report-restore drills | `NG-WP-07` qualifies broader fault/recovery profiles and `NG-WP-08` program acceptance; local report drills do not establish whole-service DR, HA, or operational SLOs. |
 | Supply chain and release | Hash-locked dependencies, audits, SBOMs, fingerprinted qualification, reproducible package | Version-parameterized release tooling, scanner/bootstrap debt disposition, additional host/browser evidence when claims expand. |
 
 ## Deferred And Unscheduled Scope

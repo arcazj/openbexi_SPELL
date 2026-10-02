@@ -11,13 +11,21 @@
 | Status | Draft for human review |
 | Project-declared AI assistance tool | ChatGPT 5.6 SOL |
 | Supersedes | None |
-| Product code delivered | None |
+| Product code delivered by this Draft specification | None claimed by the specification itself |
 | Operational authorization | None |
 | `NG-WP-00` readiness | Local v0.4 Gate G0 `PASS`; bounded Candidate A implementation authorized; broader specification remains Draft |
 
 The specification version is independent of product releases, the legacy SPELL
 2.4.4 manuals, later legacy binaries, procedure repositories, driver versions,
 and deployment configuration versions.
+
+As of 2026-10-01, the parent product is accepted at
+[`v0.15.0`](releases/SPELL_v0.15_Implementation.md) for the local synthetic
+shadow-pilot profile, following accepted v0.13 control and v0.14 telemetry
+increments. See the [release index](releases/README.md) and
+[current console guide](../frontend/README.md). These bounded product releases
+do not approve this broader Draft specification or its Draft GUI manual, and
+do not establish full language compatibility or operational authorization.
 
 ## Normative Language
 

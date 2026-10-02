@@ -11,6 +11,29 @@ No live spacecraft or operational GCS connection is in scope until the specific
 adapter, environment, effect class, procedures, organization, and operational
 authority pass their independent gates.
 
+## Accepted v0.13 Through v0.15 Application
+
+These local synthetic releases passed independent clean-tag validation. Counts
+are test executions across complementary environments, not distinct test IDs:
+
+| Accepted release | Qualified scope | Passed executions | Resolved environment skips |
+| --- | --- | --- | --- |
+| [v0.13.0](../releases/SPELL_v0.13_Implementation.md) | Fenced procedure control | 3,544 | 22 |
+| [v0.14.0](../releases/SPELL_v0.14_Implementation.md) | Bounded read-only GetTM adapter | 3,630 | 22 |
+| [v0.15.0](../releases/SPELL_v0.15_Implementation.md) | Local shadow-pilot review and recovery | 3,732 | 24 |
+
+Each release retains its source binding, full regression and environment
+results, frontend/build/browser evidence, documentation checks, four image
+SBOMs, supply-chain dispositions, and four identical package builds. There are
+no unresolved skips or accepted exceptions. The latest machine record is
+[v0.15 qualification.json](../../artifacts/v0.15/qualification.json).
+
+The [current validation instructions](../../README.md#release-qualification)
+require a clean annotated-tag checkout. Later documentation maintenance has a
+different fingerprint and is not replacement release evidence. These results
+do not change the Draft specification's status, demonstrate unrestricted SPELL
+2.4.4 compatibility, or qualify a real legacy or operational environment.
+
 ## Accepted v0.10 And v0.11 Application
 
 The accepted v0.10 release applies this strategy without changing this

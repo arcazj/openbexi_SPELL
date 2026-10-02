@@ -60,9 +60,9 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Document revision | Accepted v0.15.0 local synthetic baseline |
-| Update type | Record immutable v0.15.0 qualification and acceptance |
+| Update type | Record v0.15.0 acceptance and align current documentation |
 | Updated | 2026-10-01 |
-| Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through September 2026 events |
+| Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through October 2026 events |
 | Accepted product baseline | SPELL v0.15.0, tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
@@ -76,6 +76,9 @@ this planning/source record does not independently claim completed tests.
 | v0.11 current status | Accepted 2026-08-19 at annotated tag `v0.11.0`; package SHA-256 `61576af94aec59cfb06384d1050e1a9c2e33b0d0a7ad0b6de86b1a1da9683170`; no accepted exceptions |
 | v0.11.1 current status | Accepted 2026-09-30 at annotated tag `v0.11.1`; documentation maintenance; 18 tests passed |
 | v0.12 current status | Accepted 2026-09-30 at annotated tag `v0.12.0`; package SHA-256 `9395fa09f2724c389a711b0d3bdeeda638358729a0922d662223b14b81eb45d9`; no accepted exceptions |
+| v0.13 current status | Accepted 2026-10-01 at annotated tag `v0.13.0`; 3,544 passed executions, 22 resolved environment skips, and no accepted exceptions |
+| v0.14 current status | Accepted 2026-10-01 at annotated tag `v0.14.0`; 3,630 passed executions, 22 resolved environment skips, and no accepted exceptions |
+| v0.15 current status | Accepted 2026-10-01 at annotated tag `v0.15.0`; 3,732 passed executions, 24 resolved environment skips, and no accepted exceptions |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -142,6 +145,9 @@ Conventions:
 | v0.11 | Simulator Telecommand Semantics | Candidate commit `e15d331` at 2026-08-19 19:44:43 EDT | Annotated tag `v0.11.0` at 2026-08-19 20:25:58 EDT | Total active effort unknown; v0.10-tag-to-v0.11-tag 48m 37s, candidate-to-tag 41m 15s, qualified-source-to-tag 25m 07s, and release-commit-to-tag 1m 25s | Exact Git intervals for immutable endpoints; not total implementation effort |
 | v0.11.1 | Documentation restoration and truncation validation | Owner request recorded 2026-09-30; exact request time not retained | Annotated tag `v0.11.1` at 2026-09-30 20:58:18 EDT | Total active effort unknown; release-commit-to-tag interval 1s | Exact commit `ccefd80` and tag endpoints; 18 documentation tests passed |
 | v0.12 | Synthetic read-only observation replay | Entry-gate commit `c1bbdaa` at 2026-09-30 21:00:21 EDT | Annotated tag `v0.12.0` at 2026-09-30 22:53:56 EDT | Gate-commit-to-tag 1h 53m 35s; qualified-source-to-tag 29m 36s; total active effort unknown | Exact Git intervals; strict release and independent clean-tag validation passed |
+| v0.13 | Fenced synthetic procedure control | Qualified source `0f85a4a` at 2026-10-01 04:58:46 EDT | Annotated tag `v0.13.0` at 2026-10-01 05:34:07 EDT | Qualified-source-to-tag 35m 21s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
+| v0.14 | Bounded read-only GetTM adapter | Qualified source `4951cad` at 2026-10-01 05:39:20 EDT | Annotated tag `v0.14.0` at 2026-10-01 06:15:34 EDT | Qualified-source-to-tag 36m 14s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
+| v0.15 | Local shadow-pilot review and recovery | Qualified source `fe33faf` at 2026-10-01 06:31:20 EDT | Annotated tag `v0.15.0` at 2026-10-01 07:11:00 EDT | Qualified-source-to-tag 39m 40s; total implementation duration and active effort unknown | Exact Git interval; independent clean-tag validation passed |
 | NG spec 0.1 draft | Next-generation requirements, architecture, web, security, operations, and assurance documentation | Documentation initiative recorded 2026-07-18; exact start time not retained | `0.1.0-draft.1` prepared in the working tree on 2026-07-18; human approval pending | Same calendar day; exact elapsed time and active effort unknown | Author-recorded dates and hash-verified source set; no baseline tag |
 | NG-PROT-001 | Isolated RBAC startup-policy prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Evaluator and tests passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |
 | NG-PROT-002 | Isolated authenticated startup input-adaptation prototype | Owner request to move forward recorded 2026-07-18; exact start time not retained | Adapter hardening and qualification passed in the working tree on 2026-07-18 | Same calendar day; exact elapsed time and active effort unknown | Working-tree and test evidence only; no product start, commit, tag, or gate approval |

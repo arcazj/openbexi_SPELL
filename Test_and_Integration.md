@@ -1,5 +1,32 @@
 # Test and Integration Plan
 
+## 2026-10-01 - Post-v0.15 Documentation Audit
+
+The owner requested confirmation that the documentation and READMEs reflected
+the completed releases. The audit corrected current-version tables, quick-start
+health output, release-validation instructions, frontend operator workflows,
+release navigation, roadmap workstreams, timeline intervals, provenance, and
+relevant Draft specification application notes.
+
+The existing documentation suite passed **18 tests** in 8.18 seconds after
+these changes. It renders every tracked Markdown file using the hash-locked
+CommonMark/GFM preview engine and checks encoding, fences, tables, local links
+and fragments, truncation artifacts, and documentation-tree/reference rules.
+`git diff --check` also passed.
+
+```powershell
+docker run --rm --network none `
+  -v "${PWD}:/workspace:ro" openbexi-spell-qualification:next `
+  -m pytest scripts/tests/test_markdown_preview_v09.py `
+  scripts/tests/test_documentation_tree_layout.py `
+  -q -p no:cacheprovider --tb=short
+```
+
+This documentation-only follow-up does not change runtime behavior, source
+manuals, release tags, packages, or canonical qualification artifacts. The
+accepted v0.13-v0.15 results below remain bound to their original tagged trees;
+the full product qualification was not rerun for this follow-up.
+
 ## 2026-10-01 - v0.15.0 Accepted
 
 Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.
@@ -69,11 +96,14 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | Documentation release `v0.11.1`, commit `ccefd80c723a5276705e9b4fde0a2ce993198f65`, with inherited v0.11.0 runtime |
+| Accepted predecessor | `v0.14.0`, release commit `4adec1be10eae1aa4fac0293db47e7bbf692b243`; bounded read-only telemetry adapter |
 | Current release state | v0.15.0 accepted; tag object `8c72974f6a0a5deee766d6358fb219b73eab91ef`, release commit `b7bceaf2489156271c91a939d897d040caeb0be1` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |
+| v0.13 direction | Qualified fenced simulator procedure control, exact operation readback/retry, and confirmed return to read-only |
+| v0.14 direction | Qualified bounded read-only GetTM adapter, quality-aware comparison, logical time, and explicit simulator fallback |
+| v0.15 direction | Qualified local shadow-pilot reports, independent review, incident/rollback, and read-only report restore |
 | Date | Updated 2026-10-01 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |

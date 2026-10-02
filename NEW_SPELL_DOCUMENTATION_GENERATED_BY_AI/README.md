@@ -35,7 +35,8 @@ accountable human roles in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) accept it.
 | Prepared | 2026-07-18 |
 | Source review | 304 of 304 supplied pages reviewed |
 | Project-declared AI assistance tool | ChatGPT 5.6 SOL |
-| Product implementation change | None |
+| Product implementation from this Draft baseline | None claimed by the specification itself |
+| Parent product baseline | Accepted `v0.15.0` local synthetic shadow-pilot profile; product alignment updated 2026-10-01 |
 | Operational authorization | None |
 | Approval state | Draft; multidisciplinary review required |
 | Local v0.4 Gate G0 readiness | `PASS`; Candidate A scope, exclusions, budgets, and test plan project-owner approved; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -48,6 +49,23 @@ accept it. It also cannot silently override a source reference under
 [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md). Open values are never silently
 invented: they are assigned an owner and gate in
 [quality/OPEN_DECISIONS.md](quality/OPEN_DECISIONS.md).
+
+## Accepted Local Product Releases
+
+Product releases and this broader Draft specification have separate versions
+and acceptance boundaries. The latest accepted local increments are:
+
+| Release | Delivered local scope | Evidence |
+| --- | --- | --- |
+| v0.13.0 | Fenced synthetic procedure control and confirmed return to read-only | [Implementation record](releases/SPELL_v0.13_Implementation.md) |
+| v0.14.0 | Bounded read-only `GetTM` adapter, comparison, and simulator fallback | [Implementation record](releases/SPELL_v0.14_Implementation.md) |
+| v0.15.0 | Shadow-pilot reports, independent review, incident, rollback, and read-only restore | [Implementation record](releases/SPELL_v0.15_Implementation.md) |
+
+Use the [current console guide](../frontend/README.md) for delivered workflows
+and the [release index](releases/README.md) for earlier increments. The
+generated GUI manual and its `0.1.0-draft.1` PDF remain Draft design artifacts;
+they are not a build-bound v0.15 operator publication. Full SPELL 2.4.4 language
+compatibility and real legacy-system qualification remain outstanding.
 
 ## Start Here
 
@@ -134,6 +152,8 @@ in [SOURCE_AUTHORITY.md](SOURCE_AUTHORITY.md).
 
 ### Web And Procedures
 
+- [Current product console guide](../frontend/README.md): accepted local
+  v0.13-v0.15 control, telemetry, pilot, and recovery workflows.
 - [web/WEB_APPLICATION.md](web/WEB_APPLICATION.md)
 - [web/OPERATING_MODES.md](web/OPERATING_MODES.md)
 - [web/PROCEDURE_NAVIGATION.md](web/PROCEDURE_NAVIGATION.md)
@@ -172,13 +192,14 @@ in [SOURCE_AUTHORITY.md](SOURCE_AUTHORITY.md).
 - [quality/VERIFICATION_AND_VALIDATION.md](quality/VERIFICATION_AND_VALIDATION.md)
 - [quality/IMPLEMENTATION_ROADMAP.md](quality/IMPLEMENTATION_ROADMAP.md)
 - [quality/G0_READINESS_PACKAGE.md](quality/G0_READINESS_PACKAGE.md):
-  structured decision inputs and the truthful current `BLOCKED` disposition.
+  historical local Candidate A decision inputs and bounded `PASS` disposition;
+  broader next-generation acceptance remains pending.
 - [quality/G0_READINESS_REPORT.json](quality/G0_READINESS_REPORT.json):
   deterministic digest-bound structural results and authorization blockers.
 - [quality/G0_HUMAN_APPROVAL_LEDGER.json](quality/G0_HUMAN_APPROVAL_LEDGER.json):
   recorded JC Arcaz project-owner approval of Candidate A, its exclusions,
   local budgets, and test plan, with bounded nonclaims and an exact SHA-256
-  local-gate manifest still to be finalized.
+  local-gate manifest retained with the historical gate evidence.
 - [quality/OPEN_DECISIONS.md](quality/OPEN_DECISIONS.md)
 - [quality/DOCUMENT_ACCEPTANCE_CHECKLIST.md](quality/DOCUMENT_ACCEPTANCE_CHECKLIST.md)
 - [quality/tools/validate_g0.py](quality/tools/validate_g0.py) and

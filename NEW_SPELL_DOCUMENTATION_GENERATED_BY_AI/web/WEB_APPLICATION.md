@@ -1,5 +1,16 @@
 # Web Application Specification
 
+## Accepted Local Product Profile
+
+As of 2026-10-01, accepted v0.15.0 includes v0.13 fenced procedure controls,
+v0.14 read-only telemetry comparison, and v0.15 shadow-pilot review and recovery.
+The [current console guide](../../frontend/README.md) describes the delivered
+panels, roles, retry/readback behavior, and report restore workflow. The
+[release index](../releases/README.md) binds each increment to its accepted
+scope and evidence. The broader specification below and the generated GUI
+manual remain Draft; local release acceptance does not qualify all proposed
+web features or establish operational approval.
+
 ## 1. Purpose
 
 This document defines the operator-facing and developer-facing web application

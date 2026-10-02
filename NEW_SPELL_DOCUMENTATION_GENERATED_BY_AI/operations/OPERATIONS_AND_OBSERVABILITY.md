@@ -1,5 +1,19 @@
 # Operations and Observability
 
+## Accepted Local Product Profile
+
+Accepted v0.15.0 records bounded synthetic shadow comparisons, differential
+traces, workload/budget results, independent administrator review, incidents,
+and explicit simulator rollback. Run owners or administrators record incidents
+and rollback; a different administrator records the independent review. All
+reports remain read-only and carry no operational authorization.
+
+Use the [console pilot workflow](../../frontend/README.md#shadow-pilot-readiness)
+and [accepted implementation record](../releases/SPELL_v0.15_Implementation.md)
+for the delivered local profile. The broader roles, service ownership, and
+operational targets below remain Draft requirements for separately qualified
+environments.
+
 ## Operating objective
 
 SPELL operations shall preserve command authority, state integrity, accountability, and safe degradation before optimizing availability. Automation may restart or replace stateless services, but it shall not infer command outcome, transfer control, resume a procedure, or resend an external effect without the state-machine and policy evidence required for that action.

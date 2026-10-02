@@ -1,5 +1,20 @@
 # Backup, Restore, and Disaster Recovery
 
+## Accepted Local Report Restore Profile
+
+The accepted v0.15.0 workflow backs up a selected shadow-pilot report and its
+audit history. An administrator can restore a data-only JSON backup of at most
+256 KiB into a new `RESTORED_READ_ONLY` report on the simulator route. Imported
+history is untrusted provenance; the digest checks integrity, not authorship.
+Restore cannot reinstate independent review or operational authority.
+
+See the [console restore instructions](../../frontend/README.md#shadow-pilot-readiness),
+[pilot profile](../../contracts/v15/pilot_profile.json), and
+[accepted v0.15 record](../releases/SPELL_v0.15_Implementation.md). This local
+report drill does not restore the complete database or qualify PostgreSQL
+point-in-time recovery, whole-service disaster recovery, high availability,
+or the broader Draft targets below.
+
 ## Purpose and principles
 
 This document defines recoverability for SPELL authoritative state, procedure releases, audit evidence, configuration, and supporting data. It supports `DATA-010`, `REL-009`, `REL-010`, `REL-013`, `SEC-020`, and `VNV-010`.

@@ -1,5 +1,23 @@
 # Prompt History
 
+## 2026-10-01 - Documentation Audit After v0.15.0
+
+The owner asked: "did you update all doc, readme? etc." The release summaries
+had been updated, but the audit found stale README version/qualification
+sections, a v0.8 frontend guide, a release index ending at v0.12, and older
+current-baseline descriptions in planning and provenance documents.
+
+The follow-up aligns the root and frontend READMEs, release/design indexes,
+roadmap, timeline, test-plan metadata, provenance, and source-review context
+with accepted v0.13.0-v0.15.0. It documents the actual console control,
+telemetry, pilot-review, incident, rollback, and report-restore workflows and
+adds bounded product-application notes to the relevant Draft specifications.
+Original manuals, the Draft manual source/PDF pair, tagged release artifacts,
+and approval boundaries remain unchanged. This is documentation maintenance,
+not a new product version or replacement qualification. The existing
+documentation suite passed 18 tests and `git diff --check` passed; commands
+and scope are recorded in [Test_and_Integration.md](Test_and_Integration.md).
+
 ## 2026-10-01 - v0.15.0 Accepted
 
 Annotated `v0.15.0` passed independent clean-tag validation for local synthetic shadow-pilot readiness.

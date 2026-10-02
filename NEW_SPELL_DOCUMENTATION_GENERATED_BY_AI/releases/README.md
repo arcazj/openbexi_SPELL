@@ -20,6 +20,14 @@ as `PROJECT_ROADMAP.md`, `VERSION_TIMELINE.md`, `Test_and_Integration.md`, and
 | v0.11 | [Pre-Implementation](SPELL_v0.11_Pre-Implementation.md), release policy in `contracts/v11/release_policy.json` | [Implementation and accepted release record](SPELL_v0.11_Implementation.md); accepted at `v0.11.0` |
 | v0.11.1 | [Pre-Implementation](SPELL_v0.11.1_Pre-Implementation.md) | [Documentation maintenance](SPELL_v0.11.1_Release.md); runtime remains v0.11.0 |
 | v0.12 | [Pre-Implementation](SPELL_v0.12_Pre-Implementation.md) | [Implementation and release](SPELL_v0.12_Implementation.md); local synthetic replay profile |
+| v0.13 | [Pre-Implementation](SPELL_v0.13_Pre-Implementation.md) | [Accepted `v0.13.0`](SPELL_v0.13_Implementation.md); fenced synthetic procedure control |
+| v0.14 | [Pre-Implementation](SPELL_v0.14_Pre-Implementation.md) | [Accepted `v0.14.0`](SPELL_v0.14_Implementation.md); bounded read-only `GetTM` adapter |
+| v0.15 | [Pre-Implementation](SPELL_v0.15_Pre-Implementation.md) | [Accepted `v0.15.0`](SPELL_v0.15_Implementation.md); current local shadow-pilot review and recovery profile |
+
+The current product baseline is **v0.15.0**. The
+[console guide](../../frontend/README.md) describes its operator workflows.
+These local synthetic releases do not establish full SPELL 2.4.4 language
+compatibility, real legacy-system qualification, or operational authorization.
 
 The accepted release status and immutable tag identities remain authoritative
 in the individual records and in the root `VERSION_TIMELINE.md`. Moving these

@@ -10,6 +10,16 @@ the engineering checks incorporated by `V04-GATE-0`. Proposed ADR acceptance,
 organization role assignment, connected-system review, GUI-manual publication,
 and other broader unchecked items do not block the local gate.
 
+### Current Local Product Alignment
+
+Current product alignment (2026-10-01): the parent product is accepted at
+[v0.15.0](../releases/SPELL_v0.15_Implementation.md), with the preceding v0.13
+and v0.14 increments indexed in [release records](../releases/README.md).
+Its canonical qualification includes 18 documentation checks; delivered
+workflows are described in the [console guide](../../frontend/README.md).
+This factual alignment does not mark the broader unchecked review, publication,
+or approval requirements below as complete.
+
 ### v0.10 And v0.11 Accepted Release Application Check
 
 This bounded application note does not change the Draft baseline, accepted

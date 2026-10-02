@@ -2,8 +2,36 @@
 
 ## Record Status
 
-This record retains bounded historical release provenance and records v0.11.0
-as the accepted product baseline. Annotated tag `v0.11.0`, tag object
+This record retains historical provenance and identifies **v0.15.0** as the
+current accepted local synthetic product baseline. The three latest annotated
+tags passed independent clean-checkout validation. Their immutable bindings are:
+
+| Release and scope record | Annotated tag object | Release commit | Package SHA-256 |
+| --- | --- | --- | --- |
+| [v0.13.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md) | `9f982937fc81e6d18e34b7a55ca228f346ad610a` | `9bcb55e665a663a9fcb58a1c1d29936837731fe3` | `ba415fc5fdda5d9754ae961a7f11255d654927e11bdd767c5c2d5563eb1dad8a` |
+| [v0.14.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md) | `c3f5b8ec7ec01cf4e89e9b49c63bbb40412b1dad` | `4adec1be10eae1aa4fac0293db47e7bbf692b243` | `4a617e920f6266928d8c6c98e448cbee8e32f5a71ae12cd41329b9484c69cbaa` |
+| [v0.15.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md) | `8c72974f6a0a5deee766d6358fb219b73eab91ef` | `b7bceaf2489156271c91a939d897d040caeb0be1` | `b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b` |
+
+The [v0.15 qualification](artifacts/v0.15/qualification.json) binds its exact
+source commit, source fingerprint, predecessor, and evidence digests. The
+[reproducibility record](artifacts/v0.15/reproducibility.json) records four
+identical builds across two independent source exports. The
+[SBOM validation](artifacts/v0.15/evidence/sbom-validation.json) and
+[supply-chain review](artifacts/v0.15/evidence/supply-chain.json) cover the four
+product images, with no unresolved High/Critical findings in the accepted local
+profile. Raw scanner findings and their applicability dispositions remain in
+that evidence; this is not a claim that the images contain no advisories.
+
+These releases use independently authored synthetic fixtures and preserve the
+read-only source-reference boundary. They do not establish full SPELL 2.4.4
+source compatibility, real legacy-system qualification, or operational
+approval. Later documentation maintenance does not change the tagged sources,
+packages, or recorded qualification results.
+
+## Historical v0.11 Foundation
+
+This historical record identifies v0.11.0 as the accepted telecommand
+foundation. Annotated tag `v0.11.0`, tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`, peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its source-bound qualification,
 deterministic package, release evidence, and tag validator passed with no

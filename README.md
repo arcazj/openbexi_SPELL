@@ -21,7 +21,7 @@ different fingerprint. See the [scope and verification record](NEW_SPELL_DOCUMEN
 Real legacy-system qualification and full SPELL language compatibility remain
 outstanding. The local console is available at `http://127.0.0.1:8080`.
 
-The inherited engineering baseline is **v0.11.0** at annotated tag
+The historical telecommand foundation is **v0.11.0** at annotated tag
 `v0.11.0`, tag object `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5`,
 which peels to release commit
 `a41be7f5c8472213fa027d7bb94a2389477b1b86`. Its accepted predecessor is
@@ -58,6 +58,11 @@ exceptions.
   cancellation, and no automatic resend.
 - Hash-locked dependencies, digest-pinned container bases, release evidence,
   SBOM tooling, deterministic packaging, and version-scoped qualification.
+- Synthetic capture replay and comparison, fenced procedure control, and a
+  bounded read-only `GetTM` adapter with explicit simulator fallback.
+- Local shadow-pilot reports with independent review, incident recording,
+  rollback, and backup restoration as read-only evidence. See the
+  [console workflow guide](frontend/README.md) for the v0.13-v0.15 controls.
 
 ## Version Status
 
@@ -76,6 +81,9 @@ exceptions.
 | v0.11 | Simulator telecommand semantics | Accepted at `v0.11.0`; no accepted exceptions |
 | v0.11.1 | Restore documentation and reject truncation artifacts | Accepted at `v0.11.1`; runtime remains 0.11.0 |
 | v0.12 | Synthetic read-only observation replay and comparison | Accepted at `v0.12.0`; real legacy environment deferred |
+| v0.13 | Fenced synthetic procedure control and return to read-only | [Accepted at `v0.13.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md) |
+| v0.14 | Bounded read-only `GetTM` adapter and comparison | [Accepted at `v0.14.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md) |
+| v0.15 | Local shadow-pilot review, incident, rollback, and restore workflows | [Accepted at `v0.15.0`](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md); current local product baseline |
 
 See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for exact scope and gate status,
 and [VERSION_TIMELINE.md](VERSION_TIMELINE.md) for the evidence-qualified
@@ -164,7 +172,7 @@ qualification environment uses Python 3.13.
    Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
    ```
 
-   A healthy response reports version `0.12.0`, mode `simulator-only`, and
+   A healthy response reports version `0.15.0`, mode `simulator-only`, and
    `operational_use: false`.
 
 5. Issue a short-lived local operator token.
@@ -291,7 +299,9 @@ npm run test:e2e
 
 The mocked Playwright suite does not require a backend. Real integration uses a
 fresh Compose stack and the `SPELL_REAL_BACKEND`, `SPELL_E2E_BASE_URL`, and
-`SPELL_E2E_TOKEN` variables described in [frontend/README.md](frontend/README.md).
+`SPELL_E2E_TOKEN` variables, plus a separate administrator identity in
+`SPELL_E2E_REVIEW_TOKEN` for independent pilot review, as described in
+[frontend/README.md](frontend/README.md).
 
 ### v0.10 Checks
 
@@ -330,25 +340,39 @@ docker run --rm --network none --entrypoint python `
 
 ## Release Qualification
 
-v0.11 uses version-specific release controls in `scripts/release_v11.py` and
-the associated create, validate, and reproducible-package entry points. The
-gate requires the inherited 195-example/257-variant v0.10 contract, all 197
-focused v0.11 tests, complete backend regression, explicit execution of every
-PostgreSQL and Docker-selected test, 112 frontend tests, the three-test auditor
-contract, a production build, two real-browser projects, product-image hygiene,
-documentation validation, and deterministic packaging. No unresolved skip or
-accepted exception is permitted.
+v0.13-v0.15 use `scripts.qualify_next` to produce evidence and
+`scripts.release_next` to validate the version-specific release policy. The
+current policy is [contracts/v15/release_policy.json](contracts/v15/release_policy.json).
+The pinned host tools are recorded in
+[scripts/release-toolchain-next.json](scripts/release-toolchain-next.json).
 
-The canonical machine record is `artifacts/v0.11/release-qualification.json`.
-The deterministic package, SHA-256 sidecar, release manifest, and validated tag
-are committed under `artifacts/v0.11/` and `v0.11.0`. See
-[Test_and_Integration.md](Test_and_Integration.md) for the complete commands
-and result boundaries.
+From a clean checkout of the annotated `v0.15.0` tag, run:
 
-Run strict v0.11 release validation from a clean checkout of `v0.11.0` or
-`release/v0.11`. Later default-branch documentation records intentionally have
-a different source fingerprint and must fail closed rather than being mistaken
-for the tagged release tree.
+```powershell
+.\scripts\run_release_next.ps1 -Module scripts.release_next `
+  -Arguments @('validate', '--require-tag')
+```
+
+Accepted v0.15 qualification recorded 3,732 passed test executions and 24
+environment-selected skips, each resolved by a complementary environment run.
+The evidence includes SQLite and PostgreSQL regression, Compose integration,
+128 frontend tests, 10 real desktop/mobile browser cases, 18 documentation
+checks, the 195-example/257-variant reference contract, image probes, four
+SBOMs, supply-chain review, and three bounded soaks. Four independent package
+builds produced identical bytes. There are no unresolved skips or accepted
+exceptions.
+
+The canonical records are
+[qualification.json](artifacts/v0.15/qualification.json),
+[evidence/](artifacts/v0.15/evidence/), and
+[reproducibility.json](artifacts/v0.15/reproducibility.json).
+See the [v0.15 implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md)
+and [Test_and_Integration.md](Test_and_Integration.md) for commands and limits.
+Earlier releases retain their own version-specific policies and evidence.
+
+Later default-branch documentation commits have a different source fingerprint.
+Strict release validation must use the clean tagged tree; a documentation
+follow-up does not replace or regenerate that immutable release evidence.
 
 ## Repository Layout
 
@@ -380,7 +404,9 @@ behavior, intentional exclusions, and safety strengthening back to them.
 - [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md): product scope, release status, gates,
   guardrails, and future sequence.
 - [VERSION_TIMELINE.md](VERSION_TIMELINE.md): evidence-qualified history through
-  accepted v0.10 and v0.11.
+  accepted v0.15.0.
+- [frontend/README.md](frontend/README.md): current console workflows, local
+  development, authentication, and browser testing.
 - [Test_and_Integration.md](Test_and_Integration.md): per-version test plans,
   commands, evidence, and exit decisions.
 - [NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md):

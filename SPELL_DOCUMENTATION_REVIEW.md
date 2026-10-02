@@ -9,7 +9,8 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | Accepted v0.11.0 simulator telecommand baseline; v0.10.0 accepted predecessor |
+| Current release context | Accepted v0.15.0 local shadow-pilot baseline; v0.14.0 accepted predecessor |
+| Product alignment updated | 2026-10-01; original source-review date and evidence remain historical |
 | Product implementation change | None |
 | Operational authorization | None |
 | Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |
@@ -36,6 +37,17 @@ intentional incompatibility require an explicit compatibility or architecture
 decision with verification evidence. The manuals define what forward work must
 address; versioned code and tests define the approved implementation; validated
 annotated tags and committed evidence define release status.
+
+## v0.13 Through v0.15 Application
+
+The accepted local releases apply the reviewed concepts through bounded,
+independently authored profiles: [v0.13 procedure control](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.13_Implementation.md),
+[v0.14 read-only telemetry adaptation](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.14_Implementation.md),
+and [v0.15 shadow-pilot review and recovery](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md).
+The [console guide](frontend/README.md) describes the delivered workflows.
+These results do not close the broader compatibility ledger, qualify a real
+legacy environment, or establish full Language Reference 2.4.4 support. The
+source manuals and their recorded hashes remain unchanged.
 
 ## v0.10 And v0.11 Application
 

@@ -1,5 +1,21 @@
 # SPELL Compatibility and Migration
 
+## Accepted Local Product Profile
+
+The accepted product baseline is v0.15.0 as of 2026-10-01. Its latest bounded
+profiles cover [v0.13 fenced procedure control](../releases/SPELL_v0.13_Implementation.md),
+[v0.14 read-only telemetry adaptation](../releases/SPELL_v0.14_Implementation.md),
+and [v0.15 shadow-pilot review and report recovery](../releases/SPELL_v0.15_Implementation.md).
+The `GetTM` adapter uses synthetic reference/simulator sources and recorded
+logical time; unsupported modifiers are rejected. Pilot report restore creates
+a new read-only record and cannot restore prior review or authority.
+
+The inherited 195-example/257-variant adapter provides bounded semantic
+adaptations, not unrestricted execution of Language Reference 2.4.4 source.
+Full language compatibility, additional adapter capabilities, and real legacy
+environment migration remain subject to their own scope and evidence. The
+broader compatibility requirements below retain Draft status.
+
 ## 1. Purpose
 
 This document defines how next-generation SPELL preserves documented language,

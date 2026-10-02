@@ -3,6 +3,18 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## Product Documentation Alignment - 2026-10-01
+
+- Aligned the documentation map, current product status, release index, and
+  verification summaries with accepted v0.13.0, v0.14.0, and v0.15.0.
+- Linked the current console guide for fenced control, read-only telemetry,
+  shadow-pilot review, incident/rollback, and report restoration.
+- Distinguished accepted local product profiles from the broader Draft
+  specification, Draft GUI manual, and remaining real-environment work.
+- This is documentation maintenance. Specification version `0.1.0-draft.1`,
+  original source manuals, immutable release evidence, and annotated tags
+  retain their existing identities and approval boundaries.
+
 ## Unreleased Product-Application Alignment - 2026-08-19
 
 - Established every document under the parent repository's
