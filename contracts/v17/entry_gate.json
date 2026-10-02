@@ -1,0 +1,18 @@
+{
+  "full_language_compatibility_claim": false,
+  "operational_authorization": false,
+  "owner_authorized": true,
+  "predecessor_commit": "1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10",
+  "release_tag": "v0.17.0",
+  "requirements": [
+    "V17-CORE-001",
+    "V17-PROMPT-001",
+    "V17-PROMPT-002",
+    "V17-COVERAGE-001",
+    "V17-RUNNER-001",
+    "V17-DOC-001",
+    "V17-RELEASE-001"
+  ],
+  "schema_version": "spell.v17.entry-gate/1",
+  "scope": "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"
+}

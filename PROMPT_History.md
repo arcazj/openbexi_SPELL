@@ -1,5 +1,20 @@
 # Prompt History
 
+## 2026-10-02 - v0.17.0 Implementation Authorized
+
+After the v0.16 release, the owner asked what comes next and then instructed
+**execute**. The approved next increment covers direct scalar/operator/branch
+and range behavior, native Display/Prompt signatures/defaults/results,
+cancellation/timeouts/recovery, clearer implementation/proof/conflict coverage
+reasons, and the expanded reference runner. Complete qualification, concise
+documentation updates, Git push and release publication are included.
+
+The [v0.17 entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+records exact limits and resolves the documented prompt-timeout conflict.
+Collections, general function arguments/returns, exceptions and full language
+compatibility remain separate work. No additional routine approval is required
+within the authorized local simulator scope.
+
 ## 2026-10-01 - v0.16.0 Published
 
 The authorized work completed with the compact manual-based workspace,

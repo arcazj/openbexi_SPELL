@@ -1,5 +1,16 @@
 # OpenBEXI SPELL Project Instructions
 
+## Active v0.17.0 Work
+
+The owner authorized implementation, qualification and publication of v0.17.0:
+direct scalar/operator/control-flow conformance, native Display/Prompt behavior,
+clear coverage reasons and an expanded reference runner. The
+[entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
+records bounded semantics, source conflicts and seven proof requirements.
+v0.16.0 remains the accepted predecessor until the new tag independently
+validates. Preserve its compact workspace, automatic finite local operator
+session, immutable artifacts and full-language limitations.
+
 ## 2026-10-01 - v0.16.0 Accepted
 
 Annotated `v0.16.0` passed independent clean-tag validation and was published.

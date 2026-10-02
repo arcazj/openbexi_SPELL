@@ -1,0 +1,104 @@
+{
+  "browser_screenshots": 18,
+  "candidate_deselections": [],
+  "candidate_files": [],
+  "candidate_identities": [],
+  "catalog_frozen": false,
+  "feature_browser_specs": [
+    "synthetic-control-v13-real.spec.ts",
+    "telemetry-adapter-v14-real.spec.ts",
+    "shadow-pilot-v15-real.spec.ts",
+    "manual-workspace-v16-real.spec.ts",
+    "local-session-v16-real.spec.ts"
+  ],
+  "gates": {
+    "browser": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    },
+    "compose": {
+      "identities": [
+        "backend.tests.test_driver_isolation::test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
+        "backend.tests.test_driver_isolation::test_created_compose_driver_has_runtime_isolation_controls",
+        "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible"
+      ],
+      "skipped": [],
+      "tests": 3
+    },
+    "documentation": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    },
+    "frontend": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    },
+    "postgresql": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    },
+    "sqlite": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    },
+    "tooling": {
+      "identities": [],
+      "skipped": [],
+      "tests": 0
+    }
+  },
+  "legacy_system_qualified": false,
+  "operational_authorization": false,
+  "predecessor_commit": "1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10",
+  "product_version": "0.17.0",
+  "reference_inputs": [
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Development Environment Manual - 2.4.4.pdf",
+      "role": "mandatory-authoring-workflow-reference",
+      "sha256": "cedf617a4d551701394f75a8ec1769a402059a4c7b659ed87079ce5148074a81"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Driver Development Manual - 2.4.4.pdf",
+      "role": "mandatory-driver-service-reference",
+      "sha256": "057794f11846588724ccfffb69a1e7150042011e7a45e7fa6e7958500e56bae5"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - GUI User Manual - 2.4.4.pdf",
+      "role": "mandatory-operator-workflow-reference",
+      "sha256": "1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Language Reference - 2.4.4.pdf",
+      "role": "mandatory-primary-v011-command-language-reference",
+      "sha256": "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL - Server Manual - 2.4.4.pdf",
+      "role": "mandatory-server-execution-reference",
+      "sha256": "ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL2.6.10-src.zip",
+      "role": "mandatory-read-only-legacy-source-evidence",
+      "sha256": "2176e198f04c3f2ec99ee6f740871d9368997e3fd1e33d6734cb8e163cb6a0ed"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_DEV_Manual.pdf",
+      "role": "mandatory-supplementary-development-reference",
+      "sha256": "94c1443646e22f3692ac25d2ef570ff437d83c38b71082e7077b4a322e5fb94f"
+    },
+    {
+      "path": "SPELL_DOCUMENTATION/SPELL_Language_Manual.pdf",
+      "role": "mandatory-supplementary-language-reference",
+      "sha256": "f2f3e72e62692eeabb287b704878240012062f894b52a10570b8f42199c233fb"
+    }
+  ],
+  "release_tag": "v0.17.0",
+  "schema_version": "spell.v17.release-policy/1",
+  "scope": "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"
+}
