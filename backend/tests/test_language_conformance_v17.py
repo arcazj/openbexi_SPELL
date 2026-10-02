@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import multiprocessing
+import queue
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -194,6 +197,55 @@ def test_native_warning_over_seven_days_is_rejected_before_projection() -> None:
     steps = deepcopy(list(procedure.steps))
     steps[0]["warning_delay_seconds"] = 604801.0
     with pytest.raises(ValueError): validate_ir_v17("0.17", steps)
+
+
+@pytest.mark.parametrize("mutation", ["malformed-integer-node", "overdeep-core-structure"])
+def test_real_worker_bounds_core_preflight_errors_before_effects(mutation) -> None:
+    from backend.worker import worker_main
+    procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(
+        'value = 2 ** 3\nDisplay("must not run")\n')
+    steps = deepcopy(list(procedure.steps))
+    expression = steps[0]["expression"]
+    if mutation == "malformed-integer-node":
+        expression["unexpected"] = True
+    else:
+        for _ in range(140):
+            expression = {"expr": "unary", "operator": "+", "operand": expression}
+        steps[0]["expression"] = expression
+    context = multiprocessing.get_context("spawn")
+    control, output = context.Queue(), context.Queue()
+    process = context.Process(target=worker_main, args=("invalid-core-preflight", 1, "0.17",
+        steps, 0, "conformance", None, {}, control, output, None, None, False))
+    messages = []
+    process.start()
+    try:
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            try:
+                message = output.get(timeout=0.2)
+            except queue.Empty:
+                if not process.is_alive():
+                    break
+                continue
+            messages.append(message)
+            if message.get("kind") == "terminal":
+                break
+        process.join(timeout=1)
+        assert not process.is_alive() and process.exitcode == 0
+        assert messages[-1]["kind"] == "terminal" and messages[-1]["state"] == "failed"
+        rejections = [message for message in messages if message.get("kind") == "event"]
+        assert len(rejections) == 1
+        assert rejections[0]["event_type"] == "worker.ir_rejected"
+        assert rejections[0]["payload"]["code"] == "IR_VALIDATION_FAILED"
+        assert len(rejections[0]["payload"]["path"]) <= 160
+        assert len(rejections[0]["payload"]["message"]) <= 240
+        assert not any(message.get("kind") in {"step_commit", "prompt_opened", "safe_point"} for message in messages)
+    finally:
+        if process.is_alive():
+            process.terminate()
+            process.join(timeout=2)
+        control.close()
+        output.close()
 
 
 def test_runner_execution_is_independent_of_source_manual_inventory(monkeypatch) -> None:

@@ -133,6 +133,8 @@
     "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86400]",
     "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86401]",
     "backend.tests.test_language_conformance_v17::test_prompt_projection_preserves_atomic_binding_and_resume_checkpoint",
+    "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[malformed-integer-node]",
+    "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[overdeep-core-structure]",
     "backend.tests.test_language_conformance_v17::test_report_observations_qualify_only_complete_explicit_scopes",
     "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[coverage]",
     "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[extra]",
@@ -1403,6 +1405,8 @@
         "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86400]",
         "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86401]",
         "backend.tests.test_language_conformance_v17::test_prompt_projection_preserves_atomic_binding_and_resume_checkpoint",
+        "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[malformed-integer-node]",
+        "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[overdeep-core-structure]",
         "backend.tests.test_language_conformance_v17::test_report_observations_qualify_only_complete_explicit_scopes",
         "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[coverage]",
         "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[extra]",
@@ -2712,7 +2716,7 @@
         "backend.tests.test_driver_isolation::test_created_compose_driver_has_runtime_isolation_controls",
         "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible"
       ],
-      "tests": 2106
+      "tests": 2108
     },
     "sqlite": {
       "identities": [
@@ -3519,6 +3523,8 @@
         "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86400]",
         "backend.tests.test_language_conformance_v17::test_native_warning_projection_preserves_seven_day_bound_and_legacy_limit[86401]",
         "backend.tests.test_language_conformance_v17::test_prompt_projection_preserves_atomic_binding_and_resume_checkpoint",
+        "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[malformed-integer-node]",
+        "backend.tests.test_language_conformance_v17::test_real_worker_bounds_core_preflight_errors_before_effects[overdeep-core-structure]",
         "backend.tests.test_language_conformance_v17::test_report_observations_qualify_only_complete_explicit_scopes",
         "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[coverage]",
         "backend.tests.test_language_conformance_v17::test_report_rejects_inflated_or_forged_proof[extra]",
@@ -4928,7 +4934,7 @@
         "backend.tests.test_shared_data_v08::test_postgresql_latest_revision_reconstruction_uses_parent_row_locks",
         "backend.tests.test_shared_data_v08::test_two_owners_can_use_the_same_namespace_id_on_postgresql"
       ],
-      "tests": 2188
+      "tests": 2190
     },
     "tooling": {
       "identities": [

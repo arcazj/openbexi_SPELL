@@ -85,7 +85,7 @@ rejection of unsupported syntax does not count as language support.
 See the [v0.17 scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
 and [language coverage](contracts/v17/language_coverage.json) for exact bounds.
 
-**Native prompt walkthrough** is a separate catalog procedure for interactive
+**Prompt Workflow V17** is a separate catalog procedure for interactive
 LIST, numeric-default, text and OK/CANCEL input.
 
 ## Architecture

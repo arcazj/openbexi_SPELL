@@ -22,11 +22,13 @@ async function snapshot(page: Page, executionId: string): Promise<{
 }
 
 async function startWalkthrough(page: Page): Promise<string> {
-  const created = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/v1/executions" && response.request().method() === "POST");
-  const option = page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: "Native prompt walkthrough" });
+  const option = page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: "Prompt Workflow V17" });
+  await expect(option).toBeVisible();
   await option.click();
-  await page.getByRole("button", { name: "Start procedure" }).click();
-  const response = await created;
+  const [response] = await Promise.all([
+    page.waitForResponse((result) => new URL(result.url()).pathname === "/api/v1/executions" && result.request().method() === "POST"),
+    page.getByRole("button", { name: "Start procedure" }).click(),
+  ]);
   expect(response.status()).toBe(202);
   return ((await response.json()) as { execution: { id: string } }).execution.id;
 }

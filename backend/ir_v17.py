@@ -32,7 +32,7 @@ def _reject(path: str, message: str) -> None:
 def validate_ir_v17(ir_version: Any, steps: Any, *, start_step: Any = 0,
                     resume_prompt_id: Any = None, resume_prompt_step: Any = None,
                     checkpoint_variables: Any = None, expected_total_steps: Any = None) -> ValidatedIR:
-    from .core_v17 import has_core_expressions, project_core_expressions, validate_core_expression_types
+    from .core_v17 import CoreV17Error, has_core_expressions, project_core_expressions, validate_core_expression_types
     from .prompt_v17 import RESPONSE_FIELDS, native_prompt_result_type, validate_native_prompt_step
 
     if ir_version != IR_VERSION or type(steps) is not list or not steps:
@@ -57,7 +57,10 @@ def validate_ir_v17(ir_version: Any, steps: Any, *, start_step: Any = 0,
     positions: list[int] = []
     seen_reachability: set[str] = set()
     seen_labels: set[tuple[str, str]] = set()
-    native = has_core_expressions(canonical)
+    try:
+        native = has_core_expressions(canonical)
+    except CoreV17Error as exc:
+        raise V17ValidationError("IR_VALIDATION_FAILED", exc.path, exc.message) from exc
     for index, raw in enumerate(canonical):
         path = f"$.steps[{index}]"
         if type(raw) is not dict or type(raw.get("index")) is not int or raw["index"] != index:
@@ -141,7 +144,10 @@ def validate_ir_v17(ir_version: Any, steps: Any, *, start_step: Any = 0,
             call_boundary_id=None, labels=[])
     # Validate using the unchanged prior profiles, including read order and the
     # original prompt question, then independently check new operand types.
-    projected_core = project_core_expressions(projections)
+    try:
+        projected_core = project_core_expressions(projections)
+    except CoreV17Error as exc:
+        raise V17ValidationError("IR_VALIDATION_FAILED", exc.path, exc.message) from exc
     kinds = {step["type"] for step in projections}
     if kinds & {"build_tc", "send_tc", "data_operation", "file_operation", "environment_operation"}:
         _reject("$.steps", "IR 0.17 does not mix this service capability")

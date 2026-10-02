@@ -46,7 +46,7 @@ unrestricted legacy Python Shell remains excluded. Original manuals are unchange
 
 ## Native Language Prompts
 
-Start **Native prompt walkthrough** from Navigation to try the local LIST,
+Start **Prompt Workflow V17** from Navigation to try the local LIST,
 automatic numeric default, text and OK/CANCEL examples.
 
 Native `Prompt` calls provide fixed answers, text, numbers, dates or list
