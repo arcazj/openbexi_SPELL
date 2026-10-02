@@ -174,6 +174,7 @@ def test_timeout_and_late_worker_leave_no_protocol_or_bundle_output(
     )
     entered = threading.Event()
     release = threading.Event()
+    from backend import development_bundle_broker as broker_module
     from backend import development_bundle_worker as worker_module
 
     original = worker_module.build_request_payload
@@ -183,18 +184,35 @@ def test_timeout_and_late_worker_leave_no_protocol_or_bundle_output(
         release.wait(timeout=2)
         return original(request)
 
+    # Exercise an in-flight worker after the deadline without requiring thread
+    # scheduling or fsync to finish inside the request's 100 ms lifetime.
+    clock = SimpleNamespace(elapsed=0.0, epoch=time.time())
+
+    def expire_after_worker_enters(_seconds):
+        assert entered.wait(timeout=1)
+        clock.elapsed = broker.timeout_seconds + 0.001
+
+    controlled_time = SimpleNamespace(
+        time=lambda: clock.epoch + clock.elapsed,
+        monotonic=lambda: clock.elapsed,
+        sleep=expire_after_worker_enters,
+    )
+    monkeypatch.setattr(broker_module, "time", controlled_time)
+    monkeypatch.setattr(worker_module, "time", controlled_time)
     monkeypatch.setattr(worker_module, "build_request_payload", delayed)
     thread = threading.Thread(
         target=_worker_once,
         args=("builder-a", request_directory, response_directories["builder-a"]),
     )
     thread.start()
-    with pytest.raises(DevelopmentConflictError, match="did not respond") as caught:
-        broker.build(_request())
-    assert caught.value.code == "BUILDER_UNAVAILABLE"
-    assert entered.wait(timeout=1)
-    release.set()
-    thread.join(timeout=3)
+    try:
+        with pytest.raises(DevelopmentConflictError, match="did not respond") as caught:
+            broker.build(_request())
+        assert caught.value.code == "BUILDER_UNAVAILABLE"
+        assert entered.wait(timeout=1)
+    finally:
+        release.set()
+        thread.join(timeout=3)
     assert not thread.is_alive()
     assert list(request_directory.iterdir()) == []
     for path in response_directories.values():

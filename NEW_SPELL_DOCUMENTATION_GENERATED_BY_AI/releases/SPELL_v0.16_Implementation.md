@@ -50,6 +50,12 @@ The first candidate passed focused and browser checks, but image auditing found
 The proxy now pins PCRE2 10.49; acceptance requires a fresh candidate gate and
 complete qualification of the revised source. No advisory exception is granted.
 
+The next PostgreSQL run exposed a test scheduling race: a 100 ms broker request
+could expire before its worker entered the build. The timeout test now advances
+a shared clock after worker entry and always releases and joins the worker.
+Its deadline, error and late-output cleanup assertions remain unchanged; the
+revised source requires a fresh candidate and complete qualification.
+
 Qualification will bind one frozen source to exact test identities, raw
 SQLite/PostgreSQL/Compose results, frontend and browser evidence, complete
 language coverage/results, documentation checks, soaks, image/SBOM/audit
