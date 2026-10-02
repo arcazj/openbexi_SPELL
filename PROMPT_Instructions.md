@@ -1,15 +1,10 @@
 # OpenBEXI SPELL Project Instructions
 
-## Active v0.17.0 Work
+## 2026-10-02 - v0.17.0 Accepted
 
-The owner authorized implementation, qualification and publication of v0.17.0:
-direct scalar/operator/control-flow conformance, native Display/Prompt behavior,
-clear coverage reasons and an expanded reference runner. The
-[entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
-records bounded semantics, source conflicts and seven proof requirements.
-v0.16.0 remains the accepted predecessor until the new tag independently
-validates. Preserve its compact workspace, automatic finite local operator
-session, immutable artifacts and full-language limitations.
+Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+The authorized direct-language release and publication are complete. See the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding). Preserve its bounded semantics, immutable artifacts, compact workspace and finite automatic local sessions. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile. Later documentation closeout does not change release acceptance.
 
 ## 2026-10-01 - v0.16.0 Accepted
 
@@ -146,13 +141,7 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.16.0 is the accepted local simulator baseline; v0.15.0 is its predecessor.
-Annotated tag `d28022996f9b5d6216c15c289024905cb1a21f38` peels to release commit
-`1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10`. The
-[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding)
-binds its qualified source, evidence and package. Validate the clean tagged
-checkout with `scripts/release_next.py validate --require-tag`. Documentation
-closeout does not retarget immutable releases or replace their evidence.
+SPELL v0.17.0 is the accepted local simulator baseline; v0.16.0 is its predecessor. Annotated tag `a7311ddad24a4c74599f8d518331dfc398109fb9` peels to release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85`. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) binds its qualified source, evidence and package. Validate the clean tagged checkout with `scripts/release_next.py validate --require-tag`. Documentation closeout does not retarget immutable releases or replace their evidence.
 
 SPELL v0.11.0 is a historical product baseline. Annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit

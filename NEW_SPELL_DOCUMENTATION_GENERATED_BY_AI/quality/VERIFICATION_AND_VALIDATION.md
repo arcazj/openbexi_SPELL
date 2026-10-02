@@ -1,13 +1,10 @@
 # Verification And Validation Strategy
 
-## v0.17 Application In Qualification
+## Accepted v0.17 Application
 
-v0.17 requires direct source/worker checks, separate durable deadline and
-recovery proof, real prompt interaction and complete inherited qualification.
-The [release record](../releases/SPELL_v0.17_Implementation.md) tracks execution
-status. Inventory completeness, bounded passing checks, adaptations and expected
-rejection do not imply full language support. Historical results below remain
-bound to their own tagged sources.
+Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+The [accepted record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns detailed gate counts and immutable bindings. Inventory completeness, bounded checks, adaptations and expected rejection do not establish full language support.
 
 ## Purpose
 
@@ -35,7 +32,7 @@ are test executions across complementary environments, not distinct test IDs:
 Each release retains its source binding, full regression and environment
 results, frontend/build/browser evidence, documentation checks, four image
 SBOMs, supply-chain dispositions, and four identical package builds. There are
-no unresolved skips or accepted exceptions. The latest machine record is
+no unresolved skips or accepted exceptions. The latest machine record in this historical table is
 [v0.16 qualification.json](../../artifacts/v0.16/qualification.json).
 
 The [current validation instructions](../../README.md#release-qualification)

@@ -3,6 +3,11 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## v0.17 Acceptance Closeout - 2026-10-02
+
+- Recorded accepted and published [v0.17.0](releases/SPELL_v0.17_Implementation.md#accepted-release-binding), actual qualification totals and exact Git bindings.
+- Preserved historical releases, original manuals, broader Draft status and explicit language gaps.
+
 ## v0.17 Product Documentation - 2026-10-02
 
 - Added bounded core/native Prompt behavior and migration notes, including the

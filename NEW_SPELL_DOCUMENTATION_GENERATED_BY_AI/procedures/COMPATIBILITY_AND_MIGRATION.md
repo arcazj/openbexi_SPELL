@@ -11,7 +11,7 @@ compiled `Prompt(message)` now defaults to OK; explicit lowercase project forms
 and stored earlier IR retain their contract. The native timeout interpretation
 follows section 4.12, and DATE returns ISO text. See the
 [scope and compatibility decisions](../releases/SPELL_v0.17_Pre-Implementation.md)
-and [qualification status](../releases/SPELL_v0.17_Implementation.md).
+and [accepted release](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding).
 Correct unsupported-syntax rejection is test evidence, not language support.
 
 IR 0.17 native features cannot be combined with earlier data/argument, file,
@@ -26,8 +26,7 @@ iterations. Timeout is bounded to seven days.
 
 ## Accepted Local Product Profile
 
-The accepted product baseline is v0.16.0 as of 2026-10-01. Alongside its language
-coverage and manual workspace, it retains
+The accepted product baseline is v0.17.0 as of 2026-10-02. Its direct-language increment retains the compact manual workspace, automatic local sessions and
 [v0.13 fenced procedure control](../releases/SPELL_v0.13_Implementation.md),
 [v0.14 read-only telemetry adaptation](../releases/SPELL_v0.14_Implementation.md),
 and [v0.15 shadow-pilot review and report recovery](../releases/SPELL_v0.15_Implementation.md).

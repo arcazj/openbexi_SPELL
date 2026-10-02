@@ -1,12 +1,20 @@
 # OpenBEXI SPELL Version Timeline
 
-## 2026-10-02 - v0.17.0 In Progress
+## 2026-10-02 - v0.17.0 Accepted
 
-The owner authorized direct language conformance, native Display/Prompt behavior,
-expanded coverage evidence and release publication. Entry commit `d015aef`
-records seven proof requirements and eight mandatory references. Qualification
-and publication are pending; see the
-[release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md).
+Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+| Milestone | America/New_York time | Git identity |
+| --- | --- | --- |
+| Entry gate | 2026-10-02 04:42:11 EDT | `d015aefeede02327e2cf9774949f98432a61037d` |
+| Initial implementation | 2026-10-02 05:20:04 EDT | `c6f3b8917daee13bd8588dc0056e72ae141b630e` |
+| Candidate source | 2026-10-02 05:35:24 EDT | `b112cce6f02790091c7b4dc67abe89343e50c7ef` |
+| Qualified source | 2026-10-02 05:37:22 EDT | `b4e5382010050bc56346c77628b9ddaf425e3d7e` |
+| Release commit | 2026-10-02 06:29:36 EDT | `e525b9c842e3c26a35058d85fc40bd3ee4b16c85` |
+| Annotated tag | 2026-10-02 06:30:01 EDT | `a7311ddad24a4c74599f8d518331dfc398109fb9` |
+| GitHub publication | 2026-10-02 06:31:18 EDT | [Release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.17.0) |
+
+**1h 47m 50s entry gate-to-tag**; **1h 09m 57s initial implementation-to-tag**; **0h 52m 39s qualified source-to-tag**; **0h 00m 25s release commit-to-tag**. These are exact Git intervals, not active engineering effort. Detailed scope and evidence are in the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding).
 
 ## 2026-10-01 - v0.16.0 Accepted
 
@@ -101,11 +109,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.16.0 local simulator baseline |
-| Update type | Record v0.16.0 acceptance, publication and exact Git intervals |
-| Updated | 2026-10-01 |
+| Document revision | Accepted v0.17.0 local simulator baseline |
+| Update type | Record v0.17.0 acceptance, publication and exact Git intervals |
+| Updated | 2026-10-02 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through October 2026 events |
-| Accepted product baseline | SPELL v0.16.0, tag object `d28022996f9b5d6216c15c289024905cb1a21f38`, release commit `1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10` |
+| Accepted product baseline | SPELL v0.17.0, tag object `a7311ddad24a4c74599f8d518331dfc398109fb9`, release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85` |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
@@ -122,6 +130,7 @@ this planning/source record does not independently claim completed tests.
 | v0.14 current status | Accepted 2026-10-01 at annotated tag `v0.14.0`; 3,630 passed executions, 22 resolved environment skips, and no accepted exceptions |
 | v0.15 current status | Accepted 2026-10-01 at annotated tag `v0.15.0`; 3,732 passed executions, 24 resolved environment skips, and no accepted exceptions |
 | v0.16 current status | Accepted 2026-10-01 at annotated tag `v0.16.0`; 3,976 passed executions, 24 resolved environment skips, 159 candidate checks, and no accepted exceptions |
+| v0.17 current status | Accepted 2026-10-02 at `v0.17.0`; 4,563 passed executions, 24 resolved environment skips, 363 candidate checks, no accepted exceptions |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |

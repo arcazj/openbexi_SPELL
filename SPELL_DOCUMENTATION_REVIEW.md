@@ -9,7 +9,7 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | v0.17.0 in qualification for direct language behavior; accepted predecessor v0.16.0 |
+| Current release context | v0.17.0 accepted and published for bounded direct language behavior; predecessor v0.16.0 |
 | Product alignment updated | 2026-10-02; original source-review date and evidence remain historical |
 | Product implementation change | None |
 | Operational authorization | None |

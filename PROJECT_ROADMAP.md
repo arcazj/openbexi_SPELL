@@ -1,22 +1,20 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-02. **v0.17.0 is in implementation and qualification**;
-v0.16.0 remains the accepted predecessor. Acceptance requires an independently
-validated annotated tag and committed evidence.
+Updated 2026-10-02. **v0.17.0 is accepted and published**; v0.16.0 is its accepted predecessor. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) binds the release to its qualified source and evidence.
 
 This roadmap describes local simulator engineering. It does not authorize live
 GCS/spacecraft connectivity, deployment or operational use. All documents under
 `SPELL_DOCUMENTATION/` remain mandatory source references; the broader generated
 specification `0.1.0-draft.1` remains Draft.
 
-## v0.17.0 - Current Scope
+## v0.17.0 - Delivered Scope
 
 The [entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
 defines the approved bounded increment. The
 [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md)
 tracks qualification and release status.
 
-| Work | Required result |
+| Work | Delivered result |
 | --- | --- |
 | Core language | Direct scalar/operator/conditional/short-circuit/range cases; bounded integer power, AND and OR; validated empty ranges |
 | Native Display/Prompt | Documented call forms and typed results, explicit timeout interpretation, cancellation and durable recovery checks |
@@ -53,10 +51,9 @@ Detailed gates, immutable bindings and results live in the
 | v0.14.0 | Bounded read-only GetTM adapter |
 | v0.15.0 | Local shadow-pilot review, incidents, rollback and report restore |
 | v0.16.0 | Language coverage and direct cases, compact GUI-manual workspace and automatic local operator sessions |
+| v0.17.0 | Direct core-language cases, bounded integer operators, native Display/Prompt results and expanded conformance evidence |
 
-The accepted v0.16.0 tag object is
-`d28022996f9b5d6216c15c289024905cb1a21f38`, pointing to release commit
-`1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10`. Exact durations are in
+The accepted v0.17.0 tag object is `a7311ddad24a4c74599f8d518331dfc398109fb9`, pointing to release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85`. Exact durations are in
 [VERSION_TIMELINE.md](VERSION_TIMELINE.md). Historical planning, including
 v0.3.1 and the original v0.4 alternatives, is preserved in the
 [roadmap snapshot through v0.15](https://github.com/arcazj/openbexi_SPELL/blob/8b3c4b2facc0be2184201dbcbf98f4879f78c334/PROJECT_ROADMAP.md)

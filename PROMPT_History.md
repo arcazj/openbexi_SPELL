@@ -1,5 +1,11 @@
 # Prompt History
 
+## 2026-10-02 - v0.17.0 Published
+
+Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+The authorized direct-language increment is complete. Its [GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.17.0) includes four verified assets; the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns the detailed bindings and results. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile.
+
 ## 2026-10-02 - v0.17.0 Implementation Authorized
 
 After the v0.16 release, the owner asked what comes next and then instructed

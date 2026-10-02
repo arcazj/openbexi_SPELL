@@ -2,11 +2,7 @@
 
 ## Current Local Increment
 
-v0.17.0 is in qualification for direct language conformance and native
-Display/Prompt behavior. Its [release record](../releases/SPELL_v0.17_Implementation.md)
-tracks status; v0.16.0 remains the accepted predecessor with the compact
-manual workspace and automatic local access. Broader phases below retain
-their separate Draft gates.
+v0.17.0 is accepted and published for bounded direct language conformance and native Display/Prompt behavior. Its [release record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns scope and evidence; v0.16.0 is its accepted predecessor. Broader phases below retain their separate Draft gates.
 
 ## Roadmap Rule
 
