@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v19/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_observation_composition_ir_v19.py",
+        "backend/tests/test_worker_observation_composition_v19.py",
+        "backend/tests/test_supervisor_observation_command_v19.py",
+        "backend/tests/test_operator_observation_command_v19.py",
+        "backend/tests/test_observation_command_api_v19.py",
+        "backend/tests/test_development_profile_v19.py",
+        "backend/tests/test_language_conformance_v19.py",
+        "backend/tests/test_catalog_procedures_v19.py",
+        "scripts/tests/test_release_next.py",
+        "scripts/tests/test_gcc_aligned_new_applicability.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/candidate.xml"
+      ],
+      "gate": "candidate",
+      "returncode": 0,
+      "seconds": 153.817,
+      "source_commit": "dbb1d57197165247c6a18feedd6356085f327296"
+    }
+  ],
+  "source_commit": "dbb1d57197165247c6a18feedd6356085f327296",
+  "source_fingerprint": "d65ede74c73228a3afeadbcff9b0815746157e539126bc656336494977a1cbcf"
+}
