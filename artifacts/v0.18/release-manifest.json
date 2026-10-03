@@ -1,0 +1,11 @@
+{
+  "file_count": 827,
+  "package_sha256": "3e2821b8c0db18d07a33c9b55625e5bbe0d47125d03fbbbf6d768756ba71d62c",
+  "qualification_sha256": "07bc944b3bd703b9a82cc871be37851bff0d9d3c79906457a9af8a257b0a09af",
+  "release_tag": "v0.18.0",
+  "repeated_builds": 2,
+  "schema_version": "spell.v18.release-manifest/1",
+  "scope": "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS",
+  "source_commit": "ca6ebee137e99ad87968d7a0efb30813d2c4e650",
+  "source_fingerprint": "8cbf208198a78be6a2e53d67853bf79aaef8970b610a086c480e91bdc1d44e4a"
+}
