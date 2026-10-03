@@ -1,5 +1,17 @@
 # Prompt History
 
+## 2026-10-03 - v0.19 Authorized
+
+The owner requested `EXECUTE AND COMMIT v0.19` after accepting the complete
+project roadmap. Implement the bounded observation-to-command milestone,
+including authoritative typed results and guards, stale/missing/quality and
+recovery tests, v19 authoring/bundle alignment, testing procedures and concise
+current documentation. Qualify, commit and push under standing release
+publication authorization. The accepted baseline remains v0.18.0 until the
+new annotated release passes its independent acceptance gates.
+
+See [the v0.19 entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md).
+
 ## 2026-10-02 - v0.18.0 Published
 
 Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.
