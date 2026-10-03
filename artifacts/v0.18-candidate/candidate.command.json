@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "<repository>:/workspace:ro",
+        "-v",
+        "<repository>/.qualification/v18/final:/evidence",
+        "openbexi-spell-qualification:next",
+        "-m",
+        "pytest",
+        "backend/tests/test_native_telecommand_ir_v18.py",
+        "backend/tests/test_worker_composition_v18.py",
+        "backend/tests/test_supervisor_composition_v18.py",
+        "backend/tests/test_prompt_telecommand_api_v18.py",
+        "backend/tests/test_operator_composition_v18.py",
+        "backend/tests/test_language_conformance_v18.py",
+        "backend/tests/test_catalog_procedures_v18.py",
+        "backend/tests/test_composition_security_v18.py",
+        "scripts/tests/test_release_next.py",
+        "scripts/tests/test_gcc_aligned_new_applicability.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=/evidence/candidate.xml"
+      ],
+      "gate": "candidate",
+      "returncode": 0,
+      "seconds": 106.059,
+      "source_commit": "f2385955c75525e57f68ccb631fe7fcbc11dce5d"
+    }
+  ],
+  "source_commit": "f2385955c75525e57f68ccb631fe7fcbc11dce5d",
+  "source_fingerprint": "8cbf208198a78be6a2e53d67853bf79aaef8970b610a086c480e91bdc1d44e4a"
+}
