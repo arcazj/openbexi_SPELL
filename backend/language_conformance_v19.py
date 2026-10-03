@@ -97,8 +97,9 @@ def _obs(operation: str, outcome: str, value=None) -> dict:
 
 _POSITIVE_OBSERVATIONS = [_obs("GET_TM", "OK", 28.0), _obs("VERIFY", "TRUE"),
                           _obs("WAIT_FOR", "SATISFIED")]
-_DIRECT_WAIT = (_HEADER + f'WaitFor(condition={condition()!r}, timeout=0.02)\n'
-                'Send(command="CMDNAME")\nDisplay("wait completed")\n')
+def _direct_wait_source(timeout: float) -> str:
+    return (_HEADER + f'WaitFor(condition={condition()!r}, timeout={timeout!r})\n'
+            'Send(command="CMDNAME")\nDisplay("wait completed")\n')
 
 NEW_CASES = (
     _new_case("observation-prompt-confirm-command", _READ_FLOW,
@@ -140,9 +141,9 @@ NEW_CASES = (
         observation_input="stale", variables={"status": "INDETERMINATE"},
         logs=[("verification is indeterminate", "info")],
         observations=[_obs("VERIFY", "INDETERMINATE")], artifacts=("FUNCTION-VERIFY",)),
-    _new_case("condition-wait-command", _DIRECT_WAIT, observations=[_obs("WAIT_FOR", "SATISFIED")],
+    _new_case("condition-wait-command", _direct_wait_source(1.0), observations=[_obs("WAIT_FOR", "SATISFIED")],
         commands=[_tc("CMDNAME")], logs=[("wait completed", "info")], artifacts=("FUNCTION-WAITFOR",)),
-    _new_case("condition-wait-timeout-no-command", _DIRECT_WAIT, observation_input="low",
+    _new_case("condition-wait-timeout-no-command", _direct_wait_source(0.02), observation_input="low",
         terminal="failed", observations=[_obs("WAIT_FOR", "TIMED_OUT")], artifacts=("FUNCTION-WAITFOR",)),
     _new_case("read-controls-bounded-loop", _HEADER + _READ
         + 'total = 0\nfor i in range(2):\n    total = total + 1\n'

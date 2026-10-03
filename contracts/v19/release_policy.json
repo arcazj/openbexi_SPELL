@@ -42,6 +42,7 @@
     "backend.tests.test_development_profile_v19::test_wrong_profile_and_catalog_only_ir_never_produce_authored_artifact[spell-restricted-ast/0.9-spell-lrm244-conformance/0.19-Log(\"x\")\\n-AUTHORING_PROFILE_MISMATCH]",
     "backend.tests.test_development_profile_v19::test_wrong_profile_and_catalog_only_ir_never_produce_authored_artifact[spell-restricted-ast/0.9-spell-restricted-ast/0.9-reading: float = 0.0\\nstatus: str = \"\"\\nGetTM(\"TM.POWER.BUS_VOLTAGE\", target=reading, scalar_type=\"float\")\\nVerify(condition={'condition_plan_id': 'plan.power', 'root': {'type': 'PREDICATE', 'node_id': 'bus-ok', 'operator': 'GE', 'left': {'kind': 'TELEMETRY', 'item_id': 'TM.POWER.BUS', 'catalog_digest': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'scalar_type': 'FINITE_DOUBLE', 'value_field': 'ENGINEERING'}, 'right': {'kind': 'LITERAL', 'value': {'type': 'FINITE_DOUBLE', 'value': 27.5}}}}, target=status, timeout=2)\\nWaitFor(seconds=0)\\nanswer = Prompt(\"Send the observed command?\", Type=YES_NO)\\ncommand = BuildTC(\"CMDNAME\")\\nif answer == \"YES\" and reading >= 27.5 and status == \"TRUE\":\\n    Send(command=command, Confirm=True)\\nDisplay(\"Observation workflow finished\")\\n-AUTHORING_IR_UNSUPPORTED]",
     "backend.tests.test_language_conformance_v19::test_actual_worker_command_is_rejected_when_independent_guard_is_false",
+    "backend.tests.test_language_conformance_v19::test_condition_wait_outcomes_remain_strict_with_real_scheduling_delay",
     "backend.tests.test_language_conformance_v19::test_full_report_requires_every_observation_and_command_obligation",
     "backend.tests.test_language_conformance_v19::test_generated_runner_uses_isolated_services_without_outer_requests",
     "backend.tests.test_language_conformance_v19::test_inherited_registry_and_unresolved_reference_obligations_are_preserved",
@@ -1772,6 +1773,7 @@
         "backend.tests.test_language_conformance_v18::test_report_rejects_mutated_command_or_support_evidence[scope]",
         "backend.tests.test_language_conformance_v18::test_require_full_stays_unsatisfied",
         "backend.tests.test_language_conformance_v19::test_actual_worker_command_is_rejected_when_independent_guard_is_false",
+        "backend.tests.test_language_conformance_v19::test_condition_wait_outcomes_remain_strict_with_real_scheduling_delay",
         "backend.tests.test_language_conformance_v19::test_full_report_requires_every_observation_and_command_obligation",
         "backend.tests.test_language_conformance_v19::test_generated_runner_uses_isolated_services_without_outer_requests",
         "backend.tests.test_language_conformance_v19::test_inherited_registry_and_unresolved_reference_obligations_are_preserved",
@@ -3484,7 +3486,7 @@
         "backend.tests.test_driver_isolation::test_created_compose_driver_has_runtime_isolation_controls",
         "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible"
       ],
-      "tests": 2723
+      "tests": 2724
     },
     "sqlite": {
       "identities": [
@@ -4505,6 +4507,7 @@
         "backend.tests.test_language_conformance_v18::test_report_rejects_mutated_command_or_support_evidence[scope]",
         "backend.tests.test_language_conformance_v18::test_require_full_stays_unsatisfied",
         "backend.tests.test_language_conformance_v19::test_actual_worker_command_is_rejected_when_independent_guard_is_false",
+        "backend.tests.test_language_conformance_v19::test_condition_wait_outcomes_remain_strict_with_real_scheduling_delay",
         "backend.tests.test_language_conformance_v19::test_full_report_requires_every_observation_and_command_obligation",
         "backend.tests.test_language_conformance_v19::test_generated_runner_uses_isolated_services_without_outer_requests",
         "backend.tests.test_language_conformance_v19::test_inherited_registry_and_unresolved_reference_obligations_are_preserved",
@@ -6317,7 +6320,7 @@
         "backend.tests.test_shared_data_v08::test_postgresql_latest_revision_reconstruction_uses_parent_row_locks",
         "backend.tests.test_shared_data_v08::test_two_owners_can_use_the_same_namespace_id_on_postgresql"
       ],
-      "tests": 2805
+      "tests": 2806
     },
     "tooling": {
       "identities": [

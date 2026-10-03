@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+import time
 
 import pytest
 
@@ -89,6 +90,24 @@ def test_actual_worker_command_is_rejected_when_independent_guard_is_false(monke
     with pytest.raises(ValueError, match="telecommand request bypassed its authoritative guard"):
         current.run_case(current.NEW_CASES[0])
     assert calls == []
+
+
+def test_condition_wait_outcomes_remain_strict_with_real_scheduling_delay(monkeypatch):
+    from backend.condition_service import ConditionService
+    reconcile = ConditionService.reconcile_wait
+    def delayed(self, *args, **kwargs):
+        time.sleep(0.03)
+        return reconcile(self, *args, **kwargs)
+    monkeypatch.setattr(ConditionService, "reconcile_wait", delayed)
+    for identity, outcome, commands in [
+        ("v19-condition-wait-command", "SATISFIED", 1),
+        ("v19-condition-wait-timeout-no-command", "TIMED_OUT", 0),
+    ]:
+        case = next(row for row in current.NEW_CASES if row["id"] == identity)
+        observed = current.run_case(case)
+        assert current.evaluate_fixed_case(case) == observed
+        assert observed["observations"] == [{"operation":"WAIT_FOR", "outcome":outcome, "value":None}]
+        assert len(observed["telecommands"]) == commands
 
 
 @pytest.mark.parametrize("mutation", ["request", "outcome", "bool-index", "source"])
