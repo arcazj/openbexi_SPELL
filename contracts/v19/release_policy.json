@@ -512,7 +512,8 @@
     "scripts.tests.test_release_next::test_secret_paths_fail_packaging[backend/private.key]",
     "scripts.tests.test_release_next::test_secret_paths_fail_packaging[credentials.json]"
   ],
-  "catalog_frozen": true,
+  "catalog_frozen": false,
+  "dss_validation_required": true,
   "feature_browser_specs": [
     "synthetic-control-v13-real.spec.ts",
     "telemetry-adapter-v14-real.spec.ts",

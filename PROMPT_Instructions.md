@@ -2,6 +2,28 @@
 
 ## v0.19.0 In Qualification
 
+### Mandatory DSS Gate For Every Delivery
+
+Before delivering v0.19 or any later SPELL version, implement and run the
+Docker DSS with one GENERIC satellite database and shared bus/payload state.
+The actual CMD driver resolves and encodes commands through binary CCSDS TC
+on port 3080. The actual TLM driver receives and decodes DSS binary CCSDS TM
+through Kafka. Command effects must be observed through decoded telemetry.
+
+Automatically inventory and execute every procedure under `procedures/`, its
+embedded cases and reference runners, and all applicable regression/integration
+tests. Declare inputs, operator responses, initial state, expected outcomes and
+bounded execution time; reset or isolate independent cases. An expected
+rejection/failure passes only its exact declared outcome. Missing or unexecuted
+cases, unexpected failures/timeouts, unexplained skips or an unavailable
+simulator/test environment block delivery.
+
+The version-specific report must identify exact SPELL source, DSS and dynamics
+versions, database revision/digest, inventory and executed counts, individual
+outcomes/logs, correlated binary TC/TM evidence, scenarios and reproduction
+commands. Deliver only after every required case and test passes against DSS.
+See the [amended v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md#owner-amendment-docker-dss-before-delivery).
+
 Bounded observation-to-command workflows are implemented under the approved
 [v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md).
 Full canonical qualification, immutable release binding and publication are

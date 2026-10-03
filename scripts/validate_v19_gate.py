@@ -9,6 +9,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = {
     'V19-IR-001', 'V19-RUNTIME-001', 'V19-RECOVERY-001', 'V19-RUNNER-001', 'V19-PROCEDURES-001', 'V19-DOC-001', 'V19-RELEASE-001', 'V19-AUTHORING-001',
+    'V19-DSS-001', 'V19-DATABASE-001', 'V19-CMD-001', 'V19-TLM-001',
+    'V19-SCENARIOS-001', 'V19-DSS-DELIVERY-001',
 }
 
 
@@ -22,6 +24,8 @@ def validate(root: Path = ROOT) -> dict:
             or set(data.get("requirements", [])) != REQUIRED
             or len(data["requirements"]) != len(REQUIRED)):
         raise ValueError("v0.19 entry identity, scope or authority differs")
+    if data.get("dss_validation_required") is not True:
+        raise ValueError("mandatory DSS delivery requirement is missing")
     predecessor = subprocess.check_output(
         ["git", "rev-parse", "v0.18.0^{commit}"], cwd=root, text=True).strip()
     if predecessor != data["predecessor_commit"]:
@@ -34,6 +38,8 @@ def validate(root: Path = ROOT) -> dict:
             or policy["operational_authorization"] is not False
             or policy["legacy_system_qualified"] is not False):
         raise ValueError("entry/release policy mismatch")
+    if policy.get("dss_validation_required") is not True:
+        raise ValueError("DSS validation cannot be omitted from release policy")
     previous = json.loads(subprocess.check_output(
         ["git", "show", "v0.18.0:contracts/v18/release_policy.json"], cwd=root))
     if policy["reference_inputs"] != previous["reference_inputs"]:

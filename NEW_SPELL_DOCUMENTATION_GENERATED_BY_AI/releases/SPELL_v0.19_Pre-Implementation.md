@@ -87,7 +87,34 @@ Supplied PDFs and archives remain read-only and excluded from product packages.
 ## Gate And Acceptance
 
 `scripts/validate_v19_gate.py` must report `V19-GATE-0A PASS` before product
-edits. This authorizes implementation of the eight scoped requirements; it
+edits. This authorizes implementation of the scoped requirements; it
 claims no passing product test or release acceptance. Candidate and final
 evidence must be produced from clean committed source. Only independently
 validated committed evidence and annotated `v0.19.0` can establish acceptance.
+
+## Owner Amendment: Docker DSS Before Delivery
+
+The owner added the supplied DSS architecture and instructions 10-11 on
+2026-10-03 before v0.19 delivery. This is a mandatory dependency of this release
+and every later SPELL delivery. Earlier qualification attempts do not satisfy it.
+
+| Requirement | Required result |
+| --- | --- |
+| V19-DSS-001 | Docker DSS owns one persisted GENERIC satellite bus, core and payload state, with a versioned deterministic dynamics engine and compact control/telemetry pages. |
+| V19-DATABASE-001 | One revision/digest-bound satellite database defines every command, argument and telemetry item needed by the complete procedure-validation suite. |
+| V19-CMD-001 | Actual binary CCSDS TC over the DSS port 3080 interface; resolve database operands and preserve procedure/execution/command correlation, acceptance, execution, rejection, timeout and uncertainty. |
+| V19-TLM-001 | DSS publishes binary CCSDS telemetry through Kafka; the actual TLM driver decodes values, units, time, validity, quality, freshness, source epochs, sequences and database bindings. Command effects are observed through this path. |
+| V19-SCENARIOS-001 | Automatically inventory all procedures, embedded cases, reference choices and variants; declare inputs, answers, initial state, expected outcomes and time bounds; isolate independent cases. |
+| V19-DSS-DELIVERY-001 | Every required case and applicable test passes its declared outcome against actual CMD/TLM and DSS. Missing/unexecuted cases, unexpected failures/timeouts, unexplained skips or unavailable services block delivery. |
+
+Produce a version-specific report binding the exact source commit, DSS and
+engine versions, database revision/digest, exact inventory, individual outcomes,
+logs, correlated raw TC/TM evidence, scenarios and reproduction commands.
+Expected negative outcomes must be proved explicitly. Preserve visible language
+gaps and the distinction between adaptations and original-language support.
+
+The supplied architecture is implemented as DSS TC ingress on TCP 3080 and
+DSS binary TM broadcast through Kafka to SPELL. The packet secondary-header
+profile is declared by this project; using the port does not establish vendor
+Cortex or spacecraft hardware compatibility. Full SPELL 2.4.4 compatibility and
+operational authorization remain outside this increment.

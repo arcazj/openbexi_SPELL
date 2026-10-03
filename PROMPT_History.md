@@ -1,5 +1,17 @@
 # Prompt History
 
+## 2026-10-03 - Mandatory Docker DSS Before Any Delivery
+
+Before v0.19 delivery, the owner required Docker DSS, one GENERIC satellite
+state/database, binary CCSDS CMD on port 3080, binary CCSDS TLM through Kafka,
+and command effects visible in subsequently decoded telemetry. Every procedure,
+embedded/reference case and applicable test must pass its declared scenario.
+Missing/unexecuted cases, unexpected failures/timeouts, unexplained skips and an
+unavailable environment block delivery. Reports bind exact source, simulator,
+dynamics, database, inventory, outcomes and correlated packet evidence. This
+amends the [v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md#owner-amendment-docker-dss-before-delivery)
+and applies to every later delivery. v0.18 remains the accepted predecessor.
+
 ## 2026-10-03 - v0.19 Authorized
 
 The owner requested `EXECUTE AND COMMIT v0.19` after accepting the complete

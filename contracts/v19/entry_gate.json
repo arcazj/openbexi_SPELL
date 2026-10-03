@@ -1,4 +1,5 @@
 {
+  "dss_validation_required": true,
   "full_language_compatibility_claim": false,
   "operational_authorization": false,
   "owner_authorized": true,
@@ -12,7 +13,13 @@
     "V19-PROCEDURES-001",
     "V19-AUTHORING-001",
     "V19-DOC-001",
-    "V19-RELEASE-001"
+    "V19-RELEASE-001",
+    "V19-DSS-001",
+    "V19-DATABASE-001",
+    "V19-CMD-001",
+    "V19-TLM-001",
+    "V19-SCENARIOS-001",
+    "V19-DSS-DELIVERY-001"
   ],
   "schema_version": "spell.v19.entry-gate/1",
   "scope": "LOCAL_SIMULATOR_OBSERVATION_COMMAND_WORKFLOWS"
