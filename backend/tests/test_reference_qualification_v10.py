@@ -15,10 +15,10 @@ from contracts.v10 import (
     generate_language_reference_variant_matrix as variant_contract_generator,
 )
 from contracts.v10.generate_language_reference_example_matrix import encode_contract
-from scripts import generate_reference_runner_v18 as runner_generator
+from scripts import generate_reference_runner_v19 as runner_generator
 from scripts import qualify_reference_examples_v10 as qualification_generator
-from scripts.generate_reference_runner_v18 import OUTPUT, render
-from backend.language_conformance_v18 import CATALOG_PROFILES
+from scripts.generate_reference_runner_v19 import OUTPUT, render
+from backend.language_conformance_v19 import CATALOG_PROFILES
 from scripts.qualify_reference_examples_v10 import (
     DEFAULT_OUTPUT,
     encode_qualification,
@@ -173,7 +173,7 @@ def test_published_reference_qualification_is_current_and_exact() -> None:
     expected = qualify()
 
     assert published["ir_version"] == "0.10"
-    assert expected["ir_version"] == "0.18"
+    assert expected["ir_version"] == "0.19"
     changing_runner_fields = {"runner_sha256", "ir_version", "content_binding_sha256", "release", "language_profile"}
     assert {k: v for k, v in published.items() if k not in changing_runner_fields} == {
         k: v for k, v in expected.items() if k not in changing_runner_fields

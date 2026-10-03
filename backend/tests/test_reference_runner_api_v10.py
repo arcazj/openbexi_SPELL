@@ -9,7 +9,7 @@ from backend.app import create_app
 from backend.auth import AuthConfig
 from backend.config import Settings
 from backend.development_bundle_builder import InProcessDualBundleBuilder
-from scripts.generate_reference_runner_v18 import MENU_COUNT, ALL_INDEX, DIRECT_CASES
+from scripts.generate_reference_runner_v19 import MENU_COUNT, ALL_INDEX, DIRECT_CASES
 
 from .conftest import wait_for_state
 from .test_api_execution import fenced_prompt_request
@@ -61,7 +61,7 @@ def test_reference_runner_selects_example_195_through_the_public_api(
         )
         assert validation.status_code == 200, validation.text
         assert validation.json()["valid"] is True
-        assert validation.json()["subset_version"] == "spell-lrm244-conformance/0.18"
+        assert validation.json()["subset_version"] == "spell-lrm244-conformance/0.19"
 
         created = client.post(
             "/api/v1/executions",
