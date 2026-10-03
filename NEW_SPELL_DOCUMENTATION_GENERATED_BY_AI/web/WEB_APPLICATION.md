@@ -7,14 +7,12 @@ compact v0.16 workspace. Navigation/utilities sit beside Master/procedure tabs;
 source Code/Data/Result rows take the main area, with controls, prompts and logs
 below. The owner's automatic local connection replaces the listener dialog.
 See the [operator guide](../../frontend/README.md) and
-[accepted release record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding)
+[accepted release record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding)
 for current behavior and qualification. The broader design below remains Draft.
 
 ## Accepted Local Product Profile
 
-v0.18.0 is in qualification for native prompt-to-command workflows and four
-additional testing procedures. The [record](../releases/SPELL_v0.18_Implementation.md)
-tracks proof; the compact workspace and automatic local connection remain.
+Accepted v0.18.0 adds bounded native prompt-to-command workflows and four testing procedures. The [accepted record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding) binds proof; the compact workspace and automatic local connection remain.
 
 Accepted v0.17.0 adds native prompt input, reset, typed results and durable warnings/deadlines within this workspace. The [accepted record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns qualification evidence. The inherited workspace history below remains unchanged.
 

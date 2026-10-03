@@ -1,11 +1,8 @@
 # SPELL Release Provenance and Dependency Review
 
-## v0.18 Work In Progress
+## Accepted v0.18 Release
 
-The native-command increment inherits eight unchanged source references and
-earlier runtime contracts. New tests are independently authored; manuals and
-legacy source remain read-only and excluded from images and packages.
-The [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Pre-Implementation.md) defines the bounds. Final evidence is pending.
+The native-command increment passed independent clean-tag validation and was published. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) binds its qualified source, package and supply-chain evidence. Original manuals and legacy code remain read-only and excluded from product images and packages.
 
 ## Accepted v0.17 Release
 
@@ -22,7 +19,7 @@ binds the independently authored implementation to its qualification evidence.
 
 ## Record Status
 
-This record retains historical provenance and identifies **v0.17.0** as the
+This record retains historical provenance and identifies **v0.18.0** as the
 current accepted local product baseline. These annotated tags passed independent
 clean-checkout validation; their immutable bindings are:
 
@@ -33,13 +30,14 @@ clean-checkout validation; their immutable bindings are:
 | [v0.15.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.15_Implementation.md) | `8c72974f6a0a5deee766d6358fb219b73eab91ef` | `b7bceaf2489156271c91a939d897d040caeb0be1` | `b6eb564d5ae62f451bec50956a81ec31727811bafa84f1626d9f9331bbf7679b` |
 | [v0.16.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.16_Implementation.md#accepted-release-binding) | `d28022996f9b5d6216c15c289024905cb1a21f38` | `1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10` | `91624bc7eb64901f7d7637df0029a488e6e7d34d21e209244396ec0b7bd2c6fc` |
 | [v0.17.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) | `a7311ddad24a4c74599f8d518331dfc398109fb9` | `e525b9c842e3c26a35058d85fc40bd3ee4b16c85` | `14a532ccbde01b5a33970e04a7594a25d34d3d6fc6c1fbfcca36c9f105cfb69d` |
+| [v0.18.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) | `0bdd0ade51dbcc7822927fb95b5f962b6194b40f` | `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48` | `3e2821b8c0db18d07a33c9b55625e5bbe0d47125d03fbbbf6d768756ba71d62c` |
 
-The [v0.17 qualification](artifacts/v0.17/qualification.json) binds its exact
+The [v0.18 qualification](artifacts/v0.18/qualification.json) binds its exact
 source commit, source fingerprint, predecessor, and evidence digests. The
-[reproducibility record](artifacts/v0.17/reproducibility.json) records four
+[reproducibility record](artifacts/v0.18/reproducibility.json) records four
 identical builds across two independent source exports. The
-[SBOM validation](artifacts/v0.17/evidence/sbom-validation.json) and
-[supply-chain review](artifacts/v0.17/evidence/supply-chain.json) cover the four
+[SBOM validation](artifacts/v0.18/evidence/sbom-validation.json) and
+[supply-chain review](artifacts/v0.18/evidence/supply-chain.json) cover the four
 product images, with no unresolved High/Critical findings in the accepted local
 profile. Raw scanner findings and their applicability dispositions remain in
 that evidence; this is not a claim that the images contain no advisories.

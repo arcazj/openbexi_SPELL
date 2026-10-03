@@ -36,7 +36,7 @@ accountable human roles in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) accept it.
 | Source review | 304 of 304 supplied pages reviewed |
 | Project-declared AI assistance tool | ChatGPT 5.6 SOL |
 | Product implementation from this Draft baseline | None claimed by the specification itself |
-| Parent product | v0.18.0 in qualification; accepted predecessor v0.17.0; updated 2026-10-02 |
+| Parent product | Accepted local simulator v0.18.0; predecessor v0.17.0; updated 2026-10-02 |
 | Operational authorization | None |
 | Approval state | Draft; multidisciplinary review required |
 | Local v0.4 Gate G0 readiness | `PASS`; Candidate A scope, exclusions, budgets, and test plan project-owner approved; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -52,10 +52,7 @@ invented: they are assigned an owner and gate in
 
 ## Local Product Releases
 
-v0.18.0 native command workflows and testing procedures are in qualification.
-The [release record](releases/SPELL_v0.18_Implementation.md) tracks that work.
-
-Product releases and this broader Draft specification have separate versions and acceptance boundaries. Accepted [v0.17.0](releases/SPELL_v0.17_Implementation.md#accepted-release-binding) adds bounded direct language conformance and native Display/Prompt behavior, retaining the compact manual workspace and automatic local sessions. The latest accepted local increments are:
+Product releases and this broader Draft specification have separate versions and acceptance boundaries. Accepted [v0.18.0](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) adds bounded native prompt-to-command workflows and testing procedures, retaining earlier language behavior, the compact workspace and automatic local sessions. The latest accepted local increments are:
 
 | Release | Delivered local scope | Evidence |
 | --- | --- | --- |
@@ -64,6 +61,7 @@ Product releases and this broader Draft specification have separate versions and
 | v0.15.0 | Shadow-pilot reports, independent review, incident, rollback, and read-only restore | [Implementation record](releases/SPELL_v0.15_Implementation.md) |
 | v0.16.0 | Language coverage and direct cases, compact manual workspace, automatic local sessions | [Accepted release record](releases/SPELL_v0.16_Implementation.md#accepted-release-binding) |
 | v0.17.0 | Direct core language, native prompts and expanded conformance evidence | [Accepted release record](releases/SPELL_v0.17_Implementation.md#accepted-release-binding) |
+| v0.18.0 | Native command workflows, durable authority/recovery and expanded testing procedures | [Accepted release record](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) |
 
 Use the [current console guide](../frontend/README.md) for delivered workflows
 and the [release index](releases/README.md) for earlier increments. The
@@ -156,8 +154,8 @@ in [SOURCE_AUTHORITY.md](SOURCE_AUTHORITY.md).
 
 ### Web And Procedures
 
-- [Current product console guide](../frontend/README.md): accepted v0.17 native
-  prompts, manual workspace and automatic local access, plus inherited
+- [Current product console guide](../frontend/README.md): accepted v0.18 native
+  command workflows and prompts, manual workspace and automatic local access, plus inherited
   control, telemetry, pilot and recovery workflows.
 - [web/WEB_APPLICATION.md](web/WEB_APPLICATION.md)
 - [web/OPERATING_MODES.md](web/OPERATING_MODES.md)

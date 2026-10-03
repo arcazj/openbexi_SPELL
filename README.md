@@ -4,9 +4,7 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-**v0.18.0 is in implementation and qualification** for native prompt-to-command
-workflows and additional testing procedures. See the [release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md)
-for scope and status. v0.17.0 remains the accepted predecessor.
+**v0.18.0 is accepted and published** for bounded native prompt-to-command workflows and additional testing procedures. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) binds its scope, limitations and qualification; v0.17.0 is its accepted predecessor.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -130,7 +128,7 @@ frontend/build/browser checks, language results, documentation rendering,
 soaks, image checks, four SBOMs, vulnerability review and four identical package
 builds from two independent source exports.
 
-Validate a clean checkout of the accepted annotated `v0.17.0` tag:
+Validate a clean checkout of the accepted annotated `v0.18.0` tag:
 
 ```powershell
 .\scripts\run_release_next.ps1 -Module scripts.release_next `

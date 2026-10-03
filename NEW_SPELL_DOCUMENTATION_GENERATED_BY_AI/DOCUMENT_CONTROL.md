@@ -19,11 +19,7 @@ The specification version is independent of product releases, the legacy SPELL
 2.4.4 manuals, later legacy binaries, procedure repositories, driver versions,
 and deployment configuration versions.
 
-As of 2026-10-02, the parent product is accepted at [v0.17.0](releases/SPELL_v0.17_Implementation.md#accepted-release-binding) for bounded direct language conformance and native Display/Prompt behavior. It retains the manual workspace and automatic local sessions. See the [release index](releases/README.md) and [current console guide](../frontend/README.md). This acceptance does not approve the broader Draft specification or GUI manual/PDF, full language compatibility, real legacy qualification or operational authorization. Their separate versions and approval boundaries remain unchanged.
-
-v0.18.0 native command workflows and added testing procedures are in
-qualification; see the [release record](releases/SPELL_v0.18_Implementation.md).
-This work does not change the accepted predecessor or broader Draft status.
+As of 2026-10-02, the parent product is accepted at [v0.18.0](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) for bounded native command workflows and added testing procedures. The [release index](releases/README.md) and [console guide](../frontend/README.md) describe delivered behavior. The broader specification and GUI manual/PDF remain Draft; this local release does not establish full language compatibility, real legacy qualification or operational authorization.
 
 ## Normative Language
 

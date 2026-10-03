@@ -1,5 +1,11 @@
 # Prompt History
 
+## 2026-10-02 - v0.18.0 Published
+
+Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+The authorized native-command increment is complete. Its [GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.18.0) includes four verified assets; the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) owns detailed bindings and results. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile.
+
 ## 2026-10-02 - v0.18.0 Execution Authorized
 
 The owner requested execution of the native-language/simulator-telecommand
@@ -7,7 +13,7 @@ integration prompt, expansion of `language_reference_244.spell.py` with currentl
 supported behavior, and additional testing procedures under `procedures/`.
 The [entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Pre-Implementation.md)
 records the bounded scope, proof, concise documentation, Git push and publication.
-v0.17.0 remains the accepted predecessor until v0.18.0 independently qualifies.
+At authorization, v0.17.0 was the accepted predecessor and v0.18.0 qualification remained pending.
 
 
 ## 2026-10-02 - v0.17.0 Published

@@ -1,11 +1,10 @@
 # Test and Integration Plan
 
-## v0.18.0 Qualification In Progress
+## v0.18.0 Qualification
 
-The approved scope requires native command integration, authoritative dispatch,
-crash recovery, direct runner cases and execution of every new testing procedure.
-Candidate and final results are pending; the [release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md)
-will record actual results. Earlier results below remain historical evidence.
+Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+Detailed gate counts, immutable bindings and limitations are in the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding). Results below remain historical evidence for their named versions.
 
 ## v0.17.0 Qualification
 
@@ -133,8 +132,8 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | `v0.16.0`, release commit `1b0aa8e582cb13b9d6aa5196fd66fc56d9d3ad10`; manual workspace, local sessions and language coverage |
-| Current release state | v0.17.0 accepted; tag object `a7311ddad24a4c74599f8d518331dfc398109fb9`, release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85` |
+| Accepted predecessor | `v0.17.0`, release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85`; direct core language and native prompts |
+| Current release state | v0.18.0 accepted; tag object `0bdd0ade51dbcc7822927fb95b5f962b6194b40f`, release commit `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48` |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |
@@ -143,6 +142,7 @@ this planning/source record does not independently claim completed tests.
 | v0.15 direction | Qualified local shadow-pilot reports, independent review, incident/rollback, and read-only report restore |
 | v0.16 direction | Qualified language inventory/direct cases, manual workspace and automatic finite local operator sessions |
 | v0.17 direction | Qualified direct core language, native Display/Prompt semantics and source-bound conformance evidence |
+| v0.18 direction | Qualified native command composition, durable dispatch/recovery and additional testing procedures |
 | Date | Updated 2026-10-02 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |

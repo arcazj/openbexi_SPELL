@@ -1,11 +1,10 @@
 # Verification And Validation Strategy
 
-## v0.18 Application In Qualification
+## Accepted v0.18 Application
 
-Native command workflows require actual parser/worker/supervisor execution,
-separate confirmation and recovery proof, every new procedure, real browser
-interaction and all inherited release gates. The [record](../releases/SPELL_v0.18_Implementation.md)
-tracks results. Bounded checks do not establish full language compatibility.
+Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.
+
+The [accepted record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding) owns detailed counts and bindings. Source/worker/service proof, durable supervisor authority and isolated runner helpers remain distinct evidence. None establishes full language compatibility.
 
 ## Accepted v0.17 Application
 
