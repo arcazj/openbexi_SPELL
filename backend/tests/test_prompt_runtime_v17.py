@@ -54,15 +54,25 @@ def test_native_default_deadline_has_one_answered_winner(client):
     with client.app.state.session_factory() as session:
         session.get(OperatorPrompt, opened["id"]).response_deadline = datetime.now(timezone.utc) - timedelta(seconds=1)
         session.commit()
-    assert service.reconcile_prompt_timers() == 1
+    # Either the explicit call or the live background reconciler may win.
+    service.reconcile_prompt_timers()
     with client.app.state.session_factory() as session:
         first = session.get(OperatorPrompt, opened["id"])
         settlement_id = first.settlement_id
+        assert first.state == "SETTLED" and settlement_id is not None
         assert first.settlement_outcome == "ANSWERED" and first.settled_value == "YES"
+        assert first.settled_by == "operator-reconciler"
     assert service.reconcile_prompt_timers() == 0
     loser = service.settle_prompt_terminal(opened["id"], "CANCELLED")
     assert loser["settlement"]["id"] == settlement_id
     assert loser["settlement"]["value"] == "YES"
+    with client.app.state.session_factory() as session:
+        settlements = session.scalars(select(OperatorAuditEvent).where(
+            OperatorAuditEvent.aggregate_id == opened["id"],
+            OperatorAuditEvent.event_type == "prompt.settled")).all()
+        assert len(settlements) == 1
+        assert settlements[0].payload == {
+            "prompt_id": opened["id"], "settlement_id": settlement_id, "outcome": "ANSWERED"}
 
 
 @pytest.mark.parametrize("timeout", [None, 0])

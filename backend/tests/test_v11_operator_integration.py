@@ -11,7 +11,7 @@ from sqlalchemy import select
 import backend.supervisor as supervisor_module
 from backend.ir_v11 import ordinary_prompt_id
 from backend.models import Event, Execution
-from backend.operator_models import OperatorPrompt
+from backend.operator_models import OperatorAuditEvent, OperatorPrompt
 from backend.operator_service import OperatorAuthorizationError
 from backend.telecommand_runtime_v11 import execute_preflight
 from backend.telecommand_v11 import (
@@ -230,7 +230,28 @@ def _force_prompt_timeout(client, prompt_id: str) -> None:
         assert prompt is not None
         prompt.response_deadline = datetime(2000, 1, 1, tzinfo=timezone.utc)
         session.commit()
-    assert client.app.state.operator_service.reconcile_prompt_timers() == 1
+    # The live background reconciler may settle between the commit above and
+    # this call. Assert the durable winner, not which thread observed it first.
+    client.app.state.operator_service.reconcile_prompt_timers()
+    with client.app.state.session_factory() as session:
+        prompt = session.get(OperatorPrompt, prompt_id)
+        assert prompt is not None and prompt.state == "SETTLED"
+        assert prompt.settlement_id is not None
+        assert prompt.settlement_outcome == "ANSWERED"
+        assert prompt.settled_value == "NO"
+        assert prompt.settled_by == "operator-reconciler"
+        settlements = session.scalars(
+            select(OperatorAuditEvent).where(
+                OperatorAuditEvent.aggregate_id == prompt_id,
+                OperatorAuditEvent.event_type == "prompt.settled",
+            )
+        ).all()
+        assert len(settlements) == 1
+        assert settlements[0].payload == {
+            "prompt_id": prompt_id,
+            "settlement_id": prompt.settlement_id,
+            "outcome": "ANSWERED",
+        }
 
 
 def test_critical_confirmation_with_inherited_settings_dispatches_after_human_yes(
