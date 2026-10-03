@@ -1,0 +1,11 @@
+{
+  "command_sha256": "c76a5313d916cabc82309e60908956fec7e9b6c8af825bc4e497a58f4a35db69",
+  "decision": "PASS",
+  "evidence_sha256": "186e5295042d5fb2c11ef07ecf8de9a282eb347223763dc304bde928ba8a2de2",
+  "profile": "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS",
+  "release_tag": "v0.18.0",
+  "schema_version": "spell.candidate-gate/1",
+  "source_commit": "539a7da761941e91db11a92ae55aa9ed265cd304",
+  "source_fingerprint": "92c3d641db4f60b4160251f0183dfc127fc905164576fee4eaef049b489c222b",
+  "tests": 362
+}
