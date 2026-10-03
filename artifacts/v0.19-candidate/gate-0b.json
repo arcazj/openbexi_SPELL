@@ -1,0 +1,11 @@
+{
+  "command_sha256": "d98561b86ea682b63b3701ab365efd4e106616259a68d1e35ac2266044036dcd",
+  "decision": "PASS",
+  "evidence_sha256": "0dd123e721a408e958f6766a684b44b96cd55ca338e63bb1659d795459611190",
+  "profile": "LOCAL_SIMULATOR_OBSERVATION_COMMAND_WORKFLOWS",
+  "release_tag": "v0.19.0",
+  "schema_version": "spell.candidate-gate/1",
+  "source_commit": "2c510bf60c4555f184f793a84b13bceb3c43c7d5",
+  "source_fingerprint": "15d1c34c9ccddf3387ccd3a6f3c20be57b1de9a052ddfab640573afcd6a70659",
+  "tests": 496
+}
