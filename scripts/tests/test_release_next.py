@@ -13,6 +13,7 @@ from scripts import release_next as release
 @pytest.mark.parametrize("minor,scope", [
     (16, "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"),
     (17, "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"),
+    (18, "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS"),
 ])
 @pytest.mark.parametrize("tamper", [None, "schema", "owner", "requirements", "predecessor", "authority", "inventory", "source"])
 def test_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypatch, minor, scope, tamper):
@@ -85,16 +86,16 @@ def test_release_metadata_rejects_tamper_even_when_package_hash_is_unchanged(mon
         release.verify_release_metadata(manifest, reproduced)
 
 
-@pytest.mark.parametrize("minor", [16, 17])
+@pytest.mark.parametrize("minor", [16, 17, 18])
 @pytest.mark.parametrize("tamper", [None, "missing", "extra", "ir", "cases", "adaptations", "authority", "failure"])
 def test_installed_language_runner_proof_is_exact(monkeypatch, minor, tamper):
     monkeypatch.setattr(release, "MINOR", minor)
     result = {"ir_version": "0.16", "steps": 7, "direct_and_boundary_cases": 32,
               "adapted_examples": 195, "adapted_variants": 257,
               "full_compatibility": False, "decision": "PASS"}
-    if minor == 17:
-        from backend.language_conformance_v17 import expected_image_runner_proof
-        result = expected_image_runner_proof()
+    if minor >= 17:
+        from importlib import import_module
+        result = import_module(f"backend.language_conformance_v{minor}").expected_image_runner_proof()
     if tamper == "extra": result["unbound"] = True
     if tamper == "ir": result["ir_version"] = "0.15"
     elif tamper == "cases": result["direct_and_boundary_cases"] -= 1

@@ -1,7 +1,7 @@
 # @procedure language_reference_244
 # @display-name SPELL 2.4.4 language checks
 # @description Select an adaptation, direct source or rejection check; gaps remain explicit
-# @language-profile spell-lrm244-conformance/0.17
+# @language-profile spell-lrm244-conformance/0.18
 """SPELL 2.4.4 coverage: 763 artifacts. Full language support remains incomplete."""
 
 selected_index: int = 0
@@ -303,6 +303,38 @@ Prompt(
         "Direct - v17-display-empty",
         "Direct - v17-display-dynamic-empty",
         "Direct - v17-display-whitespace",
+        "Direct - v18-native-yes-built-command",
+        "Direct - v18-native-no-no-dispatch",
+        "Direct - v18-native-cancel-no-dispatch",
+        "Direct - v18-numeric-guard-sends",
+        "Direct - v18-numeric-guard-skips",
+        "Direct - v18-native-plus-command-confirmation",
+        "Direct - v18-command-confirmation-denied",
+        "Direct - v18-default-no-policy-declaration",
+        "Direct - v18-direct-command-empty-display",
+        "Direct - v18-built-literal-arguments",
+        "Direct - v18-load-only-is-not-execution",
+        "Direct - v18-sequential-group",
+        "Direct - v18-inherited-direct-send",
+        "Direct - v18-sequence-expansion",
+        "Direct - v18-block-group-transport",
+        "Direct - v18-group-shared-transport",
+        "Direct - v18-critical-confirmation",
+        "Direct - v18-absolute-command-time",
+        "Direct - v18-relative-release-intent",
+        "Direct - v18-bounded-delay-and-timeout",
+        "Direct - v18-literal-radix-format",
+        "Direct - v18-additional-driver-info",
+        "Direct - v18-verification-success",
+        "Direct - v18-per-command-override",
+        "Direct - v18-successful-failure-policy",
+        "Direct - v18-transport-rejection-continue",
+        "Direct - v18-transport-rejection-prompt-user",
+        "Direct - v18-verification-failure-stops",
+        "Gap check - v18-reject-native-command-selector",
+        "Gap check - v18-reject-native-command-argument",
+        "Gap check - v18-reject-mixed-data-service",
+        "Gap check - v18-reject-nested-language-service",
         "Run all language checks and adaptations; report gaps",
     ],
     list_mode="INDEX",
@@ -310,5 +342,5 @@ Prompt(
     target=selected_index,
 )
 example_number = selected_index + 1
-LanguageCheck(selected_index, profile="0.17", target=result)
+LanguageCheck(selected_index, profile="0.18", target=result)
 Log(result)

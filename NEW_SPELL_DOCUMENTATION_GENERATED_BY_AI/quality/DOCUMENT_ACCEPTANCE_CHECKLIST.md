@@ -20,6 +20,9 @@ owns that evidence; later documentation maintenance does not replace it.
 
 ### Current Local Product Alignment
 
+v0.18.0 documentation and testing procedures are in qualification; final results
+are pending in the [release record](../releases/SPELL_v0.18_Implementation.md).
+
 Current product alignment (2026-10-02): [v0.17.0](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) is accepted and published; 18 documentation checks passed in its tagged qualification. The broader specification and GUI manual/PDF remain Draft.
 
 Earlier increments remain indexed in [release records](../releases/README.md);

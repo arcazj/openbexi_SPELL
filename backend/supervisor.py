@@ -70,12 +70,13 @@ from .ir_v11 import (
     IR_VERSION as V11_IR_VERSION,
     V11ValidationError,
     ordinary_prompt_id,
-    telecommand_dependency_variables,
     validate_ir_v11,
 )
 from .models import Command, Event, Execution, Prompt
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
+from .ir_v18 import IR_VERSION as V18_IR_VERSION, V18ValidationError, validate_ir_v18
+from .runtime_composition_v18 import telecommand_dependency_variables
 from .prompt_v17 import PROMPT_PROFILE, PROMPT_FIELDS, validate_native_prompt_step, native_prompt_result
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
@@ -132,8 +133,10 @@ _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION}
 )
+_TELECOMMAND_IR_VERSIONS = frozenset({V11_IR_VERSION, V18_IR_VERSION})
+_NATIVE_PROMPT_IR_VERSIONS = frozenset({V17_IR_VERSION, V18_IR_VERSION})
 _V11_PROMPT_INPUT_KINDS = {
     "OK": "FIXED_CHOICE",
     "CANCEL": "FIXED_CHOICE",
@@ -2602,7 +2605,7 @@ class Supervisor:
                 else None
             )
             if (
-                execution.ir_version == V11_IR_VERSION
+                execution.ir_version in _TELECOMMAND_IR_VERSIONS
                 and 0 <= execution.current_step < len(execution.steps)
                 and execution.steps[execution.current_step].get("type") == "send_tc"
             ):
@@ -2667,7 +2670,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v17
+                    validate_ir_v18
+                    if ir_version == V18_IR_VERSION
+                    else validate_ir_v17
                     if ir_version == V17_IR_VERSION
                     else validate_ir_v16
                     if ir_version == V16_IR_VERSION
@@ -2700,6 +2705,7 @@ class Supervisor:
                 V10ValidationError,
                 V11ValidationError,
                 V17ValidationError,
+                V18ValidationError,
             ) as exc:
                 rejection = self._add_event(
                     session,
@@ -3009,12 +3015,16 @@ class Supervisor:
                 raise ConflictError(
                     "consumed prompt settlement differs from durable state"
                 )
-            if execution.ir_version == V17_IR_VERSION:
+            if execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS:
                 step = execution.steps[execution.current_step]
                 if step.get("prompt_profile") == PROMPT_PROFILE and not self._native_operator_prompt_matches(
                     execution, prompt, execution.current_step, dict(execution.variables or {})
                 ):
                     raise ConflictError("consumed native prompt differs from its authoritative declaration")
+                if execution.ir_version == V18_IR_VERSION and step.get("type") == "send_tc":
+                    expected = self._v18_telecommand_prompt_fields(session, execution, prompt.id)
+                    if not self._v18_telecommand_prompt_matches(prompt, expected):
+                        raise ConflictError("consumed telecommand prompt differs from its authoritative declaration")
             revision = execution.revision
             current_step = execution.current_step
         try:
@@ -3684,7 +3694,7 @@ class Supervisor:
         self, session: Session, execution: Execution
     ) -> OperatorPrompt | None:
         if (
-            execution.ir_version != V11_IR_VERSION
+            execution.ir_version not in _TELECOMMAND_IR_VERSIONS
             or execution.current_step < 0
             or execution.current_step >= len(execution.steps)
         ):
@@ -3759,6 +3769,49 @@ class Supervisor:
             return validate_native_prompt_step(fields)
         except Exception as exc:
             raise ConflictError("native prompt declaration is not authoritative") from exc
+
+    @staticmethod
+    def _v18_require_telecommand_guard(execution: Execution) -> None:
+        step = execution.steps[execution.current_step]
+        try:
+            allowed = True if step.get("guard") is None else evaluate_expression(step["guard"], dict(execution.variables or {}))
+        except Exception as exc:
+            raise ConflictError("telecommand guard cannot be authoritatively evaluated") from exc
+        if allowed is not True:
+            raise ConflictError("telecommand request is outside its active branch")
+
+    def _v18_telecommand_prompt_fields(self, session: Session, execution: Execution, prompt_id: Any) -> dict[str, Any]:
+        """Bind composed confirmation/failure prompts to the exact durable plan."""
+        self._v18_require_telecommand_guard(execution)
+        index = execution.current_step
+        request, _, preflight = prepare_send_request(execution.id, index, execution.steps[index], execution.variables)
+        if preflight.confirmation_required and prompt_id == confirmation_prompt_id(execution.id, index, request["plan"]["plan_digest"]):
+            question = f"Confirm deterministic simulator telecommand plan {preflight.plan.plan_id}"
+        else:
+            requested = self._telecommand_event(session, execution.id, "procedure.telecommand_requested", request["request_id"])
+            result_event = self._telecommand_event(session, execution.id, "procedure.telecommand_result", request["request_id"])
+            if requested is None or result_event is None:
+                raise ConflictError("telecommand failure prompt has no durable result")
+            durable_request = dict(requested.payload)
+            durable_request.pop(_TELECOMMAND_RUNTIME_BINDING_KEY, None)
+            request, _, _ = validate_send_request(execution.id, index, execution.steps[index], execution.variables, durable_request)
+            result = validate_telecommand_result(request, result_event.payload)
+            policy = result_failure_policy(request, result)
+            if (policy is None or policy["uncertain"] or not policy["prompt_user"]
+                or prompt_id != failure_prompt_id(execution.id, index, result["result_digest"])):
+                raise ConflictError("telecommand failure prompt does not bind its result")
+            question = failure_prompt_question(result["result_digest"])
+        return {"prompt_id": prompt_id, "step_index": index, "question": question,
+                "prompt_type": "YES_NO", "choices": ["YES", "NO"], "default": "NO", "list_mode": None,
+                "warning_delay_seconds": None, "response_timeout_seconds": None, "no_controller_grace_seconds": None}
+
+    @staticmethod
+    def _v18_telecommand_prompt_matches(prompt: OperatorPrompt, fields: Mapping[str, Any]) -> bool:
+        return (prompt.id == fields["prompt_id"] and prompt.step_index == fields["step_index"]
+                and prompt.prompt_type == "YES_NO" and prompt.input_kind == "FIXED_CHOICE"
+                and prompt.question == fields["question"] and prompt.options == ["YES", "NO"]
+                and prompt.list_mode is None and prompt.default_value == "NO"
+                and prompt.settings_snapshot.get("PROMPT_PROFILE") is None)
 
     @classmethod
     def _native_prompt_message_matches(cls, execution: Execution, message: Mapping[str, Any]) -> bool:
@@ -3994,7 +4047,7 @@ class Supervisor:
             step_index = request_payload.get("step_index")
             if (
                 execution is None
-                or execution.ir_version != V11_IR_VERSION
+                or execution.ir_version not in _TELECOMMAND_IR_VERSIONS
                 or type(step_index) is not int
                 or step_index != execution.current_step
                 or step_index < 0
@@ -4003,6 +4056,10 @@ class Supervisor:
                 raise ConflictError(
                     "telecommand request does not target the current v0.11 step"
                 )
+            if execution.ir_version == V18_IR_VERSION:
+                if execution.state not in {"running", "waiting"}:
+                    raise ConflictError("telecommand dispatch requires an active execution state")
+                self._v18_require_telecommand_guard(execution)
             request, service, preflight = validate_send_request(
                 execution_id,
                 step_index,
@@ -4017,6 +4074,12 @@ class Supervisor:
                 request,
                 required=preflight.confirmation_required,
             )
+            if execution.ir_version == V18_IR_VERSION and preflight.confirmation_required:
+                prompt_id = request["confirmation"]["prompt_id"]
+                prompt = session.get(OperatorPrompt, prompt_id)
+                fields = self._v18_telecommand_prompt_fields(session, execution, prompt_id)
+                if prompt is None or not self._v18_telecommand_prompt_matches(prompt, fields):
+                    raise ConflictError("native prompt policy cannot authorize telecommand confirmation")
             request_id = request["request_id"]
             requested = self._telecommand_event(
                 session,
@@ -4167,7 +4230,7 @@ class Supervisor:
                 )
                 if (
                     execution is None
-                    or execution.ir_version != V11_IR_VERSION
+                    or execution.ir_version not in _TELECOMMAND_IR_VERSIONS
                     or execution.current_step != request["step_index"]
                 ):
                     return False
@@ -5281,7 +5344,7 @@ class Supervisor:
                 if isinstance(execution.variables, dict)
                 else {}
             )
-            if execution.ir_version == V17_IR_VERSION:
+            if execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS:
                 native_step = execution.steps[step_index]
                 if native_step.get("prompt_profile") == PROMPT_PROFILE:
                     guard = native_step.get("guard")
@@ -5312,7 +5375,7 @@ class Supervisor:
                         raise ConflictError("skipped native Prompt cannot include a settlement")
                     if canonical_hash(checkpoint_variables) != canonical_hash(expected_variables):
                         raise ConflictError("native Prompt checkpoint changed unrelated or skipped variables")
-            if execution.ir_version == V11_IR_VERSION:
+            if execution.ir_version in _TELECOMMAND_IR_VERSIONS:
                 current_step = execution.steps[step_index]
                 authoritative_variables = dict(prior_checkpoint_variables)
                 authoritative_variables.setdefault("ARGS", {})
@@ -5330,7 +5393,7 @@ class Supervisor:
                 if type(should_run) is not bool:
                     raise ConflictError("v0.11 step guard did not produce a Boolean")
 
-                if current_step.get("type") == "prompt":
+                if current_step.get("type") == "prompt" and current_step.get("prompt_profile") != PROMPT_PROFILE:
                     if not should_run:
                         if prompt_resolution is not None:
                             raise ConflictError(
@@ -5364,7 +5427,7 @@ class Supervisor:
                                 "v0.11 Prompt checkpoint does not match its declaration"
                             )
                 elif (
-                    current_step.get("type") != "send_tc"
+                    current_step.get("type") not in {"send_tc", "prompt"}
                     and prompt_resolution is not None
                 ):
                     raise ConflictError(
@@ -5377,6 +5440,12 @@ class Supervisor:
                     for name in dependency_names
                     if name in authoritative_variables
                 }
+                if current_step.get("prompt_profile") == PROMPT_PROFILE and should_run:
+                    # The preceding native block proved the complete checkpoint
+                    # from the exact durable ANSWERED settlement.
+                    target = current_step.get("response_target")
+                    if target in dependency_names:
+                        expected_dependencies[target] = checkpoint_variables[target]
                 dependency_target = (
                     current_step.get("name")
                     if current_step.get("type") == "variable_set"
@@ -5608,6 +5677,10 @@ class Supervisor:
                             failure_prompt = session.get(
                                 OperatorPrompt, expected_prompt_id
                             )
+                            if execution.ir_version == V18_IR_VERSION:
+                                fields = self._v18_telecommand_prompt_fields(session, execution, expected_prompt_id)
+                                if failure_prompt is None or not self._v18_telecommand_prompt_matches(failure_prompt, fields):
+                                    raise ConflictError("telecommand failure decision differs from its authoritative profile")
                             if (
                                 failure_prompt is None
                                 or failure_prompt.execution_id != execution_id
@@ -5985,7 +6058,7 @@ class Supervisor:
             }:
                 return
             if (
-                execution.ir_version in {V11_IR_VERSION, V17_IR_VERSION}
+                execution.ir_version in {V11_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION}
                 and not self._v11_prompt_message_matches(execution, message)
             ):
                 raise ConflictError(
@@ -6113,26 +6186,30 @@ class Supervisor:
                 if 0 <= execution.current_step < len(execution.steps)
                 else {}
             )
-            native = (execution.ir_version == V17_IR_VERSION
+            native = (execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS
                       and current_step.get("prompt_profile") == PROMPT_PROFILE)
             if "prompt_profile" in message and not native:
                 raise ConflictError("native prompt policy is outside its authoritative IR boundary")
-            if execution.ir_version == V17_IR_VERSION:
-                matches = (self._native_prompt_message_matches(execution, message)
-                           if current_step.get("prompt_profile") == PROMPT_PROFILE
-                           else self._v11_prompt_message_matches(execution, message))
+            if execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS:
+                if execution.ir_version == V18_IR_VERSION and current_step.get("type") == "send_tc":
+                    fields = self._v18_telecommand_prompt_fields(session, execution, message.get("prompt_id"))
+                    matches = all(message.get(key) == value for key, value in fields.items())
+                else:
+                    matches = (self._native_prompt_message_matches(execution, message)
+                               if native else self._v11_prompt_message_matches(execution, message))
                 if not matches:
                     raise ConflictError("v0.17 prompt request does not match its authoritative step")
             if (
-                execution.ir_version == V11_IR_VERSION
+                execution.ir_version in _TELECOMMAND_IR_VERSIONS
                 and current_step.get("type") == "prompt"
+                and not native
                 and not self._v11_prompt_message_matches(execution, message)
             ):
                 raise ConflictError(
                     "v0.11 prompt request does not match its authoritative step"
                 )
             if (
-                execution.ir_version == V11_IR_VERSION
+                execution.ir_version in _TELECOMMAND_IR_VERSIONS
                 and current_step.get("type") not in {"prompt", "send_tc"}
             ):
                 raise ConflictError("v0.11 prompt request is outside a prompt boundary")

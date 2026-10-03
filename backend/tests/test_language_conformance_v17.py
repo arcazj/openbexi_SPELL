@@ -88,8 +88,8 @@ def test_require_full_is_a_failure_even_when_bounded_profile_passes(monkeypatch,
 
 @pytest.mark.parametrize("selection", [195, 195 + len(V16_CASES), ALL_SELECTION])
 def test_generated_runner_executes_closed_selection_in_actual_worker(monkeypatch, selection) -> None:
-    assert OUTPUT.read_bytes() == render().encode("ascii")
-    procedure = ProcedureCatalog(OUTPUT.parent).get("language_reference_244")
+    # Frozen v17 generator remains executable as the bundled runner evolves.
+    procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(render())
     assert procedure.ir_version == "0.17" and len(procedure.steps) == 7
     thread, control, output = _start_worker(monkeypatch, procedure)
     opened, _ = _next(output, lambda item: item.get("kind") == "prompt_opened", timeout=5)

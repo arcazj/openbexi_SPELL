@@ -1,5 +1,21 @@
 # SPELL Compatibility and Migration
 
+## v0.18 Native Command Workflows
+
+IR 0.18 combines native Prompt/Display and bounded core expressions with the
+existing simulator BuildTC/Send contract. Answers may choose a command branch;
+IR 0.18 accepts literal command names or immutable BuildTC items, with literal
+argument values and existing closed constant/temporal modifier forms.
+Earlier IR 0.11 string-variable selectors remain
+available in that older profile and reject in the new composition profile. Required
+command confirmation remains separate. Earlier IR keeps its behavior.
+
+Data/argument, file, environment and direct observation services remain outside
+this combination; their separate profiles remain available.
+Collections and general function arguments/returns remain gaps. The
+[release record](../releases/SPELL_v0.18_Implementation.md) tracks qualification,
+and the [procedure guide](../../procedures/README.md) describes runnable tests.
+
 ## v0.17 Direct Language Increment
 
 The [complete language inventory](../../contracts/v17/language_coverage.json)

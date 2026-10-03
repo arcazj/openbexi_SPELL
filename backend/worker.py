@@ -46,13 +46,14 @@ from .ir_v11 import (
     IR_VERSION as V11_IR_VERSION,
     V11ValidationError,
     ordinary_prompt_id,
-    telecommand_dependency_variables,
     validate_ir_v11,
 )
 from .reference_examples_v10 import ReferenceExampleError, execute_reference_example
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .language_conformance_v16 import execute_selection
 from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
+from .ir_v18 import IR_VERSION as V18_IR_VERSION, V18ValidationError, validate_ir_v18
+from .runtime_composition_v18 import telecommand_dependency_variables
 from .core_v17 import CoreV17Error, evaluate_integer_binary
 from .prompt_v17 import PROMPT_PROFILE, native_prompt_result, normalize_native_prompt_response
 from .telecommand_runtime_v11 import (
@@ -378,6 +379,8 @@ def worker_main(
     try:
         v11_preflight = ir_version == V11_IR_VERSION
         v17_preflight = ir_version == V17_IR_VERSION
+        v18_preflight = ir_version == V18_IR_VERSION
+        telecommand_runtime = v11_preflight or v18_preflight
         v16_preflight = ir_version == V16_IR_VERSION
         v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
@@ -390,9 +393,12 @@ def worker_main(
             V11_IR_VERSION,
             V16_IR_VERSION,
             V17_IR_VERSION,
+            V18_IR_VERSION,
         }
         validator = (
-            validate_ir_v17
+            validate_ir_v18
+            if v18_preflight
+            else validate_ir_v17
             if v17_preflight
             else validate_ir_v16
             if v16_preflight
@@ -519,6 +525,7 @@ def worker_main(
         V10ValidationError,
         V11ValidationError,
         V17ValidationError,
+        V18ValidationError,
     ) as exc:
         send(
             "event",
@@ -544,6 +551,7 @@ def worker_main(
         V11_IR_VERSION,
         V16_IR_VERSION,
         V17_IR_VERSION,
+        V18_IR_VERSION,
     }
     file_handle_variables = {
         step["target"]
@@ -558,7 +566,7 @@ def worker_main(
         if step.get("type") == "build_tc" and type(step.get("target")) is str
     }
     telecommand_dependency_names = (
-        telecommand_dependency_variables(steps) if v11_preflight else frozenset()
+        telecommand_dependency_variables(steps) if telecommand_runtime else frozenset()
     )
     send(
         "event",
@@ -1035,7 +1043,7 @@ def worker_main(
                 if type(target) is not int or target < 0 or target >= len(steps):
                     reject_control(followup, "COMMAND_TARGET_INVALID", "goto target is invalid")
                     continue
-                if ir_version == V11_IR_VERSION and target <= step_index:
+                if telecommand_runtime and target <= step_index:
                     reject_control(
                         followup,
                         "TC_REENTRY_FORBIDDEN",
@@ -1271,7 +1279,7 @@ def worker_main(
             elif should_run and step["type"] == "prompt":
                 expected_prompt_id = (
                     ordinary_prompt_id(execution_id, step_index)
-                    if v11_preflight or v17_preflight
+                    if v11_preflight or v17_preflight or v18_preflight
                     else None
                 )
                 if (
@@ -1434,7 +1442,10 @@ def worker_main(
                     variables[step["response_target"]] = response
             elif should_run and step["type"] == "language_check":
                 try:
-                    if v17_preflight:
+                    if v18_preflight:
+                        from .language_conformance_v18 import execute_selection as execute_v18_selection
+                        summary, check_effects = execute_v18_selection(evaluate_expression(step["selection"], variables))
+                    elif v17_preflight:
                         from .language_conformance_v17 import execute_selection as execute_v17_selection
                         summary, check_effects = execute_v17_selection(evaluate_expression(step["selection"], variables))
                     else:

@@ -94,9 +94,17 @@ def test_existing_display_service_mixes_retain_prior_ir(_name, version, service,
     'result17 = "pending"\nLanguageCheck(0, profile="0.17", target=result17)\n',
 ])
 def test_new_native_capabilities_do_not_expand_service_authority(_name, _version, service, new_source) -> None:
-    with pytest.raises(ProcedureValidationError) as exc:
-        _parse(service + new_source)
-    assert exc.value.diagnostics[0].code == "SPELL937"
+    if _name == "telecommand" and "LanguageCheck" not in new_source:
+        procedure = _parse(service + new_source)
+        assert procedure.ir_version == "0.18"
+        # The new compiler selects the new contract; the stored v0.17
+        # validator still rejects this historically unsupported combination.
+        with pytest.raises(ValueError):
+            validate_ir_v17("0.17", list(procedure.steps))
+    else:
+        with pytest.raises(ProcedureValidationError) as exc:
+            _parse(service + new_source)
+        assert exc.value.diagnostics[0].code == "SPELL937"
 
 
 def _worker(procedure, position: int, checkpoint: dict, *, acknowledge: bool):

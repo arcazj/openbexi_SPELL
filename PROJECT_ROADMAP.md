@@ -1,31 +1,29 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-02. **v0.17.0 is accepted and published**; v0.16.0 is its accepted predecessor. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) binds the release to its qualified source and evidence.
+Updated 2026-10-02. **v0.18.0 is in implementation and qualification**;
+v0.17.0 remains the accepted predecessor. The [entry gate](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Pre-Implementation.md)
+defines the approved bounded increment.
 
 This roadmap describes local simulator engineering. It does not authorize live
 GCS/spacecraft connectivity, deployment or operational use. All documents under
 `SPELL_DOCUMENTATION/` remain mandatory source references; the broader generated
 specification `0.1.0-draft.1` remains Draft.
 
-## v0.17.0 - Delivered Scope
+## v0.18.0 - Current Scope
 
-The [entry scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Pre-Implementation.md)
-defines the approved bounded increment. The
-[implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md)
-tracks qualification and release status.
+The [release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md)
+tracks implementation and qualification.
 
-| Work | Delivered result |
+| Work | Required result |
 | --- | --- |
-| Core language | Direct scalar/operator/conditional/short-circuit/range cases; bounded integer power, AND and OR; validated empty ranges |
-| Native Display/Prompt | Documented call forms and typed results, explicit timeout interpretation, cancellation and durable recovery checks |
-| Coverage and runner | Preserve numbered adaptations; add direct checks and distinguish missing implementation, missing proof and manual conflicts |
-| Documentation | Concise current instructions, explicit bounds and one canonical release record |
-| Release | Frozen candidate, complete source-bound qualification, reproducible package and published validated tag |
+| Native command workflow | Prompt, typed answer and conditional branch, existing BuildTC/Send, Display |
+| Runtime authority and recovery | Independent command confirmation, durable intent, no duplicate effects or automatic resend after uncertainty |
+| Reference runner and procedures | Preserve earlier checks; add direct command evidence and four runnable testing procedures |
+| Documentation and release | Concise instructions, full qualification, reproducible package and validated published tag |
 
 A complete reference inventory is different from complete language support.
-The [coverage matrix](contracts/v17/language_coverage.json) must retain missing
-semantics as gaps. Expected rejection tests and example adaptations cannot be
-counted as successful full-language conformance.
+The [coverage matrix](contracts/v18/language_coverage.json) must retain missing
+semantics as gaps. Adaptations and expected rejection are not full conformance.
 
 ## Delivered Releases
 

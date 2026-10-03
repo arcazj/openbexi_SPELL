@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from backend.procedure_parser import ProcedureCatalog
-from scripts.generate_reference_runner_v17 import MENU_COUNT
+from scripts.generate_reference_runner_v18 import MENU_COUNT
+from backend.language_conformance_v18 import CATALOG_PROFILES
 
 from .test_worker_v06 import _next, _start_worker
 
@@ -56,9 +57,9 @@ def test_first_catalog_runner_routes_prompt_index_to_example_195(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     procedures = ProcedureCatalog(ROOT / "procedures").list()
-    assert [procedure.id for procedure in procedures] == ["language_reference_244", "prompt_workflow_v17"]
+    assert [procedure.id for procedure in procedures] == [identity for identity, _ in CATALOG_PROFILES]
     procedure = procedures[0]
-    assert procedure.ir_version == "0.17"
+    assert procedure.ir_version == "0.18"
 
     thread, control, output = _start_worker(
         monkeypatch,

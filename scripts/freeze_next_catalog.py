@@ -53,7 +53,10 @@ def main():
     features = {13: ["synthetic_control_v13"], 14: ["telemetry_adapter_v14"],
                 15: ["shadow_pilot_v15"], 16: ["language_conformance_v16", "local_session_v16"],
                 17: ["language_core_v17", "prompt_v17", "worker_prompt_v17", "prompt_runtime_v17",
-                     "prompt_api_v17", "language_conformance_v17"]}[MINOR]
+                     "prompt_api_v17", "language_conformance_v17"],
+                18: ["native_telecommand_ir_v18", "worker_composition_v18", "supervisor_composition_v18",
+                     "prompt_telecommand_api_v18", "operator_composition_v18", "language_conformance_v18",
+                     "catalog_procedures_v18", "composition_security_v18"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
     prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))

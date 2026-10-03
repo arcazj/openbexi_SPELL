@@ -1,5 +1,12 @@
 # SPELL Release Provenance and Dependency Review
 
+## v0.18 Work In Progress
+
+The native-command increment inherits eight unchanged source references and
+earlier runtime contracts. New tests are independently authored; manuals and
+legacy source remain read-only and excluded from images and packages.
+The [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Pre-Implementation.md) defines the bounds. Final evidence is pending.
+
 ## Accepted v0.17 Release
 
 The direct-language increment passed independent clean-tag validation and was published. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) binds the qualified source, package and supply-chain evidence. Original manuals and legacy code remain read-only and excluded from product images and release packages.

@@ -98,7 +98,7 @@ def test_language_service_golden_diagnostics_outline_and_completions_are_determi
     )
     assert invalid_first.diagnostics == (
         {
-            "diagnostic_id": "67444e1641b895eb23484f268f0279a572e7fc9be6c5f3c4a19615d3dab15607",
+            "diagnostic_id": "823de5957478d359fadb8e32a19c88aae399119cd6becc07494e3bf4c26440c9",
             "code": "SPELL001",
             "severity": "ERROR",
             "source_path": "procedures/invalid.spell.py",
@@ -109,7 +109,7 @@ def test_language_service_golden_diagnostics_outline_and_completions_are_determi
             "language_profile": "spell-restricted-ast/0.9",
             "message": "'(' was never closed",
             "remediation_ref": "spell://diagnostics/SPELL001",
-            "tool_version": "spell-development-analysis/0.17",
+            "tool_version": "spell-development-analysis/0.18",
         },
     )
     assert [

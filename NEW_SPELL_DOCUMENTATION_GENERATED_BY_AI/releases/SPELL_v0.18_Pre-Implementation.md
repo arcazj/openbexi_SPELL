@@ -38,9 +38,12 @@ Abort stops execution without a fabricated result or later command. The
 v0.17 interpretation of Prompt timeout/default conflicts remains unchanged.
 Prompt settlement and command intent must survive reconnect and restart.
 
-Command names, argument values and modifiers retain their existing v0.11
-literal-only, catalog-backed bounds. The new scalar expressions may control
-branches but do not broaden command operand evaluation. Built items and their
+IR 0.18 accepts literal catalog command names or immutable BuildTC items;
+command argument values retain literal-only bounds, and modifiers keep the
+existing closed literal and constant temporal forms. Earlier
+IR 0.11 string-variable selectors remain available in that older profile,
+but are rejected in the new composition profile. New scalar expressions may
+control branches but do not broaden command operand evaluation. Built items and their
 dependencies remain immutable. Loading is not execution; possible or unknown
 effects are not success and never trigger automatic resend. Recovery must
 retain the original operation/request identity and enforce current authority.
@@ -52,7 +55,8 @@ parser rejection alone. Earlier persisted IR and earlier registry contracts
 retain their exact semantics. Bounded integer and native prompt limits remain.
 
 This release does not combine the v0.8 data, argument, file or environment
-profiles with the new native profile. Collections, general function arguments
+profiles or direct GetTM/Verify/WaitFor instructions with native telecommands.
+Their existing separate profiles remain available. Collections, general function arguments
 and returns, imports and exception syntax remain outside scope. The compact
 workspace and finite automatic loopback operator session remain unchanged.
 No live GCS/spacecraft connection or operational authorization is added.

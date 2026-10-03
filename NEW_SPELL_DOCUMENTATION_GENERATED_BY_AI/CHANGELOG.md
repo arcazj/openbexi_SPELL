@@ -3,6 +3,11 @@
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 
+## v0.18 Product Documentation - 2026-10-02
+
+- Added the native-command entry scope, current instructions and testing-procedure guide.
+- Retained historical acceptance records and explicit compatibility limits; v0.18 qualification is pending.
+
 ## v0.17 Acceptance Closeout - 2026-10-02
 
 - Recorded accepted and published [v0.17.0](releases/SPELL_v0.17_Implementation.md#accepted-release-binding), actual qualification totals and exact Git bindings.

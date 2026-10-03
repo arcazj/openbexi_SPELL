@@ -54,8 +54,8 @@ def main():
                 assert contract["profile"] == "LOCAL_SYNTHETIC_SHADOW_PILOT" and contract["operational_authorization"] is False
                 row["pilot_profile"] = contract
             if MINOR >= 16:
-                language_module = "backend.language_conformance_v17" if MINOR >= 17 else "backend.language_conformance_v16"
-                expected_ir = "0.17" if MINOR >= 17 else "0.16"
+                language_module = f"backend.language_conformance_v{MINOR}"
+                expected_ir = f"0.{MINOR}"
                 code = (
                     "import json; from pathlib import Path; "
                     "from backend.procedure_parser import ProcedureCatalog; "
@@ -74,8 +74,8 @@ def main():
                 )
                 row["language_runner"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
                 if MINOR >= 17:
-                    from backend.language_conformance_v17 import expected_image_runner_proof
-                    assert row["language_runner"] == expected_image_runner_proof()
+                    from importlib import import_module
+                    assert row["language_runner"] == import_module(language_module).expected_image_runner_proof()
         images[name] = row
     services = {}
     for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):

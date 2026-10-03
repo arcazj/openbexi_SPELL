@@ -1,5 +1,12 @@
 # Test and Integration Plan
 
+## v0.18.0 Qualification In Progress
+
+The approved scope requires native command integration, authoritative dispatch,
+crash recovery, direct runner cases and execution of every new testing procedure.
+Candidate and final results are pending; the [release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md)
+will record actual results. Earlier results below remain historical evidence.
+
 ## v0.17.0 Qualification
 
 Annotated `v0.17.0` passed independent clean-tag validation and was published. The seven final suites recorded 4,563 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 363 checks. Four package builds across two independent exports matched, with no accepted exceptions.

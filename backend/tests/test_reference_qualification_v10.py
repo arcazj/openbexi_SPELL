@@ -15,9 +15,10 @@ from contracts.v10 import (
     generate_language_reference_variant_matrix as variant_contract_generator,
 )
 from contracts.v10.generate_language_reference_example_matrix import encode_contract
-from scripts import generate_reference_runner_v17 as runner_generator
+from scripts import generate_reference_runner_v18 as runner_generator
 from scripts import qualify_reference_examples_v10 as qualification_generator
-from scripts.generate_reference_runner_v17 import OUTPUT, render
+from scripts.generate_reference_runner_v18 import OUTPUT, render
+from backend.language_conformance_v18 import CATALOG_PROFILES
 from scripts.qualify_reference_examples_v10 import (
     DEFAULT_OUTPUT,
     encode_qualification,
@@ -30,17 +31,15 @@ MATRIX = ROOT / "contracts" / "v10" / "language_reference_example_matrix.json"
 VARIANT_MATRIX = ROOT / "contracts" / "v10" / "language_reference_variant_matrix.json"
 
 
-def test_generated_runner_is_current_and_catalog_has_exact_two_reviewed_procedures() -> None:
+def test_generated_runner_is_current_and_catalog_has_exact_six_reviewed_procedures() -> None:
     assert OUTPUT.read_bytes() == render().encode("ascii")
     assert sorted(
         path.relative_to(ROOT / "procedures").as_posix()
         for path in (ROOT / "procedures").rglob("*.spell.py")
-    ) == ["language_reference_244.spell.py", "prompt_workflow_v17.spell.py"]
+    ) == [identity + ".spell.py" for identity, _ in CATALOG_PROFILES]
 
     procedures = ProcedureCatalog(ROOT / "procedures").list()
-    assert [(item.id, item.ir_version) for item in procedures] == [
-        ("language_reference_244", "0.17"), ("prompt_workflow_v17", "0.17")
-    ]
+    assert [(item.id, item.ir_version) for item in procedures] == list(CATALOG_PROFILES)
     assert "0.10" not in SUPPORTED_BUNDLE_IR_SCHEMA_VERSIONS
 
     dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
@@ -174,7 +173,7 @@ def test_published_reference_qualification_is_current_and_exact() -> None:
     expected = qualify()
 
     assert published["ir_version"] == "0.10"
-    assert expected["ir_version"] == "0.17"
+    assert expected["ir_version"] == "0.18"
     changing_runner_fields = {"runner_sha256", "ir_version", "content_binding_sha256", "release", "language_profile"}
     assert {k: v for k, v in published.items() if k not in changing_runner_fields} == {
         k: v for k, v in expected.items() if k not in changing_runner_fields

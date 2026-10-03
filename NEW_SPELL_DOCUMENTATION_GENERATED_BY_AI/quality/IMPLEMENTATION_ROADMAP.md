@@ -2,6 +2,10 @@
 
 ## Current Local Increment
 
+v0.18.0 is in implementation and qualification for native command workflows
+and additional testing procedures. Its [record](../releases/SPELL_v0.18_Implementation.md)
+tracks proof; v0.17.0 remains the accepted predecessor.
+
 v0.17.0 is accepted and published for bounded direct language conformance and native Display/Prompt behavior. Its [release record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns scope and evidence; v0.16.0 is its accepted predecessor. Broader phases below retain their separate Draft gates.
 
 ## Roadmap Rule

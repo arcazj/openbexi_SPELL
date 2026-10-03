@@ -1,0 +1,9 @@
+{
+  "schema_version": "spell.v18.control-extension/1",
+  "extends": "contracts/v17/control_extension.json",
+  "additional_execution_ir_versions": ["0.18"],
+  "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+  "operational_authorization": false,
+  "new_commands": [],
+  "unchanged_requirements": "All v0.13 roles, leases, fencing, revisions, source identities and durable outcomes apply. Native answers do not replace telecommand confirmation."
+}

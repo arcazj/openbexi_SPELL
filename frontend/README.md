@@ -1,4 +1,4 @@
-# SPELL v0.17 Console
+# SPELL v0.18 Console
 
 Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
 simulator. No token entry is needed. If the backend is unavailable, use
@@ -43,6 +43,14 @@ to controls or opens prompt settings.
 Browser differences are recorded in the [UI profile](../contracts/v16/ui_profile.json):
 panes stack on narrow screens, native detached windows are unavailable, and the
 unrestricted legacy Python Shell remains excluded. Original manuals are unchanged.
+
+## Testing Procedures
+
+Navigation includes the reference runner, the existing prompt walkthrough and
+four new procedures for command branching, default handling, command modes
+and core language. See the [procedure guide](../procedures/README.md) for inputs
+and expected results. A native prompt answer never replaces a required command
+confirmation; aborting stops the procedure.
 
 ## Native Language Prompts
 

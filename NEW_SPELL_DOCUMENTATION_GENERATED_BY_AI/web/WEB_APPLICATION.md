@@ -12,6 +12,10 @@ for current behavior and qualification. The broader design below remains Draft.
 
 ## Accepted Local Product Profile
 
+v0.18.0 is in qualification for native prompt-to-command workflows and four
+additional testing procedures. The [record](../releases/SPELL_v0.18_Implementation.md)
+tracks proof; the compact workspace and automatic local connection remain.
+
 Accepted v0.17.0 adds native prompt input, reset, typed results and durable warnings/deadlines within this workspace. The [accepted record](../releases/SPELL_v0.17_Implementation.md#accepted-release-binding) owns qualification evidence. The inherited workspace history below remains unchanged.
 
 As of 2026-10-01, accepted v0.16.0 delivers the compact manual workspace and

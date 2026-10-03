@@ -57,6 +57,8 @@ V11_LANGUAGE_PROFILE = "spell-telecommand-simulator/0.11"
 V16_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.16"
 V17_IR_VERSION = "0.17"
 V17_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.17"
+V18_IR_VERSION = "0.18"
+V18_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.18"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -105,6 +107,8 @@ V08_DATA_CALLS = frozenset(
 
 
 def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V18_IR_VERSION:
+        return V18_LANGUAGE_PROFILE
     if ir_version == V17_IR_VERSION:
         return V17_LANGUAGE_PROFILE
     if ir_version == V16_IR_VERSION:
@@ -424,7 +428,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V17_IR_VERSION
+            V18_IR_VERSION
+            if compiler.uses_v18
+            else V17_IR_VERSION
             if compiler.uses_v17
             else V16_IR_VERSION
             if compiler.uses_v16
@@ -441,10 +447,14 @@ class ProcedureCatalog:
             else IR_VERSION
         )
         try:
-            if compiler.uses_v17:
+            if compiler.uses_v18:
+                from .ir_v18 import validate_ir_v18
+            elif compiler.uses_v17:
                 from .ir_v17 import validate_ir_v17
             validated_ir = (
-                validate_ir_v17(ir_version, steps)
+                validate_ir_v18(ir_version, steps)
+                if compiler.uses_v18
+                else validate_ir_v17(ir_version, steps)
                 if compiler.uses_v17
                 else validate_ir_v16(ir_version, steps)
                 if compiler.uses_v16
@@ -565,6 +575,7 @@ class _Compiler:
         self.uses_v11 = False
         self.uses_v16 = False
         self.uses_v17 = False
+        self.uses_v18 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -644,18 +655,30 @@ class _Compiler:
         return description, self.steps
 
     def _preserve_legacy_service_display(self, tree: ast.Module) -> None:
+        if self.uses_v18 and (self.uses_v08 or self.uses_v07 or self.uses_v11):
+            self._reject(tree, "SPELL937", "language selection cannot mix external service capabilities")
         if not self.uses_v17 or not (self.uses_v08 or self.uses_v11):
             return
-        if (has_core_expressions(self.steps)
-                or any(step.get("prompt_profile") is not None for step in self.steps)
-                or any(step["type"] == "language_check" for step in self.steps)):
-            self._reject(tree, "SPELL937", "native v0.17 capabilities cannot be combined with legacy data or telecommand services")
-        # These service profiles have authoritative version-specific broker and
-        # recovery paths. Preserve their accepted nonempty Display/log contract.
+        selection = any(step["type"] in {"language_check", "reference_example"} for step in self.steps)
+        native = (has_core_expressions(self.steps)
+                  or any(step.get("prompt_profile") is not None for step in self.steps))
+        empty_display = any(step["type"] == "display" and type(step["message"]) is str
+                            and not step["message"].strip() for step in self.steps)
+        if self.uses_v11 and not self.uses_v08 and not self.uses_v07 and not selection and (native or empty_display):
+            for step in self.steps:
+                if step["type"] == "send_tc":
+                    selector = step["selector"]
+                    values = selector["value"] if selector["kind"] == "group" else [selector["value"]]
+                    if any(type(value) is dict and value.get("expr") != "telecommand_item" for value in values):
+                        self._reject(tree, "SPELL938", "native telecommands require literal names or BuildTC items")
+            self.uses_v18 = True
+            return
+        if native or selection or empty_display:
+            self._reject(tree, "SPELL937", "native capabilities cannot mix this legacy service profile")
+        # Keep earlier successful dynamic Display/service sources in their
+        # original IR and nonempty-log contract. New combinations use IR 0.18.
         for step in self.steps:
             if step["type"] == "display":
-                if type(step["message"]) is str and not step["message"].strip():
-                    self._reject(tree, "SPELL937", "empty Display is unavailable in the legacy service profile")
                 step["type"] = "log"
         self.uses_v17 = False
 
@@ -815,9 +838,13 @@ class _Compiler:
         self.uses_v06 = True
 
     def _validate_user_action_targets(self) -> None:
-        telecommand_dependencies = (
-            telecommand_dependency_variables(self.steps) if self.uses_v11 else frozenset()
-        )
+        if self.uses_v18 and self.uses_v11:
+            from .runtime_composition_v18 import telecommand_dependency_variables as native_dependencies
+            telecommand_dependencies = native_dependencies(self.steps)
+        else:
+            telecommand_dependencies = (
+                telecommand_dependency_variables(self.steps) if self.uses_v11 else frozenset()
+            )
         for definition in self.user_actions:
             for operation in definition["handler"]:
                 if operation["op"] != "SET_LITERAL":
@@ -1254,11 +1281,15 @@ class _Compiler:
                 self._reject(call, "SPELL924", "LanguageCheck requires one selection and target")
             all_selection, cases_sha256 = ALL_SELECTION, CASESET_SHA256
             if "profile" in options:
-                if not isinstance(options["profile"], ast.Constant) or options["profile"].value != "0.17":
-                    self._reject(options["profile"], "SPELL924", "LanguageCheck profile must be the literal 0.17")
-                from .ir_v17 import ALL_SELECTION as V17_ALL_SELECTION, CASESET_SHA256 as V17_CASESET_SHA256
-                all_selection, cases_sha256 = V17_ALL_SELECTION, V17_CASESET_SHA256
-                self.uses_v17 = True
+                if not isinstance(options["profile"], ast.Constant) or options["profile"].value not in {"0.17", "0.18"}:
+                    self._reject(options["profile"], "SPELL924", "LanguageCheck profile must be the literal 0.17 or 0.18")
+                if options["profile"].value == "0.18":
+                    from .ir_v18 import ALL_SELECTION as selected_all, CASESET_SHA256 as selected_hash
+                    self.uses_v18 = True
+                else:
+                    from .ir_v17 import ALL_SELECTION as selected_all, CASESET_SHA256 as selected_hash
+                    self.uses_v17 = True
+                all_selection, cases_sha256 = selected_all, selected_hash
             selection = self._typed_argument(call.args[0], {"int"}, "LanguageCheck selection")
             if type(selection) is int and not 0 <= selection <= all_selection:
                 self._reject(call, "SPELL925", "LanguageCheck selection is outside the closed registry")
