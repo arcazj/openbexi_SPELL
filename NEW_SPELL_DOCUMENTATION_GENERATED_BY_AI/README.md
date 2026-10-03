@@ -1,5 +1,12 @@
 # Next-Generation SPELL Documentation
 
+## v0.19.0 Local Increment In Qualification
+
+The [v0.19 implementation](releases/SPELL_v0.19_Implementation.md) adds bounded
+observation-to-command procedures and aligned authoring. Acceptance and
+publication are pending; v0.18.0 remains the accepted local predecessor.
+The broader design and GUI manual/PDF remain Draft.
+
 ## Purpose
 
 This directory is the controlled, derived design specification for planning and

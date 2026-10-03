@@ -232,6 +232,7 @@ const consoleSlice = createSlice({
     },
     setConnectionPhase(state, action: { payload: ConnectionPhase }) {
       state.connection.phase = action.payload;
+      if (action.payload === "RESYNCING" && state.execution?.allowed_actions !== undefined) state.execution.allowed_actions = [];
       if (action.payload === "CONNECTED") state.connection.reconnectAttempt = 0;
     },
     markReconnect(state) {
@@ -260,6 +261,10 @@ const consoleSlice = createSlice({
       execution.events.push(event);
       execution.events = execution.events.slice(-500);
       state.connection.lastMessageAt = event.server_time;
+
+      if (execution.allowed_actions !== undefined && ["execution.state_changed", "prompt.opened", "prompt.reopened", "prompt.closed", "prompt.settled"].includes(event.event_type)) {
+        execution.allowed_actions = [];
+      }
 
       if (event.event_type === "execution.state_changed") {
         execution.state = String(event.payload.state).toUpperCase() as ExecutionSnapshot["state"];

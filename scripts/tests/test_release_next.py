@@ -14,6 +14,7 @@ from scripts import release_next as release
     (16, "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"),
     (17, "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"),
     (18, "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS"),
+    (19, "LOCAL_SIMULATOR_OBSERVATION_COMMAND_WORKFLOWS"),
 ])
 @pytest.mark.parametrize("tamper", [None, "schema", "owner", "requirements", "predecessor", "authority", "inventory", "source"])
 def test_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypatch, minor, scope, tamper):
@@ -86,7 +87,7 @@ def test_release_metadata_rejects_tamper_even_when_package_hash_is_unchanged(mon
         release.verify_release_metadata(manifest, reproduced)
 
 
-@pytest.mark.parametrize("minor", [16, 17, 18])
+@pytest.mark.parametrize("minor", [16, 17, 18, 19])
 @pytest.mark.parametrize("tamper", [None, "missing", "extra", "ir", "cases", "adaptations", "authority", "failure"])
 def test_installed_language_runner_proof_is_exact(monkeypatch, minor, tamper):
     monkeypatch.setattr(release, "MINOR", minor)

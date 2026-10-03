@@ -62,8 +62,6 @@ def test_prior_source_profiles_keep_their_contract(source: str, version: str) ->
     ('item = BuildTC("CMDNAME")\nitem = Prompt("Name", ALPHA)\n', "SPELL913"),
     ('Prompt("Question")\nDataContainer("LOCAL.DATA")\nSend(command="CMDNAME")\n', "SPELL937"),
     ('ARGS(name="str")\nPrompt("Question")\nSend(command="CMDNAME")\n', "SPELL937"),
-    ('value: float = 0.0\nGetTM("TM.A", target=value, scalar_type="float")\nPrompt("Question")\nSend(command="CMDNAME")\n', "SPELL937"),
-    ('WaitFor(seconds=1)\nPrompt("Question")\nSend(command="CMDNAME")\n', "SPELL937"),
     ('name: str = ""\nFile("PROJECT_DATA", "sample.txt", property="basename", target=name)\nPrompt("Question")\nSend(command="CMDNAME")\n', "SPELL937"),
     ('result = ""\nLanguageCheck(0, profile="0.18", target=result)\nSend(command="CMDNAME")\n', "SPELL937"),
 ])
@@ -71,6 +69,17 @@ def test_out_of_scope_source_combinations_are_explicit(source: str, diagnostic: 
     with pytest.raises(ProcedureValidationError) as exc:
         _parse(source)
     assert exc.value.diagnostics[0].code == diagnostic
+
+
+@pytest.mark.parametrize("observation", [
+    'value: float = 0.0\nGetTM("TM.A", target=value, scalar_type="float")\n',
+    'WaitFor(seconds=1)\n',
+])
+def test_new_observation_composition_does_not_broaden_frozen_ir18(observation: str) -> None:
+    procedure = _parse(observation + 'Prompt("Question")\nSend(command="CMDNAME")\n')
+    assert procedure.ir_version == "0.19"
+    with pytest.raises(ValueError):
+        validate_ir_v18("0.18", list(procedure.steps))
 
 
 @pytest.mark.parametrize("mutation", [
@@ -199,7 +208,7 @@ def test_development_cache_uses_new_profile_and_tool_identity() -> None:
     analysis = development_analysis.analyze_source(source, "procedures/native-tc.spell.py", workspace_revision=1)
     assert analysis.diagnostics == ()
     assert analysis.compiled["procedures/native-tc.spell.py"]["ir_version"] == "0.18"
-    assert development_analysis.TOOL_VERSION == "spell-development-analysis/0.18"
+    assert development_analysis.TOOL_VERSION == "spell-development-analysis/0.19"
 
 
 @pytest.mark.parametrize("target", ["question", "answer"])

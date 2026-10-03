@@ -27,6 +27,8 @@ as `PROJECT_ROADMAP.md`, `VERSION_TIMELINE.md`, `Test_and_Integration.md`, and
 | v0.17 | [Pre-Implementation](SPELL_v0.17_Pre-Implementation.md) | [Accepted `v0.17.0`](SPELL_v0.17_Implementation.md#accepted-release-binding); direct language conformance and native Display/Prompt behavior |
 | v0.18 | [Pre-Implementation](SPELL_v0.18_Pre-Implementation.md) | [Accepted `v0.18.0`](SPELL_v0.18_Implementation.md#accepted-release-binding); native command workflows and testing procedures |
 
+| v0.19 | [Pre-Implementation](SPELL_v0.19_Pre-Implementation.md) | [Implementation](SPELL_v0.19_Implementation.md); observation-to-command workflows, qualification pending |
+
 **v0.18.0** is accepted and published; **v0.17.0** is its accepted predecessor.
 The
 [console guide](../../frontend/README.md) describes current operator workflows.

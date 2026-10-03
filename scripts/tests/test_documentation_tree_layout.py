@@ -50,6 +50,8 @@ EXPECTED_RELEASE_RECORDS = {
     "SPELL_v0.17_Implementation.md",
     "SPELL_v0.18_Pre-Implementation.md",
     "SPELL_v0.18_Implementation.md",
+    "SPELL_v0.19_Pre-Implementation.md",
+    "SPELL_v0.19_Implementation.md",
 }
 EXPECTED_REFERENCE_MANUAL_SHA256 = {
     "SPELL - Development Environment Manual - 2.4.4.pdf": (

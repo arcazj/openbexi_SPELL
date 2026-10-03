@@ -1,5 +1,36 @@
 # Procedure Authoring and Git Governance
 
+## Current Local v0.19 Authoring
+
+The local development workspace at `http://127.0.0.1:8080/development.html`
+connects automatically. Its v0.19 implementation is ready for qualification;
+release acceptance and publication remain pending. The broader Git-governance
+design below is not a claim that every planned integration is delivered.
+
+1. **Create project** defaults to `spell-lrm244-conformance/0.19`. Select
+   `spell-restricted-ast/0.9` explicitly when creating a legacy project.
+2. **New procedure** uses the selected profile in its header. Completion,
+   highlighting and snippets support the bounded native Prompt/Display,
+   GetTM/Verify/WaitFor and literal BuildTC/Send syntax. Service and command
+   operands remain literal; arbitrary Python and full SPELL are not supported.
+3. Save and choose **Run semantic check**. The report binds the project profile
+   and saved sources; a mismatched procedure header blocks compilation.
+   Semantic checks do not execute the procedure.
+4. **Commit all changes**, obtain a different reviewer's revision approval,
+   then **Build bundle**. Obtain bundle approval and promote from
+   **Bundles and promotion**. Admission revalidates exact source, profile, IR,
+   review and current toolchain evidence before exposing the procedure.
+
+Existing projects retain their profile and legacy admission boundaries.
+Incompatible old bundles must be rebuilt and reviewed; version metadata is not
+silently rewritten. Authored bundles exclude the closed reference-runner steps.
+Standalone existing v0.8 service procedures remain separate from the v0.19
+observation-command composition. Observation values are committed snapshots;
+they are not revalidated at command time. Use explicit successful outcomes and
+retain any independent command confirmation. See the
+[console guide](../../frontend/README.md#author-a-local-workflow) and
+[v0.19 release record](../releases/SPELL_v0.19_Implementation.md).
+
 ## 1. Purpose
 
 This document defines how procedures are created, changed, validated, reviewed,

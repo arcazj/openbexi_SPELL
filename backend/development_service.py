@@ -1,4 +1,4 @@
-"""Transactional service for bounded v0.9 project authoring and promotion."""
+"""Transactional service for bounded, profile-bound authoring and promotion."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ import time
 import uuid
 import zipfile
 import zlib
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Sequence
@@ -23,6 +24,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from .database import begin_mutation_write, session_scope, utc_now
 from .development_bundle_builder import BundleBuilder, make_build_request
 from .development_bundle_provenance import BUILDER_IDENTITY, toolchain_digest
+from .development_profiles import PROJECT_LANGUAGE_PROFILES, PROFILE_IR_VERSIONS
 from .development_analysis import (
     AnalysisResult,
     LANGUAGE_PROFILE,
@@ -121,7 +123,7 @@ MAX_PROMOTION_DECISIONS_PER_ENTRY = 100_000
 MAX_STORED_MUTATION_RESPONSE_BYTES = 1_048_576
 MAX_DURABLE_RECORDS_PER_SCOPE = 100_000
 SUPPORTED_BUNDLE_IR_SCHEMA_VERSIONS = frozenset(
-    {IR_VERSION, V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION}
+    version for versions in PROFILE_IR_VERSIONS.values() for version in versions
 )
 _MISSING = object()
 
@@ -933,7 +935,7 @@ class DevelopmentService:
             raise DevelopmentError("manifest project identity differs")
         if manifest["case_policy"] != case_policy:
             raise DevelopmentError("manifest case policy differs")
-        if manifest["language_profile"] != "spell-restricted-ast/0.9":
+        if type(manifest["language_profile"]) is not str or manifest["language_profile"] not in PROJECT_LANGUAGE_PROFILES:
             raise DevelopmentError("manifest language profile is unsupported")
         roots = manifest["source_roots"]
         if type(roots) is not list or not roots or len(roots) > 32:
@@ -1488,6 +1490,7 @@ class DevelopmentService:
                         result["content"],
                         row.path,
                         workspace_revision=int(project.workspace_revision),
+                        language_profile=project.manifest["language_profile"],
                     )
                 )
                 result["language"] = {
@@ -1519,7 +1522,7 @@ class DevelopmentService:
                         "procedure_id": procedure_id,
                         "display_name": display_name,
                         "description": description,
-                        "language_profile": LANGUAGE_PROFILE,
+                        "language_profile": project.manifest["language_profile"],
                         "arguments": arguments,
                         "catalog_dependencies": list(
                             project.manifest.get("catalog_dependencies", [])
@@ -2378,7 +2381,7 @@ class DevelopmentService:
                     DevelopmentLibraryCache.project_id == project.project_id,
                     DevelopmentLibraryCache.cache_kind == "CATALOG_GRAPH",
                     DevelopmentLibraryCache.content_digest == content_digest,
-                    DevelopmentLibraryCache.language_profile == LANGUAGE_PROFILE,
+                    DevelopmentLibraryCache.language_profile == project.manifest["language_profile"],
                     DevelopmentLibraryCache.tool_version == TOOL_VERSION,
                 )
             )
@@ -2449,7 +2452,7 @@ class DevelopmentService:
                 project_id=project.project_id,
                 cache_kind="CATALOG_GRAPH",
                 content_digest=content_digest,
-                language_profile=LANGUAGE_PROFILE,
+                language_profile=project.manifest["language_profile"],
                 tool_version=TOOL_VERSION,
                 canonical_result=cache_bytes,
                 result_sha256=sha256_bytes(cache_bytes),
@@ -2464,6 +2467,7 @@ class DevelopmentService:
         resource: Mapping[str, Any],
         workspace_revision: int,
         reparse: bool,
+        language_profile: str = LANGUAGE_PROFILE,
     ) -> tuple[AnalysisResult, bool]:
         path = str(resource["path"])
         raw = bytes(resource["content"])
@@ -2475,7 +2479,7 @@ class DevelopmentService:
                         DevelopmentLibraryCache.project_id == project_id,
                         DevelopmentLibraryCache.cache_kind == "LIBRARY_INDEX",
                         DevelopmentLibraryCache.content_digest == content_digest,
-                        DevelopmentLibraryCache.language_profile == LANGUAGE_PROFILE,
+                        DevelopmentLibraryCache.language_profile == language_profile,
                         DevelopmentLibraryCache.tool_version == TOOL_VERSION,
                     )
                 )
@@ -2515,6 +2519,9 @@ class DevelopmentService:
                 path,
                 workspace_revision=workspace_revision,
             )
+        result = replace(result, diagnostics=tuple(
+            {**item, "language_profile": language_profile} for item in result.diagnostics
+        ))
         result_bytes = canonical_json_bytes(
             {
                 "completions": list(result.completions),
@@ -2530,7 +2537,7 @@ class DevelopmentService:
                     DevelopmentLibraryCache.project_id == project_id,
                     DevelopmentLibraryCache.cache_kind == "LIBRARY_INDEX",
                     DevelopmentLibraryCache.content_digest == content_digest,
-                    DevelopmentLibraryCache.language_profile == LANGUAGE_PROFILE,
+                    DevelopmentLibraryCache.language_profile == language_profile,
                     DevelopmentLibraryCache.tool_version == TOOL_VERSION,
                 )
             )
@@ -2541,7 +2548,7 @@ class DevelopmentService:
                         project_id=project_id,
                         cache_kind="LIBRARY_INDEX",
                         content_digest=content_digest,
-                        language_profile=LANGUAGE_PROFILE,
+                        language_profile=language_profile,
                         tool_version=TOOL_VERSION,
                         canonical_result=result_bytes,
                         result_sha256=sha256_bytes(result_bytes),
@@ -2827,6 +2834,7 @@ class DevelopmentService:
                     resource=resource,
                     workspace_revision=job_revision,
                     reparse=bool(job.reparse_libraries),
+                    language_profile=project.manifest["language_profile"],
                 )
                 diagnostics.extend(result.diagnostics)
                 outline.extend(
@@ -2842,6 +2850,7 @@ class DevelopmentService:
                     workspace_revision=job_revision,
                     scope=job_scope,
                     scope_path=job_scope_path,
+                    language_profile=project.manifest["language_profile"],
                 )
                 diagnostics.extend(result.diagnostics)
                 outline.extend(result.outline)
@@ -2856,6 +2865,8 @@ class DevelopmentService:
                 library_resource_cache.values()
             )
 
+        for diagnostic in diagnostics:
+            diagnostic["language_profile"] = project.manifest["language_profile"]
         diagnostics.sort(
             key=lambda item: (
                 item["source_path"],
@@ -3018,6 +3029,7 @@ class DevelopmentService:
                     "started_at": _iso(started),
                     "completed_at": _iso(completed),
                     "tool_version": job.tool_version,
+                    "language_profile": project.manifest["language_profile"],
                     "input_digests": input_digests,
                     "dependency_closure": dependency_closure,
                     "library_cache_digest": library_cache_digest,
@@ -3394,6 +3406,7 @@ class DevelopmentService:
             materialized,
             workspace_revision=workspace_revision,
             scope="PROJECT",
+            language_profile=manifest["language_profile"],
         )
         diagnostics.extend(analysis.diagnostics)
         procedure_ids: dict[str, str] = {}
@@ -3480,6 +3493,8 @@ class DevelopmentService:
             )
         )
         completed = utc_now()
+        for diagnostic in diagnostics:
+            diagnostic["language_profile"] = manifest["language_profile"]
         report = canonical_json_bytes(
             {
                 "project_id": project.project_id,
@@ -3490,6 +3505,7 @@ class DevelopmentService:
                 "completed_at": _iso(completed),
                 "tool_version": TOOL_VERSION,
                 "input_digests": input_digests,
+                "language_profile": manifest["language_profile"],
                 "dependency_closure": sorted(set(closure)),
                 "library_cache_digest": None,
                 "library_cache_hit": False,
@@ -6276,7 +6292,8 @@ class DevelopmentService:
         if (
             project_manifest["schema_version"] != PROJECT_SCHEMA_VERSION
             or project_manifest["project_id"] != history.project_id
-            or project_manifest["language_profile"] != LANGUAGE_PROFILE
+            or type(project_manifest["language_profile"]) is not str
+            or project_manifest["language_profile"] not in PROJECT_LANGUAGE_PROFILES
             or "LOCAL_SYNTHETIC_NON_CUI_ONLY" not in project_manifest["policy_labels"]
         ):
             raise DevelopmentCorruptionError("project manifest identity differs")
@@ -6378,6 +6395,7 @@ class DevelopmentService:
                     source,
                     resource["path"],
                     workspace_revision=int(history.workspace_revision),
+                    language_profile=project_manifest["language_profile"],
                 )
                 if result.diagnostics or resource["path"] not in result.compiled:
                     raise DevelopmentConflictError(
@@ -6428,7 +6446,7 @@ class DevelopmentService:
             "procedure_ids": sorted(procedure_ids, key=lambda item: item.encode("utf-8")),
             "history_revision_id": history.history_revision_id,
             "source_tree_digest": history.tree_digest,
-            "language_profile": "spell-restricted-ast/0.9",
+            "language_profile": project_manifest["language_profile"],
             "compatibility_profile": COMPATIBILITY_PROFILE,
             "parser_version": TOOL_VERSION,
             "validator_version": TOOL_VERSION,
@@ -6521,7 +6539,8 @@ class DevelopmentService:
             raise DevelopmentCorruptionError("bundle manifest envelope identity differs")
         if (
             without_digest["compatibility_profile"] != COMPATIBILITY_PROFILE
-            or without_digest["language_profile"] != LANGUAGE_PROFILE
+            or type(without_digest["language_profile"]) is not str
+            or without_digest["language_profile"] not in PROJECT_LANGUAGE_PROFILES
             or without_digest["parser_version"] != TOOL_VERSION
             or without_digest["validator_version"] != TOOL_VERSION
             or without_digest["compiler_version"] != TOOL_VERSION
@@ -6557,7 +6576,7 @@ class DevelopmentService:
             or not ir_schema_versions
             or any(
                 type(version) is not str
-                or version not in SUPPORTED_BUNDLE_IR_SCHEMA_VERSIONS
+                or version not in PROFILE_IR_VERSIONS[without_digest["language_profile"]]
                 for version in ir_schema_versions
             )
             or ir_schema_versions != sorted(set(ir_schema_versions))
@@ -6665,7 +6684,7 @@ class DevelopmentService:
                     source = content.decode("utf-8")
                 except UnicodeDecodeError as exc:
                     raise DevelopmentCorruptionError("bundle procedure is not UTF-8") from exc
-                result = analyze_source(source, path, workspace_revision=0)
+                result = analyze_source(source, path, workspace_revision=0, language_profile=without_digest["language_profile"])
                 if result.diagnostics or path not in result.compiled:
                     raise DevelopmentCorruptionError("bundle procedure no longer validates")
                 compiled = result.compiled[path]
@@ -6708,6 +6727,12 @@ class DevelopmentService:
             raise DevelopmentCorruptionError("bundle IR schema versions differ")
         if not set(without_digest["catalog_digests"]).issubset(catalog_digests):
             raise DevelopmentCorruptionError("bundle catalog snapshot closure is incomplete")
+        project_entry = next((item for item in resource_inputs if item["path"] == "spell-project.yaml"), None)
+        if project_entry is None:
+            raise DevelopmentCorruptionError("bundle project manifest is missing")
+        project_manifest = _strict_json_document(project_entry["content"], "project manifest")
+        if type(project_manifest) is not dict or project_manifest.get("language_profile") != without_digest["language_profile"]:
+            raise DevelopmentCorruptionError("bundle project language profile differs")
         try:
             _, source_tree_digest = canonical_tree(
                 resource_inputs, case_policy="CASE_INSENSITIVE"
@@ -7368,7 +7393,7 @@ class DevelopmentService:
             )
             if result is None:
                 raise DevelopmentConflictError(
-                    "v0.9 authored procedure is not promoted",
+                    "authored procedure is not promoted",
                     code="NOT_PROMOTED",
                 )
             return result

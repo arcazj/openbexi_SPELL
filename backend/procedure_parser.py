@@ -59,6 +59,8 @@ V17_IR_VERSION = "0.17"
 V17_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.17"
 V18_IR_VERSION = "0.18"
 V18_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.18"
+V19_IR_VERSION = "0.19"
+V19_LANGUAGE_PROFILE = "spell-lrm244-conformance/0.19"
 ARGS_SUPPORTED_TYPES = SUPPORTED_TYPES | {
     "BOOLEAN",
     "LONG",
@@ -107,6 +109,8 @@ V08_DATA_CALLS = frozenset(
 
 
 def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == V19_IR_VERSION:
+        return V19_LANGUAGE_PROFILE
     if ir_version == V18_IR_VERSION:
         return V18_LANGUAGE_PROFILE
     if ir_version == V17_IR_VERSION:
@@ -428,7 +432,9 @@ class ProcedureCatalog:
             )
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
         ir_version = (
-            V18_IR_VERSION
+            V19_IR_VERSION
+            if compiler.uses_v19
+            else V18_IR_VERSION
             if compiler.uses_v18
             else V17_IR_VERSION
             if compiler.uses_v17
@@ -447,12 +453,16 @@ class ProcedureCatalog:
             else IR_VERSION
         )
         try:
-            if compiler.uses_v18:
+            if compiler.uses_v19:
+                from .ir_v19 import validate_ir_v19
+            elif compiler.uses_v18:
                 from .ir_v18 import validate_ir_v18
             elif compiler.uses_v17:
                 from .ir_v17 import validate_ir_v17
             validated_ir = (
-                validate_ir_v18(ir_version, steps)
+                validate_ir_v19(ir_version, steps)
+                if compiler.uses_v19
+                else validate_ir_v18(ir_version, steps)
                 if compiler.uses_v18
                 else validate_ir_v17(ir_version, steps)
                 if compiler.uses_v17
@@ -576,6 +586,7 @@ class _Compiler:
         self.uses_v16 = False
         self.uses_v17 = False
         self.uses_v18 = False
+        self.uses_v19 = False
         self.current_frame_path: list[str] = ["root"]
         self.step_frame_paths: list[tuple[str, ...]] = []
         self.frame_boundaries: dict[str, tuple[int, int]] = {}
@@ -655,8 +666,21 @@ class _Compiler:
         return description, self.steps
 
     def _preserve_legacy_service_display(self, tree: ast.Module) -> None:
-        if self.uses_v18 and (self.uses_v08 or self.uses_v07 or self.uses_v11):
+        if (self.uses_v18 or self.uses_v19) and (self.uses_v08 or self.uses_v07 or self.uses_v11):
             self._reject(tree, "SPELL937", "language selection cannot mix external service capabilities")
+        if self.uses_v07 and (self.uses_v17 or self.uses_v11):
+            if self.uses_v08 or any(step["type"] in {"language_check", "reference_example"} for step in self.steps):
+                self._reject(tree, "SPELL937", "observation composition cannot mix data or language selection capabilities")
+            for step in self.steps:
+                if step["type"] == "send_tc":
+                    selector = step["selector"]
+                    values = selector["value"] if selector["kind"] == "group" else [selector["value"]]
+                    if any(type(value) is dict and value.get("expr") != "telecommand_item" for value in values):
+                        self._reject(tree, "SPELL938", "composed telecommands require literal names or BuildTC items")
+                if step["type"] in {"get_tm", "verify"} and step["target"] in self.telecommand_variables:
+                    self._reject(tree, "SPELL939", "observation cannot replace an opaque BuildTC item")
+            self.uses_v19 = True
+            return
         if not self.uses_v17 or not (self.uses_v08 or self.uses_v11):
             return
         selection = any(step["type"] in {"language_check", "reference_example"} for step in self.steps)
@@ -838,7 +862,10 @@ class _Compiler:
         self.uses_v06 = True
 
     def _validate_user_action_targets(self) -> None:
-        if self.uses_v18 and self.uses_v11:
+        if self.uses_v19:
+            from .runtime_composition_v19 import telecommand_dependency_variables as observation_dependencies
+            telecommand_dependencies = observation_dependencies(self.steps)
+        elif self.uses_v18 and self.uses_v11:
             from .runtime_composition_v18 import telecommand_dependency_variables as native_dependencies
             telecommand_dependencies = native_dependencies(self.steps)
         else:
@@ -1281,9 +1308,12 @@ class _Compiler:
                 self._reject(call, "SPELL924", "LanguageCheck requires one selection and target")
             all_selection, cases_sha256 = ALL_SELECTION, CASESET_SHA256
             if "profile" in options:
-                if not isinstance(options["profile"], ast.Constant) or options["profile"].value not in {"0.17", "0.18"}:
-                    self._reject(options["profile"], "SPELL924", "LanguageCheck profile must be the literal 0.17 or 0.18")
-                if options["profile"].value == "0.18":
+                if not isinstance(options["profile"], ast.Constant) or options["profile"].value not in {"0.17", "0.18", "0.19"}:
+                    self._reject(options["profile"], "SPELL924", "LanguageCheck profile must be the literal 0.17, 0.18 or 0.19")
+                if options["profile"].value == "0.19":
+                    from .ir_v19 import ALL_SELECTION as selected_all, CASESET_SHA256 as selected_hash
+                    self.uses_v19 = True
+                elif options["profile"].value == "0.18":
                     from .ir_v18 import ALL_SELECTION as selected_all, CASESET_SHA256 as selected_hash
                     self.uses_v18 = True
                 else:

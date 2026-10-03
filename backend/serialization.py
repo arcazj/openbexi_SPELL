@@ -89,6 +89,12 @@ def execution_dict(execution: Execution) -> dict[str, Any]:
         ir_version=execution.ir_version,
         steps=execution.steps,
     )
+    availability = {}
+    if execution.ir_version == "0.19":
+        # Import at call time: operator_service uses this serializer. These are
+        # state-eligible controls, never a substitute for actor/lease checks.
+        from .operator_service import v19_state_allowed_actions
+        availability["allowed_actions"] = v19_state_allowed_actions(execution.state)
     return {
         "id": execution.id,
         "procedure_id": execution.procedure_id,
@@ -106,4 +112,5 @@ def execution_dict(execution: Execution) -> dict[str, Any]:
         "last_sequence": execution.next_sequence - 1,
         "created_at": iso(execution.created_at),
         "updated_at": iso(execution.updated_at),
+        **availability,
     }

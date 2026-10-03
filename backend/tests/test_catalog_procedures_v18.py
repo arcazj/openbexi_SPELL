@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.language_conformance_v18 import CATALOG_PROFILES
+from backend.language_conformance_v19 import CATALOG_PROFILES
 from backend.operator_models import OperatorPrompt
 from backend.tests.conftest import wait_for_state
 from backend.tests.test_api_execution import create_execution, fenced_prompt_request

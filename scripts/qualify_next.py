@@ -1,4 +1,4 @@
-"""Canonical, source-bound v0.13-v0.18 qualification producer (Windows host, Linux Docker)."""
+"""Canonical, source-bound v0.13-v0.19 qualification producer (Windows host, Linux Docker)."""
 from __future__ import annotations
 
 import argparse
@@ -98,6 +98,10 @@ class Producer:
                 self.run(["docker", "compose", "--env-file", str(previous_env),
                           "--project-name", f"spellv0{MINOR-1}release", "--profile", "driver", "stop"])
             self.run(compose("up", "--build", "-d", "--wait"))
+            if MINOR >= 19:
+                # Admit the real bundled simulator observation context; no test data injection.
+                self.run(compose("exec", "-T", "backend", "python", "/app/scripts/seed_observation_v07.py",
+                    "--confirm", "LOCAL_SYNTHETIC_NON_CUI_ONLY", "--context-id", "simulator"))
             # Compose image labels participate in image identity. Audit the running images.
             for service, name in (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy")):
                 container = self.run(compose("ps", "--quiet", service)).decode().strip()

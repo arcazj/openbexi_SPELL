@@ -1,3 +1,5 @@
+import type { AuthoringProfile } from "./profiles";
+
 export type DevelopmentRole = "viewer" | "operator" | "admin";
 
 export interface DevelopmentIdentity {
@@ -31,7 +33,7 @@ export interface ProjectManifest {
   schema_version: "spell.project/0.9";
   project_id: string;
   display_name: string;
-  language_profile: "spell-restricted-ast/0.9";
+  language_profile: AuthoringProfile;
   source_roots: string[];
   case_policy: ProjectSummary["case_policy"];
   catalog_dependencies: ProjectCatalogDependency[];

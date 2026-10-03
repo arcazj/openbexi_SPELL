@@ -53,7 +53,11 @@ If a required language family remains excluded, publish a clearly bounded
 product instead of claiming full SPELL 2.4.4 support. Simulator conformance and
 acceptance of a connected system have separate completion criteria.
 
-## Planning Baseline Before v0.19
+## Planning Baseline And Entry Reviews
+
+The v0.19 observation-to-command increment is implemented and in qualification;
+its [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md)
+sets eight bounded proof requirements. Acceptance remains pending.
 
 Map every remaining inventory entry and approved requirement to a milestone,
 owner, dependency, source reference, test oracle and completion check. Reconcile

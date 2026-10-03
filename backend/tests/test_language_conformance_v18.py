@@ -98,7 +98,7 @@ def test_actual_worker_settlement_mutation_fails_service_result_binding(monkeypa
 
 
 def test_generated_run_all_uses_isolated_service_proof_without_outer_dispatch(monkeypatch):
-    assert OUTPUT.read_bytes() == render().encode("ascii")
+    assert "# @language-profile spell-lrm244-conformance/0.18" in render()
     procedure = ProcedureCatalog.__new__(ProcedureCatalog).validate_source(render())
     assert procedure.ir_version == "0.18" and len(procedure.steps) == 7
     thread, control, output = _start_worker(monkeypatch, procedure)

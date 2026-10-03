@@ -1,4 +1,7 @@
-# SPELL v0.18 Console
+# SPELL v0.19 Console
+
+The v0.19 source changes are implemented; release qualification and publication
+are pending. See the [current release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
 
 Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
 simulator. No token entry is needed. If the backend is unavailable, use
@@ -46,11 +49,44 @@ unrestricted legacy Python Shell remains excluded. Original manuals are unchange
 
 ## Testing Procedures
 
-Navigation includes the reference runner, the existing prompt walkthrough and
-four new procedures for command branching, default handling, command modes
-and core language. See the [procedure guide](../procedures/README.md) for inputs
-and expected results. A native prompt answer never replaces a required command
-confirmation; aborting stops the procedure.
+Navigation includes the reference runner, prompt and command examples, and
+**Observation Command V19**, **Observation Decision V19** and
+**Observation Wait V19**. See the [procedure guide](../procedures/README.md) for
+inputs and expected results. A native prompt answer never replaces a required
+command confirmation; aborting stops the procedure.
+
+Observation examples require the driver-enabled stack and the explicit simulator
+context setup in the [root quick start](../README.md#quick-start). That setup
+opens the real local driver context and waits for committed samples; it injects
+no values. Automatic browser login alone does not open an observation context.
+
+The observation workflow commits a typed `GetTM` value, a `Verify` result and
+a `WaitFor` outcome before asking whether to send. Only an explicit successful
+branch can request a command. `FALSE`, native **NO**, **Abort prompt** and a
+wait timeout do not send. Values are recorded observations; they are not
+automatically read again at command time. Correlated **Data / Result** rows
+show the recorded item, value and outcome, including failure outcomes.
+
+For these composed workflows, **Skip** and **Goto** are unavailable. Other
+controls follow the server's allowed actions, current connection and control
+lease; stale action permissions are cleared while state refreshes.
+
+## Author A Local Workflow
+
+Open **System > Development workspace**, then **Create project**. The default
+language profile is `spell-lrm244-conformance/0.19`; choose
+`spell-restricted-ast/0.9` explicitly for a legacy project. New procedure headers,
+completion, highlighting and snippets follow the selected project profile.
+The bounded profile supports native prompts, observations and literal simulator
+commands; it does not permit arbitrary Python or full SPELL 2.4.4.
+
+Save, run **Run semantic check**, then **Commit all changes** in **History**.
+A different authorized reviewer approves the revision. Build the bundle, obtain
+bundle approval and promote it from **Bundles and promotion**. Runtime admission
+uses that exact source and bundle digest. Checks do not execute procedures.
+Existing project profiles remain unchanged; incompatible older bundles require
+rebuilding and renewed review under the current toolchain. See the
+[authoring guide](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/procedures/AUTHORING_AND_GIT.md#current-local-v019-authoring).
 
 ## Native Language Prompts
 

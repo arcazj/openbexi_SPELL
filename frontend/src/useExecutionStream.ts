@@ -19,16 +19,18 @@ import type { ExecutionEvent } from "./types";
 const STALE_AFTER_MS = 8_000;
 const MAX_RECONNECT_MS = 10_000;
 
-export function eventRequiresProjectionResync(eventType: string): boolean {
+export function eventRequiresProjectionResync(eventType: string, hasAuthoritativeActions = false): boolean {
   return ["control.", "schedule.", "startproc.", "relationship."].some((prefix) => eventType.startsWith(prefix))
     || eventType === "execution.child_created"
-    || eventType === "operator.control_loss_requested";
+    || eventType === "operator.control_loss_requested"
+    || (hasAuthoritativeActions && ["execution.state_changed", "prompt.opened", "prompt.reopened", "prompt.closed", "prompt.settled"].includes(eventType));
 }
 
 export function useExecutionStream(accessToken: string | null): void {
   const dispatch = useAppDispatch();
   const authenticated = Boolean(accessToken);
   const executionId = useAppSelector((state) => state.console.execution?.id ?? null);
+  const hasAuthoritativeActions = useAppSelector((state) => state.console.execution?.allowed_actions !== undefined);
   const lastSequence = useAppSelector(
     (state) => state.console.execution?.last_sequence ?? 0,
   );
@@ -115,6 +117,7 @@ export function useExecutionStream(accessToken: string | null): void {
         }
         sequenceRef.current = event.sequence;
         dispatch(ingestEvent(event));
+        if (hasAuthoritativeActions && eventRequiresProjectionResync(event.event_type, true)) forceResyncPending = true;
       }
       return true;
     };
@@ -200,6 +203,10 @@ export function useExecutionStream(accessToken: string | null): void {
           }
           sequenceRef.current = Math.max(sequenceRef.current, event.sequence);
           dispatch(ingestEvent(event));
+          if (hasAuthoritativeActions && eventRequiresProjectionResync(event.event_type, true)) {
+            void performResync();
+            return;
+          }
           if (eventRequiresProjectionResync(event.event_type)) void performResync();
           dispatch(setConnectionPhase("CONNECTED"));
         } catch {
@@ -230,5 +237,5 @@ export function useExecutionStream(accessToken: string | null): void {
       socket?.close();
       if (socketRef.current === socket) socketRef.current = null;
     };
-  }, [accessToken, authenticated, dispatch, executionId]);
+  }, [accessToken, authenticated, dispatch, executionId, hasAuthoritativeActions]);
 }

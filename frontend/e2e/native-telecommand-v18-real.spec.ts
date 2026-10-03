@@ -25,7 +25,7 @@ type CommandEvent = {
   };
 };
 
-const catalogIds = ["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"];
+const catalogIds = ["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"];
 
 async function read<T>(page: Page, path: string): Promise<T> {
   return page.evaluate(async (url) => {
@@ -85,7 +85,7 @@ async function openWorkspace(page: Page, testInfo: TestInfo) {
   await expect(page.locator(".connection-badge")).toHaveText("CONNECTED", { timeout: 20_000 });
   const catalog = await read<{ items: Array<{ id: string }> }>(page, "/api/v1/procedures");
   expect(catalog.items.map((item) => item.id)).toEqual(catalogIds);
-  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(6);
+  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(9);
 }
 
 async function capture(page: Page, testInfo: TestInfo, name: string, selector: string) {

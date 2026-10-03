@@ -415,7 +415,7 @@ export function ActivityPanel({
           </div>
           <div className="dev-runtime-admission">
             <strong>Runtime admission</strong>
-            <span>{promotedDigests.length === 1 ? shortDigest(promotedDigests[0]) : promotedDigests.length > 1 ? `${promotedDigests.length} bundles promoted` : "No v0.9 bundle promoted"}</span>
+            <span>{promotedDigests.length === 1 ? shortDigest(promotedDigests[0]) : promotedDigests.length > 1 ? `${promotedDigests.length} bundles promoted` : "No bundle promoted"}</span>
             <small>v0.8 bundled simulator fixtures remain inherited</small>
           </div>
         </div>

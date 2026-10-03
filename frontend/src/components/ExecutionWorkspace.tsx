@@ -81,7 +81,7 @@ function CommandButton({
       type="button"
       className={dangerous ? "danger-command" : "toolbar-command"}
       onClick={send}
-      disabled={disabled}
+      disabled={disabled || (execution?.allowed_actions !== undefined && !execution.allowed_actions.includes(command))}
       title={label}
     >
       {icon}<span>{label}</span>
@@ -331,7 +331,7 @@ export function OwnershipControls({ execution }: { execution: ExecutionSnapshot 
         <div className="mode-control" aria-label="Ownership mode">
           <button type="button" aria-pressed={ownsControl} disabled={pending !== null || (hasActiveLease && !ownsControl)} onClick={() => void request(ownsControl ? "RENEW" : "ACQUIRE")} title={ownsControl ? "Renew control lease" : "Acquire exclusive control"}><Gauge aria-hidden="true" size={14} /><b>C</b><span>{ownsControl ? "Renew" : "Acquire"}</span></button>
           <button type="button" aria-pressed={Boolean(monitor)} disabled={pending !== null} onClick={() => void toggleMonitor()} title={monitor ? "Stop read-only monitor" : "Start read-only monitor"}><Users aria-hidden="true" size={14} /><b>M</b><span>{monitor ? "Stop" : "Monitor"}</span></button>
-          <button type="button" aria-pressed={execution.ownership_mode === "B"} disabled={!ownsControl || pending !== null || Boolean(execution.active_prompt) || !execution.background_allowed || !BACKGROUND_ALLOWED_STATES.has(execution.state)} onClick={() => void releaseToBackground()} title={execution.background_allowed ? "Release control at a safe point" : "Procedure does not allow background execution"}><LogOut aria-hidden="true" size={14} /><b>B</b><span>Background</span></button>
+          <button type="button" aria-pressed={execution.ownership_mode === "B"} disabled={!ownsControl || pending !== null || Boolean(execution.active_prompt) || !execution.background_allowed || !BACKGROUND_ALLOWED_STATES.has(execution.state) || (execution.allowed_actions !== undefined && !execution.allowed_actions.includes("BACKGROUND"))} onClick={() => void releaseToBackground()} title={execution.background_allowed ? "Release control at a safe point" : "Procedure does not allow background execution"}><LogOut aria-hidden="true" size={14} /><b>B</b><span>Background</span></button>
         </div>
         <div className="ownership-actions">
           <button type="button" onClick={() => setHandoverDialog("REQUEST")} disabled={!monitor || ownsControl || pending !== null || Boolean(requesterHandover)} title={!monitor ? "Start a named monitor before requesting control" : requesterHandover ? "Control handover requested" : "Request control from the current holder"} aria-label="Request control handover"><ArrowRightLeft aria-hidden="true" size={14} /></button>
@@ -388,10 +388,12 @@ function AbortDialog({ execution }: { execution: ExecutionSnapshot }) {
   const pending = useAppSelector((state) => state.console.pendingAction !== null);
   const connected = useAppSelector((state) => state.console.connection.phase === "CONNECTED");
   const canControl = useActiveControlLease(execution);
+  const abortAllowed = ABORT_ALLOWED_STATES.has(execution.state)
+    && (execution.allowed_actions === undefined || execution.allowed_actions.includes("ABORT"));
 
   const abort = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!reason.trim() || !connected) return;
+    if (!reason.trim() || !connected || !canControl || !abortAllowed) return;
     void dispatch(
       sendExecutionCommand({
         executionId: execution.id,
@@ -411,7 +413,7 @@ function AbortDialog({ execution }: { execution: ExecutionSnapshot }) {
         aria-label="Abort"
         title="Abort execution"
         onClick={() => setOpen(true)}
-        disabled={!connected || pending || !canControl || !ABORT_ALLOWED_STATES.has(execution.state)}
+        disabled={!connected || pending || !canControl || !abortAllowed}
       >
         <Square aria-hidden="true" size={15} fill="currentColor" /> <span>Abort</span>
       </button>
@@ -444,7 +446,7 @@ function AbortDialog({ execution }: { execution: ExecutionSnapshot }) {
               </label>
               <div className="dialog-actions">
                 <button type="button" onClick={() => setOpen(false)}>Cancel</button>
-                <button type="submit" className="confirm-abort" disabled={!connected || !reason.trim() || pending || !canControl}>
+                <button type="submit" className="confirm-abort" disabled={!connected || !reason.trim() || pending || !canControl || !abortAllowed}>
                   Confirm abort
                 </button>
               </div>
@@ -531,7 +533,7 @@ export function ExecutionWorkspace({ showValidation = true }: { showValidation?:
       </div>
 
       <OwnershipControls execution={execution} />
-      <CompatibilityControl key={execution.id} execution={execution} connected={!stale}
+      <CompatibilityControl key={`compatibility:${execution.id}`} execution={execution} connected={!stale}
         onRefresh={() => { void dispatch(resyncExecution(execution.id)); void dispatch(refreshMaster()); }} />
 
       {showValidation && <ValidationPanel />}
@@ -567,7 +569,7 @@ export function ExecutionWorkspace({ showValidation = true }: { showValidation?:
           command="SKIP"
           disabled={commandDisabled || !["PAUSED", "INTERRUPTED"].includes(execution.state)}
         />
-        <label className="goto-control" title="Static line in the current procedure"><span className="sr-only">Goto line</span><input type="number" min={1} value={gotoLine} onChange={(event) => setGotoLine(Math.max(1, Number(event.target.value) || 1))} disabled={commandDisabled || execution.state !== "PAUSED"} /></label>
+        <label className="goto-control" title="Static line in the current procedure"><span className="sr-only">Goto line</span><input type="number" min={1} value={gotoLine} onChange={(event) => setGotoLine(Math.max(1, Number(event.target.value) || 1))} disabled={commandDisabled || execution.state !== "PAUSED" || (execution.allowed_actions !== undefined && !execution.allowed_actions.includes("GOTO"))} /></label>
         <CommandButton
           icon={<MapPin aria-hidden="true" size={15} />}
           label="Goto"
@@ -624,7 +626,7 @@ export function ExecutionWorkspace({ showValidation = true }: { showValidation?:
         </div>
       )}
 
-      {execution.active_prompt ? <PromptPanel prompt={execution.active_prompt} /> : <CommandEntry key={execution.id} toolbar={commandToolbar} disabled={commandDisabled} />}
+      {execution.active_prompt ? <PromptPanel prompt={execution.active_prompt} /> : <CommandEntry key={`command:${execution.id}`} toolbar={commandToolbar} disabled={commandDisabled} />}
 
       <details className="flow-disclosure"><summary>Procedure flow</summary>
         <ProcedureFlow steps={execution.steps} currentStepId={execution.current_step_id} />

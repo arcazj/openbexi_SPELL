@@ -37,6 +37,7 @@ from .ir_v07 import (
     V07ValidationError,
     bind_observation_anchor,
     canonicalize_observation_result,
+    observation_request_for_step,
     unavailable_observation_anchor,
     unavailable_observation_result,
     validate_anchored_observation_request,
@@ -76,7 +77,11 @@ from .models import Command, Event, Execution, Prompt
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
 from .ir_v18 import IR_VERSION as V18_IR_VERSION, V18ValidationError, validate_ir_v18
-from .runtime_composition_v18 import telecommand_dependency_variables
+from .ir_v19 import IR_VERSION as V19_IR_VERSION, V19ValidationError, validate_ir_v19
+from .runtime_composition_v19 import (
+    OBSERVATION_STEP_TYPES, filter_observation_result,
+    observation_checkpoint_variables, telecommand_dependency_variables,
+)
 from .prompt_v17 import PROMPT_PROFILE, PROMPT_FIELDS, validate_native_prompt_step, native_prompt_result
 from .operator_models import OperatorCommand, OperatorPrompt
 from .operator_serialization import command_dict as operator_command_dict
@@ -133,10 +138,12 @@ _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION}
 )
-_TELECOMMAND_IR_VERSIONS = frozenset({V11_IR_VERSION, V18_IR_VERSION})
-_NATIVE_PROMPT_IR_VERSIONS = frozenset({V17_IR_VERSION, V18_IR_VERSION})
+_TELECOMMAND_IR_VERSIONS = frozenset({V11_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION})
+_NATIVE_PROMPT_IR_VERSIONS = frozenset({V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION})
+_COMPOSED_COMMAND_IR_VERSIONS = frozenset({V18_IR_VERSION, V19_IR_VERSION})
+_OBSERVATION_IR_VERSIONS = frozenset({V07_IR_VERSION, V08_IR_VERSION, V19_IR_VERSION})
 _V11_PROMPT_INPUT_KINDS = {
     "OK": "FIXED_CHOICE",
     "CANCEL": "FIXED_CHOICE",
@@ -2670,7 +2677,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v18
+                    validate_ir_v19
+                    if ir_version == V19_IR_VERSION
+                    else validate_ir_v18
                     if ir_version == V18_IR_VERSION
                     else validate_ir_v17
                     if ir_version == V17_IR_VERSION
@@ -2706,6 +2715,7 @@ class Supervisor:
                 V11ValidationError,
                 V17ValidationError,
                 V18ValidationError,
+                V19ValidationError,
             ) as exc:
                 rejection = self._add_event(
                     session,
@@ -3021,7 +3031,7 @@ class Supervisor:
                     execution, prompt, execution.current_step, dict(execution.variables or {})
                 ):
                     raise ConflictError("consumed native prompt differs from its authoritative declaration")
-                if execution.ir_version == V18_IR_VERSION and step.get("type") == "send_tc":
+                if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS and step.get("type") == "send_tc":
                     expected = self._v18_telecommand_prompt_fields(session, execution, prompt.id)
                     if not self._v18_telecommand_prompt_matches(prompt, expected):
                         raise ConflictError("consumed telecommand prompt differs from its authoritative declaration")
@@ -3451,18 +3461,25 @@ class Supervisor:
                 raise StaleWorkerMessage("worker generation is no longer current")
             step_index = request_payload.get("step_index")
             if (
-                execution.ir_version not in {V07_IR_VERSION, V08_IR_VERSION}
+                execution.ir_version not in _OBSERVATION_IR_VERSIONS
                 or type(step_index) is not int
                 or step_index != execution.current_step
                 or step_index < 0
                 or step_index >= len(execution.steps)
             ):
                 raise ConflictError("observation request does not target the current v0.7 step")
+            if execution.ir_version == V19_IR_VERSION:
+                if execution.state not in {"running", "waiting"}:
+                    raise ConflictError("observation admission requires an active execution state")
+                self._v18_require_telecommand_guard(execution)
             base_request = validate_observation_request(
                 execution.steps[step_index],
                 request_payload,
                 execution_id=execution_id,
             )
+            if execution.ir_version == V19_IR_VERSION and canonical_hash(base_request) != canonical_hash(
+                    observation_request_for_step(execution_id, execution.steps[step_index])):
+                raise ConflictError("observation request types differ from the immutable step")
             request_id = base_request["request_id"]
             requested = self._observation_event(
                 session,
@@ -3617,6 +3634,28 @@ class Supervisor:
             with self._lock:
                 getattr(self, "_observation_requests", set()).discard(key)
 
+    def _v19_durable_observation_request(
+        self, session: Session, execution: Execution, step_index: int,
+    ) -> dict[str, Any]:
+        step = execution.steps[step_index]
+        base = observation_request_for_step(execution.id, step)
+        event = self._observation_event(
+            session, execution.id, "procedure.observation_requested", base["request_id"],
+        )
+        if event is None:
+            raise ConflictError("observation checkpoint has no durable request")
+        try:
+            if canonical_hash({key: event.payload.get(key) for key in base}) != canonical_hash(base):
+                raise ConflictError("durable observation request types differ from its step")
+            if base["operation"] == "GET_TM" and base["parameters"]["mode"] == "NEXT":
+                return validate_anchored_observation_request(
+                    step, event.payload, execution_id=execution.id,
+                    context_id=execution.context_id,
+                )
+            return validate_observation_request(step, event.payload, execution_id=execution.id)
+        except V07ValidationError as exc:
+            raise ConflictError("durable observation request differs from its step") from exc
+
     def _settle_observation_result(
         self,
         execution_id: str,
@@ -3637,9 +3676,25 @@ class Supervisor:
                 if (
                     execution is None
                     or execution.current_step != request["step_index"]
-                    or execution.ir_version not in {V07_IR_VERSION, V08_IR_VERSION}
+                    or execution.ir_version not in _OBSERVATION_IR_VERSIONS
                 ):
                     return False
+                if execution.ir_version == V19_IR_VERSION:
+                    if execution.state not in {"running", "waiting", "pausing", "paused", "resuming"}:
+                        return False
+                    if type(canonical.get("step_index")) is not int:
+                        raise ConflictError("observation result index must be an integer")
+                    self._v18_require_telecommand_guard(execution)
+                    durable_request = self._v19_durable_observation_request(
+                        session, execution, request["step_index"],
+                    )
+                    if canonical_hash(durable_request) != canonical_hash(request):
+                        raise ConflictError("observation result request differs from durable intent")
+                    policy = getattr(getattr(self, "observation_runtime", None), "policy", None)
+                    canonical = filter_observation_result(
+                        request, canonical,
+                        expected_policy_revision=getattr(policy, "policy_revision", None),
+                    )
                 existing = self._observation_event(
                     session,
                     execution_id,
@@ -4056,7 +4111,7 @@ class Supervisor:
                 raise ConflictError(
                     "telecommand request does not target the current v0.11 step"
                 )
-            if execution.ir_version == V18_IR_VERSION:
+            if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS:
                 if execution.state not in {"running", "waiting"}:
                     raise ConflictError("telecommand dispatch requires an active execution state")
                 self._v18_require_telecommand_guard(execution)
@@ -4074,7 +4129,7 @@ class Supervisor:
                 request,
                 required=preflight.confirmation_required,
             )
-            if execution.ir_version == V18_IR_VERSION and preflight.confirmation_required:
+            if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS and preflight.confirmation_required:
                 prompt_id = request["confirmation"]["prompt_id"]
                 prompt = session.get(OperatorPrompt, prompt_id)
                 fields = self._v18_telecommand_prompt_fields(session, execution, prompt_id)
@@ -5304,6 +5359,59 @@ class Supervisor:
             session.commit()
             return fenced.rowcount == 1
 
+    def _v19_observation_checkpoint(
+        self, session: Session, execution: Execution, message: dict[str, Any],
+        authoritative_variables: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        step_index = message["step_index"]
+        step = execution.steps[step_index]
+        effects = message.get("effects")
+        if type(effects) is not list or any(type(effect) is not dict for effect in effects):
+            raise ConflictError("observation workflow effects must be an array of objects")
+        if step.get("type") not in OBSERVATION_STEP_TYPES:
+            if any(effect.get("event_type") == "procedure.observation_settled"
+                   for effect in effects):
+                raise ConflictError("non-observation checkpoint includes observation evidence")
+            return None
+        authoritative_variables = dict(authoritative_variables)
+        authoritative_variables.setdefault("ARGS", {})
+        try:
+            guard = step.get("guard")
+            should_run = True if guard is None else evaluate_expression(guard, authoritative_variables)
+        except Exception as exc:
+            raise ConflictError("observation guard cannot be authoritatively evaluated") from exc
+        if type(should_run) is not bool:
+            raise ConflictError("observation guard did not produce a Boolean")
+        expected_effects = [{
+            "event_type": "step.completed", "source": "worker", "severity": "info",
+            "payload": {"step_index": step_index, "line": step["line"],
+                        "step_type": step["type"], "skipped": not should_run},
+        }]
+        expected_variables = authoritative_variables
+        if should_run:
+            request = self._v19_durable_observation_request(session, execution, step_index)
+            settled = self._observation_event(session, execution.id,
+                "procedure.observation_result", request["request_id"])
+            if settled is None:
+                raise ConflictError("observation checkpoint has no durable result")
+            try:
+                result = validate_observation_result(request, settled.payload)
+                if type(result.get("step_index")) is not int:
+                    raise ValueError("observation result index must be an integer")
+                expected_variables = observation_checkpoint_variables(step, authoritative_variables, result)
+            except ValueError as exc:
+                raise ConflictError("observation outcome cannot authorize this checkpoint") from exc
+            expected_effects.insert(0, {
+                "event_type": "procedure.observation_settled", "source": "worker", "severity": "info",
+                "payload": {"request_id": request["request_id"], "operation": request["operation"],
+                            "outcome": result["outcome"], "step_index": step_index},
+            })
+        if (canonical_hash(message.get("variables")) != canonical_hash(expected_variables)
+                or canonical_hash(effects) != canonical_hash(expected_effects)
+                or message.get("prompt_resolution") is not None):
+            raise ConflictError("observation checkpoint differs from its authoritative result or effects")
+        return expected_variables
+
     def _commit_step(
         self, execution_id: str, generation: int, message: dict[str, Any]
     ) -> bool:
@@ -5330,6 +5438,9 @@ class Supervisor:
                 return False
             step_index = message["step_index"]
             next_step = message["next_step"]
+            if execution.ir_version == V19_IR_VERSION and (
+                    type(step_index) is not int or type(next_step) is not int):
+                raise ConflictError("observation workflow checkpoint indexes must be integers")
             if next_step <= execution.current_step:
                 return False
             if step_index != execution.current_step or next_step != step_index + 1:
@@ -5344,6 +5455,13 @@ class Supervisor:
                 if isinstance(execution.variables, dict)
                 else {}
             )
+            observation_variables = None
+            if execution.ir_version == V19_IR_VERSION:
+                if execution.state == "aborting":
+                    raise ConflictError("aborting observation workflow cannot advance")
+                observation_variables = self._v19_observation_checkpoint(
+                    session, execution, message, prior_checkpoint_variables,
+                )
             if execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS:
                 native_step = execution.steps[step_index]
                 if native_step.get("prompt_profile") == PROMPT_PROFILE:
@@ -5440,6 +5558,11 @@ class Supervisor:
                     for name in dependency_names
                     if name in authoritative_variables
                 }
+                if observation_variables is not None:
+                    expected_dependencies = {
+                        name: observation_variables[name]
+                        for name in dependency_names if name in observation_variables
+                    }
                 if current_step.get("prompt_profile") == PROMPT_PROFILE and should_run:
                     # The preceding native block proved the complete checkpoint
                     # from the exact durable ANSWERED settlement.
@@ -5677,7 +5800,7 @@ class Supervisor:
                             failure_prompt = session.get(
                                 OperatorPrompt, expected_prompt_id
                             )
-                            if execution.ir_version == V18_IR_VERSION:
+                            if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS:
                                 fields = self._v18_telecommand_prompt_fields(session, execution, expected_prompt_id)
                                 if failure_prompt is None or not self._v18_telecommand_prompt_matches(failure_prompt, fields):
                                     raise ConflictError("telecommand failure decision differs from its authoritative profile")
@@ -6058,7 +6181,7 @@ class Supervisor:
             }:
                 return
             if (
-                execution.ir_version in {V11_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION}
+                execution.ir_version in {V11_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION}
                 and not self._v11_prompt_message_matches(execution, message)
             ):
                 raise ConflictError(
@@ -6191,7 +6314,7 @@ class Supervisor:
             if "prompt_profile" in message and not native:
                 raise ConflictError("native prompt policy is outside its authoritative IR boundary")
             if execution.ir_version in _NATIVE_PROMPT_IR_VERSIONS:
-                if execution.ir_version == V18_IR_VERSION and current_step.get("type") == "send_tc":
+                if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS and current_step.get("type") == "send_tc":
                     fields = self._v18_telecommand_prompt_fields(session, execution, message.get("prompt_id"))
                     matches = all(message.get(key) == value for key, value in fields.items())
                 else:

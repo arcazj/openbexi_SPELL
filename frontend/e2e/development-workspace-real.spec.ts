@@ -182,6 +182,7 @@ test("authors, reviews, promotes, and admits a real v0.9 procedure", async ({ pa
   const createProjectDialog = page.getByRole("dialog", { name: "Create project" });
   await createProjectDialog.getByLabel("Project name").fill(projectName);
   await createProjectDialog.getByLabel("Filename case policy").selectOption("CASE_SENSITIVE");
+  await createProjectDialog.getByLabel("Language profile").selectOption("spell-restricted-ast/0.9");
   const projectResponse = await waitForSuccessfulResponse(
     page,
     "project creation",
@@ -363,6 +364,7 @@ test("recovers real exchange conflicts and preserves pinned runtime admission af
   const createProjectDialog = page.getByRole("dialog", { name: "Create project" });
   await createProjectDialog.getByLabel("Project name").fill(projectName);
   await createProjectDialog.getByLabel("Filename case policy").selectOption("CASE_SENSITIVE");
+  await createProjectDialog.getByLabel("Language profile").selectOption("spell-restricted-ast/0.9");
   const projectResponse = await waitForSuccessfulResponse(
     page,
     "continuity project creation",

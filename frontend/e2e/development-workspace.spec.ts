@@ -775,7 +775,7 @@ test("operates lifecycle, strict exchange, external changes, and distinct-subjec
   await page.getByRole("button", { name: /Supersede bundle/ }).click();
   await expect.poll(() => state.bundleState).toBe("SUPERSEDED");
   expect(state.promotionOperations).toEqual(["PROMOTE", "SUPERSEDE"]);
-  await expect(page.locator(".dev-runtime-admission span")).toHaveText("No v0.9 bundle promoted");
+  await expect(page.locator(".dev-runtime-admission span")).toHaveText("No bundle promoted");
   await expect(page.getByRole("button", { name: /Rollback promote bundle/ })).toBeEnabled();
   await page.getByRole("button", { name: /Rollback promote bundle/ }).click();
   await expect.poll(() => state.bundleState).toBe("PROMOTED");

@@ -17,6 +17,13 @@ describe("v0.6 operator API", () => {
   beforeEach(() => window.sessionStorage.setItem("openbexi.spell.access-token", "signed.test.token"));
   afterEach(() => { window.sessionStorage.clear(); vi.unstubAllGlobals(); });
 
+  it("preserves absent legacy actions and fails closed for malformed authoritative actions", async () => {
+    for (const [actions, expected] of [[undefined, undefined], [null, []], [["run", "abort"], ["RUN", "ABORT"]], [["run", 1], []]]) {
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ execution: { id: "execution-1", procedure_id: "test", state: "paused", allowed_actions: actions }, events: [] }), { headers: { "Content-Type": "application/json" } })));
+      expect((await api.snapshot("execution-1")).allowed_actions).toEqual(expected);
+    }
+  });
+
   it("normalizes canonical LIST identities without flattening typed VALUE objects", () => {
     expect(normalizeActivePrompt({
       id: "prompt-key",

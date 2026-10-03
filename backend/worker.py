@@ -53,6 +53,7 @@ from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .language_conformance_v16 import execute_selection
 from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
 from .ir_v18 import IR_VERSION as V18_IR_VERSION, V18ValidationError, validate_ir_v18
+from .ir_v19 import IR_VERSION as V19_IR_VERSION, V19ValidationError, validate_ir_v19
 from .runtime_composition_v18 import telecommand_dependency_variables
 from .core_v17 import CoreV17Error, evaluate_integer_binary
 from .prompt_v17 import PROMPT_PROFILE, native_prompt_result, normalize_native_prompt_response
@@ -380,7 +381,8 @@ def worker_main(
         v11_preflight = ir_version == V11_IR_VERSION
         v17_preflight = ir_version == V17_IR_VERSION
         v18_preflight = ir_version == V18_IR_VERSION
-        telecommand_runtime = v11_preflight or v18_preflight
+        v19_preflight = ir_version == V19_IR_VERSION
+        telecommand_runtime = v11_preflight or v18_preflight or v19_preflight
         v16_preflight = ir_version == V16_IR_VERSION
         v10_preflight = ir_version == V10_IR_VERSION
         v08_preflight = ir_version == V08_IR_VERSION
@@ -394,9 +396,12 @@ def worker_main(
             V16_IR_VERSION,
             V17_IR_VERSION,
             V18_IR_VERSION,
+            V19_IR_VERSION,
         }
         validator = (
-            validate_ir_v18
+            validate_ir_v19
+            if v19_preflight
+            else validate_ir_v18
             if v18_preflight
             else validate_ir_v17
             if v17_preflight
@@ -526,6 +531,7 @@ def worker_main(
         V11ValidationError,
         V17ValidationError,
         V18ValidationError,
+        V19ValidationError,
     ) as exc:
         send(
             "event",
@@ -552,6 +558,7 @@ def worker_main(
         V16_IR_VERSION,
         V17_IR_VERSION,
         V18_IR_VERSION,
+        V19_IR_VERSION,
     }
     file_handle_variables = {
         step["target"]
@@ -568,6 +575,9 @@ def worker_main(
     telecommand_dependency_names = (
         telecommand_dependency_variables(steps) if telecommand_runtime else frozenset()
     )
+    if v19_preflight:
+        from .runtime_composition_v19 import telecommand_dependency_variables as observation_dependencies
+        telecommand_dependency_names = observation_dependencies(steps)
     send(
         "event",
         event_type="worker.started",
@@ -975,6 +985,10 @@ def worker_main(
                 continue
             command_type = followup.get("type")
             command_id = followup.get("command_id")
+            if v19_preflight and command_type in {"skip", "goto"}:
+                reject_control(followup, "OBSERVATION_NAVIGATION_FORBIDDEN",
+                               "IR 0.19 does not permit SKIP or GOTO")
+                continue
             if command_type in {
                 "prompt_response",
                 "prompt_settlement",
@@ -1104,6 +1118,10 @@ def worker_main(
             return None
         command_type = message.get("type")
         command_id = message.get("command_id")
+        if v19_preflight and command_type in {"skip", "goto"}:
+            reject_control(message, "OBSERVATION_NAVIGATION_FORBIDDEN",
+                           "IR 0.19 does not permit SKIP or GOTO")
+            return None
         if command_type in {"prompt_response", "prompt_settlement"}:
             prompt_id = message.get("prompt_id")
             settlement_id = message.get("settlement_id")
@@ -1279,7 +1297,7 @@ def worker_main(
             elif should_run and step["type"] == "prompt":
                 expected_prompt_id = (
                     ordinary_prompt_id(execution_id, step_index)
-                    if v11_preflight or v17_preflight or v18_preflight
+                    if v11_preflight or v17_preflight or v18_preflight or v19_preflight
                     else None
                 )
                 if (
@@ -1442,7 +1460,10 @@ def worker_main(
                     variables[step["response_target"]] = response
             elif should_run and step["type"] == "language_check":
                 try:
-                    if v18_preflight:
+                    if v19_preflight:
+                        from .language_conformance_v19 import execute_selection as execute_v19_selection
+                        summary, check_effects = execute_v19_selection(evaluate_expression(step["selection"], variables))
+                    elif v18_preflight:
                         from .language_conformance_v18 import execute_selection as execute_v18_selection
                         summary, check_effects = execute_v18_selection(evaluate_expression(step["selection"], variables))
                     elif v17_preflight:
@@ -1968,7 +1989,13 @@ def worker_main(
 
                 completed_observation_ids.add(request["request_id"])
                 outcome = observation_result["outcome"]
-                if step["type"] == "get_tm":
+                if v19_preflight:
+                    from .runtime_composition_v19 import observation_checkpoint_variables
+                    try:
+                        variables = observation_checkpoint_variables(step, variables, observation_result)
+                    except ValueError as exc:
+                        raise ExpressionEvaluationError(str(exc)) from exc
+                elif step["type"] == "get_tm":
                     if outcome != "OK":
                         raise ExpressionEvaluationError(f"GetTM failed with {outcome}")
                     value = observation_result["value"]

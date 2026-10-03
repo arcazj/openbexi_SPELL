@@ -37,7 +37,7 @@ test("opens the manual workspace directly and operates its compact procedure vie
   await page.getByRole("searchbox", { name: /^Filter \d+ examples$/ }).fill("195");
   await page.getByRole("radio", { name: /Example 195.*extract TM\/TC database values/ }).check();
   await page.getByRole("button", { name: "Commit response" }).click();
-  await expect(page.locator(".execution-metadata .state-pill")).toHaveText("COMPLETED", { timeout: 25_000 });
+  await expect(page.locator(".execution-metadata .state-pill")).toHaveText("FINISHED", { timeout: 25_000 });
 
   // Permanent Master and procedure instances share the central area, as in pp. 6/10/21.
   const instances = page.getByRole("tablist", { name: "Open procedure views" });

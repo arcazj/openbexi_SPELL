@@ -1,5 +1,13 @@
 # SPELL Release Provenance and Dependency Review
 
+## v0.19.0 In Qualification
+
+Bounded observation-to-command workflows are implemented under the approved
+[v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md).
+Full canonical qualification, immutable release binding and publication are
+pending; v0.18.0 remains the accepted predecessor. Current limits and behavior
+are in the [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
+
 ## Accepted v0.18 Release
 
 The native-command increment passed independent clean-tag validation and was published. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) binds its qualified source, package and supply-chain evidence. Original manuals and legacy code remain read-only and excluded from product images and packages.

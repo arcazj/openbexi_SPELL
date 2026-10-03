@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DevelopmentDiagnostic, PinnedCatalogItem, ProcedureMetadata, ResourceDocument } from "./types";
+import { V19_LANGUAGE_PROFILE } from "./profiles";
 
 interface OutlineItem {
   label: string;
@@ -45,8 +46,9 @@ const SPELL_CALLS = [
   "ReadDirectory", "ReadFile", "SaveDictionary", "SetSharedData", "StartProc", "Telemetry", "UserAction",
   "Var", "Verify", "Wait", "WaitFor", "WriteFile",
 ] as const;
+const V19_CALLS = [...SPELL_CALLS, "BuildTC", "Send", "Display"] as const;
 const LANGUAGE_KEYWORDS = ["def", "if", "elif", "else", "for", "in", "and", "or", "not", "True", "False", "None", "bool", "float", "int", "str", "range"] as const;
-const LANGUAGE_TOKENS = [...LANGUAGE_KEYWORDS, ...SPELL_CALLS].join("|");
+const LANGUAGE_TOKENS = [...LANGUAGE_KEYWORDS, ...V19_CALLS, "YES", "NO", "YES_NO", "OK", "OK_CANCEL", "NUM", "ALPHA", "LIST", "DATE", "INFORMATION", "WARNING", "ERROR"].join("|");
 const TOKEN_PATTERN = new RegExp(`(#[^\\n]*|'[^'\\n]*'|"[^"\\n]*"|\\b(?:${LANGUAGE_TOKENS})\\b|\\b\\d+(?:\\.\\d+)?\\b)`, "g");
 const TOKEN_EXACT = new RegExp(`^(?:#[^\\n]*|'[^'\\n]*'|"[^"\\n]*"|(?:${LANGUAGE_TOKENS})|\\d+(?:\\.\\d+)?)$`);
 
@@ -124,7 +126,7 @@ function buildOutline(content: string): OutlineItem[] {
   content.split("\n").forEach((line, index) => {
     const definition = line.match(/^\s*def\s+([A-Za-z_][A-Za-z0-9_]*)/);
     const label = line.match(/^\s*Label\(\s*["']([A-Za-z][A-Za-z0-9_.-]{0,127})["']/);
-    const call = line.match(new RegExp(`^\\s*(${SPELL_CALLS.join("|")})\\s*\\(`));
+    const call = line.match(new RegExp(`^\\s*(${V19_CALLS.join("|")})\\s*\\(`));
     const header = line.match(/^\s*#\s*@procedure\s+(.+)/);
     if (definition) result.push({ label: definition[1] ?? "definition", kind: "FUNCTION", line: index + 1 });
     else if (label) result.push({ label: label[1] ?? "label", kind: "LABEL", line: index + 1 });
@@ -300,11 +302,18 @@ export function CodeEditor({
     onChange(`${metadataHeader(metadata)}\n${withoutHeader}`);
   }
 
-  const completionItems = document.language?.completions.map((item) => item.insert_text) ?? [...SPELL_CALLS];
+  const nativeProfile = document.metadata?.language_profile === V19_LANGUAGE_PROFILE;
+  const completionItems = document.language?.completions.length
+    ? document.language.completions.map((item) => item.insert_text)
+    : [...(nativeProfile ? V19_CALLS : SPELL_CALLS)];
   const snippets = [
     { label: "Insert snippet", value: "" },
     { label: "Guarded log", value: "ready: bool = True\nif ready:\n    Log('Verified')\n" },
-    { label: "Operator prompt", value: "Prompt('Continue?', type='YES_NO', default='YES', response_timeout=30)\n" },
+    { label: "Operator prompt", value: nativeProfile ? "answer = Prompt('Continue?', Type=YES_NO)\n" : "Prompt('Continue?', type='YES_NO', default='YES', response_timeout=30)\n" },
+    ...(nativeProfile ? [
+      { label: "Confirmed simulator command", value: "command = BuildTC('CMDNAME')\nSend(command=command, Confirm=True)\n" },
+      { label: "Display message", value: "Display('Observation recorded', Severity=INFORMATION)\n" },
+    ] : []),
     { label: "Bounded wait", value: "Wait(1)\nLog('Wait complete')\n" },
     ...customSnippets,
   ];

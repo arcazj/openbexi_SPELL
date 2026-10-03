@@ -13,6 +13,30 @@
 | Operational authorization | None |
 | Authoritative requirement | `DOC-011` |
 
+## Current Local v0.19 Interface
+
+The implemented local console uses the compact original GUI Manual 2.4.4
+workspace: Navigation and utility panes beside source, a tabular **Data / Result**
+view, and controls and prompts below it. Opening `http://127.0.0.1:8080/`
+connects automatically to the simulator. The broader concept manual below
+remains Draft; v0.19 qualification and publication are pending.
+
+**Observation Command V19** demonstrates committed telemetry, verification and
+waiting before a native question and a separate command confirmation.
+**Observation Decision V19** demonstrates `FALSE` without dispatch;
+**Observation Wait V19** demonstrates a timeout that stops before sending.
+Recorded values are snapshots, not a fresh read at send time. Correlated source
+rows display actual outcomes; line coverage does not establish success.
+
+For composed observation-command procedures, **Skip** and **Goto** are disabled.
+Other controls require both server permission and current controller authority;
+stale permissions clear during resynchronization. Native **NO** or
+**Abort prompt** cannot authorize a command. Desktop and narrow-screen views
+retain the same authority and result rules. The
+[console guide](../../frontend/README.md) contains current labels and workflows;
+the [authoring guide](../procedures/AUTHORING_AND_GIT.md#current-local-v019-authoring)
+explains creating, checking, reviewing and promoting exact source.
+
 This manual describes the intended next-generation SPELL web experience. It is
 a user-facing companion to the authoritative design specification, not proof
 that the interface has been implemented or accepted. The concept wireframes

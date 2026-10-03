@@ -57,7 +57,11 @@ def main():
                      "prompt_api_v17", "language_conformance_v17"],
                 18: ["native_telecommand_ir_v18", "worker_composition_v18", "supervisor_composition_v18",
                      "prompt_telecommand_api_v18", "operator_composition_v18", "language_conformance_v18",
-                     "catalog_procedures_v18", "composition_security_v18"]}[MINOR]
+                     "catalog_procedures_v18", "composition_security_v18"],
+                19: ["observation_composition_ir_v19", "worker_observation_composition_v19",
+                     "supervisor_observation_command_v19", "operator_observation_command_v19",
+                     "observation_command_api_v19", "development_profile_v19",
+                     "language_conformance_v19", "catalog_procedures_v19"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
     prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
     if MINOR >= 18:

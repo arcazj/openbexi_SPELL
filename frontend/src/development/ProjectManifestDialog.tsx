@@ -17,7 +17,7 @@ function exactManifest(project: ProjectSummary): ProjectManifest {
     schema_version: "spell.project/0.9",
     project_id: project.project_id,
     display_name: project.display_name,
-    language_profile: "spell-restricted-ast/0.9",
+    language_profile: supplied.language_profile ?? "spell-restricted-ast/0.9",
     source_roots: Array.isArray(supplied.source_roots) && supplied.source_roots.length > 0 ? [...supplied.source_roots] : ["src"],
     case_policy: project.case_policy,
     catalog_dependencies: Array.isArray(supplied.catalog_dependencies)

@@ -8,6 +8,7 @@ import {
 } from "./api";
 import { DevelopmentWorkspace } from "./DevelopmentWorkspace";
 import type { ProjectSummary } from "./types";
+import type { AuthoringProfile } from "./profiles";
 
 export function DevelopmentApp() {
   const { accessToken, status, error: sessionError, retry } = useSimulatorSession();
@@ -48,7 +49,7 @@ export function DevelopmentApp() {
     if (accessToken) void loadProjects();
   }, [accessToken, loadProjects]);
 
-  async function addProject(name: string, casePolicy: ProjectSummary["case_policy"]): Promise<void> {
+  async function addProject(name: string, casePolicy: ProjectSummary["case_policy"], languageProfile: AuthoringProfile): Promise<void> {
     if (workspaceDirty && !window.confirm("Discard unsaved changes and create another project?")) return;
     const project = await createProject({
       name,
@@ -56,7 +57,7 @@ export function DevelopmentApp() {
       manifest: {
         schema_version: "spell.project/0.9",
         display_name: name,
-        language_profile: "spell-restricted-ast/0.9",
+        language_profile: languageProfile,
         source_roots: ["src"],
       },
     });

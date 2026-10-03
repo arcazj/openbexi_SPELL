@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function authorizedSnapshot(page: Page, executionId: string): Promise<{
-  execution: { state: string };
+  execution: { state: string; operator_state: string };
   events: Array<{ event_type: string; payload?: Record<string, unknown> }>;
 }> {
   return page.evaluate(async ({ credential, id }) => {
@@ -73,8 +73,8 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   const catalogResponse = await catalogPromise;
   expect(catalogResponse.status()).toBe(200);
   const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string }> };
-  expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"]);
-  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.18" }));
+  expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"]);
+  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.19" }));
   await expect(
     page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: catalog.items[0]!.name }),
   ).toBeVisible();
@@ -121,9 +121,9 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(initialGeometry.clientHeight).toBeLessThanOrEqual(380);
   expect(initialGeometry.scrollWidth).toBeLessThanOrEqual(initialGeometry.clientWidth);
 
-  const search = page.getByRole("searchbox", { name: "Filter 324 examples" });
+  const search = page.getByRole("searchbox", { name: "Filter 344 examples" });
   await search.fill("195");
-  await expect(page.getByText("Showing 1 of 324 examples")).toBeVisible();
+  await expect(page.getByText("Showing 1 of 344 examples")).toBeVisible();
   await expect(page.getByRole("button", { name: "Commit response" })).toBeDisabled();
   const example195 = page.getByRole("radio", { name: /Example 195.*extract TM\/TC database values/ });
   await expect(example195).toBeVisible();
@@ -146,9 +146,9 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(answerResponse.status()).toBe(202);
   expect(answerResponse.request().postDataJSON()).toEqual(expect.objectContaining({ action: "COMMIT", value: 194 }));
 
-  await expect(page.getByText("COMPLETED", { exact: true }).first()).toBeVisible({ timeout: 20_000 });
   await expect.poll(async () => (await authorizedSnapshot(page, created.execution.id)).execution.state.toUpperCase(), { timeout: 20_000 }).toBe("COMPLETED");
   const snapshot = await authorizedSnapshot(page, created.execution.id);
+  await expect(page.locator(".execution-metadata .state-pill")).toHaveText(snapshot.execution.operator_state, { timeout: 20_000 });
   const evidence = snapshot.events.find((event) => event.event_type === "procedure.reference_example_completed");
   expect(evidence?.payload).toEqual(expect.objectContaining({ example_number: 195, status: "PASS", passed: true }));
   expect(evidence?.payload?.assertions).toEqual(expect.arrayContaining([
@@ -212,7 +212,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
     page.getByRole("button", { name: "Validate source", exact: true }),
     page.getByRole("button", { name: "Start procedure", exact: true }),
     executionWorkspace.getByRole("heading", { name: "Language Reference 244", exact: true }),
-    executionWorkspace.getByText("COMPLETED", { exact: true }),
+    executionWorkspace.locator(".execution-metadata .state-pill"),
     page.getByRole("button", { name: "As-run report", exact: true }),
   ]) {
     await expectHorizontallyContained(page, target);

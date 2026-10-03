@@ -23,7 +23,7 @@ from .ir_v06 import (
     validate_user_action,
     validate_user_action_block,
 )
-from .runtime_composition_v18 import telecommand_dependency_variables
+from .runtime_composition_v19 import telecommand_dependency_variables
 from .prompt_v17 import PROMPT_PROFILE, MAX_TIMEOUT_SECONDS, validate_native_prompt_step, normalize_native_prompt_response
 from .models import Event, Execution, Prompt
 from .operator_models import (
@@ -72,7 +72,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
-_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16", "0.17", "0.18"})
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16", "0.17", "0.18", "0.19"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,
@@ -167,6 +167,15 @@ _LEGACY_STATE_PROJECTION = {
     "aborted": "ABORTED",
     "failed": "ERROR",
 }
+
+
+def v19_state_allowed_actions(state: str) -> list[str]:
+    """State-eligible actions only; leases, roles and safe points still apply."""
+    projected = _LEGACY_STATE_PROJECTION.get(state)
+    return sorted(command.lower() for command, (states, _) in _COMMAND_MATRIX.items()
+                  if command not in {"SKIP", "GOTO"} and projected in states)
+
+
 _PROMPT_TYPES = {
     "OK": ("FIXED_CHOICE", ["OK"]),
     "CANCEL": ("FIXED_CHOICE", ["CANCEL"]),
@@ -2784,6 +2793,8 @@ class OperatorService:
                         "execution revision conflict",
                         current={"execution_revision": execution.revision},
                     )
+                if execution.ir_version == "0.19" and command_type in {"SKIP", "GOTO"}:
+                    raise OperatorValidationError("OBSERVATION_NAVIGATION_FORBIDDEN: v0.19 excludes SKIP/GOTO")
                 in_flight = session.scalar(
                     select(OperatorCommand.id).where(
                         OperatorCommand.execution_id == execution_id,
@@ -2862,7 +2873,7 @@ class OperatorService:
                         )
                     if (
                         command_type == "GOTO"
-                        and execution.ir_version in {"0.11", "0.18"}
+                        and execution.ir_version in {"0.11", "0.18", "0.19"}
                         and target_step <= execution.current_step
                     ):
                         raise OperatorValidationError(
@@ -3387,6 +3398,8 @@ class OperatorService:
                     raise OperatorNotFoundError(
                         "command execution checkpoint is unavailable"
                     )
+                if execution.ir_version == "0.19":
+                    raise OperatorConflictError("OBSERVATION_NAVIGATION_FORBIDDEN: v0.19 cannot settle SKIP/GOTO")
                 if command.command_type == "SKIP":
                     expected_step = execution.current_step + 1
                 else:
@@ -5587,7 +5600,7 @@ class OperatorService:
             pinned_handler = _validate_literal(
                 list(action.definition.get("handler") or [])
             )
-            if rejection is None and execution.ir_version in {"0.11", "0.18"}:
+            if rejection is None and execution.ir_version in {"0.11", "0.18", "0.19"}:
                 try:
                     operations = validate_user_action_block(pinned_handler)
                 except V06ValidationError:
@@ -5961,7 +5974,7 @@ class OperatorService:
                 }
                 protected = (
                     telecommand_dependency_variables(execution.steps)
-                    if execution.ir_version in {"0.11", "0.18"}
+                    if execution.ir_version in {"0.11", "0.18", "0.19"}
                     else frozenset()
                 )
                 for operation in operations:
@@ -7638,7 +7651,7 @@ class OperatorService:
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
             if (
-                execution.ir_version in {"0.11", "0.18"}
+                execution.ir_version in {"0.11", "0.18", "0.19"}
                 and container_name is None
                 and name in telecommand_dependency_variables(execution.steps)
             ):

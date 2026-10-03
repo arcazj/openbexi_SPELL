@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from typing import Any, Iterable, Mapping
 
 from .development_domain import DevelopmentError, canonical_json_bytes, normalize_path
+from .development_profiles import (
+    LEGACY_LANGUAGE_PROFILE, V19_LANGUAGE_PROFILE, PROJECT_LANGUAGE_PROFILES,
+    authoring_ir_allowed,
+)
 from .procedure_parser import (
     MAX_SOURCE_BYTES,
     V10_LANGUAGE_PROFILE,
@@ -20,11 +24,11 @@ from .procedure_parser import (
 )
 
 
-TOOL_VERSION = "spell-development-analysis/0.18"
-LANGUAGE_PROFILE = "spell-restricted-ast/0.9"
+TOOL_VERSION = "spell-development-analysis/0.19"
+LANGUAGE_PROFILE = LEGACY_LANGUAGE_PROFILE
 REFERENCE_LANGUAGE_PROFILE = V10_LANGUAGE_PROFILE
 SUPPORTED_LANGUAGE_PROFILES = frozenset(
-    {LANGUAGE_PROFILE, REFERENCE_LANGUAGE_PROFILE, V16_LANGUAGE_PROFILE, V17_LANGUAGE_PROFILE, V18_LANGUAGE_PROFILE}
+    {LANGUAGE_PROFILE, REFERENCE_LANGUAGE_PROFILE, V16_LANGUAGE_PROFILE, V17_LANGUAGE_PROFILE, V18_LANGUAGE_PROFILE, V19_LANGUAGE_PROFILE}
 )
 MAX_DIAGNOSTICS_PER_FILE = 1000
 MAX_OUTLINE_ITEMS = 5000
@@ -203,7 +207,7 @@ def _outline(tree: ast.AST, steps: Iterable[Mapping[str, Any]]) -> list[dict[str
     )
 
 
-def _completions(tree: ast.AST) -> list[dict[str, Any]]:
+def _completions(tree: ast.AST, language_profile: str = LANGUAGE_PROFILE) -> list[dict[str, Any]]:
     builtins = {
         "Log",
         "Telemetry",
@@ -225,6 +229,8 @@ def _completions(tree: ast.AST) -> list[dict[str, Any]]:
         "WriteFile",
         "CloseFile",
     }
+    if language_profile == V19_LANGUAGE_PROFILE:
+        builtins.update({"BuildTC", "Send", "Display"})
     symbols = {
         node.id for node in ast.walk(tree) if isinstance(node, ast.Name) and node.id
     }
@@ -246,7 +252,10 @@ def analyze_source(
     source_path: str,
     *,
     workspace_revision: int,
+    language_profile: str | None = None,
 ) -> AnalysisResult:
+    if language_profile is not None and (type(language_profile) is not str or language_profile not in PROJECT_LANGUAGE_PROFILES):
+        raise DevelopmentError("project language profile is unsupported")
     path = normalize_path(source_path)
     try:
         source_bytes = source.encode("utf-8")
@@ -263,6 +272,7 @@ def analyze_source(
             line=1,
             column=1,
         )
+        diagnostic["language_profile"] = language_profile or LANGUAGE_PROFILE
         return AnalysisResult(
             diagnostics=(diagnostic,),
             outline=(),
@@ -276,6 +286,11 @@ def analyze_source(
     outline: list[dict[str, Any]] = []
     completions: list[dict[str, Any]] = []
     metadata, header_issues, header_outline = _procedure_headers(source)
+    effective_profile = language_profile or (metadata or {}).get("language-profile", LANGUAGE_PROFILE)
+    if metadata is not None and language_profile is not None:
+        declared_profile = metadata.get("language-profile", LANGUAGE_PROFILE)
+        if declared_profile != language_profile:
+            header_issues.append(("AUTHORING_PROFILE_MISMATCH", "procedure header must match the project language profile", 1))
     for code, message, line in header_issues[:MAX_DIAGNOSTICS_PER_FILE]:
         diagnostics.append(
             _diagnostic(
@@ -312,7 +327,14 @@ def analyze_source(
                 )
             )
     else:
-        if metadata is not None:
+        if language_profile is not None and not authoring_ir_allowed(language_profile, procedure.ir_version, list(procedure.steps)):
+            diagnostics.append(_diagnostic(
+                workspace_revision=workspace_revision, source_digest=source_digest,
+                source_path=path, code="AUTHORING_IR_UNSUPPORTED",
+                message="procedure uses capabilities outside the project authoring profile",
+                line=1, column=1,
+            ))
+        if metadata is not None and not diagnostics:
             compiled[path] = {
                 "description": metadata.get("description", procedure.description),
                 "display_name": metadata.get(
@@ -327,9 +349,9 @@ def analyze_source(
             }
         if tree is not None:
             outline = [*header_outline, *_outline(tree, procedure.steps)]
-            completions = _completions(tree)
+            completions = _completions(tree, effective_profile)
     return AnalysisResult(
-        diagnostics=tuple(diagnostics),
+        diagnostics=tuple({**item, "language_profile": effective_profile} for item in diagnostics),
         outline=tuple(outline),
         completions=tuple(completions),
         compiled=compiled,
@@ -475,6 +497,7 @@ def analyze_resources(
     workspace_revision: int,
     scope: str,
     scope_path: str | None = None,
+    language_profile: str | None = None,
 ) -> AnalysisResult:
     selected_path = normalize_path(scope_path) if scope_path is not None else None
     diagnostics: list[dict[str, Any]] = []
@@ -516,7 +539,7 @@ def analyze_resources(
                 source, path, workspace_revision=workspace_revision
             )
             if resource["kind"] == "LIBRARY"
-            else analyze_source(source, path, workspace_revision=workspace_revision)
+            else analyze_source(source, path, workspace_revision=workspace_revision, language_profile=language_profile)
         )
         diagnostics.extend(result.diagnostics)
         outline.extend({**item, "source_path": path} for item in result.outline)

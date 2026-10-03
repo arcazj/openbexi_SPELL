@@ -3,7 +3,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { consoleSlice, setConnectionPhase, startExecution } from "../store";
+import { consoleSlice, ingestEvent, setConnectionPhase, startExecution, resyncExecution } from "../store";
 import type { ExecutionSnapshot } from "../types";
 import { ExecutionWorkspace, OwnershipControls } from "./ExecutionWorkspace";
 
@@ -35,6 +35,29 @@ function execution(id: string): ExecutionSnapshot {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); window.sessionStorage.clear(); });
 
 describe("monitor subscription lifecycle", () => {
+  it.each(["execution.state_changed", "prompt.opened"])("interlocks server actions after %s until a fresh snapshot", async (eventType) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ items: [] }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const store = configureStore({ reducer: { console: consoleSlice.reducer } });
+    const current = { ...execution("one"), allowed_actions: ["RUN", "STEP", "ABORT"] };
+    store.dispatch(startExecution.fulfilled(current, "load", { procedureId: "demo", contextId: "simulator" }));
+    store.dispatch(setConnectionPhase("CONNECTED"));
+    render(<Provider store={store}><ExecutionWorkspace /></Provider>);
+    expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Goto" })).toBeDisabled();
+    await act(async () => { store.dispatch(ingestEvent({ event_id: "transition", execution_id: "one", sequence: 4, server_time: "", event_type: eventType, payload: eventType === "prompt.opened" ? { id: "prompt", question: "Proceed?", type: "YES_NO", revision: 6 } : { state: "paused", revision: 6 } })); });
+    expect(store.getState().console.execution!.allowed_actions).toEqual([]);
+    expect(screen.getByRole("button", { name: "Run" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Abort" })).toBeDisabled();
+    await act(async () => { store.dispatch(resyncExecution.fulfilled({ ...current, revision: 6, last_sequence: 4 }, "refresh", "one")); });
+    expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Abort" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Goto" })).toBeDisabled();
+    await act(async () => { store.dispatch(setConnectionPhase("RESYNCING")); });
+    expect(store.getState().console.execution!.allowed_actions).toEqual([]);
+  });
+
   it("releases to background through the fenced safe-point command", async () => {
     let command: Record<string, unknown> | null = null;
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {

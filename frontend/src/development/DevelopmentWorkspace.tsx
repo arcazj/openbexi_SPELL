@@ -58,17 +58,19 @@ import type {
   WorkspaceConflict,
 } from "./types";
 
+import { LEGACY_LANGUAGE_PROFILE, V19_LANGUAGE_PROFILE, type AuthoringProfile } from "./profiles";
+
 type MobilePanel = "explorer" | "editor" | "problems" | "activity";
 type EditorMode = "source" | "dictionary" | "catalog";
 type DialogState =
-  | { type: "PROJECT"; value: string; casePolicy: ProjectSummary["case_policy"] }
+  | { type: "PROJECT"; value: string; casePolicy: ProjectSummary["case_policy"]; languageProfile: AuthoringProfile }
   | { type: ExplorerCommand; value: string; dictionaryFormat?: "DB" | "IMP" }
   | null;
 
 interface DevelopmentWorkspaceProps {
   identity: DevelopmentIdentity;
   selectedProjectId: string | null;
-  onCreateProject: (name: string, casePolicy: ProjectSummary["case_policy"]) => Promise<void>;
+  onCreateProject: (name: string, casePolicy: ProjectSummary["case_policy"], languageProfile: AuthoringProfile) => Promise<void>;
   onProjectsChanged: () => Promise<void>;
   onDirtyChange: (dirty: boolean) => void;
   onError: (message: string | null) => void;
@@ -80,7 +82,7 @@ function dictionaryId(path: string): string {
   return sanitized || "dictionary";
 }
 
-async function templateFor(kind: ResourceKind, path: string, dictionaryFormat: "DB" | "IMP" = "DB"): Promise<{ content: string; mediaType: string }> {
+async function templateFor(kind: ResourceKind, path: string, languageProfile: AuthoringProfile, dictionaryFormat: "DB" | "IMP" = "DB"): Promise<{ content: string; mediaType: string }> {
   const name = path.split("/").pop()?.replace(/\.spell\.py$/i, "").replace(/\.[^.]+$/, "") || "Procedure";
   if (kind === "DICTIONARY") {
     return createEmptyDictionary(dictionaryId(path), dictionaryFormat);
@@ -91,7 +93,7 @@ async function templateFor(kind: ResourceKind, path: string, dictionaryFormat: "
     `# @procedure ${procedureId}`,
     `# @display-name ${name.replaceAll("_", " ")}`,
     "# @description Local simulator procedure",
-    "# @language-profile spell-restricted-ast/0.9",
+    `# @language-profile ${languageProfile}`,
     "",
     `"""${name.replaceAll("_", " ")} local simulator procedure."""`,
     "Log('Procedure ready')",
@@ -404,7 +406,7 @@ export function DevelopmentWorkspace({
     if (dialog.type === "PROJECT") {
       const current = dialog;
       setDialog(null);
-      await perform(() => onCreateProject(current.value.trim(), current.casePolicy), false);
+      await perform(() => onCreateProject(current.value.trim(), current.casePolicy, current.languageProfile), false);
       return;
     }
     if (!selectedProjectId || !workspace) return;
@@ -436,7 +438,7 @@ export function DevelopmentWorkspace({
     }
     const kind: ResourceKind = current.type === "CREATE_FOLDER" ? "FOLDER" : current.type === "CREATE_DICTIONARY" ? "DICTIONARY" : "PROCEDURE";
     const path = current.value.trim();
-    const template = await templateFor(kind, path, current.dictionaryFormat);
+    const template = await templateFor(kind, path, workspace.project.manifest.language_profile, current.dictionaryFormat);
     await perform(() => createResource({
       project_id: selectedProjectId,
       path,
@@ -533,7 +535,7 @@ export function DevelopmentWorkspace({
       <main className="dev-no-project">
         <FolderPlus aria-hidden="true" size={30} />
         <h1>{loading ? "Loading projects" : "No project selected"}</h1>
-        {!loading && canMutate && <button type="button" className="dev-primary-command" onClick={() => setDialog({ type: "PROJECT", value: "", casePolicy: "CASE_SENSITIVE" })}>Create project</button>}
+        {!loading && canMutate && <button type="button" className="dev-primary-command" onClick={() => setDialog({ type: "PROJECT", value: "", casePolicy: "CASE_SENSITIVE", languageProfile: V19_LANGUAGE_PROFILE })}>Create project</button>}
         {dialog?.type === "PROJECT" && <DevelopmentDialog state={dialog} onChange={setDialog} onCancel={() => setDialog(null)} onSubmit={submitDialog} />}
       </main>
     );
@@ -552,7 +554,7 @@ export function DevelopmentWorkspace({
         onImport={(file) => void importArchive(file)}
         onExport={() => void perform(async () => downloadProjectFile(await exportProject(selectedProjectId, workspace.workspace_revision)), false)}
         onRefresh={() => void loadWorkspace()}
-        onCreateProject={() => setDialog({ type: "PROJECT", value: "", casePolicy: "CASE_SENSITIVE" })}
+        onCreateProject={() => setDialog({ type: "PROJECT", value: "", casePolicy: "CASE_SENSITIVE", languageProfile: V19_LANGUAGE_PROFILE })}
         onProjectClosedChange={(closed) => void changeProjectClosed(closed)}
         onShowProperties={() => void showProperties()}
         onShowManifest={() => setManifestOpen(true)}
@@ -713,7 +715,10 @@ function DevelopmentDialog({ state, onChange, onCancel, onSubmit }: DevelopmentD
           <label>{state.type === "PROJECT" ? "Project name" : "Project-relative path"}<input autoFocus value={state.value} onChange={(event) => onChange({ ...state, value: event.target.value })} required maxLength={512} /></label>
         )}
         {state.type === "PROJECT" && (
-          <label>Filename case policy<select value={state.casePolicy} onChange={(event) => onChange({ ...state, casePolicy: event.target.value as ProjectSummary["case_policy"] })}><option value="CASE_SENSITIVE">Case sensitive</option><option value="CASE_INSENSITIVE">Case insensitive</option></select></label>
+          <>
+            <label>Language profile<select value={state.languageProfile} onChange={(event) => onChange({ ...state, languageProfile: event.target.value as AuthoringProfile })}><option value={V19_LANGUAGE_PROFILE}>v0.19 observation and command workflows</option><option value={LEGACY_LANGUAGE_PROFILE}>v0.9 compatible authoring</option></select></label>
+            <label>Filename case policy<select value={state.casePolicy} onChange={(event) => onChange({ ...state, casePolicy: event.target.value as ProjectSummary["case_policy"] })}><option value="CASE_SENSITIVE">Case sensitive</option><option value="CASE_INSENSITIVE">Case insensitive</option></select></label>
+          </>
         )}
         {state.type === "CREATE_DICTIONARY" && (
           <label>Dictionary exchange format<select value={state.dictionaryFormat ?? "DB"} onChange={(event) => {

@@ -1,7 +1,7 @@
 # @procedure language_reference_244
 # @display-name SPELL 2.4.4 language checks
 # @description Select an adaptation, direct source or rejection check; gaps remain explicit
-# @language-profile spell-lrm244-conformance/0.18
+# @language-profile spell-lrm244-conformance/0.19
 """SPELL 2.4.4 coverage: 763 artifacts. Full language support remains incomplete."""
 
 selected_index: int = 0
@@ -335,6 +335,26 @@ Prompt(
         "Gap check - v18-reject-native-command-argument",
         "Gap check - v18-reject-mixed-data-service",
         "Gap check - v18-reject-nested-language-service",
+        "Direct - v19-observation-prompt-confirm-command",
+        "Direct - v19-observation-native-no",
+        "Direct - v19-observation-native-abort",
+        "Direct - v19-observation-confirmation-no",
+        "Direct - v19-observation-false-decision",
+        "Direct - v19-read-rejects-missing",
+        "Direct - v19-read-rejects-stale",
+        "Direct - v19-read-rejects-invalid",
+        "Direct - v19-read-rejects-bad-quality",
+        "Direct - v19-read-rejects-gap",
+        "Direct - v19-read-rejects-policy",
+        "Direct - v19-clock-indeterminate-no-command",
+        "Direct - v19-verify-overwrites-prior-true",
+        "Direct - v19-condition-wait-command",
+        "Direct - v19-condition-wait-timeout-no-command",
+        "Direct - v19-read-controls-bounded-loop",
+        "Direct - v19-read-native-built-command",
+        "Gap check - v19-reject-observation-dynamic-command",
+        "Gap check - v19-reject-observation-dynamic-argument",
+        "Gap check - v19-reject-observation-data-mixture",
         "Run all language checks and adaptations; report gaps",
     ],
     list_mode="INDEX",
@@ -342,5 +362,5 @@ Prompt(
     target=selected_index,
 )
 example_number = selected_index + 1
-LanguageCheck(selected_index, profile="0.18", target=result)
+LanguageCheck(selected_index, profile="0.19", target=result)
 Log(result)

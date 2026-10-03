@@ -216,7 +216,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
               {breakpoints.has(lineNumber) ? <CircleDot aria-hidden="true" size={11} /> : <Circle aria-hidden="true" size={11} />}
             </button>}</td>
             <td className="line-number">{lineNumber}</td>
-            <td className="source-text"><code><HighlightedSource text={line || " "} /></code></td>
+            <td className="source-text"><code tabIndex={0} title={line}><HighlightedSource text={line || " "} /></code></td>
             <td className="line-data" title={observation ? `${observation.item} ${observation.value}` : undefined}>{observation && <>{observation.item}{observation.item && observation.value && " = "}{observation.value}</>}</td>
             <td className="line-result" title={observation?.result}>{observation?.result}</td>
           </tr>;

@@ -242,5 +242,10 @@ describe("execution stream projection invalidation", () => {
     expect(eventRequiresProjectionResync("relationship.created")).toBe(true);
     expect(eventRequiresProjectionResync("operator.control_loss_requested")).toBe(true);
     expect(eventRequiresProjectionResync("telemetry.sample")).toBe(false);
+    for (const event of ["execution.state_changed", "prompt.opened", "prompt.reopened", "prompt.closed", "prompt.settled"]) {
+      expect(eventRequiresProjectionResync(event)).toBe(false);
+      expect(eventRequiresProjectionResync(event, true)).toBe(true);
+    }
+    expect(eventRequiresProjectionResync("telemetry.sample", true)).toBe(false);
   });
 });

@@ -726,6 +726,9 @@ function normalizeSnapshot(body: JsonObject): ExecutionSnapshot {
     context_id: String(execution.context_id ?? "simulator"),
     state: String(execution.operator_state ?? execution.state ?? "created").toUpperCase() as ExecutionSnapshot["state"],
     revision: Number(execution.revision ?? 0),
+    allowed_actions: execution.allowed_actions === undefined ? undefined
+      : Array.isArray(execution.allowed_actions) && execution.allowed_actions.every((item) => typeof item === "string")
+        ? execution.allowed_actions.map((item) => String(item).toUpperCase()) : [],
     current_step_id: String(currentStep),
     current_line: execution.current_line == null ? undefined : Number(execution.current_line),
     started_at: String(execution.started_at ?? execution.created_at ?? "") || undefined,

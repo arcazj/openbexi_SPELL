@@ -64,7 +64,7 @@ def test_composed_compatibility_control_requires_current_fencing_and_source(clie
 
 def test_composed_control_extension_exposes_no_new_command_or_connectivity():
     contract = profile()
-    assert contract["execution_ir_versions"][-1] == "0.18"
-    assert contract["extension_schema"] == "spell.v18.control-extension/1"
+    assert "0.18" in contract["execution_ir_versions"]
+    assert contract["extension_schema"] == "spell.v19.control-extension/1"
     assert contract["commands"] == {"RUN": "RUN", "STEP": "STEP", "PAUSE": "PAUSE", "ABORT": "ABORT", "RETURN_TO_READ_ONLY": "STOP"}
     assert contract["legacy_protocol_implemented"] is False

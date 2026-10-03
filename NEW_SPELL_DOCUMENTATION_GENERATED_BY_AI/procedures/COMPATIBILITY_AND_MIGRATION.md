@@ -1,5 +1,34 @@
 # SPELL Compatibility and Migration
 
+## v0.19 Observation-To-Command Workflows
+
+v0.19 implementation is undergoing qualification; the accepted release remains
+v0.18.0. IR 0.19 combines existing bounded GetTM/Verify/WaitFor with native
+Prompt/Display, scalar expressions and simulator BuildTC/Send. Earlier stored
+IR retains its contract. See the [approved scope](../releases/SPELL_v0.19_Pre-Implementation.md)
+and [current language coverage](../../contracts/v19/language_coverage.json).
+
+The target-based observation syntax remains a bounded adaptation:
+
+- GetTM assigns a predeclared scalar only on OK, after the supervisor accepts
+  VALID/GOOD/FRESH/COMPLETE evidence and the expected policy revision.
+- Verify replaces its predeclared string target with the exact outcome.
+  Compare explicitly with `"TRUE"`; failure outcomes are not success.
+- WaitFor advances only on SATISFIED. Failed GetTM or WaitFor steps cannot
+  advance to a later command.
+
+Results are read-time snapshots. Prompt, WaitFor and Send do not refresh an
+earlier reading. Durable request/result bindings protect observation targets,
+guards and command decisions; required command confirmation remains separate.
+IR 0.19 rejects SKIP/GOTO. RUN and STEP execute intervening statements.
+
+Service identifiers, command names and arguments remain literal; immutable
+BuildTC items and existing closed modifier forms are supported. Data/argument,
+file and environment mixtures, native observation return objects and the full
+manual modifier set remain outside IR 0.19. Full SPELL 2.4.4 support remains
+incomplete. The reference runner distinguishes isolated helper checks from
+separate real-worker and durable-runtime qualification.
+
 ## v0.18 Native Command Workflows
 
 IR 0.18 combines native Prompt/Display and bounded core expressions with the

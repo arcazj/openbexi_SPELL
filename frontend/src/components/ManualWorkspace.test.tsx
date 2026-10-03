@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { useRef } from "react";
@@ -94,6 +94,19 @@ describe("manual-aligned procedure workspace", () => {
     expect(container.querySelector("img,script")).toBeNull();
   });
 
+  it("correlates durable observation results with the exact request and immutable source step", () => {
+    const execution = snapshot();
+    const event = (id: string, sequence: number, event_type: string, payload: Record<string, unknown>) => ({ event_id: id, sequence, event_type, execution_id: execution.id, server_time: "", payload });
+    execution.events = [
+      event("request", 1, "procedure.observation_requested", { request_id: "read-1", step_index: 0, operation: "GET_TM", parameters: { item_id: "TM.BUS" } }),
+      event("wrong", 2, "procedure.observation_result", { request_id: "read-1", step_index: 1, operation: "GET_TM", outcome: "OK", value: 99 }),
+      event("result", 3, "procedure.observation_result", { request_id: "read-1", step_index: 0, operation: "GET_TM", outcome: "OK", value: { type: "FINITE_DOUBLE", value: 0 } }),
+      event("uncorrelated", 4, "procedure.observation_result", { request_id: "other", step_index: 0, operation: "GET_TM", outcome: "OK", value: 99 }),
+      event("settled", 5, "procedure.observation_settled", { request_id: "read-1", step_index: 0, operation: "GET_TM", outcome: "OK" }),
+    ];
+    expect([...lineObservations(execution)]).toEqual([[2, { item: "TM.BUS", value: "0", result: "OK" }]]);
+  });
+
   it("navigates paused source from the left Outline and interlocks running navigation", async () => {
     const execution = snapshot();
     const store = storeWith(execution);
@@ -125,5 +138,9 @@ describe("manual-aligned procedure workspace", () => {
     await userEvent.click(screen.getByRole("button", { name: /Read telemetry/ }));
     expect(screen.getByRole("table", { name: "Tabular procedure source" })).toBeVisible();
     expect(screen.getByRole("row", { name: "Line 2" })).toHaveClass("selected-line");
+    for (const id of ["second-instance", "third-instance"]) {
+      await act(async () => { store.dispatch(startExecution.fulfilled({ ...snapshot(), id }, "switch", { procedureId: "example", contextId: "simulator" })); });
+    }
+    expect(screen.getAllByText("Compatibility control")).toHaveLength(1);
   });
 });

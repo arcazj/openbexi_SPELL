@@ -408,6 +408,7 @@ export interface ExecutionSnapshot {
   context_id: string;
   state: ExecutionState;
   revision: number;
+  allowed_actions?: string[];
   current_step_id?: string;
   current_line?: number;
   started_at?: string;

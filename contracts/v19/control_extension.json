@@ -1,0 +1,11 @@
+{
+  "schema_version": "spell.v19.control-extension/1",
+  "extends": "contracts/v18/control_extension.json",
+  "additional_execution_ir_versions": [
+    "0.19"
+  ],
+  "profile": "LOCAL_SYNTHETIC_PROCEDURE_CONTROL",
+  "operational_authorization": false,
+  "new_commands": [],
+  "unchanged_requirements": "All inherited roles, leases, fencing, revisions and source identities apply. IR19 observation checkpoints require durable exact results; native answers do not replace telecommand confirmation. SKIP/GOTO are excluded in19."
+}
