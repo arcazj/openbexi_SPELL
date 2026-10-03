@@ -1,8 +1,9 @@
-"""Narrow applicability resolution for the GCC pb_ds header-only advisory.
+"""Narrow applicability resolution for two independently reviewed GCC advisories.
 
-This does not suppress scanner output or accept vulnerable runtime code. The
-review applies only to the three Debian runtime packages listed below, not to
-arbitrary binaries compiled with GCC or other GCC vulnerabilities.
+This does not suppress scanner output or accept vulnerable runtime code.
+Header absence resolves only the pb_ds advisory for the three listed Debian
+runtime packages. Aligned-new overflow requires the separate exact-binary POSIX
+proof. Neither review covers arbitrary GCC binaries or other vulnerabilities.
 """
 from __future__ import annotations
 
@@ -40,6 +41,11 @@ def resolve(scan: dict, probe: dict) -> list[dict]:
     resolutions = []
     for rule in run["tool"]["driver"]["rules"]:
         if float(rule["properties"].get("security-severity", "0")) < 7:
+            continue
+        if rule["id"] == "CVE-2026-95619":
+            from scripts.gcc_aligned_new_applicability import resolve_rule
+            results = [r for r in run["results"] if r["ruleId"] == rule["id"]]
+            resolutions.append(resolve_rule(rule, results, probe))
             continue
         assert rule["id"] == ADVISORY, "unresolved Critical/High advisory"
         assert rule["properties"]["purls"] == [PURL], "unreviewed affected package"

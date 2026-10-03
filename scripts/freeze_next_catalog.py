@@ -25,7 +25,8 @@ def main():
     driver = [r for r in rows if r["identity"].startswith("driver_host.tests.")]
     compose = config["gates"]["compose"]["identities"]
     tools = [r for r in rows if r["identity"].startswith(("scripts.tests.test_release_v12::",
-             "scripts.tests.test_release_next::", "scripts.tests.test_spell_auditor_tool::"))]
+             "scripts.tests.test_release_next::", "scripts.tests.test_spell_auditor_tool::",
+             "scripts.tests.test_gcc_aligned_new_applicability::"))]
     docs = [r for r in rows if r["identity"].startswith(("scripts.tests.test_markdown_preview_v09::",
             "scripts.tests.test_documentation_tree_layout::"))]
     config["gates"]["sqlite"] = gate(backend + driver)
@@ -59,6 +60,9 @@ def main():
                      "catalog_procedures_v18", "composition_security_v18"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
     prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
+    if MINOR >= 18:
+        config["candidate_files"].append("scripts/tests/test_gcc_aligned_new_applicability.py")
+        prefixes += ("scripts.tests.test_gcc_aligned_new_applicability::",)
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))
     if MINOR == 15:
         postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]

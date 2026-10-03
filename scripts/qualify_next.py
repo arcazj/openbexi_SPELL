@@ -25,6 +25,8 @@ COMPOSE_TESTS = [
 ]
 DOC_TESTS = ["scripts/tests/test_markdown_preview_v09.py", "scripts/tests/test_documentation_tree_layout.py"]
 TOOL_TESTS = ["scripts/tests/test_release_v12.py", "scripts/tests/test_release_next.py", "scripts/tests/test_spell_auditor_tool.py"]
+if MINOR >= 18:
+    TOOL_TESTS.append("scripts/tests/test_gcc_aligned_new_applicability.py")
 
 
 def docker_python(*args, network="none", extra=()):

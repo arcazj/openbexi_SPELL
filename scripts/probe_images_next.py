@@ -29,6 +29,9 @@ def main():
         if name in {"backend", "driver"}:
             code = (Path(__file__).with_name("gcc_header_applicability.py")).read_text()
             row["gcc_header_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
+            if MINOR >= 18:
+                code = (Path(__file__).with_name("gcc_aligned_new_applicability.py")).read_text()
+                row["gcc_aligned_new_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             code = ("import hashlib,json,pathlib,zlib; p=pathlib.Path('/usr/lib/x86_64-linux-gnu/libz.so.1'); "
                     "print(json.dumps({'runtime_version':zlib.ZLIB_RUNTIME_VERSION,'library_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),"
                     "'upstream_commit':pathlib.Path('/usr/local/share/openbexi/zlib-source-commit').read_text().strip()}))")
