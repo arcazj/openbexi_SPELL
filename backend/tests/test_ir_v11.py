@@ -341,12 +341,14 @@ def test_v011_ir_rejects_modifier_conflicts_and_oversized_numbers() -> None:
 
 
 def test_v011_rejects_unbrokered_capability_mixing() -> None:
-    with pytest.raises(ProcedureValidationError, match="independent validation"):
-        _parse(
-            "value: float = 0.0\n"
-            "Send(command='CMDNAME')\n"
-            "GetTM('TM.POWER.BUS_VOLTAGE', target=value, scalar_type='float')\n"
-        )
+    procedure = _parse(
+        "value: float = 0.0\n"
+        "Send(command='CMDNAME')\n"
+        "GetTM('TM.POWER.BUS_VOLTAGE', target=value, scalar_type='float')\n"
+    )
+    assert procedure.ir_version == "0.19"
+    with pytest.raises(V11ValidationError, match="cannot mix reference, observation, or data-service steps"):
+        validate_ir_v11("0.11", list(procedure.steps))
 
 
 def test_legacy_ir_selection_is_unchanged() -> None:

@@ -287,46 +287,103 @@ def test_two_workers_finishing_after_deadline_are_not_accepted(
     )
     entered = threading.Barrier(3)
     release = threading.Event()
+    broker_waiting = threading.Event()
+    workers_finished = threading.Event()
+    from backend import development_bundle_broker as broker_module
     from backend import development_bundle_worker as worker_module
 
     original = worker_module.build_request_payload
+    builds = []
+    worker_errors = []
+    finished_count = 0
+    finished_lock = threading.Lock()
+    clock = SimpleNamespace(elapsed=0.0, epoch=time.time())
+    late_protocol = {}
 
     def delayed(request):
         entered.wait(timeout=3)
-        release.wait(timeout=2)
-        return original(request)
+        assert release.wait(timeout=2)
+        result = original(request)
+        builds.append(result)
+        return result
+
+    def wait_for_late_workers(_seconds):
+        broker_waiting.set()
+        assert workers_finished.wait(timeout=5)
+        # Keep the request present until both real workers have completed, so
+        # their deadline checks (not broker removal) prevent late publication.
+        late_protocol["request_count"] = len(list(request_directory.iterdir()))
+        late_protocol["responses"] = {
+            worker: sorted(path.name for path in directory.iterdir())
+            for worker, directory in response_directories.items()
+        }
+
+    controlled_time = SimpleNamespace(
+        time=lambda: clock.epoch + clock.elapsed,
+        monotonic=lambda: clock.elapsed,
+        sleep=wait_for_late_workers,
+    )
+    monkeypatch.setattr(broker_module, "time", controlled_time)
+    monkeypatch.setattr(worker_module, "time", controlled_time)
+
+    def worker(worker_id):
+        nonlocal finished_count
+        try:
+            _worker_once(worker_id, request_directory, response_directories[worker_id])
+        except Exception as exc:
+            worker_errors.append(exc)
+        finally:
+            with finished_lock:
+                finished_count += 1
+                if finished_count == 2:
+                    workers_finished.set()
 
     monkeypatch.setattr(worker_module, "build_request_payload", delayed)
     threads = [
-        threading.Thread(
-            target=_worker_once,
-            args=(worker, request_directory, response_directories[worker]),
-        )
-        for worker in ("builder-a", "builder-b")
+        threading.Thread(target=worker, args=(worker_id,))
+        for worker_id in ("builder-a", "builder-b")
     ]
     for thread in threads:
         thread.start()
 
-    outcome: dict[str, Exception] = {}
+    outcome: dict[str, object] = {}
 
     def build() -> None:
         try:
-            broker.build(_request())
+            outcome["result"] = broker.build(_request())
         except Exception as exc:
             outcome["error"] = exc
 
     broker_thread = threading.Thread(target=build)
     broker_thread.start()
-    entered.wait(timeout=3)
-    time.sleep(0.15)
-    release.set()
-    broker_thread.join(timeout=5)
-    assert not broker_thread.is_alive()
+    try:
+        entered.wait(timeout=3)
+        assert broker_waiting.wait(timeout=3)
+        # Advance the protocol clocks only after both builds are in flight.
+        # The 100 ms product deadline is unchanged; thread scheduling and fsync
+        # are not required to complete inside that semantic interval.
+        clock.elapsed = broker.timeout_seconds + 0.001
+        release.set()
+        assert workers_finished.wait(timeout=5)
+        broker_thread.join(timeout=5)
+    finally:
+        clock.elapsed = broker.timeout_seconds + 0.001
+        release.set()
+        entered.abort()
+        workers_finished.set()
+        for thread in [*threads, broker_thread]:
+            thread.join(timeout=5)
+    assert all(not thread.is_alive() for thread in [*threads, broker_thread])
+    assert worker_errors == []
+    assert len(builds) == 2
+    assert builds[0] == builds[1]
+    assert late_protocol == {
+        "request_count": 1,
+        "responses": {"builder-a": ["ready.json"], "builder-b": ["ready.json"]},
+    }
+    assert "result" not in outcome
     assert isinstance(outcome.get("error"), DevelopmentConflictError)
     assert outcome["error"].code == "BUILDER_UNAVAILABLE"
-    for thread in threads:
-        thread.join(timeout=5)
-        assert not thread.is_alive()
     assert list(request_directory.iterdir()) == []
     for path in response_directories.values():
         assert sorted(item.name for item in path.iterdir()) == ["ready.json"]
