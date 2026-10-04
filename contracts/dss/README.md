@@ -53,6 +53,15 @@ physical epoch in one transaction. Each sample retains its checks, cursor,
 alarm and event history. A conflict rolls back the cohort; its clock is admitted
 only after telemetry commits.
 
+Backend migration `0013_observation_outbox_index` removes only the replay index
+duplicated by the unique stream/epoch/sequence constraint. History, uniqueness
+and ordered replay remain intact. Its transactional downgrade restores that
+index only at the exact migration head; neither direction removes event rows.
+
+PostgreSQL DSS reads use one committed, read-only repeatable snapshot. Freshness
+is checked at its database read time, so a delayed stale sweep cannot make an
+expired sample acceptable. Command authority and epoch checks remain unchanged.
+
 DSS clock observations bind to the exact decoded telemetry packet and its epoch.
 A reset retires the current clock head; historical observations remain available.
 The new clock becomes visible after telemetry admits the new epoch. Time must

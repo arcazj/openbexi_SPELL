@@ -447,7 +447,6 @@ class ObservationOutboxEvent(Base):
         CheckConstraint("projection_sequence > 0", name="ck_observation_outbox_sequence"),
         CheckConstraint("delivery_attempts >= 0", name="ck_observation_outbox_delivery_attempts"),
         Index("ix_observation_outbox_pending", "published_at", "created_at"),
-        Index("ix_observation_outbox_replay", "stream_id", "stream_epoch", "projection_sequence"),
         Index("ix_observation_dss_epoch", "stream_id", "stream_epoch", "projection_sequence",
               sqlite_where=text("event_type = 'telemetry.source_epoch_changed' AND aggregate_id = 'dss-GENERIC'"),
               postgresql_where=text("event_type = 'telemetry.source_epoch_changed' AND aggregate_id = 'dss-GENERIC'")),

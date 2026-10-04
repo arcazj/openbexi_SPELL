@@ -6,6 +6,7 @@ import re
 import threading
 import time
 import uuid
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -1001,91 +1002,160 @@ class ObservationRepository:
 
     def snapshot(self, context_id: str) -> dict[str, Any]:
         context_id = _identifier(context_id, "context_id")
+        if self.dss_enabled:
+            with self.session_factory() as session:
+                postgresql = session.get_bind().dialect.name == "postgresql"
+            if postgresql:
+                return self._snapshot_mvcc(context_id)
+        # SQLite and legacy profiles retain the original locked read/commit.
         with self._timings.operation("snapshot", self._lock, self.session_factory) as session:
             context = self._active_context(session, context_id, lock=True)
             stream = self._stream(session, context.id, create=True, lock=True)
             assert stream is not None
-            snapshot_time = self._database_now(session)
-            heads = session.scalars(
-                select(TelemetryItemHead)
-                .where(TelemetryItemHead.context_generation_id == context.id)
-                .order_by(TelemetryItemHead.item_id)
-                .limit(MAX_SNAPSHOT_ITEMS + 1)
-            ).all()
-            if len(heads) > MAX_SNAPSHOT_ITEMS:
-                raise ObservationConflictError("snapshot item bound was exceeded")
-            # Read only the bounded current heads, not retained sample/alarm
-            # history. Keep the same context/stream locks across every batch.
-            samples = {row.id: row for row in session.scalars(
-                select(TelemetrySample).where(TelemetrySample.id.in_(
-                    [head.sample_id for head in heads]))
-            )} if heads else {}
-            alarm_heads = session.scalars(select(TelemetryAlarmHead).where(
-                TelemetryAlarmHead.context_generation_id == context.id,
-                TelemetryAlarmHead.item_id.in_([head.item_id for head in heads]),
-            )).all() if heads else []
-            alarms = {row.id: row for row in session.scalars(
-                select(TelemetryAlarmObservation).where(TelemetryAlarmObservation.id.in_(
-                    [head.alarm_observation_id for head in alarm_heads]))
-            )} if alarm_heads else {}
-            limits = {row.id: row for row in session.scalars(
-                select(TelemetryLimitSet).where(TelemetryLimitSet.id.in_(
-                    {alarm.limit_definition_id for alarm in alarms.values()
-                     if alarm.limit_definition_id is not None}))
-            )} if alarms else {}
-            item_alarms = {head.item_id: alarms.get(head.alarm_observation_id)
-                           for head in alarm_heads}
-            items: list[dict[str, Any]] = []
-            for head in heads:
-                sample = samples.get(head.sample_id)
-                if sample is None:
-                    raise ObservationConflictError("telemetry item head is incomplete")
-                item = self._sample_dict(sample, head)
-                alarm = item_alarms.get(head.item_id)
-                item["alarm"] = (self._alarm_projection(alarm, limits.get(alarm.limit_definition_id))
-                                 if alarm is not None else None)
-                items.append(item)
-            cursors = session.scalars(
-                select(TelemetrySourceCursor)
-                .where(TelemetrySourceCursor.context_generation_id == context.id)
-                .order_by(TelemetrySourceCursor.source_id, TelemetrySourceCursor.item_id)
-            ).all()
-            time_head = session.get(DriverTimeHead, context.host_generation_id)
-            time_row = (
-                session.get(DriverTimeObservation, time_head.observation_id)
-                if time_head is not None
-                else None
+            return self._snapshot_projection(
+                session, context, stream, self._database_now(session), commit=True
             )
-            if not items:
-                sync = "NO_SAMPLE"
-            elif any(item["synchronization_state"] == "GAPPED" for item in items):
-                sync = "GAPPED"
-            else:
-                sync = "COMPLETE"
-            driver_time = self._time_projection(session, time_row, context) if time_row is not None else None
+
+    def _snapshot_mvcc(self, context_id: str) -> dict[str, Any]:
+        # A read-only repeatable view can use the last committed frame while
+        # a collector is still committing. No mutable state crosses reads.
+        for attempt in range(2):
+            # Retain bounded timing diagnostics; nullcontext has no mutex or
+            # admission wait. The measured scope is this fresh read session.
+            with self._timings.operation("snapshot", nullcontext(), self.session_factory) as session:
+                session.connection().exec_driver_sql(
+                    "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"
+                )
+                # This first snapshot-bearing SELECT pins both the visible
+                # generation and the database read time in one statement.
+                row = session.execute(
+                    select(DriverContextGeneration, func.statement_timestamp())
+                    .where(
+                        DriverContextGeneration.context_id == context_id,
+                        DriverContextGeneration.state == "ACTIVE",
+                        DriverContextGeneration.ready.is_(True),
+                    )
+                    .order_by(DriverContextGeneration.generation_number.desc())
+                    .limit(1)
+                ).first()
+                if row is None:
+                    raise ObservationNotFoundError("active driver context was not found")
+                context, snapshot_time = row
+                stream = self._stream(session, context.id, create=False, lock=False)
+                if stream is not None:
+                    # All ORM fields are converted to plain projection data
+                    # before closing/rolling back the read-only transaction.
+                    return self._snapshot_projection(
+                        session, context, stream, snapshot_time,
+                        commit=False, read_time_freshness=True,
+                    )
+            if attempt:
+                raise ObservationConflictError("observation stream changed during initialization")
+            # Preserve lazy stream creation, outside the read-only view. A
+            # concurrent generation change is rechecked in the one fresh read.
+            with self._lock, self.session_factory() as session:
+                context = self._active_context(session, context_id, lock=True)
+                self._stream(session, context.id, create=True, lock=True)
+                session.commit()
+        raise AssertionError("bounded observation snapshot did not return")
+
+    def _snapshot_projection(
+        self, session: Session, context: DriverContextGeneration,
+        stream: ObservationStream, snapshot_time: datetime, *, commit: bool,
+        read_time_freshness: bool = False,
+    ) -> dict[str, Any]:
+        elapsed = _stored_utc(snapshot_time) - datetime(1970, 1, 1, tzinfo=timezone.utc)
+        snapshot_time_ns = ((elapsed.days * 86400 + elapsed.seconds) * 1_000_000_000
+                            + elapsed.microseconds * 1000)
+        heads = session.scalars(
+            select(TelemetryItemHead)
+            .where(TelemetryItemHead.context_generation_id == context.id)
+            .order_by(TelemetryItemHead.item_id)
+            .limit(MAX_SNAPSHOT_ITEMS + 1)
+        ).all()
+        if len(heads) > MAX_SNAPSHOT_ITEMS:
+            raise ObservationConflictError("snapshot item bound was exceeded")
+        # Read only bounded current heads, not retained sample/alarm history.
+        # Every batch shares the caller's locked or repeatable-read view.
+        samples = {row.id: row for row in session.scalars(
+            select(TelemetrySample).where(TelemetrySample.id.in_(
+                [head.sample_id for head in heads]))
+        )} if heads else {}
+        alarm_heads = session.scalars(select(TelemetryAlarmHead).where(
+            TelemetryAlarmHead.context_generation_id == context.id,
+            TelemetryAlarmHead.item_id.in_([head.item_id for head in heads]),
+        )).all() if heads else []
+        alarms = {row.id: row for row in session.scalars(
+            select(TelemetryAlarmObservation).where(TelemetryAlarmObservation.id.in_(
+                [head.alarm_observation_id for head in alarm_heads]))
+        )} if alarm_heads else {}
+        limits = {row.id: row for row in session.scalars(
+            select(TelemetryLimitSet).where(TelemetryLimitSet.id.in_(
+                {alarm.limit_definition_id for alarm in alarms.values()
+                 if alarm.limit_definition_id is not None}))
+        )} if alarms else {}
+        item_alarms = {head.item_id: alarms.get(head.alarm_observation_id)
+                       for head in alarm_heads}
+        items: list[dict[str, Any]] = []
+        for head in heads:
+            sample = samples.get(head.sample_id)
+            if sample is None:
+                raise ObservationConflictError("telemetry item head is incomplete")
+            item = self._sample_dict(sample, head)
+            if read_time_freshness and item["freshness"] == "FRESH":
+                # A committed FRESH head can precede a pending stale-sweep
+                # transaction. Derive only this read's status from the pinned
+                # policy expiry; retain every durable alarm/event unchanged.
+                if sample.fresh_until_unix_ns is None:
+                    item["freshness"] = "UNKNOWN"
+                elif snapshot_time_ns > sample.fresh_until_unix_ns:
+                    item["freshness"] = "STALE"
+            alarm = item_alarms.get(head.item_id)
+            item["alarm"] = (self._alarm_projection(alarm, limits.get(alarm.limit_definition_id))
+                             if alarm is not None else None)
+            items.append(item)
+        cursors = session.scalars(
+            select(TelemetrySourceCursor)
+            .where(TelemetrySourceCursor.context_generation_id == context.id)
+            .order_by(TelemetrySourceCursor.source_id, TelemetrySourceCursor.item_id)
+        ).all()
+        time_head = session.get(DriverTimeHead, context.host_generation_id)
+        time_row = (
+            session.get(DriverTimeObservation, time_head.observation_id)
+            if time_head is not None
+            else None
+        )
+        if not items:
+            sync = "NO_SAMPLE"
+        elif any(item["synchronization_state"] == "GAPPED" for item in items):
+            sync = "GAPPED"
+        else:
+            sync = "COMPLETE"
+        driver_time = self._time_projection(session, time_row, context) if time_row is not None else None
+        if commit:
             session.commit()
-            return {
-                "schema_version": OBSERVATION_SNAPSHOT_SCHEMA,
-                "stream": OBSERVATION_STREAM,
-                "stream_epoch": stream.stream_epoch,
-                "through_sequence": str(stream.last_sequence),
-                "snapshot_at_database_time": snapshot_time.isoformat(),
-                "context_id": context.context_id,
-                "context_generation_id": context.id,
-                "source_epochs": [
-                    {
-                        "source_id": cursor.source_id,
-                        "item_id": cursor.item_id,
-                        "source_epoch": cursor.source_epoch,
-                        "last_source_sequence": str(cursor.source_sequence),
-                        "synchronization_state": cursor.synchronization_state,
-                    }
-                    for cursor in cursors
-                ],
-                "items": items,
-                "driver_time": driver_time,
-                "synchronization_state": sync,
-            }
+        return {
+            "schema_version": OBSERVATION_SNAPSHOT_SCHEMA,
+            "stream": OBSERVATION_STREAM,
+            "stream_epoch": stream.stream_epoch,
+            "through_sequence": str(stream.last_sequence),
+            "snapshot_at_database_time": snapshot_time.isoformat(),
+            "context_id": context.context_id,
+            "context_generation_id": context.id,
+            "source_epochs": [
+                {
+                    "source_id": cursor.source_id,
+                    "item_id": cursor.item_id,
+                    "source_epoch": cursor.source_epoch,
+                    "last_source_sequence": str(cursor.source_sequence),
+                    "synchronization_state": cursor.synchronization_state,
+                }
+                for cursor in cursors
+            ],
+            "items": items,
+            "driver_time": driver_time,
+            "synchronization_state": sync,
+        }
 
     def telemetry_anchor(self, context_id: str, item_id: str) -> dict[str, str]:
         """Read a durable NEXT anchor and its projection cursor atomically."""

@@ -50,16 +50,23 @@ def assert_upgrade_and_authority(store, monkeypatch, *, rollback=False):
     _, sessions, generation, clock = store
     engine = sessions.kw["bind"]
     repository, stream_id, stream_epoch, before = retained_history(store)
+    def migrate_epoch_only():
+        # This historical migration proof remains scoped to its own head;
+        # later migrations have independent latest-schema/replay proofs.
+        with monkeypatch.context() as scope:
+            scope.setattr(migrations, "MIGRATIONS", tuple(
+                row for row in migrations.MIGRATIONS if row.VERSION <= migration.VERSION))
+            return run_migrations(engine)
     assert migrations.database_version(engine) == migration.REQUIRED_PREDECESSOR
     if rollback:
         with monkeypatch.context() as scope:
             scope.setattr(migration,"verify",lambda _conn:(_ for _ in ()).throw(RuntimeError("injected post-DDL failure")))
             with pytest.raises(RuntimeError,match="post-DDL"):
-                run_migrations(engine)
+                migrate_epoch_only()
         assert migrations.database_version(engine) == migration.REQUIRED_PREDECESSOR
         assert migration.INDEX_NAME not in {row["name"] for row in inspect(engine).get_indexes("observation_outbox")}
-    assert run_migrations(engine) == (migration.VERSION,)
-    assert run_migrations(engine) == ()
+    assert migrate_epoch_only() == (migration.VERSION,)
+    assert migrate_epoch_only() == ()
     with sessions() as session:
         migration.verify(session.connection())
         assert list(session.execute(select(ObservationOutboxEvent.id,ObservationOutboxEvent.payload)

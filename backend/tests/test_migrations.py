@@ -545,9 +545,10 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
         "0010_shadow_pilot",
         "0011_dss_language_ledger",
         "0012_dss_epoch_index",
+        "0013_observation_outbox_index",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0012_dss_epoch_index"
+    assert database_version(engine) == "0013_observation_outbox_index"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -577,9 +578,10 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0010_shadow_pilot",
         "0011_dss_language_ledger",
         "0012_dss_epoch_index",
+        "0013_observation_outbox_index",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0012_dss_epoch_index"
+    assert database_version(engine) == "0013_observation_outbox_index"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -651,6 +653,7 @@ def test_v0007_preflight_requires_safe_backup_directory_before_ddl(
         "0010_shadow_pilot",
         "0011_dss_language_ledger",
         "0012_dss_epoch_index",
+        "0013_observation_outbox_index",
     )
     assert list(backup_directory.iterdir()) == []
 
@@ -735,6 +738,7 @@ def test_v0007_sqlite_hard_exit_rolls_back_first_ddl(
             "0010_shadow_pilot",
             "0011_dss_language_ledger",
             "0012_dss_epoch_index",
+            "0013_observation_outbox_index",
         )
     finally:
         reopened.dispose()
@@ -875,9 +879,10 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0010_shadow_pilot",
         "0011_dss_language_ledger",
         "0012_dss_epoch_index",
+        "0013_observation_outbox_index",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0012_dss_epoch_index"
+    assert database_version(engine) == "0013_observation_outbox_index"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -897,8 +902,9 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0010_shadow_pilot",
         "0011_dss_language_ledger",
         "0012_dss_epoch_index",
+        "0013_observation_outbox_index",
     )
-    assert database_version(engine) == "0012_dss_epoch_index"
+    assert database_version(engine) == "0013_observation_outbox_index"
 
 
 @pytest.mark.skipif(
@@ -942,7 +948,7 @@ def assert_v0011_upgrade_preserves_predecessor_and_ledger(engine, monkeypatch) -
         scope.setattr(migration_runner, "MIGRATIONS", tuple(row for row in migration_runner.MIGRATIONS if row.VERSION < "0012"))
         assert run_migrations(engine) == ("0011_dss_language_ledger",)
     assert database_version(engine) == "0011_dss_language_ledger"
-    assert run_migrations(engine) == ("0012_dss_epoch_index",)
+    assert run_migrations(engine) == ("0012_dss_epoch_index", "0013_observation_outbox_index")
     assert canonical_v03_snapshot(engine) == before
     ledger = v0011_dss_language_ledger.language_cases
     created_at = datetime(2026, 10, 3, tzinfo=timezone.utc)
@@ -968,7 +974,7 @@ def assert_v0011_upgrade_preserves_predecessor_and_ledger(engine, monkeypatch) -
     assert canonical_v03_snapshot(engine) == before
     reset_test_database(engine)
     assert inspect(engine).get_table_names() == []
-    assert run_migrations(engine)[-1] == "0012_dss_epoch_index"
+    assert run_migrations(engine)[-1] == "0013_observation_outbox_index"
 
 
 def test_v0011_sqlite_upgrade_preserves_prior_data_and_repeated_durable_ledger(tmp_path, monkeypatch):
