@@ -219,9 +219,16 @@ def run_case(case: dict) -> dict:
             try:
                 item = output.get(timeout=min(0.25, max(0.01, deadline - time.monotonic())))
             except queue.Empty:
-                if not process.is_alive():
+                if process.is_alive():
+                    continue
+                # The child may have flushed and exited after get timed out.
+                # Consume its real tail before declaring the channel exhausted.
+                try:
+                    item = output.get_nowait()
+                except queue.Empty:
                     break
-                continue
+            if time.monotonic() >= deadline:
+                break
             if item.get("kind") == "prompt_opened":
                 ordinal = len(prompts)
                 if ordinal >= len(case.get("prompts", [])):

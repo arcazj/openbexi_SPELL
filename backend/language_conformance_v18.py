@@ -288,8 +288,16 @@ def run_case(case: dict) -> dict:
             try:
                 message = output.get(timeout=0.2)
             except queue.Empty:
-                if not process.is_alive(): break
-                continue
+                if process.is_alive():
+                    continue
+                # The child may have flushed and exited after get timed out.
+                # Consume its real tail before declaring the channel exhausted.
+                try:
+                    message = output.get_nowait()
+                except queue.Empty:
+                    break
+            if time.monotonic() >= deadline:
+                break
             kind = message.get("kind")
             if kind == "prompt_opened":
                 step = procedure.steps[message["step_index"]]

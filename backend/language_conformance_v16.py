@@ -192,9 +192,16 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
             try:
                 item = output.get(timeout=min(0.25, max(0.01, deadline - time.monotonic())))
             except queue.Empty:
-                if not process.is_alive():
+                if process.is_alive():
+                    continue
+                # The child may have flushed and exited after get timed out.
+                # Consume its real tail before declaring the channel exhausted.
+                try:
+                    item = output.get_nowait()
+                except queue.Empty:
                     break
-                continue
+            if time.monotonic() >= deadline:
+                break
             if item.get("kind") == "step_commit":
                 variables = item["variables"]
                 logs.extend([e["payload"]["message"], e["severity"]]

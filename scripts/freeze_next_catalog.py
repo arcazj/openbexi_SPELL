@@ -65,7 +65,7 @@ def main():
                 19: ["observation_composition_ir_v19", "worker_observation_composition_v19",
                      "supervisor_observation_command_v19", "operator_observation_command_v19",
                      "observation_command_api_v19", "development_profile_v19",
-                     "language_conformance_v19", "catalog_procedures_v19",
+                     "language_conformance_v19", "language_conformance_queue_v19", "catalog_procedures_v19",
                      "observation_batching_v19", "observation_epoch_index_v19",
                      "observation_diagnostics_v19", "observation_websocket_batching_v19"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]

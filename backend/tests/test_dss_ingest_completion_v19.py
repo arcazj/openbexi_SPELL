@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
-from sqlalchemy import event, select
+from sqlalchemy import event, inspect, select
+from sqlalchemy.orm.attributes import flag_modified
 
 from backend import observation_repository as repository_module
 from backend.driver_models import DriverContextGeneration
@@ -42,6 +43,17 @@ def configured(store):
 
 
 def test_default_and_completion_persist_identical_full_history(tmp_path, monkeypatch):
+    # Earlier candidate tests may already have cached SQLAlchemy's onupdate
+    # callable. Exercise that order with a real admission in a separate store.
+    warm_directory = tmp_path / "warm-default"
+    warm_directory.mkdir()
+    warm_fixture = observation_store.__wrapped__(warm_directory)
+    try:
+        repository, _, generation, clock = configured(next(warm_fixture))
+        repository.ingest_sample(dss_sample(generation, clock),
+            mode=GetTMMode.CURRENT, resynchronized=True)
+    finally:
+        warm_fixture.close()
     histories, projections = [], []
     for include in (True, False):
         directory = tmp_path / str(include)
@@ -55,14 +67,20 @@ def test_default_and_completion_persist_identical_full_history(tmp_path, monkeyp
         monkeypatch.setattr(repository_module.uuid, "uuid4", lambda: UUID(int=next(ids)))
         monkeypatch.setattr(repository, "_database_now", lambda _session:
             datetime.fromtimestamp(clock[0] / 1_000_000_000, timezone.utc))
-        monkeypatch.setattr(ObservationStream.__table__.c.updated_at.onupdate, "arg",
-            lambda _context: datetime.fromtimestamp(clock[0] / 1_000_000_000, timezone.utc))
         def fixed_defaults(session, _flush_context, _instances):
+            now = datetime.fromtimestamp(clock[0] / 1_000_000_000, timezone.utc)
             for row in session.new:
                 if type(row) in TABLES:
                     for name in ("created_at", "updated_at"):
                         if hasattr(row, name) and getattr(row, name) is None:
-                            setattr(row, name, datetime.fromtimestamp(clock[0] / 1_000_000_000, timezone.utc))
+                            setattr(row, name, now)
+            for row in session.dirty:
+                if (type(row) is ObservationStream and session.is_modified(row)
+                        and not inspect(row).attrs.updated_at.history.has_changes()):
+                    # Supply only the automatic clock input. Keep explicitly
+                    # changed timestamps visible to the full-history oracle.
+                    row.updated_at = now
+                    flag_modified(row, "updated_at")
         event.listen(factory.class_, "before_flush", fixed_defaults)
         try:
             first = dss_sample(generation, clock)
