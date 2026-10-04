@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from multiprocessing import connection
 import time
 
 import pytest
@@ -158,10 +159,13 @@ def test_next_crash_recovery_keeps_original_anchor_and_deadline_then_sends_once(
     wait_for_state(client, execution_id, viewer_headers, {"waiting"})
     # The product's injected-crash command is intentionally unavailable while
     # waiting. Terminate the real test worker to exercise unexpected process loss.
-    worker = supervisor._workers[execution_id].process
-    worker.terminate()
-    worker.join(timeout=5)
-    assert not worker.is_alive()
+    handle = supervisor._workers[execution_id]
+    # The supervisor owns reaping. Observe kernel exit without racing its
+    # waitpid/cache update; keep cleanup from closing the sentinel meanwhile.
+    with handle.dispatch_lock:
+        sentinel = handle.process.sentinel
+        handle.process.terminate()
+        assert connection.wait([sentinel], timeout=5) == [sentinel]
     stopped = wait_for_state(client, execution_id, viewer_headers, {"recovery_required"})
     supervisor.command_ack_timeout_seconds = 30
     supervisor.issue_command(execution_id, command_type="recover", expected_revision=stopped["execution"]["revision"],
