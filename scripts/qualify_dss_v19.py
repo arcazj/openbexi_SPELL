@@ -225,28 +225,103 @@ class DeliveryQualifier:
             "expected_epoch":state["epoch"], "initial_state":spec["initial_state"], "faults":spec["faults"],
             "retirement_token":scenario_retirement_token(state)})
 
+    def retain_bootstrap_failure(self, identity, state, snapshot, error, bootstrap=None):
+        """Preserve the first failure; cleanup cannot operate on a different epoch."""
+        from backend.dss_capture import set_running, collect_evidence
+        from backend.dss_scenarios import bootstrap_readiness_snapshot
+        retained={"identity":identity,"phase":"outer_bootstrap","decision":"FAIL",
+            "initial_state":state,"error_type":type(error).__name__}
+        if bootstrap is not None and "driver" in bootstrap:retained["driver"]=bootstrap["driver"]
+        try:retained["readiness"]=bootstrap_readiness_snapshot(snapshot) if snapshot is not None else None
+        except Exception as exc:retained["readiness_error_type"]=type(exc).__name__
+        try:retained["paused_state"]=set_running(self.dss.call,False,epoch=state["epoch"])
+        except Exception as exc:retained["pause_error_type"]=type(exc).__name__
+        try:retained["dss"]=collect_evidence(self.dss.call,state["scenario_id"],conflict_retries=3)
+        except Exception as exc:retained["capture_error_type"]=type(exc).__name__
+        data=canonical(retained)
+        if len(data)>16_000_000:raise ValueError("bootstrap failure evidence exceeds16MiB")
+        self.logs.joinpath(identity.replace(":","-")+"-bootstrap-failed.json").write_bytes(data+b"\n")
+
+    def prepare_bootstrap(self, identity, state, spec):
+        """Refresh the outer menu's setup epoch without changing any inner subject."""
+        from backend.dss_capture import set_running, collect_evidence
+        from backend.dss_scenarios import (BROKER_BOOTSTRAP, bootstrap_readiness_snapshot,
+            bootstrap_snapshot_ready, readiness_diagnostic)
+        if canonical(spec.get("bootstrap"))!=canonical(BROKER_BOOTSTRAP):
+            raise ValueError("broker bootstrap declaration differs")
+        snapshot=None
+        try:
+            set_running(self.dss.call,True,epoch=state["epoch"])
+            started=time.monotonic()
+            deadline=started+BROKER_BOOTSTRAP["readiness_timeout_seconds"]
+            last_reason="no readiness observation"
+            while time.monotonic()<deadline:
+                snapshot=self.backend.call("/api/v1/telemetry/snapshot?context_id=simulator")
+                elapsed=time.monotonic()-started
+                if elapsed>BROKER_BOOTSTRAP["readiness_timeout_seconds"]:break
+                if bootstrap_snapshot_ready(snapshot,state,spec):
+                    readiness=bootstrap_readiness_snapshot(snapshot)
+                    paused=set_running(self.dss.call,False,epoch=state["epoch"])
+                    return {"schema_version":"spell.dss.broker-bootstrap/1","initial_state":state,
+                        "paused_state":paused,"readiness":readiness,"readiness_elapsed_seconds":elapsed,
+                        "dss":collect_evidence(self.dss.call,state["scenario_id"],conflict_retries=3)}
+                last_reason=readiness_diagnostic(snapshot,state,spec)
+                time.sleep(.05)
+            raise ValueError(identity+": broker bootstrap did not reach strict readiness; "+last_reason)
+        except Exception as exc:
+            try:self.retain_bootstrap_failure(identity,state,snapshot,exc)
+            except Exception as retention:
+                exc.add_note("Bootstrap evidence retention failed: "+type(retention).__name__)
+            raise
+
+    def complete_bootstrap_evidence(self, identity, bootstrap, execution_id, spec):
+        """Join retained setup packets before answering the menu prompt."""
+        from backend.dss_capture import collect_evidence
+        from scripts.validate_dss_delivery import validate_broker_bootstrap
+        state=bootstrap["initial_state"]
+        try:
+            packets=[]
+            for packet in bootstrap["dss"]["packets"]:
+                response=self.backend.call(f"/api/v1/executions/{execution_id}/dss-driver-evidence?epoch="
+                    +urllib.parse.quote(state["epoch"],safe="")+"&packet_sha256="+packet["packet_sha256"])
+                if response.get("execution_id")!=execution_id:raise ValueError("bootstrap consumer execution differs")
+                packets.extend(response["packets"])
+            bootstrap["driver"]=packets
+            bootstrap["dss"]=collect_evidence(self.dss.call,state["scenario_id"],conflict_retries=3)
+            validate_broker_bootstrap(bootstrap,spec,state)
+        except Exception as exc:
+            try:self.retain_bootstrap_failure(identity,state,bootstrap["readiness"],exc,bootstrap)
+            except Exception as retention:
+                exc.add_note("Bootstrap evidence retention failed: "+type(retention).__name__)
+            raise
+
     def run_procedure(self, identity, procedure_id, actions, inputs=None, *, selection=None):
         from backend.dss_scenarios import procedure_execution_spec, snapshot_matches_scenario, readiness_diagnostic
         from backend.dss_capture import set_running
         spec=procedure_execution_spec(actions,inputs or {},run_all=selection==343,brokered=selection is not None)
         started=time.monotonic()
         state = self.reset(identity, inputs or {})
-        if selection is None:
-            set_running(self.dss.call,True,epoch=state["epoch"])
-        # Wait for actual host/consumer readiness before starting a source that may read immediately.
-        deadline = time.monotonic() + 15
-        last_reason = "no readiness observation"
-        while time.monotonic() < deadline:
-            telemetry = self.backend.call("/api/v1/telemetry/snapshot?context_id=simulator")
-            if snapshot_matches_scenario(telemetry,state,spec):
-                break
-            last_reason = readiness_diagnostic(telemetry,state,spec)
-            time.sleep(.05)
+        bootstrap=None
+        if selection is not None:
+            bootstrap=self.prepare_bootstrap(identity,state,spec)
         else:
-            raise ValueError(identity+": actual DSS epoch did not reach the committed observation repository; "+last_reason)
+            set_running(self.dss.call,True,epoch=state["epoch"])
+            # The ordinary procedure lifecycle and readiness bound are unchanged.
+            deadline = time.monotonic() + 15
+            last_reason = "no readiness observation"
+            while time.monotonic() < deadline:
+                telemetry = self.backend.call("/api/v1/telemetry/snapshot?context_id=simulator")
+                if snapshot_matches_scenario(telemetry,state,spec):
+                    break
+                last_reason = readiness_diagnostic(telemetry,state,spec)
+                time.sleep(.05)
+            else:
+                raise ValueError(identity+": actual DSS epoch did not reach the committed observation repository; "+last_reason)
         created = self.backend.call("/api/v1/executions", {"procedure_id":procedure_id, "context_id":"simulator",
             "reason":"DSS exhaustive delivery " + identity, "idempotency_key":"dss-" + uuid.uuid4().hex})
         execution_id = created["execution"]["id"]
+        if bootstrap is not None:
+            self.complete_bootstrap_evidence(identity,bootstrap,execution_id,spec)
         session_id = "dss-" + uuid.uuid4().hex
         headers = {"X-Spell-Session-Id":session_id, "X-Spell-Client-Instance-Key-Id":session_id}
         lease, answered, action_index, default_prompt = None, set(), 0, None
@@ -316,6 +391,7 @@ class DeliveryQualifier:
         capture = {"execution":snapshot["execution"], "events":events, "actions":actions,
             "procedure":self.backend.call("/api/v1/procedures/" + procedure_id),
             "execution_spec":spec,"elapsed_seconds":time.monotonic()-started,"initial_dss_state":state}
+        if bootstrap is not None:capture["bootstrap"]=bootstrap
         report=self.backend.call(f"/api/v1/executions/{execution_id}/report")
         capture["typed_prompts"]=report["typed_prompts"]
         capture["operator_audit"]=report["operator_audit"]

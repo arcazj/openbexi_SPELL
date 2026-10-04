@@ -83,6 +83,14 @@ class DssSampleAdmission:
     resynchronized: bool
 
 
+@dataclass(frozen=True)
+class _LockedSampleAdmission:
+    host: DriverHostGeneration
+    context: DriverContextGeneration
+    stream: ObservationStream
+    policy: ObservationFreshnessPolicy
+
+
 class ObservationRepositoryError(RuntimeError):
     code = "INTERNAL"
 
@@ -378,10 +386,13 @@ class ObservationRepository:
             prepared.append((entry, self._receive_time_ns()))
         with self._timings.operation("ingest", self._lock, self.session_factory) as session:
             try:
+                first, received_ns = prepared[0]
+                admission = self._lock_sample_admission(session, first.sample,
+                    received_at=_database_time(received_ns))
                 for entry, received_ns in prepared:
                     self._ingest_sample_in_session(session, entry.sample,
                         mode=entry.mode, resynchronized=entry.resynchronized,
-                        received_ns=received_ns)
+                        received_ns=received_ns, admission=admission)
                 session.commit()
                 return len(prepared)
             except IntegrityError as exc:
@@ -393,13 +404,10 @@ class ObservationRepository:
                 session.rollback()
                 raise
 
-    def _ingest_sample_in_session(self, session: Session, sample: DomainTelemetrySample,
-        *, mode: GetTMMode, resynchronized: bool, received_ns: int,
-    ) -> tuple[TelemetrySample, bool]:
-        received_at = _database_time(received_ns)
-        payload_digest = _canonical_digest(self._sample_payload(sample))
-        identity = sample.sample_identity
-        _host, context = self._require_context(
+    def _lock_sample_admission(self, session: Session, sample: DomainTelemetrySample,
+        *, received_at: datetime,
+    ) -> _LockedSampleAdmission:
+        host, context = self._require_context(
             session, sample.generations, lock=True
         )
         stream = self._stream(session, context.id, create=True, lock=True)
@@ -413,7 +421,23 @@ class ObservationRepository:
             )
 
         if self.dss_enabled:
-            self._fence_dss_epoch(session, context.id, stream, identity.source_epoch, received_at)
+            self._fence_dss_epoch(session, context.id, stream,
+                sample.sample_identity.source_epoch, received_at)
+        return _LockedSampleAdmission(host, context, stream, policy)
+
+    def _ingest_sample_in_session(self, session: Session, sample: DomainTelemetrySample,
+        *, mode: GetTMMode, resynchronized: bool, received_ns: int,
+        admission: _LockedSampleAdmission | None = None,
+    ) -> tuple[TelemetrySample, bool]:
+        received_at = _database_time(received_ns)
+        payload_digest = _canonical_digest(self._sample_payload(sample))
+        identity = sample.sample_identity
+        # Only ingest_samples supplies this scope: all members have the same
+        # validated generations/epoch and the actual authority rows stay locked
+        # in this one transaction. Never retain it across commits or callers.
+        if admission is None:
+            admission = self._lock_sample_admission(session, sample, received_at=received_at)
+        context, stream, policy = admission.context, admission.stream, admission.policy
 
         existing = session.get(TelemetrySample, identity.sample_id)
         if existing is not None:
@@ -913,8 +937,8 @@ class ObservationRepository:
                     session.scalar(select(DriverContextGeneration)
                         .where(DriverContextGeneration.id == context_id).with_for_update())
                     streams[context_id] = self._stream(session, context_id, create=True, lock=True)
-                heads = session.scalars(
-                    select(TelemetryItemHead)
+                heads = session.execute(
+                    select(TelemetryItemHead, TelemetrySample)
                     .join(TelemetrySample, TelemetrySample.id == TelemetryItemHead.sample_id)
                     .where(
                         TelemetryItemHead.freshness == "FRESH",
@@ -928,11 +952,9 @@ class ObservationRepository:
                     )
                     .with_for_update()
                 ).all()
-                for head in heads:
+                for head, sample in heads:
                     stream = streams[head.context_generation_id]
                     assert stream is not None
-                    sample = session.get(TelemetrySample, head.sample_id)
-                    assert sample is not None
                     head.freshness = "STALE"
                     head.revision += 1
                     head.updated_at = now

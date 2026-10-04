@@ -6,6 +6,8 @@ import json
 STALE_ACQUISITION_NS = 10_000_000_000
 STALE_CLOCK_EXPECTATION = "UNAVAILABLE_FOR_DECLARED_STALE_ACQUISITION"
 FRESH_ACQUISITION_NS = 5_000_000_000
+BROKER_BOOTSTRAP = {"control":"RUN_STRICT_READY_PAUSE", "readiness_timeout_seconds":15,
+    "max_acquisition_age_ns":FRESH_ACQUISITION_NS}
 OBSERVATION_FAULTS = {
     "missing":{"missing_items":["TM.POWER.BUS_VOLTAGE"]},"stale":{"stale":True},
     "invalid":{"telemetry_validity":"INVALID"},"bad-quality":{"telemetry_quality":"BAD"},
@@ -107,14 +109,53 @@ def readiness_diagnostic(snapshot, state, spec):
     unacceptable=[items[name] for name in sorted(expected & items.keys())
         if not (_stale_received_sample(items[name]) if spec.get("clock_expectation")==STALE_CLOCK_EXPECTATION
             else _fresh_received_sample(items[name],spec.get("observation_input"),_snapshot_time(snapshot)))]
-    def bounded(value):return None if value is None else str(value)[:76]
+    def bounded(value):
+        if value is None:return None
+        if type(value) not in {str,int,bool} or (type(value) is int and not -(2**63)<=value<2**64):
+            return "INVALID_METADATA_TYPE"
+        # Printable ASCII bounds JSON escaping as well as source string length.
+        return "".join(char if 32<=ord(char)<=126 else "?" for char in str(value)[:76])
     clock=snapshot.get("driver_time") or {}
-    details={"expected_epoch":state["epoch"],"missing_count":len(missing),"missing":missing[:2],
+    details={"expected_epoch":bounded(state["epoch"]),"missing_count":len(missing),"missing":[bounded(value) for value in missing[:2]],
         "unacceptable_count":len(unacceptable),
         "old_epoch_count":len(old),"clock":{key:bounded(clock.get(key)) for key in ("source_epoch","source_sequence","uncertainty_ns")},
-        "expected_uncertainty_ns":str(spec["faults"].get("driver_time_uncertainty_ns",spec["faults"].get("clock_uncertainty_ns",1000))),
+        "expected_uncertainty_ns":bounded(spec["faults"].get("driver_time_uncertainty_ns",spec["faults"].get("clock_uncertainty_ns",1000))),
         "items":[{key:bounded(row.get(key)) for key in ("item_id","source_epoch","source_sequence","freshness","quality","validity","synchronization_state")} for row in (old or unacceptable)[:2]]}
-    return json.dumps(details,sort_keys=True,separators=(",",":"),ensure_ascii=True)[:800]
+    encoded=json.dumps(details,sort_keys=True,separators=(",",":"),ensure_ascii=True)
+    if len(encoded)>4096:raise ValueError("readiness diagnostic exceeds its structural bound")
+    return encoded
+
+
+def bootstrap_readiness_snapshot(snapshot):
+    """Retain bounded admission metadata, excluding telemetry values and credentials."""
+    item_fields=("item_id","source_id","source_epoch","source_sequence","source","clock_provenance",
+        "clock_uncertainty_ns","freshness_policy_revision","acquired_at_unix_ns","received_at_unix_ns",
+        "freshness","quality","quality_reason","validity","synchronization_state")
+    clock_fields=("provenance","source_epoch","source_sequence","source_packet_sha256","database_digest",
+        "uncertainty_ns","quality","validity","acquired_at_unix_ns","received_at_unix_ns")
+    def row(value, fields):
+        if type(value) is not dict:raise ValueError("bootstrap readiness metadata is not an object")
+        result={key:value[key] for key in fields if key in value}
+        if any(type(value) is not str or len(value)>160 for value in result.values()):
+            raise ValueError("bootstrap readiness metadata exceeds its scalar bounds")
+        return result
+    items=snapshot.get("items")
+    if type(items) is not list or len(items)>22:raise ValueError("bootstrap readiness item bound differs")
+    result={"snapshot_at_database_time":snapshot.get("snapshot_at_database_time"),
+        "items":[row(value,item_fields) for value in items],
+        "driver_time":None if snapshot.get("driver_time") is None else row(snapshot["driver_time"],clock_fields)}
+    if type(result["snapshot_at_database_time"]) is not str or len(result["snapshot_at_database_time"])>40:
+        raise ValueError("bootstrap readiness database time differs")
+    return result
+
+
+def bootstrap_snapshot_ready(snapshot, state, spec):
+    """The setup must observe post-RESUME telemetry, not only the reset frame."""
+    if not snapshot_matches_scenario(snapshot,state,spec):return False
+    rows=[*snapshot.get("items",[]),snapshot.get("driver_time") or {}]
+    return all(type(row.get("source_sequence")) is str and 1<=len(row["source_sequence"])<=20 and row["source_sequence"].isascii()
+        and row["source_sequence"].isdecimal() and str(int(row["source_sequence"]))==row["source_sequence"]
+        and state["sequence"]<int(row["source_sequence"])<2**64 for row in rows)
 
 
 def subject_execution_spec(subject, case):
@@ -149,4 +190,5 @@ def procedure_execution_spec(actions, inputs, *, run_all=False, brokered=False):
     return {"wall_timeout_seconds":1800 if run_all else 150,
         "execution_control":"BROKERED_SUBJECTS" if brokered else base["execution_control"],
         "initial_state":base["initial_state"],"faults":base["faults"],"operator_actions":deepcopy(actions),
-        "observation_input":base["observation_input"],"clock_expectation":base["clock_expectation"]}
+        "observation_input":base["observation_input"],"clock_expectation":base["clock_expectation"],
+        **({"bootstrap":deepcopy(BROKER_BOOTSTRAP)} if brokered else {})}

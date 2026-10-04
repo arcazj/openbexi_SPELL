@@ -379,6 +379,10 @@ def _validate_evidence(evidence: dict, identity: str, captures: dict, source_com
             require(canonical(stored["broker_request"])==canonical(report["request"])
                     and result["dss_evidence"]["scenario_id"]==case_execution_id(report["request"],result["subject"]),
                     "Run-all reused an independent selection instead of executing its own child")
+            bootstrap=capture.get("bootstrap",{}).get("initial_state",{})
+            require(result["dss_evidence"]["epoch"]!=bootstrap.get("epoch")
+                and result["dss_evidence"]["scenario_id"]!=bootstrap.get("scenario_id"),
+                "inner subject reused the outer bootstrap state")
             validate_subject_capture(stored["subject_result"])
     elif "subject_result" in capture:
         from backend.dss_language_broker import validate_subject_result,selected_subjects,case_execution_id
@@ -393,6 +397,64 @@ def _validate_evidence(evidence: dict, identity: str, captures: dict, source_com
         validate_subject_capture(result)
     else:
         validate_transport_capture(capture, scenario_id=evidence["scenario_id"], epoch=evidence["epoch"])
+
+
+def validate_broker_bootstrap(bootstrap, spec, initial_state):
+    """Validate the setup independently against received packets and committed metadata."""
+    from backend.dss_scenarios import (BROKER_BOOTSTRAP, bootstrap_readiness_snapshot,
+        bootstrap_snapshot_ready, _timestamp, _snapshot_time)
+    from dss.catalog import TELEMETRY_ITEMS, SatelliteDatabase
+    require(canonical(spec.get("bootstrap"))==canonical(BROKER_BOOTSTRAP)
+        and spec["faults"]=={} and spec["observation_input"]=="nominal", "broker bootstrap declaration differs")
+    require(type(bootstrap) is dict and set(bootstrap)=={"schema_version","initial_state","paused_state",
+        "readiness","readiness_elapsed_seconds","dss","driver"}
+        and bootstrap["schema_version"]=="spell.dss.broker-bootstrap/1", "broker bootstrap evidence is missing")
+    require(canonical(bootstrap["initial_state"])==canonical(initial_state),"bootstrap reset state differs")
+    elapsed=bootstrap["readiness_elapsed_seconds"]
+    require(type(elapsed) in {int,float} and math.isfinite(elapsed) and 0<=elapsed<=15,
+        "bootstrap readiness exceeded its original bound")
+    satellite=bootstrap["dss"]
+    validate_transport_capture(bootstrap,scenario_id=initial_state["scenario_id"],epoch=initial_state["epoch"])
+    require(satellite["commands"]==[] and satellite["operations"]==[] and satellite["faults"]=={}
+        and satellite["retirement"] is None, "bootstrap contains command effects, faults or premature retirement")
+    initial={key:value for key,value in initial_state.items() if key!="sequence"}
+    require(canonical(initial)==canonical({key:value for key,value in satellite["initial_state"].items() if key!="sequence"})
+        and type(initial_state["sequence"]) is int and initial_state["sequence"]==1
+        and satellite["initial_state"]["sequence"]==0, "bootstrap original reset provenance differs")
+    paused={key:value for key,value in bootstrap["paused_state"].items() if key!="transport"}
+    require(canonical(paused)==canonical(satellite["final_state"])
+        and initial_state["running"] is False and paused["running"] is False,
+        "bootstrap lacks its exact fenced paused state")
+    packets={row["body"]["tm_sequence"]:row for row in bootstrap["driver"] if row["topic"]=="openbexi.GENERIC.tm"}
+    frames=[packets[key]["body"] for key in sorted(packets)]
+    require(frames and frames[0].get("running") is False and frames[-1].get("running") is False
+        and any(row.get("running") is True for row in frames)
+        and all(type(row.get("running")) is bool for row in frames)
+        and frames[-1]["state_revision"]==paused["revision"], "bootstrap running-to-paused packets differ")
+    readiness=bootstrap["readiness"]
+    require(canonical(bootstrap_readiness_snapshot(readiness))==canonical(readiness)
+        and len(readiness["items"])==len(TELEMETRY_ITEMS)
+        and {row["item_id"] for row in readiness["items"]}=={row["item_id"] for row in TELEMETRY_ITEMS}
+        and bootstrap_snapshot_ready(readiness,initial_state,spec),"bootstrap committed readiness differs")
+    now=_snapshot_time(readiness)
+    require(now is not None and now<=frames[-1]["acquired_at_unix_ns"]+1000,
+        "bootstrap readiness was not observed before pause")
+    for row in [*readiness["items"],readiness["driver_time"]]:
+        packet=packets.get(int(row["source_sequence"]))
+        require(packet is not None,"bootstrap readiness refers to an unreceived packet")
+        body=packet["body"]
+        require(body["running"] is True and body["acquired_at_unix_ns"]==_timestamp(row["acquired_at_unix_ns"])
+            and type(packet.get("received_unix_ns")) is int
+            and body["acquired_at_unix_ns"]<=packet["received_unix_ns"]+1000
+            and packet["received_unix_ns"]<=_timestamp(row["received_at_unix_ns"])+1000,
+            "bootstrap readiness acquisition or consumer receipt differs")
+        if "item_id" in row:
+            require(any(item["item_id"]==row["item_id"] for item in body["items"]),
+                "bootstrap readiness item is absent from its packet")
+        else:
+            require(row["source_packet_sha256"]==packet["packet_sha256"]
+                and row["database_digest"]==SatelliteDatabase.load().digest,
+                "bootstrap clock packet binding differs")
 
 
 def validate_execution_spec(capture, spec, initial_state, faults=None):
@@ -426,7 +488,9 @@ def validate_execution_spec(capture, spec, initial_state, faults=None):
             and capture["dss"]["final_state"]["running"] is False
             and frames[-1]["state_revision"]==capture["dss"]["final_state"]["revision"],
             "DSS execution lacks received running-to-paused control evidence")
-    else:require(spec["execution_control"]=="BROKERED_SUBJECTS","DSS execution control profile is unknown")
+    else:
+        require(spec["execution_control"]=="BROKERED_SUBJECTS","DSS execution control profile is unknown")
+        validate_broker_bootstrap(capture.get("bootstrap"),spec,initial_state)
     minimum=spec.get("minimum_simulation_advance_ns",0)
     if minimum:
         require(capture["dss"]["final_state"]["core"]["sim_time_ns"]-initial_state["core"]["sim_time_ns"]>=minimum,

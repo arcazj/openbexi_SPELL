@@ -106,6 +106,8 @@ def test_producer_reloads_exact_persisted_runall_without_retaining_raw_children(
         "operator_audit": [], "broker_result": {},
         "events": [{"execution_id": "retained-runall", "sequence": 1, "event_type": "procedure.log",
                     "payload": {"message": definition["expected"]["logs"][0]}}]}
+    outer["bootstrap"]=_bootstrap_capture(tmp_path)
+    outer["initial_dss_state"]=outer["bootstrap"]["initial_state"]
     observed = validator.observed_procedure(outer, definition)
     assert observed == definition["expected"]
     raw_children = []
@@ -372,6 +374,255 @@ def _fresh_snapshot(frame):
         "driver_time":{"provenance":"dss-dynamics-clock","uncertainty_ns":str(frame["driver_time_uncertainty_ns"]),
             "acquired_at_unix_ns":str(acquired),"received_at_unix_ns":str(acquired+1000),"quality":"GOOD","validity":"VALID",
             "source_epoch":frame["satellite_epoch"]}}
+
+
+def _bootstrap_snapshot(packet):
+    """Controlled admission metadata from actual engine bytes; no Kafka claim."""
+    frame=decode_tm(bytes.fromhex(packet["packet_hex"]))
+    snapshot=_fresh_snapshot(frame)
+    for item in snapshot["items"]:item["source_sequence"]=str(frame["tm_sequence"])
+    snapshot["driver_time"].update(source_sequence=str(frame["tm_sequence"]),
+        source_packet_sha256=packet["packet_sha256"],database_digest=frame["database_digest"])
+    return snapshot
+
+
+def _bootstrap_driver(evidence):
+    return [{"packet":row["packet_hex"],"packet_sha256":row["packet_sha256"],"topic":row["topic"],
+        "partition":0,"offset":index,"received_unix_ns":decode_tm(bytes.fromhex(row["packet_hex"]))["acquired_at_unix_ns"]+500,
+        "body":decode_tm(bytes.fromhex(row["packet_hex"]))} for index,row in enumerate(evidence["packets"])]
+
+
+def _bootstrap_capture(tmp_path):
+    from backend.dss_scenarios import procedure_execution_spec
+    engine=DssEngine(tmp_path/"bootstrap-capture.sqlite")
+    try:
+        spec=procedure_execution_spec([],{},brokered=True)
+        initial=engine.reset("bootstrap",initial_state=spec["initial_state"],expected_epoch=engine.state()["epoch"])
+        engine.control("RESUME",initial["epoch"],initial["revision"])
+        running=engine.advance(10)
+        readiness=_bootstrap_snapshot(engine.evidence("bootstrap")["packets"][-1])
+        paused=engine.control("PAUSE",running["epoch"],running["revision"])
+        for packet in engine.pending_packets():engine.mark_published(packet["id"])
+        physical=engine.evidence("bootstrap")
+        return {"schema_version":"spell.dss.broker-bootstrap/1","initial_state":initial,"paused_state":paused,
+            "readiness":readiness,"readiness_elapsed_seconds":1.0,"dss":physical,"driver":_bootstrap_driver(physical)}
+    finally:engine.close()
+
+
+@pytest.mark.parametrize("mutation",[None,"missing","bound","bound-bool","declaration","foreign-epoch",
+    "stale","missing-item","duplicate-item","missing-clock","clock-packet","unreceived","receipt-time",
+    "unpublished","reset-frame","acquisition","value-leak","running-final","state","command","raw-bytes"])
+def test_broker_bootstrap_independently_binds_controls_readiness_and_received_bytes(tmp_path,mutation):
+    from backend.dss_scenarios import procedure_execution_spec
+    from scripts.validate_dss_delivery import validate_broker_bootstrap,validate_execution_spec
+    bootstrap=_bootstrap_capture(tmp_path)
+    spec=procedure_execution_spec([],{},brokered=True)
+    initial=deepcopy(bootstrap["initial_state"])
+    validate_broker_bootstrap(bootstrap,spec,initial)
+    row=bootstrap["readiness"]["items"][0]
+    if mutation=="missing":bootstrap=None
+    elif mutation=="bound":bootstrap["readiness_elapsed_seconds"]=15.00001
+    elif mutation=="bound-bool":bootstrap["readiness_elapsed_seconds"]=True
+    elif mutation=="declaration":spec["bootstrap"]["readiness_timeout_seconds"]=16
+    elif mutation=="foreign-epoch":row["source_epoch"]="epoch-"+"0"*64
+    elif mutation=="stale":row["freshness"]="STALE"
+    elif mutation=="missing-item":bootstrap["readiness"]["items"].pop()
+    elif mutation=="duplicate-item":bootstrap["readiness"]["items"][-1]=deepcopy(row)
+    elif mutation=="missing-clock":bootstrap["readiness"]["driver_time"]=None
+    elif mutation=="clock-packet":bootstrap["readiness"]["driver_time"]["source_packet_sha256"]="0"*64
+    elif mutation=="unreceived":bootstrap["driver"].pop(1)
+    elif mutation=="receipt-time":bootstrap["driver"][2]["received_unix_ns"]+=5_000_000_000
+    elif mutation=="unpublished":bootstrap["dss"]["packets"][1]["published"]=False
+    elif mutation=="reset-frame":row["source_sequence"]="1"
+    elif mutation=="acquisition":row["acquired_at_unix_ns"]=str(int(row["acquired_at_unix_ns"])-2000)
+    elif mutation=="value-leak":row["engineering_value"]="private"
+    elif mutation=="running-final":bootstrap["paused_state"]["running"]=True
+    elif mutation=="state":bootstrap["paused_state"]["core"]["tick"]+=1
+    elif mutation=="command":bootstrap["dss"]["commands"]=[{}]
+    elif mutation=="raw-bytes":bootstrap["driver"][1]["packet"]="00"
+    capture={"bootstrap":bootstrap,"execution_spec":spec,"elapsed_seconds":2.0}
+    if mutation is None:validate_execution_spec(capture,spec,initial)
+    else:
+        with pytest.raises((ValueError,KeyError)):validate_execution_spec(capture,spec,initial)
+
+
+def _bootstrap_harness(tmp_path,monkeypatch,*,kind="fresh"):
+    """Real engine controls/bytes and a deterministic API boundary, no live gate."""
+    from types import SimpleNamespace
+    from scripts import qualify_dss_v19 as producer
+    engine=DssEngine(tmp_path/"bootstrap-harness.sqlite")
+    calls=[]
+    clock=[0.0]
+    state={"polls":0,"last":None}
+    def dss(path,body=None):
+        calls.append((path,deepcopy(body)))
+        if path=="/state":return engine.state()
+        if path=="/scenarios/reset":return engine.reset(**body)
+        if path=="/control":
+            if kind=="resume-failure" and body["action"]=="RESUME":raise OSError("original resume failure")
+            if kind=="pause-failure" and body["action"]=="PAUSE":raise OSError("original pause failure")
+            return engine.control(body["action"],body["expected_epoch"],body["expected_revision"])
+        values=parse_qs(urlsplit(path).query)
+        assert path.startswith("/evidence?")
+        for packet in engine.pending_packets():engine.mark_published(packet["id"])
+        return engine.evidence_page(values["scenario_id"][0],offset=int(values.get("offset",[0])[0]),
+            limit=int(values["limit"][0]),expected_revision=int(values["expected_revision"][0]) if "expected_revision" in values else None)
+    def backend(path,body=None,**kwargs):
+        calls.append((path,deepcopy(body)))
+        if path=="/api/v1/executions":
+            assert engine.state()["running"] is False
+            raise LookupError("source creation reached after pause")
+        if "dss-driver-evidence" in path:
+            values=parse_qs(urlsplit(path).query)
+            current=engine.state()
+            assert values["epoch"]==[current["epoch"]]
+            rows=_bootstrap_driver(engine.evidence(current["scenario_id"]))
+            return {"execution_id":"bootstrap-execution","packets":[row for row in rows if row["packet_sha256"]==values["packet_sha256"][0]]}
+        assert path=="/api/v1/telemetry/snapshot?context_id=simulator"
+        state["polls"]+=1
+        if state["polls"]==1 and kind=="expired-then-fresh":
+            packet=engine.evidence(engine.state()["scenario_id"])["packets"][0]
+        else:
+            engine.advance(10)
+            packet=engine.evidence(engine.state()["scenario_id"])["packets"][-1]
+        snapshot=_bootstrap_snapshot(packet)
+        if kind in {"stale","expired-then-fresh"} and (kind=="stale" or state["polls"]==1):
+            from datetime import datetime,timedelta
+            snapshot["snapshot_at_database_time"]=(datetime.fromisoformat(snapshot["snapshot_at_database_time"])+timedelta(seconds=6)).isoformat()
+        elif kind=="missing":snapshot["items"].pop()
+        elif kind=="clock":snapshot["driver_time"]=None
+        elif kind=="wrong-epoch":snapshot["items"][0]["source_epoch"]="other"
+        elif kind=="late-response":clock[0]=16.0
+        elif kind=="foreign-reset":
+            current=engine.state()
+            engine.control("PAUSE",current["epoch"],current["revision"])
+            engine.reset("foreign-owner",expected_epoch=current["epoch"])
+        state["last"]=deepcopy(snapshot)
+        return snapshot
+    monkeypatch.setattr(producer,"time",SimpleNamespace(monotonic=lambda:clock[0],sleep=lambda _:clock.__setitem__(0,clock[0]+5.0)))
+    qualifier=producer.DeliveryQualifier.__new__(producer.DeliveryQualifier)
+    qualifier.backend,qualifier.dss=SimpleNamespace(call=backend),SimpleNamespace(call=dss)
+    qualifier.logs=tmp_path
+    return qualifier,engine,calls,state
+
+
+@pytest.mark.parametrize("kind",["fresh","expired-then-fresh"])
+def test_broker_bootstrap_requires_new_fresh_acquisition_and_pauses_before_source_create(tmp_path,monkeypatch,kind):
+    from backend.dss_scenarios import procedure_execution_spec
+    qualifier,engine,calls,observed=_bootstrap_harness(tmp_path,monkeypatch,kind=kind)
+    try:
+        spec=procedure_execution_spec([],{},brokered=True)
+        state=qualifier.reset("menu:129",{})
+        bootstrap=qualifier.prepare_bootstrap("menu:129",state,spec)
+        assert observed["polls"]==(2 if kind=="expired-then-fresh" else 1)
+        assert bootstrap["readiness_elapsed_seconds"]==(5.0 if kind=="expired-then-fresh" else 0.0)
+        assert bootstrap["initial_state"]["core"]["tick"]==0
+        assert bootstrap["paused_state"]["core"]["tick"]>0
+        assert engine.state()["running"] is False
+        qualifier.complete_bootstrap_evidence("menu:129",bootstrap,"bootstrap-execution",spec)
+        assert not any(path=="/api/v1/executions" for path,_ in calls)
+        with pytest.raises(LookupError,match="source creation reached after pause"):
+            qualifier.run_procedure("menu:129","language_reference_244",[],selection=129)
+        assert len([path for path,_ in calls if path=="/api/v1/executions"])==1
+    finally:engine.close()
+
+
+@pytest.mark.parametrize("kind",["stale","missing","clock","wrong-epoch","late-response","resume-failure","pause-failure","foreign-reset"])
+def test_broker_bootstrap_failure_never_creates_source_or_pauses_foreign_epoch(tmp_path,monkeypatch,kind):
+    import json
+    qualifier,engine,calls,observed=_bootstrap_harness(tmp_path,monkeypatch,kind=kind)
+    try:
+        with pytest.raises((ValueError,OSError)):
+            qualifier.run_procedure("menu:129","language_reference_244",[],selection=129)
+        assert not any(path=="/api/v1/executions" for path,_ in calls)
+        failed=json.loads((tmp_path/"menu-129-bootstrap-failed.json").read_bytes())
+        assert failed["decision"]=="FAIL" and failed["phase"]=="outer_bootstrap"
+        assert failed["dss"]["commands"]==failed["dss"]["operations"]==[]
+        assert "packets" in failed["dss"]
+        if kind=="foreign-reset":
+            assert engine.state()["scenario_id"]=="foreign-owner"
+            assert failed["pause_error_type"]=="ValueError"
+            assert not any(body and body.get("expected_epoch")==engine.state()["epoch"] for path,body in calls if path=="/control")
+        elif kind=="pause-failure":assert failed["pause_error_type"]=="OSError"
+        else:assert engine.state()["running"] is False
+        if observed["last"] is not None:assert failed["readiness"]==observed["last"]
+    finally:engine.close()
+
+
+def test_bootstrap_retention_failure_preserves_primary_error(tmp_path,monkeypatch):
+    qualifier,engine,_calls,_state=_bootstrap_harness(tmp_path,monkeypatch,kind="resume-failure")
+    def broken(*args):raise RuntimeError("secondary serialization failure")
+    monkeypatch.setattr(qualifier,"retain_bootstrap_failure",broken)
+    try:
+        with pytest.raises(OSError,match="original resume failure") as caught:
+            qualifier.run_procedure("menu:129","language_reference_244",[],selection=129)
+        assert caught.value.__notes__==["Bootstrap evidence retention failed: RuntimeError"]
+    finally:engine.close()
+
+
+@pytest.mark.parametrize("kind",["nominal","low","stale","bad-quality","missing","clock"])
+def test_each_inner_subject_resets_bootstrap_physics_and_preserves_declared_faults(tmp_path,monkeypatch,kind):
+    from types import SimpleNamespace
+    from backend.dss_language_executor import DssLanguageExecutor
+    from backend.dss_language_broker import request_for_selection
+    from backend.dss_scenarios import subject_execution_spec
+    from backend.language_conformance_v19 import CASES
+    from dss.catalog import SatelliteDatabase
+    qualifier,engine,calls,_state=_bootstrap_harness(tmp_path,monkeypatch)
+    try:
+        outer=qualifier.reset("menu:129",{})
+        current=engine.control("RESUME",outer["epoch"],outer["revision"])
+        advanced=engine.advance(100)
+        assert advanced["core"]["tick"]==100
+        executor=DssLanguageExecutor.__new__(DssLanguageExecutor)
+        case=next(row for row in CASES if row.get("observation_input","nominal")==kind)
+        subject="case:"+case["id"]
+        executor.request=request_for_selection("inner-reset-proof",4,195+CASES.index(case))
+        executor.context_id="simulator"
+        executor.authorize=lambda:None
+        executor._http=qualifier.dss.call
+        executor.runtime=SimpleNamespace(health=lambda *_,**__: {"scenario_id":engine.state()["scenario_id"],"satellite_epoch":engine.state()["epoch"]})
+        def snapshot(_):
+            packet=engine.evidence(engine.state()["scenario_id"])["packets"][-1]
+            value=_bootstrap_snapshot(packet)
+            if kind=="stale":
+                value["driver_time"]=None
+                for item in value["items"]:
+                    item["freshness"]="STALE"
+                    item["received_at_unix_ns"]=str(int(item["acquired_at_unix_ns"])+10_000_000_000)
+            return value
+        executor.supervisor=SimpleNamespace(observation_anchor_provider=SimpleNamespace(snapshot=snapshot))
+        spec=subject_execution_spec(subject,case)
+        state=executor._prepare(subject,case)
+        physical=engine.evidence(state["scenario_id"])
+        assert state["epoch"]!=outer["epoch"] and physical["initial_state"]["core"]["tick"]==0
+        expected=deepcopy(SatelliteDatabase.load().material["initial_state"])
+        for group,values in spec["initial_state"].items():expected[group].update(values)
+        expected["bus"]["nominal_bus_voltage_mv"]=spec["initial_state"]["bus"]["bus_voltage_mv"]
+        assert all(physical["initial_state"][group]==values for group,values in expected.items())
+        assert physical["faults"]==spec["faults"] and physical["commands"]==[]
+        retired=engine.evidence(outer["scenario_id"])
+        assert retired["final_state"]["core"]["tick"]==100
+        assert retired["retirement"]["next_scenario_id"]==state["scenario_id"]
+        assert engine.state()["running"] is True
+    finally:engine.close()
+
+
+def test_readiness_diagnostic_keeps_complete_bounded_json_and_counts(tmp_path):
+    import json
+    from backend.dss_scenarios import readiness_diagnostic,subject_execution_spec
+    from dss.catalog import TELEMETRY_ITEMS
+    epoch="epoch-"+"e"*64
+    snapshot={"driver_time":{"source_epoch":"x"*76,"source_sequence":"18446744073709551615",
+        "uncertainty_ns":"1000","private":"NEVER_PRINT_SECRET"},"items":[
+        {"item_id":row["item_id"],"source_epoch":"y"*76,"source_sequence":"18446744073709551615",
+            "freshness":"STALE","quality":"GOOD","validity":"VALID","synchronization_state":"COMPLETE",
+            "engineering_value":"NEVER_PRINT_VALUE"} for row in TELEMETRY_ITEMS]}
+    result=readiness_diagnostic(snapshot,{"epoch":epoch},subject_execution_spec("case:diagnostic",{}))
+    data=json.loads(result)
+    assert data["old_epoch_count"]==data["unacceptable_count"]==22 and data["missing_count"]==0
+    assert len(data["items"])==2 and len(result)<=4096 and "NEVER_PRINT" not in result
+    assert data["clock"]["source_epoch"]=="x"*76 and data["items"][1]["source_epoch"]=="y"*76
 
 
 @pytest.mark.parametrize("mutation",[None,"missing-item","old-epoch","clock","clock-type","provenance","clock-epoch","clock-unbound",
