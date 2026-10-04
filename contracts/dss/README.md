@@ -62,6 +62,10 @@ PostgreSQL DSS reads use one committed, read-only repeatable snapshot. Freshness
 is checked at its database read time, so a delayed stale sweep cannot make an
 expired sample acceptable. Command authority and epoch checks remain unchanged.
 
+Worker exit checks and cleanup share one process lock, including checks made
+when another worker starts. Normal exits preserve completion; abnormal exits
+retain their recovery evidence.
+
 DSS clock observations bind to the exact decoded telemetry packet and its epoch.
 A reset retires the current clock head; historical observations remain available.
 The new clock becomes visible after telemetry admits the new epoch. Time must

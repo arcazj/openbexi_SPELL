@@ -18,6 +18,7 @@ from .language_conformance_v16 import (
     _case, canonical_bytes, digest, source_inventory,
 )
 from .language_cases_core_v17 import CASES as CORE_CASES
+from .worker_process import WorkerProcess
 
 COVERAGE_PATH = ROOT / "contracts/v17/language_coverage.json"
 REPORT_SCHEMA = "spell.v17.language-conformance/1"
@@ -209,8 +210,8 @@ def run_case(case: dict) -> dict:
         return _expected_result(case)
     context = multiprocessing.get_context("spawn")
     control, output = context.Queue(), context.Queue()
-    process = context.Process(target=worker_main, args=(case["id"], 1, procedure.ir_version,
-        list(procedure.steps), 0, "conformance", None, {}, control, output, None, None, False))
+    process = WorkerProcess(context.Process(target=worker_main, args=(case["id"], 1, procedure.ir_version,
+        list(procedure.steps), 0, "conformance", None, {}, control, output, None, None, False)))
     process.start()
     terminal, variables, logs, prompts = None, {}, [], []
     deadline = time.monotonic() + 20

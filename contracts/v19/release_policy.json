@@ -38,6 +38,7 @@
     "backend/tests/test_dss_runtime_v19.py",
     "backend/tests/test_dss_server_v19.py",
     "backend/tests/test_dss_snapshot_mvcc_v19.py",
+    "backend/tests/test_dss_worker_lifecycle_v19.py",
     "driver_host/tests/test_dss_rpc.py",
     "driver_host/tests/test_dss_transport.py",
     "scripts/tests/test_dss_delivery.py",
@@ -372,6 +373,17 @@
     "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_expiration_remains_a_durable_sweep_not_a_new_read_overlay",
     "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[False]",
     "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[True]",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[kill]",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[terminate]",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_close_finishes_before_another_spawn_reads_child_registry",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[0]",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[7]",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_implicit_start_cleanup_shares_reaper_publication_lock",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_live_wait_timeout_and_closed_process_semantics_remain_truthful",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_actual_terminal_and_monitor_reaper_preserve_nonzero_public_api_oracle",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_genuine_consumer_exception_still_creates_durable_worker_failure",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_joined_process_disposes_native_sentinel_without_cyclic_gc",
+    "backend.tests.test_dss_worker_lifecycle_v19::test_raw_context_start_failure_and_cleanup_are_preserved",
     "backend.tests.test_language_conformance_queue_v19::test_expired_observer_does_not_dispatch_a_returned_service_request[18-v18-native-yes-built-command-telecommand_requested]",
     "backend.tests.test_language_conformance_queue_v19::test_expired_observer_does_not_dispatch_a_returned_service_request[19-v19-observation-prompt-confirm-command-observation_requested]",
     "backend.tests.test_language_conformance_queue_v19::test_real_worker_tail_after_empty_and_exit_preserves_oracle[changed-log-v16]",
@@ -2231,6 +2243,17 @@
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_expiration_remains_a_durable_sweep_not_a_new_read_overlay",
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[False]",
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[True]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[kill]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[terminate]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_close_finishes_before_another_spawn_reads_child_registry",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[0]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[7]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_implicit_start_cleanup_shares_reaper_publication_lock",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_live_wait_timeout_and_closed_process_semantics_remain_truthful",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_terminal_and_monitor_reaper_preserve_nonzero_public_api_oracle",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_genuine_consumer_exception_still_creates_durable_worker_failure",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_joined_process_disposes_native_sentinel_without_cyclic_gc",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_raw_context_start_failure_and_cleanup_are_preserved",
         "backend.tests.test_events::test_closed_subscriber_loop_cannot_interrupt_authoritative_progress",
         "backend.tests.test_ir_boundaries::test_initial_start_accepts_a_valid_first_prompt",
         "backend.tests.test_ir_boundaries::test_parser_postvalidation_rejects_invalid_compiler_output",
@@ -4558,7 +4581,7 @@
         "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible",
         "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart"
       ],
-      "tests": 3104
+      "tests": 3115
     },
     "sqlite": {
       "identities": [
@@ -5346,6 +5369,17 @@
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_expiration_remains_a_durable_sweep_not_a_new_read_overlay",
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[False]",
         "backend.tests.test_dss_snapshot_mvcc_v19::test_sqlite_preserves_locked_projection_and_complete_durable_payload[True]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[kill]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_abnormal_termination_remains_abnormal[terminate]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_close_finishes_before_another_spawn_reads_child_registry",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[0]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_exit_status_is_not_replaced_by_lifecycle_synchronization[7]",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_implicit_start_cleanup_shares_reaper_publication_lock",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_live_wait_timeout_and_closed_process_semantics_remain_truthful",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_actual_terminal_and_monitor_reaper_preserve_nonzero_public_api_oracle",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_genuine_consumer_exception_still_creates_durable_worker_failure",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_joined_process_disposes_native_sentinel_without_cyclic_gc",
+        "backend.tests.test_dss_worker_lifecycle_v19::test_raw_context_start_failure_and_cleanup_are_preserved",
         "backend.tests.test_events::test_closed_subscriber_loop_cannot_interrupt_authoritative_progress",
         "backend.tests.test_ir_boundaries::test_initial_start_accepts_a_valid_first_prompt",
         "backend.tests.test_ir_boundaries::test_parser_postvalidation_rejects_invalid_compiler_output",
@@ -7831,7 +7865,7 @@
         "backend.tests.test_shared_data_v08::test_postgresql_latest_revision_reconstruction_uses_parent_row_locks",
         "backend.tests.test_shared_data_v08::test_two_owners_can_use_the_same_namespace_id_on_postgresql"
       ],
-      "tests": 3225
+      "tests": 3236
     },
     "tooling": {
       "identities": [

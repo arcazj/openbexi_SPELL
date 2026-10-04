@@ -112,6 +112,7 @@ from .telecommand_runtime_v11 import (
     validate_send_request,
 )
 from .worker import evaluate_expression, sanitized_worker_environment, worker_main
+from .worker_process import WorkerProcess
 
 if TYPE_CHECKING:
     from .operator_service import OperatorService
@@ -2745,7 +2746,7 @@ class Supervisor:
             output = self._ctx.Queue()
             for initial_control in initial_controls or []:
                 control.put(initial_control)
-            process = self._ctx.Process(
+            process = WorkerProcess(self._ctx.Process(
                 target=worker_main,
                 name=f"spell-{execution_id[:8]}-g{generation}",
                 args=(
@@ -2765,7 +2766,7 @@ class Supervisor:
                     getattr(self, "dss_runtime", None) is not None,
                 ),
                 daemon=True,
-            )
+            ))
             handle = WorkerHandle(
                 process=process,
                 control=control,

@@ -1,5 +1,6 @@
 """Nondefault inherited menu answers remain authoritative before the DSS broker."""
 from pathlib import Path
+import json
 
 import pytest
 from sqlalchemy import select
@@ -82,7 +83,31 @@ def test_public_api_nonzero_runner_selection_reaches_protected_language_step_onc
     assert type(variables["selected_index"]) is int and variables["selected_index"] == 291
     assert variables["example_number"] == 292
     with client.app.state.session_factory() as session:
-        events = list(session.scalars(select(Event).where(Event.execution_id == execution_id)))
+        events = list(session.scalars(select(Event).where(Event.execution_id == execution_id)
+            .order_by(Event.sequence)))
         assert sum(event.event_type == "prompt.answered" for event in events) == 1
         assert sum(event.event_type == "procedure.language_check_completed" for event in events) == 1
-        assert not any(event.event_type == "worker.consumer_failed" for event in events)
+        failures = [event for event in events if event.event_type == "worker.consumer_failed"]
+        diagnostic = {}
+        if failures:
+            def bounded_error(event):
+                value = event.payload.get("error") if type(event.payload) is dict else None
+                text = value[:1024] if type(value) is str else "<missing or non-string error>"
+                # Bound the encoded JSON, including control-character escaping.
+                while len(json.dumps(text).encode("utf-8")) > 768:
+                    text = text[:len(text) // 2]
+                return text
+            diagnostic = {
+                "consumer_failure_count": len(failures),
+                "consumer_failures": [{"sequence": event.sequence,
+                    "created_at": event.created_at.isoformat(), "error": bounded_error(event)}
+                    for event in failures[:3]],
+                "completed_sequences": [event.sequence for event in events
+                    if event.event_type == "execution.state_changed"
+                    and type(event.payload) is dict and event.payload.get("state") == "completed"][-8:],
+                "prompt_answered_sequences": [event.sequence for event in events
+                    if event.event_type == "prompt.answered"][-8:],
+                "language_check_completed_sequences": [event.sequence for event in events
+                    if event.event_type == "procedure.language_check_completed"][-8:],
+            }
+        assert not failures, json.dumps(diagnostic, sort_keys=True, separators=(",", ":"))

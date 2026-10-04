@@ -16,6 +16,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from .worker_process import WorkerProcess
+
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SHA256 = "ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3"
 INVENTORY_SHA256 = "4271e41cc4da39ad715fd7db3fb1205c3beff2ca2f12f3482c322f2db34c8d6b"
@@ -182,8 +184,8 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"{case['id']}: unsupported source was unexpectedly accepted")
     context = multiprocessing.get_context("spawn")
     control, output = context.Queue(), context.Queue()
-    process = context.Process(target=worker_main, args=(case["id"], 1, procedure.ir_version,
-        list(procedure.steps), 0, "conformance", None, {}, control, output, None, None, False))
+    process = WorkerProcess(context.Process(target=worker_main, args=(case["id"], 1, procedure.ir_version,
+        list(procedure.steps), 0, "conformance", None, {}, control, output, None, None, False)))
     process.start()
     terminal, variables, logs = None, {}, []
     deadline = time.monotonic() + 15

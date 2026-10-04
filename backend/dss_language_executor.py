@@ -13,6 +13,7 @@ import urllib.request
 from . import language_conformance_v19 as registry
 from .dss_language_broker import canonical, digest, subject_binding, case_execution_id
 from .dss_scenarios import subject_execution_spec, snapshot_matches_scenario, readiness_diagnostic
+from .worker_process import WorkerProcess
 
 _SCENARIO_LOCK = threading.Lock()
 
@@ -156,8 +157,8 @@ class DssLanguageExecutor:
         execution_id = state["scenario_id"]
         context = multiprocessing.get_context("spawn")
         control, output = context.Queue(), context.Queue()
-        process = context.Process(target=worker_main, args=(execution_id, 1, procedure.ir_version,
-            list(procedure.steps), 0, "dss-conformance", None, {}, control, output, None, None, False))
+        process = WorkerProcess(context.Process(target=worker_main, args=(execution_id, 1, procedure.ir_version,
+            list(procedure.steps), 0, "dss-conformance", None, {}, control, output, None, None, False)))
         values, logs, prompts, commands, built, confirmations, failure_answers = {}, [], [], [], [], [], []
         observations, observation_results, results, result_steps = [], {}, [], []
         self.worker_capture = {"execution_id":execution_id, "source_sha256":case["source_sha256"],
