@@ -31,6 +31,7 @@ from backend.migrations.versions import (
     v0005_observation_projection,
     v0006_observation_conditions,
     v0007_data_local_service,
+    v0011_dss_language_ledger,
 )
 from backend.tests.migration_support import reset_test_database, run_migrations
 
@@ -542,9 +543,11 @@ def assert_populated_v03_upgrade_preserves_every_record(engine) -> None:
         "0008_development_environment",
         "0009_procedure_catalog_availability",
         "0010_shadow_pilot",
+        "0011_dss_language_ledger",
+        "0012_dss_epoch_index",
     )
     assert canonical_v03_snapshot(engine) == before
-    assert database_version(engine) == "0010_shadow_pilot"
+    assert database_version(engine) == "0012_dss_epoch_index"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -572,9 +575,11 @@ def test_migrations_create_fresh_schema_and_are_idempotent(tmp_path) -> None:
         "0008_development_environment",
         "0009_procedure_catalog_availability",
         "0010_shadow_pilot",
+        "0011_dss_language_ledger",
+        "0012_dss_epoch_index",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0010_shadow_pilot"
+    assert database_version(engine) == "0012_dss_epoch_index"
     tables = set(inspect(engine).get_table_names())
     assert {"schema_migrations", "executions", "events", "commands", "prompts"} <= tables
     assert {
@@ -644,6 +649,8 @@ def test_v0007_preflight_requires_safe_backup_directory_before_ddl(
         "0008_development_environment",
         "0009_procedure_catalog_availability",
         "0010_shadow_pilot",
+        "0011_dss_language_ledger",
+        "0012_dss_epoch_index",
     )
     assert list(backup_directory.iterdir()) == []
 
@@ -726,6 +733,8 @@ def test_v0007_sqlite_hard_exit_rolls_back_first_ddl(
             "0008_development_environment",
             "0009_procedure_catalog_availability",
             "0010_shadow_pilot",
+            "0011_dss_language_ledger",
+            "0012_dss_epoch_index",
         )
     finally:
         reopened.dispose()
@@ -864,9 +873,11 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0008_development_environment",
         "0009_procedure_catalog_availability",
         "0010_shadow_pilot",
+        "0011_dss_language_ledger",
+        "0012_dss_epoch_index",
     )
     assert run_migrations(engine) == ()
-    assert database_version(engine) == "0010_shadow_pilot"
+    assert database_version(engine) == "0012_dss_epoch_index"
     assert_driver_schema_contract(engine)
     assert_operator_schema_contract(engine)
     assert_observation_schema_contract(engine)
@@ -884,8 +895,10 @@ def test_migrations_create_fresh_postgresql_schema_and_are_idempotent() -> None:
         "0008_development_environment",
         "0009_procedure_catalog_availability",
         "0010_shadow_pilot",
+        "0011_dss_language_ledger",
+        "0012_dss_epoch_index",
     )
-    assert database_version(engine) == "0010_shadow_pilot"
+    assert database_version(engine) == "0012_dss_epoch_index"
 
 
 @pytest.mark.skipif(
@@ -914,6 +927,81 @@ def test_migrations_upgrade_populated_v03_postgresql_database_without_record_dri
     engine = postgresql_migration_engine()
     reset_migration_database(engine)
     assert_populated_v03_upgrade_preserves_every_record(engine)
+
+
+def assert_v0011_upgrade_preserves_predecessor_and_ledger(engine, monkeypatch) -> None:
+    seed_populated_v03_schema(engine)
+    before = canonical_v03_snapshot(engine)
+    with monkeypatch.context() as scope:
+        scope.setattr(migration_runner, "MIGRATIONS", tuple(row for row in migration_runner.MIGRATIONS if row.VERSION < "0011"))
+        run_migrations(engine)
+    assert database_version(engine) == "0010_shadow_pilot"
+    assert "dss_language_cases" not in inspect(engine).get_table_names()
+    assert canonical_v03_snapshot(engine) == before
+    with monkeypatch.context() as scope:
+        scope.setattr(migration_runner, "MIGRATIONS", tuple(row for row in migration_runner.MIGRATIONS if row.VERSION < "0012"))
+        assert run_migrations(engine) == ("0011_dss_language_ledger",)
+    assert database_version(engine) == "0011_dss_language_ledger"
+    assert run_migrations(engine) == ("0012_dss_epoch_index",)
+    assert canonical_v03_snapshot(engine) == before
+    ledger = v0011_dss_language_ledger.language_cases
+    created_at = datetime(2026, 10, 3, tzinfo=timezone.utc)
+    with engine.begin() as connection:
+        connection.execute(ledger.insert(), [
+            {"request_id": "00000000-0000-0000-0000-000000000001", "subject": "case-pending",
+             "execution_id": "v03-execution", "request_hash": "a" * 64,
+             "request": {"source_sha256": "b" * 64, "selection": 1}, "binding_hash": "c" * 64,
+             "state": "DISPATCHING", "result": None, "result_hash": None,
+             "created_at": created_at, "settled_at": None},
+            {"request_id": "00000000-0000-0000-0000-000000000002", "subject": "case-settled",
+             "execution_id": "v03-execution", "request_hash": "d" * 64,
+             "request": {"source_sha256": "e" * 64, "selection": 2}, "binding_hash": "f" * 64,
+             "state": "SETTLED", "result": {"outcome": "PASS", "packets": ["1" * 64]},
+             "result_hash": "2" * 64, "created_at": created_at, "settled_at": created_at},
+        ])
+        expected = [dict(row) for row in connection.execute(ledger.select().order_by(ledger.c.subject)).mappings()]
+    engine.dispose()
+    assert run_migrations(engine) == ()
+    with engine.connect() as connection:
+        v0011_dss_language_ledger.verify(connection)
+        assert [dict(row) for row in connection.execute(ledger.select().order_by(ledger.c.subject)).mappings()] == expected
+    assert canonical_v03_snapshot(engine) == before
+    reset_test_database(engine)
+    assert inspect(engine).get_table_names() == []
+    assert run_migrations(engine)[-1] == "0012_dss_epoch_index"
+
+
+def test_v0011_sqlite_upgrade_preserves_prior_data_and_repeated_durable_ledger(tmp_path, monkeypatch):
+    engine = create_engine(f"sqlite:///{(tmp_path / 'v0011-upgrade.db').as_posix()}")
+    try:
+        assert_v0011_upgrade_preserves_predecessor_and_ledger(engine, monkeypatch)
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.skipif(not os.getenv("SPELL_MIGRATION_TEST_DATABASE_URL"),
+                   reason="dedicated PostgreSQL migration database not configured")
+def test_v0011_postgresql_upgrade_preserves_prior_data_and_repeated_durable_ledger(monkeypatch):
+    engine = postgresql_migration_engine()
+    reset_test_database(engine)
+    try:
+        assert_v0011_upgrade_preserves_predecessor_and_ledger(engine, monkeypatch)
+    finally:
+        reset_test_database(engine)
+        run_migrations(engine)
+        engine.dispose()
+
+
+def test_v0011_repeated_migration_rejects_ledger_schema_drift(tmp_path):
+    engine = create_engine(f"sqlite:///{(tmp_path / 'v0011-drift.db').as_posix()}")
+    try:
+        run_migrations(engine)
+        with engine.begin() as connection:
+            connection.exec_driver_sql("ALTER TABLE dss_language_cases ADD COLUMN unreviewed INTEGER")
+        with pytest.raises(RuntimeError, match="ledger schema differs"):
+            run_migrations(engine)
+    finally:
+        engine.dispose()
 
 
 @pytest.mark.skipif(

@@ -7,6 +7,11 @@ observation-to-command procedures and aligned authoring. Acceptance and
 publication are pending; v0.18.0 remains the accepted local predecessor.
 The broader design and GUI manual/PDF remain Draft.
 
+The owner added Docker GENERIC DSS, one shared command/telemetry database, actual
+binary CMD/Kafka TLM and exhaustive procedure validation as prerequisites for
+every future delivery. The [DSS contract](../contracts/dss/README.md) records the
+integration and strict evidence gate. Pre-DSS results do not establish acceptance.
+
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.
 

@@ -86,6 +86,9 @@ def _sample_message(
     observation_id: str,
     identity: GenerationIdentity,
     sample: TelemetrySample,
+    *,
+    source_id: str = SOURCE_ID,
+    catalog_digest: str = CATALOG_DIGEST,
 ) -> Any:
     return driver_pb2.DriverTelemetrySample(
         observation_id=observation_id,
@@ -93,14 +96,14 @@ def _sample_message(
         sample_identity=driver_pb2.SampleIdentity(
             sample_id=sample.sample_id,
             item_id=sample.item.item_id,
-            source_id=SOURCE_ID,
+            source_id=source_id,
             source_epoch=sample.source_epoch,
             source_sequence=sample.source_sequence,
         ),
         item_identity=driver_pb2.ItemIdentity(
             item_id=sample.item.item_id,
             qualified_name=sample.item.qualified_name,
-            catalog_digest=CATALOG_DIGEST,
+            catalog_digest=catalog_digest,
         ),
         raw_value=_scalar(sample.raw_value),
         engineering_value=_scalar(sample.engineering_value),
@@ -197,7 +200,8 @@ class DriverObservationService(driver_pb2_grpc.DriverObservationServiceServicer)
         )
 
     def _admit(self) -> bool:
-        if self._active >= MAX_ACTIVE_OBSERVATIONS:
+        limit = 32 if getattr(self.engine, "source_id", "") == "dss-GENERIC" else MAX_ACTIVE_OBSERVATIONS
+        if self._active >= limit:
             return False
         self._active += 1
         return True
@@ -353,7 +357,10 @@ class DriverObservationService(driver_pb2_grpc.DriverObservationServiceServicer)
             return driver_pb2.GetTMResponse(
                 contract_version=_contract_version(),
                 result_code=driver_pb2.OBSERVATION_RESULT_CODE_OK,
-                sample=_sample_message(request.identity.observation_id, identity, sample),
+                sample=_sample_message(request.identity.observation_id, identity, sample,
+                    source_id=getattr(self.engine, "source_id", SOURCE_ID),
+                    catalog_digest=(self.engine.catalog_digest_for(sample.item.item_id)
+                        if hasattr(self.engine, "catalog_digest_for") else CATALOG_DIGEST)),
             )
         except asyncio.CancelledError:
             return self._tm_failure(

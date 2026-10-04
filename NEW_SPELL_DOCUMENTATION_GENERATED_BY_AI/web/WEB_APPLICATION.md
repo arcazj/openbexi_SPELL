@@ -1,5 +1,15 @@
 # Web Application Specification
 
+## Separate DSS Page
+
+v0.19 adds a compact page at `/dss/`, opened from **System > Satellite simulator**.
+It displays GENERIC bus/payload/core state and decoded packet provenance.
+Pause/step and typed database commands require current epoch/revision; commands
+receive separate confirmation and traverse the real TC ingress. SPELL retains
+its original compact GUI-manual workspace and direct local connection.
+See the [console guide](../../frontend/README.md) and
+[DSS contract](../../contracts/dss/README.md). Delivery qualification is pending.
+
 ## v0.16 Workspace
 
 The original GUI User Manual 2.4.4, especially pages 6, 10 and 21, governs the

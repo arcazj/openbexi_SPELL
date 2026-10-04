@@ -72,12 +72,16 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   await page.goto("/");
   const catalogResponse = await catalogPromise;
   expect(catalogResponse.status()).toBe(200);
-  const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string }> };
-  expect(catalog.items.map((item) => item.id)).toEqual(["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"]);
-  expect(catalog.items[0]).toEqual(expect.objectContaining({ version: "0.19" }));
-  await expect(
-    page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").filter({ hasText: catalog.items[0]!.name }),
-  ).toBeVisible();
+  const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string; ir_version: string }> };
+  expect(catalog.items.map((item) => item.id)).toEqual(["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"]);
+  expect(catalog.items.find((item) => item.id === "dss_command_catalog_v19"))
+    .toEqual(expect.objectContaining({ ir_version: "0.11" }));
+  const reference = catalog.items.find((item) => item.id === "language_reference_244");
+  expect(reference).toEqual(expect.objectContaining({ version: "0.19" }));
+  const referenceOption = page.getByRole("listbox", { name: "Procedure catalog" })
+    .getByRole("option").filter({ hasText: reference!.name });
+  await expect(referenceOption).toBeVisible();
+  await referenceOption.click();
 
   const createPromise = page.waitForResponse((response) =>
     new URL(response.url()).pathname === "/api/v1/executions" && response.request().method() === "POST",

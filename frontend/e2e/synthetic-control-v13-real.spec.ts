@@ -8,6 +8,7 @@ test.setTimeout(60_000);
 test("returns a controlled procedure to confirmed read-only state", async ({ page }, testInfo) => {
   await page.addInitScript((credential) => sessionStorage.setItem("openbexi.spell.access-token", credential), token);
   await page.goto("/");
+  await page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option", { name: /^Language Reference 244 / }).click();
   await page.getByRole("button", { name: "Start procedure" }).click();
   await expect(page.getByRole("heading", { name: "Select a SPELL 2.4.4 reference example" })).toBeVisible({ timeout: 20_000 });
   const panel = page.locator(".compatibility-control");

@@ -18,6 +18,7 @@ from .observation_service import DriverObservationService, MAX_ACTIVE_OBSERVATIO
 from .security import DriverAuthorizationInterceptor
 from .service import DriverInfrastructureService
 from .wire import StrictDriverWireInterceptor
+from .dss_config import DssConfig
 
 
 PRODUCT_BIND_ADDRESS = "0.0.0.0:50051"
@@ -56,11 +57,25 @@ def server_credentials(credential_directory: str | Path) -> grpc.ServerCredentia
 def build_server(
     config: HostConfig,
     host: SimulatorLifecycleHost,
+    *,
+    dss_config: DssConfig | None = None,
 ) -> tuple[grpc.aio.Server, DriverInfrastructureService]:
     """Construct an unbound server so tests can inject a loopback-only port."""
 
     service = DriverInfrastructureService(config, host)
-    observation_service = DriverObservationService(config, host)
+    dss_config = dss_config or DssConfig()
+    dss_service = None
+    if dss_config.enabled:
+        from .dss_command import DssCommandDriver
+        from .dss_telemetry import DssTelemetryDriver
+        from .dss_service import DssService
+        telemetry = DssTelemetryDriver(dss_config)
+        command = DssCommandDriver(dss_config)
+        observation_service = DriverObservationService(config, host, engine=telemetry)
+        dss_service = DssService(observation_service, command, telemetry)
+        service.dss_service = dss_service
+    else:
+        observation_service = DriverObservationService(config, host)
     authorization = DriverAuthorizationInterceptor(config)
     wire = StrictDriverWireInterceptor()
     service.authorization_audit = authorization.audit_counts
@@ -77,7 +92,7 @@ def build_server(
         ),
         maximum_concurrent_rpcs=(
             config.capacity.max_lifecycle_operations_per_host
-            + MAX_ACTIVE_OBSERVATIONS
+            + (32 if dss_config.enabled else MAX_ACTIVE_OBSERVATIONS)
             + 2
         ),
     )
@@ -85,6 +100,9 @@ def build_server(
     driver_pb2_grpc.add_DriverObservationServiceServicer_to_server(
         observation_service, server
     )
+    if dss_service is not None:
+        from spell.driver.dss.v1 import dss_pb2_grpc
+        dss_pb2_grpc.add_DssServiceServicer_to_server(dss_service, server)
     return server, service
 
 
@@ -96,7 +114,7 @@ async def serve(
     config = HostConfig.from_file(config_path)
     journal = OperationJournal(journal_path, config.driver_host_generation, config.journal)
     host = SimulatorLifecycleHost(config, journal)
-    server, _ = build_server(config, host)
+    server, service = build_server(config, host, dss_config=DssConfig.from_environment())
     bound_port = server.add_secure_port(
         PRODUCT_BIND_ADDRESS, server_credentials(credential_directory)
     )
@@ -104,10 +122,15 @@ async def serve(
         journal.close()
         raise RuntimeError("driver host failed to bind its fixed internal port")
     try:
+        if getattr(service, "dss_service", None) is not None:
+            service.dss_service.telemetry.start()
         await server.start()
         await server.wait_for_termination()
     finally:
         await server.stop(grace=1)
+        if getattr(service, "dss_service", None) is not None:
+            service.dss_service.telemetry.close()
+            service.dss_service.command.close()
         host.close()
 
 

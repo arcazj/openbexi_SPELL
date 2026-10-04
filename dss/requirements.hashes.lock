@@ -1,0 +1,4 @@
+# Published PyPI 3.0.11 wheel/source identities; no optional compression extras.
+kafka-python==3.0.11 \
+    --hash=sha256:9d10cab4e11e02545d82c7e5af5702da5aa46dd4eccd11ad92a50bf6dbbecd14 \
+    --hash=sha256:a003d927e79c801d6cfd1e59ceaaf78807351e75cdb5b8ee9ce4262586f9780f

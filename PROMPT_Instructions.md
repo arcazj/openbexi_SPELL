@@ -413,8 +413,8 @@ Core and GUI legacy versions remain independent version series.
   dependencies with `npm ci`.
 - Produce the exact version-scoped SBOM set required by the active gate and a
   checksum manifest, and run dependency audits for every release. The current
-  release contract requires four distinct CycloneDX inventories for backend,
-  driver, frontend-build, and proxy image identities under the active version's
+  release contract requires six distinct CycloneDX inventories for backend,
+  driver, DSS, Kafka, frontend-build, and proxy image identities under the active version's
   artifact root. Critical or High findings require resolution; every other
   advisory requires a recorded, time-bounded disposition.
 - Build the release package twice from the same frozen source and require
@@ -453,7 +453,7 @@ Core and GUI legacy versions remain independent version series.
   subsequent product-test, selector, skip, total, hash, or proof-map change
   invalidates the freeze and requires a fresh joint collection before another
   candidate; both candidate and Final runners must fail closed otherwise.
-  Inspect source, package bytes, and all four images for secrets, excluded
+  Inspect source, package bytes, and all six images for secrets, excluded
   manuals or archives, generated journals, and runtime generator tooling.
 - Preserve unrelated user changes. Do not rewrite or discard them to obtain a
   clean working tree.

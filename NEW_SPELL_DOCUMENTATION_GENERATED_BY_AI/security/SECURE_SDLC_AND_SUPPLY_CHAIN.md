@@ -1,5 +1,15 @@
 # Secure SDLC and Software Supply Chain
 
+## v0.19 DSS Release Inputs
+
+The local delivery gate covers six exact images: backend, driver, DSS, Kafka,
+frontend and proxy. DSS/Kafka dependencies and bases are pinned; each image
+requires its own validated SBOM, vulnerability scan and running-image binding.
+Actual-driver procedure evidence binds the same images, source and satellite
+database. Missing simulator proof or unresolved High/Critical findings block
+delivery. See the [DSS contract](../../contracts/dss/README.md); current
+qualification is pending and supplies no operational authorization.
+
 ## Purpose
 
 This document defines the minimum engineering controls for SPELL application code, infrastructure, configuration, database migrations, drivers, web assets, and procedure-tooling components. It supports `SEC-014` through `SEC-017`, `GIT-*`, and `VNV-007`. Procedure source has an additional promotion workflow because it can cause mission effects.

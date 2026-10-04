@@ -15,6 +15,9 @@ def main():
     args = parser.parse_args()
     rows = json.loads(args.pytest_json.read_bytes())
     config = json.loads((ROOT / POLICY).read_bytes())
+    if MINOR >= 19:
+        config["feature_browser_specs"] = sorted(set(config["feature_browser_specs"]) | {"dss-v19-real.spec.ts"})
+        config["browser_screenshots"] = 32
     require(len({r["identity"] for r in rows}) == len(rows), "duplicate collection identity")
     def gate(selected, skipped=None):
         identities = sorted(r["identity"] for r in selected)
@@ -26,7 +29,8 @@ def main():
     compose = config["gates"]["compose"]["identities"]
     tools = [r for r in rows if r["identity"].startswith(("scripts.tests.test_release_v12::",
              "scripts.tests.test_release_next::", "scripts.tests.test_spell_auditor_tool::",
-             "scripts.tests.test_gcc_aligned_new_applicability::"))]
+             "scripts.tests.test_gcc_aligned_new_applicability::", "scripts.tests.test_dss_delivery::",
+             "scripts.tests.test_dss_release_gate::", "scripts.tests.test_seed_dss_v19::"))]
     docs = [r for r in rows if r["identity"].startswith(("scripts.tests.test_markdown_preview_v09::",
             "scripts.tests.test_documentation_tree_layout::"))]
     config["gates"]["sqlite"] = gate(backend + driver)
@@ -61,12 +65,23 @@ def main():
                 19: ["observation_composition_ir_v19", "worker_observation_composition_v19",
                      "supervisor_observation_command_v19", "operator_observation_command_v19",
                      "observation_command_api_v19", "development_profile_v19",
-                     "language_conformance_v19", "catalog_procedures_v19"]}[MINOR]
+                     "language_conformance_v19", "catalog_procedures_v19",
+                     "observation_batching_v19", "observation_epoch_index_v19",
+                     "observation_diagnostics_v19", "observation_websocket_batching_v19"]}[MINOR]
     config["candidate_files"] = [f"backend/tests/test_{feature}.py" for feature in features] + ["scripts/tests/test_release_next.py"]
     prefixes = tuple(f"backend.tests.test_{feature}::" for feature in features) + ("scripts.tests.test_release_next::",)
     if MINOR >= 18:
         config["candidate_files"].append("scripts/tests/test_gcc_aligned_new_applicability.py")
         prefixes += ("scripts.tests.test_gcc_aligned_new_applicability::",)
+    if MINOR >= 19:
+        dss_files = sorted({r["identity"].split("::", 1)[0].replace(".", "/") + ".py" for r in rows
+            if r["identity"].startswith(("backend.tests.test_dss_", "driver_host.tests.test_dss_",
+                                       "scripts.tests.test_dss_", "scripts.tests.test_seed_dss_v19::"))})
+        require(bool(dss_files), "DSS candidate inventory missing")
+        config["candidate_files"] += dss_files
+        prefixes += tuple(name[:-3].replace("/", ".") + "::" for name in dss_files)
+        config["feature_browser_specs"] = sorted(set(config["feature_browser_specs"]) | {"dss-v19-real.spec.ts"})
+        config["browser_screenshots"] = 32
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))
     if MINOR == 15:
         postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]

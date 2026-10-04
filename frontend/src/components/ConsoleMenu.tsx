@@ -26,6 +26,7 @@ export function ConsoleMenu({ onReconnect, onView }: {
       <button type="button" onClick={() => onView("driver")}>Driver foundation</button>
       <button type="button" onClick={() => onView("data")}>Data services</button>
       <a href="/development.html">Development workspace</a>
+      <a href="/dss/">DSS satellite simulator</a>
     </div></details>
     <details><summary>Procedures</summary><div className="menu-popup" onClick={close}>
       <button type="button" disabled={!selected || unavailable} onClick={() => {

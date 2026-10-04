@@ -1,8 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { createHash } from "node:crypto";
+import { ensureDssObservationReady } from "./dss-readiness";
 
-test.skip(!process.env.SPELL_REAL_BACKEND, "requires the local v0.18 simulator stack");
+test.skip(!process.env.SPELL_REAL_BACKEND, "requires the local DSS-backed simulator stack");
 test.setTimeout(90_000);
 
 type Snapshot = {
@@ -25,7 +26,7 @@ type CommandEvent = {
   };
 };
 
-const catalogIds = ["language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"];
+const catalogIds = ["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"];
 
 async function read<T>(page: Page, path: string): Promise<T> {
   return page.evaluate(async (url) => {
@@ -83,9 +84,10 @@ async function openWorkspace(page: Page, testInfo: TestInfo) {
   if (testInfo.project.name === "chromium") await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await expect(page.locator(".connection-badge")).toHaveText("CONNECTED", { timeout: 20_000 });
+  await ensureDssObservationReady(page);
   const catalog = await read<{ items: Array<{ id: string }> }>(page, "/api/v1/procedures");
   expect(catalog.items.map((item) => item.id)).toEqual(catalogIds);
-  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(9);
+  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(10);
 }
 
 async function capture(page: Page, testInfo: TestInfo, name: string, selector: string) {

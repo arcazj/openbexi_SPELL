@@ -7,6 +7,11 @@ observation-to-command procedures and aligned authoring. Acceptance and
 publication are pending; v0.18.0 remains the accepted local predecessor.
 The broader design and GUI manual/PDF remain Draft.
 
+The owner added Docker GENERIC DSS and exhaustive actual CMD/TLM procedure
+validation as prerequisites for every new delivery. The [DSS contract](../contracts/dss/README.md)
+binds the shared database, packet paths and version-specific evidence. Earlier
+pre-DSS results cannot establish acceptance of this amended scope.
+
 ## Baseline Identity
 
 | Field | Value |

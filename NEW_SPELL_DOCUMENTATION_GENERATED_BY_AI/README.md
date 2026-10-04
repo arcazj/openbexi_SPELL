@@ -2,6 +2,11 @@
 
 ## v0.19.0 Local Increment In Qualification
 
+The owner also requires Docker GENERIC DSS, actual binary CMD/Kafka TLM and
+exhaustive procedure validation before any future delivery. See the
+[DSS contract](../contracts/dss/README.md) for database, scenarios and strict
+source/image-bound evidence. Acceptance remains pending.
+
 The [v0.19 implementation](releases/SPELL_v0.19_Implementation.md) adds bounded
 observation-to-command procedures and aligned authoring. Acceptance and
 publication are pending; v0.18.0 remains the accepted local predecessor.

@@ -44,7 +44,11 @@ services:
       SPELL_WS_QUEUE_SIZE: ${SPELL_WS_QUEUE_SIZE:-256}
       SPELL_WS_KEEPALIVE_SECONDS: ${SPELL_WS_KEEPALIVE_SECONDS:-5}
       SPELL_COMMAND_ACK_TIMEOUT_SECONDS: ${SPELL_COMMAND_ACK_TIMEOUT_SECONDS:-5}
-      SPELL_DRIVER_ENABLED: ${SPELL_DRIVER_ENABLED:-false}
+      SPELL_DRIVER_ENABLED: ${SPELL_DRIVER_ENABLED:-true}
+      SPELL_DSS_ENABLED: ${SPELL_DSS_ENABLED:-true}
+      SPELL_DSS_CORTEX_HOST: dss
+      SPELL_DSS_CORTEX_PORT: "3080"
+      SPELL_DSS_KAFKA_BOOTSTRAP: kafka:9092
       SPELL_DRIVER_RPC_TIMEOUT_SECONDS: ${SPELL_DRIVER_RPC_TIMEOUT_SECONDS:-2}
       SPELL_DRIVER_POLL_SECONDS: ${SPELL_DRIVER_POLL_SECONDS:-1}
       SPELL_DRIVER_STALE_AFTER_SECONDS: ${SPELL_DRIVER_STALE_AFTER_SECONDS:-5}
@@ -123,9 +127,9 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-m", "backend.development_bundle_worker", "--healthcheck"]
-      interval: 2s
+      interval: 10s
       timeout: 2s
-      retries: 15
+      retries: 3
       start_period: 2s
     volumes:
       - spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests:ro
@@ -155,9 +159,9 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-m", "backend.development_bundle_worker", "--healthcheck"]
-      interval: 2s
+      interval: 10s
       timeout: 2s
-      retries: 15
+      retries: 3
       start_period: 2s
     volumes:
       - spell-bundle-builder-requests:/var/lib/openbexi-spell/builder/requests:ro
@@ -185,8 +189,6 @@ services:
       - spell-internal
 
   pki-init:
-    profiles:
-      - driver
     build:
       context: .
       dockerfile: driver_host/pki.Dockerfile
@@ -225,14 +227,19 @@ services:
       - spell-driver-server-credentials:/run/spell-driver-server
 
   spell-driver:
-    profiles:
-      - driver
     build:
       context: .
       dockerfile: driver_host/Dockerfile
     depends_on:
       pki-init:
         condition: service_completed_successfully
+      dss:
+        condition: service_healthy
+    environment:
+      SPELL_DSS_ENABLED: ${SPELL_DSS_ENABLED:-true}
+      SPELL_DSS_CORTEX_HOST: dss
+      SPELL_DSS_CORTEX_PORT: "3080"
+      SPELL_DSS_KAFKA_BOOTSTRAP: kafka:9092
     user: "10002:10002"
     stop_signal: SIGINT
     stop_grace_period: 2s
@@ -263,6 +270,104 @@ services:
     networks:
       - spell-driver-internal
 
+  # One local broker. No host listener or connection to a mission network.
+  kafka:
+    image: openbexi-spell-kafka:${SPELL_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: dss/kafka.Dockerfile
+    platform: linux/amd64
+    hostname: kafka
+    environment:
+      CLUSTER_ID: "4L6g3nShT-eMCtK--X86sw"
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_NUM_PARTITIONS: "1"
+      KAFKA_NUM_NETWORK_THREADS: "2"
+      KAFKA_NUM_IO_THREADS: "2"
+      KAFKA_BACKGROUND_THREADS: "2"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: "1"
+      KAFKA_LOG_RETENTION_BYTES: "67108864"
+      KAFKA_LOG_SEGMENT_BYTES: "16777216"
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: "30000"
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx256m
+      KAFKA_JVM_PERFORMANCE_OPTS: -server -XX:+UseG1GC -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m
+    healthcheck:
+      test: ["CMD-SHELL", "KAFKA_HEAP_OPTS='-Xms16m -Xmx64m' /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list >/dev/null"]
+      interval: 10s
+      timeout: 8s
+      retries: 18
+      start_period: 30s
+    mem_limit: 512m
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,uid=1000,gid=1000
+      - /opt/kafka/config:size=4m,noexec,nosuid,uid=1000,gid=1000
+      - /opt/kafka/logs:size=16m,noexec,nosuid,uid=1000,gid=1000
+    cpus: "1.00"
+    pids_limit: 128
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - spell-dss-kafka:/var/lib/kafka/data
+    networks:
+      - spell-driver-internal
+
+  dss:
+    image: openbexi-spell-dss:${SPELL_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: dss/Dockerfile
+    environment:
+      DSS_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DSS_STATE_PATH: /var/lib/dss/satellite.sqlite
+      DSS_LOCAL_PORT: ${SPELL_PROXY_PORT:-8080}
+      DSS_TEST_CONTROL_ENABLED: ${DSS_TEST_CONTROL_ENABLED:-false}
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${DSS_TC_PORT:-3080}:3080"
+    healthcheck:
+      test: ["CMD", "python", "-m", "dss.healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 18
+      start_period: 10s
+    user: "10003:10003"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    mem_limit: 192m
+    cpus: "0.50"
+    pids_limit: 64
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - spell-dss-state:/var/lib/dss
+    networks:
+      - spell-driver-internal
+      - spell-internal
+
 volumes:
   spell-postgres-data:
   spell-driver-client-credentials:
@@ -273,6 +378,8 @@ volumes:
   spell-bundle-builder-requests:
   spell-bundle-builder-response-a:
   spell-bundle-builder-response-b:
+  spell-dss-kafka:
+  spell-dss-state:
 
 networks:
   spell-edge:

@@ -369,6 +369,7 @@ def worker_main(
     resume_prompt_settlement: dict[str, Any] | None = None,
     durable_arguments: dict[str, Any] | None = None,
     safe_point_ack_required: bool = True,
+    dss_language_enabled: bool = False,
 ) -> None:
     """Validate and execute data-only IR in a spawned process."""
 
@@ -459,6 +460,8 @@ def worker_main(
                         "procedure argument bindings conflict",
                     )
                 durable_arguments = checkpoint_arguments
+        if type(dss_language_enabled) is not bool:
+            raise V06ValidationError("WORKER_RESUME_INVALID", "$.dss_language_enabled", "DSS language mode must be Boolean")
         if type(safe_point_ack_required) is not bool:
             raise V06ValidationError(
                 "WORKER_RESUME_INVALID",
@@ -995,6 +998,7 @@ def worker_main(
                 "startproc_result",
                 "observation_result",
                 "data_result",
+                "language_case_result",
             }:
                 deferred_controls.append(followup)
                 continue
@@ -1460,7 +1464,35 @@ def worker_main(
                     variables[step["response_target"]] = response
             elif should_run and step["type"] == "language_check":
                 try:
-                    if v19_preflight:
+                    if dss_language_enabled and v19_preflight:
+                        from .dss_language_broker import request_for_selection, worker_effects
+                        request = request_for_selection(execution_id, step_index,
+                            evaluate_expression(step["selection"], variables))
+                        send("language_case_requested", **request)
+                        send("state", state="waiting")
+                        while True:
+                            response = wait_for_control(block=True, timeout=0.25)
+                            if response is None:
+                                continue
+                            if response.get("type") in {"abort", "stop"}:
+                                send("state", state="aborted", command_id=response.get("command_id"))
+                                send("terminal", state="aborted")
+                                return
+                            if response.get("type") in {"pause", "control_loss"}:
+                                disposition = handle_control(response, step_index)
+                                if disposition is not None and disposition["disposition"] == "abort":
+                                    return
+                                send("state", state="waiting")
+                                continue
+                            if response.get("type") != "language_case_result" or response.get("request_id") != request["request_id"]:
+                                reject_control(response, "DSS_LANGUAGE_RESULT_INVALID", "DSS result does not match its request")
+                                continue
+                            if response.get("outcome") != "SETTLED":
+                                raise ReferenceExampleError(str(response.get("error", "DSS language case failed"))[:400])
+                            summary, check_effects = worker_effects(request, response.get("result"))
+                            break
+                        send("state", state="running")
+                    elif v19_preflight:
                         from .language_conformance_v19 import execute_selection as execute_v19_selection
                         summary, check_effects = execute_v19_selection(evaluate_expression(step["selection"], variables))
                     elif v18_preflight:
@@ -1472,7 +1504,10 @@ def worker_main(
                     else:
                         summary, check_effects = execute_selection(evaluate_expression(step["selection"], variables))
                 except ValueError as exc:
-                    raise ReferenceExampleError("language check did not satisfy its closed oracle") from exc
+                    detail = str(exc).replace("\n", " ").replace("\r", " ")[:256]
+                    raise ReferenceExampleError(
+                        f"language check did not satisfy its closed oracle: {detail}"
+                    ) from exc
                 variables[step["target"]] = summary
                 effects.extend(check_effects)
             elif should_run and step["type"] == "reference_example":

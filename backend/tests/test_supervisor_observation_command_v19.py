@@ -171,6 +171,19 @@ def test_prior_pure_checkpoint_cannot_change_observation_only_guard_before_uncon
         assert row.current_step == 2 and row.variables["gate"] is True
 
 
+def test_prior_pure_checkpoint_cannot_forge_effectful_language_selection():
+    from backend.runtime_composition_v19 import telecommand_dependency_variables
+    source = "selected_index: int = 0\nresult: str = ''\nLog('before selection')\nLanguageCheck(selected_index, profile='0.19', target=result)\n"
+    supervisor, sessions, procedure, execution_id = fixture(source, current_step=2,
+        variables={"ARGS": {}, "selected_index": 0, "result": ""})
+    assert "selected_index" in telecommand_dependency_variables(list(procedure.steps))
+    with pytest.raises(ConflictError, match="dependency checkpoint"):
+        supervisor._commit_step(execution_id, 7, _ordinary_step_commit(procedure, 2,
+            {"ARGS": {}, "selected_index": 1, "result": ""}))
+    with sessions() as session:
+        assert session.get(Execution, execution_id).variables["selected_index"] == 0
+
+
 def test_next_result_recovery_reuses_durable_anchor_deadline_and_exact_snapshot():
     source = SOURCE.replace("scalar_type='int')", "scalar_type='int', mode='NEXT', timeout_seconds=3)")
     runtime = Runtime()

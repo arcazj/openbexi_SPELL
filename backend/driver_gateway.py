@@ -7,6 +7,8 @@ import hashlib
 import inspect
 import json
 import re
+import threading
+import time
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
@@ -97,6 +99,10 @@ _CLIENT_METHODS = {
 
 class DriverGatewayError(RuntimeError):
     """A bounded gateway failure that contains no peer-supplied payload."""
+
+
+class _DssAdmissionRefresh(DriverGatewayError):
+    """Internal pre-dispatch signal: no driver RPC has been invoked."""
 
 
 def _utc_from_milliseconds(value: int) -> datetime:
@@ -190,6 +196,8 @@ class DriverGateway:
         self._operation_lock = asyncio.Lock()
         self._started = False
         self._closing = False
+        self._health_refresh_complete = threading.Event()
+        self._health_refresh_complete.set()
 
     @property
     def connected(self) -> bool:
@@ -251,7 +259,7 @@ class DriverGateway:
             or self._client is None
         ):
             raise DriverGatewayError("driver time query generation differs")
-        return await self._client.get_time(query)
+        return await self._client.get_time(query, dss=True) if self.settings.dss_enabled else await self._client.get_time(query)
 
     async def get_tm(self, query: GetTMQuery) -> GetTMResult:
         generations = self.observation_generations()
@@ -263,9 +271,89 @@ class DriverGateway:
             raise DriverGatewayError("driver telemetry query generation differs")
         return await self._client.get_tm(query)
 
+    def _wait_for_dss_health_refresh(self, timeout_seconds: float) -> None:
+        """Wait only for a health validation already in flight; never reconnect."""
+        loop = getattr(self, "_event_loop", None)
+        if loop is None or not loop.is_running():
+            raise DriverGatewayError("DSS driver event loop is unavailable")
+        try:
+            current_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            current_loop = None
+        if current_loop is loop:
+            raise DriverGatewayError("DSS synchronous RPC must run outside the event loop")
+        refresh = getattr(self, "_health_refresh_complete", None)
+        if refresh is not None and not refresh.is_set() and not refresh.wait(timeout_seconds):
+            raise DriverGatewayError("DSS health validation did not finish before its deadline")
+
+    def _dss_admitted_generations(self) -> dict[str, Any]:
+        # Called on the gateway loop without yielding: health cannot invalidate
+        # this snapshot between admission validation and the client invocation.
+        if not self._health_refresh_complete.is_set():
+            raise _DssAdmissionRefresh("DSS health validation is in progress")
+        if not self.settings.dss_enabled or not self.connected or self._client is None:
+            raise DriverGatewayError("DSS driver is not admitted")
+        return self.observation_generations()
+
+    def _dss_future_result(self, coroutine: Any, remaining: float) -> Any:
+        future = asyncio.run_coroutine_threadsafe(coroutine, self._event_loop)
+        try:
+            return future.result(timeout=remaining)
+        except Exception:
+            future.cancel()
+            raise
+
+    def dss_observation_generations(self, *, timeout_seconds: float = 5.0) -> dict[str, Any]:
+        deadline = time.monotonic() + timeout_seconds
+        async def snapshot() -> dict[str, Any]:
+            return self._dss_admitted_generations()
+        while True:
+            self._wait_for_dss_health_refresh(max(0, deadline - time.monotonic()))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise DriverGatewayError("DSS admission exhausted its request deadline")
+            try:
+                return self._dss_future_result(snapshot(), remaining)
+            except _DssAdmissionRefresh:
+                continue
+
+    def dss_call(self, method: str, request: Any, *, timeout_seconds: float = 5.0,
+                 authorize: Callable[[], bool | None] | None = None) -> Any:
+        """Parent-thread bridge; admission wait never resends an RPC."""
+        deadline = time.monotonic() + timeout_seconds
+        async def dispatch(remaining: float) -> Any:
+            admitted = self._dss_admitted_generations()
+            identity = request.identity
+            generation = GenerationTuple(**{
+                name: getattr(identity, name)
+                for name in ("server_profile_id", "driver_host_generation", "host_profile_digest",
+                             "context_id", "context_generation", "context_binding_digest")
+            })
+            expected = admitted["contexts"] if identity.context_id else (admitted["host"],)
+            if (generation not in expected or identity.credential_epoch != admitted["credential_epoch"]
+                    or identity.deadline_unix_ns <= time.time_ns()
+                    or (method == "CommandStage" and not identity.context_id)):
+                raise DriverGatewayError("DSS request generation or deadline differs")
+            # Only this line sends. A driver/client exception is never retried.
+            return await self._client.dss_call(method, request, timeout_seconds=remaining)
+        while True:
+            self._wait_for_dss_health_refresh(max(0, deadline - time.monotonic()))
+            # The caller may own a thread-specific dispatch lock, so keep its
+            # authorization callback on that same thread, after every wait.
+            if authorize is not None and authorize() is False:
+                raise DriverGatewayError("DSS dispatch authority changed during health validation")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise DriverGatewayError("DSS admission exhausted its request deadline")
+            try:
+                return self._dss_future_result(dispatch(remaining), remaining)
+            except _DssAdmissionRefresh:
+                continue
+
     async def start(self) -> None:
         if self._started:
             raise DriverGatewayError("driver gateway is already started")
+        self._event_loop = asyncio.get_running_loop()
         self._started = True
         self._closing = False
         try:
@@ -529,6 +617,13 @@ class DriverGateway:
         self._handshake = result
 
     async def _health_once(self) -> None:
+        self._health_refresh_complete.clear()
+        try:
+            await self._health_once_admission()
+        finally:
+            self._health_refresh_complete.set()
+
+    async def _health_once_admission(self) -> None:
         if self._client is None or self._handshake is None:
             raise DriverGatewayError("driver handshake is incomplete")
         self._health_admitted_generation = None

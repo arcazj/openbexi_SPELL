@@ -24,6 +24,13 @@ accepted predecessor is v0.18.0. This record does not yet claim release acceptan
   checks to the inherited 128: 148 cases, 112 direct and 36 expected rejections.
   Three observation procedures cover command approval, false decisions and
   timeout. The compact manual workspace and automatic local connection remain.
+- Docker GENERIC DSS, binary CCSDS CMD and Kafka TLM share one satellite state
+  and database. Command loading, release, execution and verification preserve
+  procedure/operation/epoch correlation and durable uncertainty. The separate
+  compact DSS page controls and observes the same satellite.
+- The reference runner uses isolated inner workers with parent-brokered actual
+  DSS services when DSS is configured. Per-case intents and full captures remain
+  durable; an unresolved case cannot silently replay command effects.
 
 Observation procedures require an admitted bundled driver context with current
 samples. The [quick start](../../README.md#quick-start) initializes this through
@@ -31,10 +38,12 @@ the existing durable OpenContext boundary; missing context remains a rejection.
 
 ## Limits
 
-This is a local simulator profile without live command transport or operational
-approval. Values are committed snapshots: prompts and waits do not refresh them,
+This is a local satellite simulator with actual local binary transport and no
+operational approval. Values are committed snapshots: prompts and waits do not refresh them,
 and Send does not automatically revalidate live telemetry. Reread before a new
-freshness-dependent decision. Dynamic service/command operands, data/file/env
+freshness-dependent decision. DSS commands also retain the physical source epoch
+of consumed observations: a scenario reset blocks a command derived from an old
+epoch before binary dispatch. Dynamic service/command operands, data/file/env
 mixtures, general Python, full native observation return objects and modifiers
 remain outside this increment. Full SPELL Language Reference 2.4.4 support is false.
 
@@ -44,7 +53,13 @@ and [coverage contract](../../contracts/v19/language_coverage.json).
 ## Qualification
 
 All mandatory gates must pass on one frozen source before this status changes:
-SQLite/PostgreSQL/Compose regression; frontend, build and 28 desktop/mobile
+SQLite/PostgreSQL/Compose regression; frontend, build and 32 desktop/mobile
 browser journeys; reference generation/conformance; documentation and tooling;
 replay/adapter/pilot soaks; installed-image and supply-chain checks; four matching
 package builds, independent clean-tag validation and public asset verification.
+The additional mandatory DSS gate inventories and executes all procedures,
+embedded cases, adaptations, variants and menu choices against actual CMD/TLM.
+Its version-specific report binds source, six image IDs, engine versions,
+database revision/digest, scenario inputs, expected results, logs and correlated
+raw packet captures. Missing cases, unexpected failures/timeouts, unexplained
+skips or an unavailable DSS block delivery. See the [DSS contract](../../contracts/dss/README.md).

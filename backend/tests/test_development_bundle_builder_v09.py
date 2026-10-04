@@ -453,6 +453,31 @@ def test_worker_orphan_cleanup_tolerates_only_delete_after_enumeration(
     assert response.read_bytes() == b"{}"
 
 
+def test_healthcheck_revalidates_receipt_and_expected_toolchain_after_success(tmp_path: Path, monkeypatch) -> None:
+    from backend import development_bundle_worker as worker_module
+
+    request_directory, response_directories = _directories(tmp_path)
+    response_directory = response_directories["builder-a"]
+    monkeypatch.setenv("SPELL_BUNDLE_BUILDER_WORKER_ID", "builder-a")
+    monkeypatch.setenv("SPELL_BUNDLE_REQUEST_DIR", str(request_directory))
+    monkeypatch.setenv("SPELL_BUNDLE_RESPONSE_DIR", str(response_directory))
+    assert worker_module.healthcheck() == 0
+    marker = response_directory / "ready.json"
+    original = marker.read_bytes()
+    forged = json.loads(original)
+    forged["worker_id"] = "builder-b"
+    atomic_protocol_write(marker, canonical_json_bytes(forged), label="forged readiness", replace=True)
+    assert worker_module.healthcheck() == 1
+    atomic_protocol_write(marker, original, label="restored readiness", replace=True)
+    assert worker_module.healthcheck() == 0
+    expected_digest = json.loads(original)["toolchain_digest"]
+    different_digest = ("0" if expected_digest[0] != "0" else "1") + expected_digest[1:]
+    monkeypatch.setattr(worker_module, "toolchain_digest", lambda: different_digest)
+    assert worker_module.healthcheck() == 1
+    assert marker.read_bytes() == original
+    assert list(request_directory.iterdir()) == []
+
+
 def test_toolchain_descriptor_binds_runtime_lock_dockerfile_and_regular_files(
     tmp_path: Path,
 ) -> None:

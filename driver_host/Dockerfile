@@ -37,6 +37,8 @@ RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements.h
 
 COPY spell /app/spell
 COPY driver_host /app/driver_host
+COPY dss /app/dss
+COPY contracts/dss /app/contracts/dss
 
 USER 10002:10002
 

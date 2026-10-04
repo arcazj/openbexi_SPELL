@@ -10,6 +10,33 @@ import pytest
 from scripts import release_next as release
 
 
+@pytest.mark.parametrize("builder,tamper", [
+    (None, None),
+    ("bundle-builder-a", "mismatch"),
+    ("bundle-builder-b", "mismatch"),
+    ("bundle-builder-a", "missing"),
+    ("bundle-builder-b", "missing"),
+], ids=["exact-mappings", "builder-a-mismatch", "builder-b-mismatch", "builder-a-missing", "builder-b-missing"])
+def test_running_image_bindings_require_both_scanned_builders(monkeypatch, builder, tamper):
+    monkeypatch.setattr(release, "MINOR", 19)
+    images = {name: {"image_id": "sha256:" + f"{index:064x}"}
+              for index, name in enumerate(("backend", "driver", "frontend", "proxy", "dss", "kafka"), start=1)}
+    services = {service: {"image_id": images[image]["image_id"]}
+                for service, image in (("backend", "backend"), ("spell-driver", "driver"),
+                                       ("proxy", "proxy"), ("bundle-builder-a", "backend"),
+                                       ("bundle-builder-b", "backend"), ("dss", "dss"), ("kafka", "kafka"))}
+    services["postgres"] = {"image_id": "sha256:" + "f" * 64}
+    if tamper == "missing":
+        del services[builder]
+    elif tamper == "mismatch":
+        services[builder]["image_id"] = images["driver"]["image_id"]
+    if tamper is None:
+        release.verify_running_image_bindings(services, images)
+    else:
+        with pytest.raises(release.ReleaseError, match=f"running/scanned images differ: {builder}"):
+            release.verify_running_image_bindings(services, images)
+
+
 @pytest.mark.parametrize("minor,scope", [
     (16, "LOCAL_SIMULATOR_LANGUAGE_AND_MANUAL_WORKSPACE"),
     (17, "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE"),
@@ -30,6 +57,8 @@ def test_entry_gate_rejects_changed_authority_and_references(tmp_path, monkeypat
     policy = {"release_tag": entry["release_tag"], "scope": entry["scope"],
               "predecessor_commit": "accepted", "reference_inputs": references,
               "operational_authorization": False, "legacy_system_qualified": False}
+    if minor >= 19:
+        entry["dss_validation_required"] = policy["dss_validation_required"] = True
     prior = json.dumps({"reference_inputs": references}).encode()
     monkeypatch.setattr(gate.subprocess, "check_output", lambda args, **kwargs:
                         "accepted\n" if args[1] == "rev-parse" else prior)

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "spell.dss.procedure-scenarios/1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release", "inventory", "inventory_sha256", "scenarios"],
+  "properties": {
+    "schema_version": {"const": "spell.dss.procedure-scenarios/1"},
+    "release": {"type": "string", "pattern": "^v0\\.[1-9][0-9]*\\.0$"},
+    "inventory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "inventory": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "required": ["id", "kind", "definition_sha256"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["PROCEDURE", "LANGUAGE_CASE", "REFERENCE_ADAPTATION", "REFERENCE_VARIANT", "MENU_SELECTION"]},
+          "definition_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false,
+        "required": ["id", "subject", "inputs", "operator_actions", "expected", "definition_sha256"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "inputs": {"type": "object"},
+          "operator_actions": {"type": "array", "items": {"type": "object"}},
+          "expected": {"type": "object"},
+          "definition_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

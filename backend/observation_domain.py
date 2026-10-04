@@ -212,6 +212,10 @@ class DriverTimeObservation:
     uncertainty_ns: int
     quality: Quality
     validity: Validity
+    source_epoch: str = ""
+    source_sequence: int = 0
+    source_packet_sha256: str = ""
+    database_digest: str = ""
 
     def __post_init__(self) -> None:
         _identifier(self.observation_id, "observation_id")
@@ -225,6 +229,17 @@ class DriverTimeObservation:
         _uint64(self.uncertainty_ns, "uncertainty_ns")
         if type(self.quality) is not Quality or type(self.validity) is not Validity:
             raise ValueError("quality and validity must be typed")
+        if type(self.source_epoch) is not str:
+            raise ValueError("clock source epoch must be a string")
+        if self.source_epoch:
+            _identifier(self.source_epoch, "source_epoch")
+            _uint64(self.source_sequence, "source_sequence")
+            if self.source_sequence < 1:
+                raise ValueError("clock source sequence must be positive")
+            _digest(self.source_packet_sha256, "source_packet_sha256")
+            _digest(self.database_digest, "database_digest")
+        elif type(self.source_sequence) is not int or self.source_sequence != 0 or self.source_packet_sha256 or self.database_digest:
+            raise ValueError("clock packet binding requires its source epoch")
 
 
 @dataclass(frozen=True)

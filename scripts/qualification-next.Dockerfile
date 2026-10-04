@@ -7,8 +7,9 @@ COPY backend/requirements.hashes.lock /tmp/backend.lock
 COPY driver_host/pki-requirements.hashes.lock /tmp/pki.lock
 COPY contracts/generator-requirements.hashes.lock /tmp/generator.lock
 COPY scripts/supply-chain-requirements.hashes.lock /tmp/supply.lock
+COPY dss/requirements.hashes.lock /tmp/dss.lock
 RUN python -m pip install --require-hashes -r /tmp/backend.lock -r /tmp/pki.lock \
-    -r /tmp/generator.lock -r /tmp/supply.lock \
+    -r /tmp/generator.lock -r /tmp/supply.lock -r /tmp/dss.lock \
     && rm /tmp/*.lock
 WORKDIR /workspace
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker

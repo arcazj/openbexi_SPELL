@@ -1,0 +1,600 @@
+{
+  "command_sequences": [
+    {
+      "members": [
+        {
+          "args": {},
+          "command": "CMD1",
+          "modifiers": {}
+        },
+        {
+          "args": {},
+          "command": "CMD2",
+          "modifiers": {}
+        },
+        {
+          "args": {},
+          "command": "CMD3",
+          "modifiers": {}
+        }
+      ],
+      "name": "SEQNAME"
+    },
+    {
+      "members": [
+        {
+          "args": {},
+          "command": "CMD1",
+          "modifiers": {}
+        },
+        {
+          "args": {},
+          "command": "CMD1",
+          "modifiers": {}
+        },
+        {
+          "args": {},
+          "command": "CMD2",
+          "modifiers": {}
+        }
+      ],
+      "name": "SEQ.DUPLICATE"
+    }
+  ],
+  "commands": [
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "name": "ARG1",
+          "required": false,
+          "value_type": "FLOAT"
+        },
+        {
+          "allowed_formats": [
+            "ENG",
+            "RAW"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 65535,
+          "minimum": 0,
+          "name": "ARG2",
+          "required": false,
+          "value_type": "LONG"
+        }
+      ],
+      "command_code": 1,
+      "critical": false,
+      "effect": "SETPOINT",
+      "name": "CMDNAME"
+    },
+    {
+      "arguments": [],
+      "command_code": 2,
+      "critical": false,
+      "effect": "PAYLOAD_ON",
+      "name": "CMD1"
+    },
+    {
+      "arguments": [],
+      "command_code": 3,
+      "critical": false,
+      "effect": "PAYLOAD_OFF",
+      "name": "CMD2"
+    },
+    {
+      "arguments": [],
+      "command_code": 4,
+      "critical": false,
+      "effect": "HEATER_TOGGLE",
+      "name": "CMD3"
+    },
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "name": "ARG1",
+          "required": true,
+          "value_type": "FLOAT"
+        },
+        {
+          "allowed_formats": [
+            "ENG",
+            "RAW"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 65535,
+          "minimum": 0,
+          "name": "ARG2",
+          "required": true,
+          "value_type": "LONG"
+        }
+      ],
+      "command_code": 5,
+      "critical": false,
+      "effect": "SETPOINT",
+      "name": "TCNAME"
+    },
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [],
+          "default": false,
+          "has_default": true,
+          "maximum": null,
+          "minimum": null,
+          "name": "FORCE",
+          "required": false,
+          "value_type": "BOOLEAN"
+        }
+      ],
+      "command_code": 6,
+      "critical": true,
+      "effect": "RESET_SUBSYSTEMS",
+      "name": "TC.SIMULATOR.RESET"
+    },
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [
+            "SAFE",
+            "NOMINAL"
+          ],
+          "default": null,
+          "has_default": false,
+          "maximum": null,
+          "minimum": null,
+          "name": "MODE",
+          "required": true,
+          "value_type": "STRING"
+        }
+      ],
+      "command_code": 7,
+      "critical": false,
+      "effect": "SET_MODE",
+      "name": "TC.SIMULATOR.SET_MODE"
+    },
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "name": "ARG1",
+          "required": false,
+          "value_type": "FLOAT"
+        },
+        {
+          "allowed_formats": [
+            "ENG",
+            "RAW"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 65535,
+          "minimum": 0,
+          "name": "ARG2",
+          "required": false,
+          "value_type": "LONG"
+        }
+      ],
+      "command_code": 8,
+      "critical": false,
+      "effect": "SETPOINT",
+      "name": "DSS.REFERENCE.SEND",
+      "role": "REFERENCE_ADAPTATION"
+    },
+    {
+      "arguments": [
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [
+            "TMparam"
+          ],
+          "default": null,
+          "has_default": false,
+          "maximum": null,
+          "minimum": null,
+          "name": "PARAMETER",
+          "required": true,
+          "value_type": "STRING"
+        },
+        {
+          "allowed_formats": [
+            "ENG"
+          ],
+          "allowed_values": [],
+          "default": null,
+          "has_default": false,
+          "maximum": 1000000.0,
+          "minimum": -1000000.0,
+          "name": "VALUE",
+          "required": true,
+          "value_type": "FLOAT"
+        }
+      ],
+      "command_code": 9,
+      "critical": false,
+      "effect": "SET_GROUND",
+      "name": "DSS.REFERENCE.SET_GROUND",
+      "role": "REFERENCE_ADAPTATION"
+    }
+  ],
+  "dynamics": {
+    "base_load_mw": 20000,
+    "battery_capacity_mwh": 100000,
+    "engine": "openbexi-fixed-tick-bus-payload",
+    "environment_temperature_mc": 20000,
+    "heater_heating_mc_per_tick": 10,
+    "heater_load_mw": 10000,
+    "initial_battery_mwh": 80000,
+    "payload_bytes_per_tick": 128,
+    "payload_load_mw": 30000,
+    "powered_heating_mc_per_tick": 5,
+    "regulated_bus_voltage_mv": 28000,
+    "solar_generation_mw": 45000,
+    "thermal_relaxation_divisor": 1000,
+    "tick_ns": 100000000,
+    "version": "0.1.0"
+  },
+  "initial_state": {
+    "bus": {
+      "battery_mwh": 80000,
+      "bus_voltage_mv": 28000,
+      "energy_remainder_mw_ticks": 0,
+      "generated_mw": 45000,
+      "heater": false,
+      "load_mw": 20000,
+      "nominal_bus_voltage_mv": 28000,
+      "safe_mode": false,
+      "thermal_mode": "OFF"
+    },
+    "core": {
+      "commands_executed": 0,
+      "last_command_arguments": [],
+      "last_command_name": "",
+      "last_operation_id": "",
+      "loaded_commands_count": 0,
+      "mode": "NOMINAL",
+      "sim_time_ns": 0,
+      "tick": 0
+    },
+    "payload": {
+      "enabled": false,
+      "generated_data_bytes": 0,
+      "setpoint_milli": 0,
+      "temperature_mc": 20000
+    },
+    "reference": {
+      "ground_parameter_milli": 28000,
+      "secondary_milli": 9000,
+      "verification_milli": 10000,
+      "zero": 0
+    }
+  },
+  "legacy_tc_catalog_sha256": "f60b574d18d4c3aa23c8c986b6ea3242e4e83fd41bc611f4ff6a37a15eb6e64c",
+  "legacy_tm_catalog_digest": "5cc5323c10c18e3b5e4d0b9eec0a12f0e896274821e488f85160dc6fde718d94",
+  "packet_apids": {
+    "ack": 102,
+    "tc": 100,
+    "tm": 101
+  },
+  "reference_mapping": {
+    "actual_send_command": "DSS.REFERENCE.SEND",
+    "full_language_support": false,
+    "ground_parameter_command": "DSS.REFERENCE.SET_GROUND",
+    "legacy_send_item": "TC.SIMULATOR.RESET",
+    "reason": "Legacy bounded reference Send arguments ARG1/ARG2 are not the FORCE-only native RESET signature.",
+    "schema_version": "openbexi.dss.reference-mapping/1",
+    "thermal_mode_initial_state": "NOMINAL"
+  },
+  "revision": "GENERIC-r1",
+  "satellite_id": "GENERIC",
+  "schema_version": "openbexi.dss.satellite-database/1",
+  "simulator_only": true,
+  "telemetry": [
+    {
+      "description": "Synthetic DC bus voltage",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 1,
+      "item_id": "TM.POWER.BUS_VOLTAGE",
+      "logical_catalog_digest": "5cc5323c10c18e3b5e4d0b9eec0a12f0e896274821e488f85160dc6fde718d94",
+      "qualified_name": "SIM.POWER.BUS_VOLTAGE",
+      "raw_type": "UINT64",
+      "state_path": "bus.bus_voltage_mv",
+      "unit": "V"
+    },
+    {
+      "description": "Synthetic safe-mode flag",
+      "engineering_scale": 1,
+      "engineering_type": "BOOLEAN",
+      "item_code": 2,
+      "item_id": "TM.POWER.SAFE_MODE",
+      "logical_catalog_digest": "5cc5323c10c18e3b5e4d0b9eec0a12f0e896274821e488f85160dc6fde718d94",
+      "qualified_name": "SIM.POWER.SAFE_MODE",
+      "raw_type": "BOOLEAN",
+      "state_path": "bus.safe_mode",
+      "unit": ""
+    },
+    {
+      "description": "Synthetic thermal control mode",
+      "engineering_scale": 1,
+      "engineering_type": "STRING",
+      "item_code": 3,
+      "item_id": "TM.THERMAL.MODE",
+      "logical_catalog_digest": "5cc5323c10c18e3b5e4d0b9eec0a12f0e896274821e488f85160dc6fde718d94",
+      "qualified_name": "SIM.THERMAL.MODE",
+      "raw_type": "STRING",
+      "state_path": "bus.thermal_mode",
+      "unit": ""
+    },
+    {
+      "description": "Executed GENERIC command count",
+      "engineering_scale": 1,
+      "engineering_type": "UINT64",
+      "item_code": 4,
+      "item_id": "TM.CORE.COMMAND_COUNT",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.CORE.COMMAND_COUNT",
+      "raw_type": "UINT64",
+      "state_path": "core.commands_executed",
+      "unit": ""
+    },
+    {
+      "description": "Last executed command",
+      "engineering_scale": 1,
+      "engineering_type": "STRING",
+      "item_code": 5,
+      "item_id": "TM.CORE.LAST_COMMAND",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.CORE.LAST_COMMAND",
+      "raw_type": "STRING",
+      "state_path": "core.last_command_name",
+      "unit": ""
+    },
+    {
+      "description": "Deterministic dynamics tick",
+      "engineering_scale": 1,
+      "engineering_type": "UINT64",
+      "item_code": 6,
+      "item_id": "TM.CORE.TICK",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.CORE.TICK",
+      "raw_type": "UINT64",
+      "state_path": "core.tick",
+      "unit": ""
+    },
+    {
+      "description": "GENERIC operating mode",
+      "engineering_scale": 1,
+      "engineering_type": "STRING",
+      "item_code": 7,
+      "item_id": "TM.CORE.MODE",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.CORE.MODE",
+      "raw_type": "STRING",
+      "state_path": "core.mode",
+      "unit": ""
+    },
+    {
+      "description": "Stored battery energy",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 8,
+      "item_id": "TM.POWER.BATTERY_ENERGY",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.POWER.BATTERY_ENERGY",
+      "raw_type": "UINT64",
+      "state_path": "bus.battery_mwh",
+      "unit": "Wh"
+    },
+    {
+      "description": "Total bus load power",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 9,
+      "item_id": "TM.POWER.LOAD",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.POWER.LOAD",
+      "raw_type": "UINT64",
+      "state_path": "bus.load_mw",
+      "unit": "W"
+    },
+    {
+      "description": "Solar generated power",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 10,
+      "item_id": "TM.POWER.GENERATION",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.POWER.GENERATION",
+      "raw_type": "UINT64",
+      "state_path": "bus.generated_mw",
+      "unit": "W"
+    },
+    {
+      "description": "Heater enable state",
+      "engineering_scale": 1,
+      "engineering_type": "BOOLEAN",
+      "item_code": 11,
+      "item_id": "TM.POWER.HEATER",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.POWER.HEATER",
+      "raw_type": "BOOLEAN",
+      "state_path": "bus.heater",
+      "unit": ""
+    },
+    {
+      "description": "Payload enable state",
+      "engineering_scale": 1,
+      "engineering_type": "BOOLEAN",
+      "item_code": 12,
+      "item_id": "TM.PAYLOAD.ENABLED",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.PAYLOAD.ENABLED",
+      "raw_type": "BOOLEAN",
+      "state_path": "payload.enabled",
+      "unit": ""
+    },
+    {
+      "description": "Payload command setpoint",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 13,
+      "item_id": "TM.PAYLOAD.SETPOINT",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.PAYLOAD.SETPOINT",
+      "raw_type": "INT64",
+      "state_path": "payload.setpoint_milli",
+      "unit": ""
+    },
+    {
+      "description": "Payload temperature",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 14,
+      "item_id": "TM.PAYLOAD.TEMPERATURE",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.PAYLOAD.TEMPERATURE",
+      "raw_type": "INT64",
+      "state_path": "payload.temperature_mc",
+      "unit": "degC"
+    },
+    {
+      "description": "Generated payload data",
+      "engineering_scale": 1,
+      "engineering_type": "UINT64",
+      "item_code": 15,
+      "item_id": "TM.PAYLOAD.DATA_COUNT",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.PAYLOAD.DATA_COUNT",
+      "raw_type": "UINT64",
+      "state_path": "payload.generated_data_bytes",
+      "unit": "byte"
+    },
+    {
+      "description": "Declared bounded reference adaptation channel TMparam",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 16,
+      "item_id": "TMparam",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.TMparam",
+      "raw_type": "INT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "reference.ground_parameter_milli",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel TMparam1",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 17,
+      "item_id": "TMparam1",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.TMparam1",
+      "raw_type": "UINT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "bus.bus_voltage_mv",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel TMparam2",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 18,
+      "item_id": "TMparam2",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.TMparam2",
+      "raw_type": "UINT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "bus.bus_voltage_mv",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel TMparam3",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 19,
+      "item_id": "TMparam3",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.TMparam3",
+      "raw_type": "INT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "reference.secondary_milli",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel tm1",
+      "engineering_scale": 1,
+      "engineering_type": "INT64",
+      "item_code": 20,
+      "item_id": "tm1",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.tm1",
+      "raw_type": "INT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "reference.zero",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel tm2",
+      "engineering_scale": 1,
+      "engineering_type": "INT64",
+      "item_code": 21,
+      "item_id": "tm2",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.tm2",
+      "raw_type": "INT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "reference.zero",
+      "unit": ""
+    },
+    {
+      "description": "Declared bounded reference adaptation channel TM1",
+      "engineering_scale": 0.001,
+      "engineering_type": "FINITE_DOUBLE",
+      "item_code": 22,
+      "item_id": "TM1",
+      "logical_catalog_digest": "DATABASE",
+      "qualified_name": "GENERIC.REFERENCE.TM1",
+      "raw_type": "INT64",
+      "role": "REFERENCE_ADAPTATION",
+      "state_path": "reference.verification_milli",
+      "unit": ""
+    }
+  ]
+}

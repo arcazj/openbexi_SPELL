@@ -1,5 +1,17 @@
 # Verification And Validation Strategy
 
+## Mandatory DSS Delivery Validation
+
+Before v0.19 or any later delivery, inventory and execute every procedure,
+embedded/reference case and applicable regression against Docker GENERIC DSS
+using actual binary CMD/TLM. Declare inputs, responses, initial state, expected
+outcomes and time bounds; reset independent scenarios. Match expected negative
+outcomes exactly. Missing cases, failures, unexpected timeouts, unexplained skips
+and unavailable environments block delivery. Reports bind exact source, simulator
+and engine versions, database digest, six image identities, per-case logs and
+correlated raw packets. The [DSS contract](../../contracts/dss/README.md) owns
+reproduction commands and evidence format; bounded adaptations remain explicit.
+
 ## Accepted v0.18 Application
 
 Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.

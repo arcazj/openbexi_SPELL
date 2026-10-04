@@ -8,6 +8,13 @@ Full canonical qualification, immutable release binding and publication are
 pending; v0.18.0 remains the accepted predecessor. Current limits and behavior
 are in the [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
 
+The owner added a mandatory Docker GENERIC DSS gate before every new delivery.
+All procedures, embedded cases, reference variants and menu choices must execute
+through actual binary CMD and Kafka TLM with declared scenarios and expected
+outcomes. The [DSS contract](contracts/dss/README.md) describes strict inventory,
+packet correlation and version-specific reports. Earlier pre-DSS candidate or
+regression results do not satisfy this new gate.
+
 ## v0.18.0 Qualification
 
 Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.

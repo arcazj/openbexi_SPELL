@@ -4,7 +4,7 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-**v0.19.0 implementation is in qualification** for bounded observation-to-command workflows. The [v0.19 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md) describes the new behavior and limits. v0.18.0 remains the accepted predecessor until all release gates pass.
+**v0.19.0 implementation is in qualification** for bounded observation-to-command workflows and the Docker GENERIC DSS. The [v0.19 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md) describes the new behavior and limits. v0.18.0 remains the accepted predecessor until all release gates pass.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -32,8 +32,9 @@ SPELL_DRIVER_ENABLED=true
 Start the stack and check health:
 
 ```powershell
-docker compose --profile driver up --build -d --wait
-docker compose --profile driver exec -T backend python /app/scripts/seed_observation_v07.py `
+docker compose up --build -d --wait
+docker compose exec -T dss python -m dss.control RESUME
+docker compose exec -T backend python /app/scripts/seed_dss_v19.py `
   --confirm LOCAL_SYNTHETIC_NON_CUI_ONLY --context-id simulator
 Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
 ```
@@ -43,15 +44,21 @@ as a simulator operator automatically; no Session access screen or pasted token
 is needed. Health reports `0.19.0`, `simulator-only` and
 `operational_use: false`. Keep `.env` private and untracked.
 
-The initialization command opens the real bundled simulator observation context
+DSS starts paused. The RESUME command starts its fixed-tick dynamics; you can also
+resume from the DSS page. The initialization command opens the real bundled simulator observation context
 and waits for committed GOOD/FRESH telemetry. It injects no test samples. Local
-session connection alone does not initialize a driver context. This command is
-for a fresh local simulator setup; it refuses a context bound to an older host
-generation. Use the driver lifecycle/recovery workflow for generation changes.
+session connection alone does not initialize a driver context. The DSS initializer
+retires only its own previously admitted context
+on a durably failed/closed host and opens a new host-bound generation through the
+audited lifecycle. Other stale bindings require explicit lifecycle recovery.
 
 The [development workspace](http://127.0.0.1:8080/development.html) provides
 project editing, checks, history, immutable bundles and simulator promotion.
 The [console guide](frontend/README.md) covers the current interface and roles.
+The separate [DSS page](http://127.0.0.1:8080/dss/) shows bus, payload and core
+state, decoded telemetry and confirmed satellite commands. Pause before stepping
+or reviewing a command. Its [contract](contracts/dss/README.md) explains the
+database, binary packet paths and deterministic scenarios.
 
 Stop the stack while retaining its database volumes:
 
@@ -75,6 +82,17 @@ disabled. Administrator permissions are never granted automatically.
 
 ## Language Reference Runner
 
+The runner resets shared satellite state. Stop other procedures, set
+`DSS_TEST_CONTROL_ENABLED=true` in `.env`, then recreate DSS for isolated testing:
+
+```powershell
+docker compose up -d --no-deps --force-recreate dss
+```
+
+Cases finish paused and retain their declared faults. Finish by running example
+1 to initialize a normal scenario, then restore the flag to `false`, recreate
+DSS, and RESUME before running ordinary observation procedures.
+
 Find **Language Reference 244** (`language_reference_244`) in the catalog and start
 [language_reference_244.spell.py](procedures/language_reference_244.spell.py).
 Its choices include 195 adapted examples, 112 direct source checks, 36 expected
@@ -93,7 +111,7 @@ See the [v0.19 scope](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.
 and [language coverage](contracts/v19/language_coverage.json) for exact bounds.
 
 The [procedure guide](procedures/README.md) lists the reference runner, prompt
-walkthrough and seven testing procedures with inputs and expected outcomes.
+walkthrough and eight testing procedures with inputs and expected outcomes.
 
 ## Architecture
 
@@ -102,12 +120,13 @@ Browser -> loopback proxy -> FastAPI control plane -> PostgreSQL
                                   |        |
                                   |        +-> isolated procedure workers
                                   +----------> networkless bundle builders
-Optional driver profile: internal mTLS -> synthetic driver host
+SPELL CMD -> internal mTLS driver -> binary CCSDS TC :3080 -> GENERIC DSS
+SPELL TLM <- internal mTLS driver <- binary CCSDS TM Kafka <- GENERIC DSS
 ```
 
-Only the proxy publishes a loopback port. Backend, database and driver services
-stay on internal networks; bundle builders have no network access. There is
-no browser-to-driver command path.
+The proxy publishes loopback 8080 and DSS publishes loopback TC 3080. Backend,
+PostgreSQL, Kafka and drivers use internal networks; bundle builders have no
+network access. The default Compose stack includes DSS and both real drivers.
 
 ## Development
 
@@ -134,8 +153,11 @@ are `scripts.release_next`. The active
 [release policy](contracts/v19/release_policy.json) freezes exact test identities
 and references. Required gates include SQLite/PostgreSQL/Compose regression,
 frontend/build/browser checks, language results, documentation rendering,
-soaks, image checks, four SBOMs, vulnerability review and four identical package
+soaks, image checks, six SBOMs, vulnerability review and four identical package
 builds from two independent source exports.
+Every procedure and embedded/reference case must also pass against the same
+DSS through the actual binary CMD/TLM paths. Missing cases, unexplained skips,
+unexpected failures/timeouts or an unavailable simulator block delivery.
 
 After acceptance, validate a clean checkout of the annotated `v0.19.0` tag:
 
@@ -159,7 +181,7 @@ exact tagged tree, and use each historical release's own policy and evidence.
 | Broader Draft design | [Generated specification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/README.md) |
 | Control plane, runtime, migrations | `backend/`, `spell/` |
 | Web interface and browser tests | `frontend/`, `proxy/` |
-| Synthetic driver service | `driver_host/` |
+| Binary CMD/TLM drivers and shared GENERIC satellite | `driver_host/`, `dss/`, [DSS contract](contracts/dss/README.md) |
 | Procedures, contracts and release tools | `procedures/`, `contracts/`, `scripts/` |
 | Immutable qualification artifacts | `artifacts/` |
 | Original read-only manuals | `SPELL_DOCUMENTATION/` |

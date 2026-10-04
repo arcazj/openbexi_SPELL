@@ -10,9 +10,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable
 
-from sqlalchemy import func, select
+from sqlalchemy import func, literal_column, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, load_only, sessionmaker
 
 from .bundled_observation_catalog import (
     CATALOG_DIGEST as BUNDLED_CATALOG_DIGEST,
@@ -24,6 +24,7 @@ from .driver_models import (
     DriverProfile,
 )
 from .models import new_id
+from .observation_diagnostics import RepositoryTimings
 from .observation_domain import (
     DriverTelemetrySample as DomainTelemetrySample,
     DriverTimeObservation as DomainTimeObservation,
@@ -57,6 +58,7 @@ DEFAULT_POLICY_DEFINITION_ID = "simulator-default:v07-r1"
 MAX_OBSERVATION_REPLAY = 10_001
 MAX_OBSERVATION_SEQUENCE = 9_223_372_036_854_775_807
 MAX_SNAPSHOT_ITEMS = 128
+MAX_NOTIFICATION_ACKNOWLEDGEMENTS = 16
 BUNDLED_OBSERVATION_ITEM_IDS = frozenset(item.item_id for item in BUNDLED_CATALOG_ITEMS)
 BUNDLED_OBSERVATION_SOURCE_ID = "bundled-deterministic-simulator"
 BUNDLED_OBSERVATION_WIRE_SOURCE = "SIMULATOR"
@@ -147,6 +149,7 @@ class ObservationRepository:
         clock_ns: Callable[[], int] = time.time_ns,
         authorization_scope: str = DEFAULT_AUTHORIZATION_SCOPE,
         visible_item_ids: frozenset[str] = BUNDLED_OBSERVATION_ITEM_IDS,
+        dss_enabled: bool = False,
     ):
         self.session_factory = session_factory
         self._clock_ns = clock_ns
@@ -160,7 +163,11 @@ class ObservationRepository:
         ):
             raise ObservationValidationError("visible_item_ids must be a bounded frozen set")
         self.visible_item_ids = visible_item_ids
+        if type(dss_enabled) is not bool:
+            raise ObservationValidationError("DSS profile selection must be boolean")
+        self.dss_enabled = dss_enabled
         self._lock = threading.RLock()
+        self._timings = RepositoryTimings()
 
     def record_time(
         self,
@@ -175,6 +182,8 @@ class ObservationRepository:
             "SIMULATOR_GCS_TIME": "simulator-emulated-gcs-clock",
             "HOST_FALLBACK": "explicit-host-clock-fallback",
         }.get(observation.clock_source.value)
+        if self.dss_enabled and observation.clock_source.value == "SIMULATOR":
+            expected_provenance = "dss-dynamics-clock"
         if observation.provenance != expected_provenance:
             raise ObservationConflictError(
                 "driver time provenance differs from the bundled observation contract"
@@ -188,7 +197,7 @@ class ObservationRepository:
         payload = self._time_payload(observation)
         payload_digest = _canonical_digest(payload)
 
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("clock", self._lock, self.session_factory) as session:
             try:
                 host = self._require_host(session, observation.generations, lock=True)
                 context = None
@@ -210,13 +219,24 @@ class ObservationRepository:
                         )
                     stream = self._stream(session, context.id, create=True, lock=True)
 
+                if self.dss_enabled:
+                    from dss.catalog import DATABASE_DIGEST
+                    if (context is None or stream is None or not observation.source_epoch
+                        or _SOURCE_EPOCH.fullmatch(observation.source_epoch) is None
+                        or observation.database_digest != DATABASE_DIGEST):
+                        raise ObservationConflictError("DSS time requires a packet-bound context epoch")
+                    if self._dss_epoch(session, stream.id) != observation.source_epoch:
+                        raise ObservationStaleGenerationError("DSS time source epoch is not the admitted telemetry epoch")
+                elif observation.source_epoch:
+                    raise ObservationConflictError("legacy time cannot carry a DSS packet binding")
+
                 existing = session.get(DriverTimeObservation, observation.observation_id)
                 if existing is not None:
                     if existing.payload_digest != payload_digest:
                         raise ObservationConflictError(
                             "time observation identity was reused with different content"
                         )
-                    return self._time_dict(existing, context)
+                    return self._time_dict(existing, context, self._clock_binding(observation))
 
                 head = session.get(DriverTimeHead, host.id, with_for_update=True)
                 if head is not None:
@@ -266,11 +286,12 @@ class ObservationRepository:
                         event_type="driver.time_observed",
                         aggregate_type="driver_time",
                         aggregate_id=row.id,
-                        data=self._time_dict(row, context),
+                        data=self._time_dict(row, context, self._clock_binding(observation)),
                         created_at=received_at,
+                        event_id=self._dss_clock_event_id(row.id) if self.dss_enabled else None,
                     )
                 session.commit()
-                return self._time_dict(row, context)
+                return self._time_dict(row, context, self._clock_binding(observation))
             except IntegrityError as exc:
                 session.rollback()
                 raise ObservationConflictError(
@@ -286,21 +307,27 @@ class ObservationRepository:
         *,
         mode: GetTMMode,
         resynchronized: bool = False,
-    ) -> dict[str, Any]:
+        include_projection: bool = True,
+    ) -> dict[str, Any] | None:
         if type(sample) is not DomainTelemetrySample:
             raise ObservationValidationError("sample must be a DriverTelemetrySample")
         if type(mode) is not GetTMMode:
             raise ObservationValidationError("mode must be a GetTMMode")
         if type(resynchronized) is not bool:
             raise ObservationValidationError("resynchronized must be boolean")
-        self._validate_bundled_sample(sample)
+        if type(include_projection) is not bool:
+            raise ObservationValidationError("include_projection must be boolean")
+        if self.dss_enabled:
+            self._validate_dss_sample(sample)
+        else:
+            self._validate_bundled_sample(sample)
         received_ns = self._receive_time_ns()
         received_at = _database_time(received_ns)
         payload = self._sample_payload(sample)
         payload_digest = _canonical_digest(payload)
         identity = sample.sample_identity
 
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("ingest", self._lock, self.session_factory) as session:
             try:
                 _host, context = self._require_context(
                     session, sample.generations, lock=True
@@ -314,6 +341,9 @@ class ObservationRepository:
                     raise ObservationConflictError(
                         "the pinned freshness policy is unavailable"
                     )
+
+                if self.dss_enabled:
+                    self._fence_dss_epoch(session, context.id, stream, identity.source_epoch, received_at)
 
                 existing = session.get(TelemetrySample, identity.sample_id)
                 if existing is not None:
@@ -393,7 +423,7 @@ class ObservationRepository:
                                 evaluated_at=self._database_now(session),
                             )
                             session.commit()
-                    return self._sample_projection(session, existing)
+                    return self._sample_projection(session, existing) if include_projection else None
                 reused_observation = session.scalar(
                     select(TelemetrySample).where(
                         TelemetrySample.observation_id == sample.observation_id
@@ -594,7 +624,10 @@ class ObservationRepository:
                     session, stream, row, head, evaluated_at=self._database_now(session)
                 )
                 session.commit()
-                return self._sample_projection(session, row)
+                # The DSS collector consumes only completion, not the returned
+                # read model. Avoid opening a second transaction for unused
+                # head/alarm reads; admission and durable writes are identical.
+                return self._sample_projection(session, row) if include_projection else None
             except IntegrityError as exc:
                 session.rollback()
                 raise ObservationConflictError(
@@ -603,6 +636,76 @@ class ObservationRepository:
             except Exception:
                 session.rollback()
                 raise
+
+    @staticmethod
+    def _dss_epoch_query(stream_id: str, stream_epoch: str):
+        # Closed literals make the matching partial index usable even when
+        # PostgreSQL chooses a generic prepared plan. No caller text enters SQL.
+        return select(ObservationOutboxEvent).where(
+            ObservationOutboxEvent.stream_id == stream_id,
+            ObservationOutboxEvent.stream_epoch == stream_epoch,
+            ObservationOutboxEvent.event_type == literal_column("'telemetry.source_epoch_changed'"),
+            ObservationOutboxEvent.aggregate_id == literal_column("'dss-GENERIC'")
+        ).order_by(ObservationOutboxEvent.projection_sequence.desc()).limit(1)
+
+    @staticmethod
+    def _dss_epoch(session: Session, stream_id: str) -> str | None:
+        stream = session.get(ObservationStream, stream_id)
+        if stream is None:
+            return None
+        latest = session.scalar(ObservationRepository._dss_epoch_query(stream_id, stream.stream_epoch))
+        return latest.payload["data"]["source_epoch"] if latest is not None else None
+
+    def _fence_dss_epoch(self, session: Session, context_id: str, stream: ObservationStream,
+        epoch: str, received_at: datetime) -> None:
+        """One admitted satellite epoch across all DSS item heads in a context."""
+        prior_epoch = self._dss_epoch(session, stream.id)
+        if prior_epoch == epoch:
+            return
+        old_epoch_seen = session.scalar(select(TelemetrySample.id).where(
+            TelemetrySample.context_generation_id == context_id,
+            TelemetrySample.source_id == "dss-GENERIC", TelemetrySample.source_epoch == epoch).limit(1))
+        if old_epoch_seen is not None:
+            raise ObservationConflictError("retired DSS satellite epoch cannot replace current telemetry")
+        context = session.get(DriverContextGeneration, context_id)
+        assert context is not None
+        time_head = session.get(DriverTimeHead, context.host_generation_id, with_for_update=True)
+        if time_head is not None:
+            retired_id = time_head.observation_id
+            session.delete(time_head)
+            self._emit(session, stream, event_type="driver.time_epoch_retired", aggregate_type="driver_time",
+                aggregate_id=retired_id, data={"observation_id": retired_id,
+                    "previous_source_epoch": prior_epoch, "source_epoch": epoch}, created_at=received_at)
+        for head in session.scalars(select(TelemetryItemHead).where(
+            TelemetryItemHead.context_generation_id == context_id,
+            TelemetryItemHead.source_id == "dss-GENERIC", TelemetryItemHead.source_epoch != epoch).with_for_update()):
+            head.freshness = "STALE"
+            head.synchronization_state = "GAPPED"
+            head.revision += 1
+            head.updated_at = received_at
+        for cursor in session.scalars(select(TelemetrySourceCursor).where(
+            TelemetrySourceCursor.context_generation_id == context_id,
+            TelemetrySourceCursor.source_id == "dss-GENERIC", TelemetrySourceCursor.source_epoch != epoch).with_for_update()):
+            cursor.synchronization_state = "GAPPED"
+            cursor.revision += 1
+            cursor.updated_at = received_at
+        self._emit(session, stream, event_type="telemetry.source_epoch_changed", aggregate_type="telemetry_source",
+            aggregate_id="dss-GENERIC", data={"source_id": "dss-GENERIC", "source_epoch": epoch, "previous_source_epoch": prior_epoch}, created_at=received_at)
+
+    @staticmethod
+    def _validate_dss_sample(sample: DomainTelemetrySample) -> None:
+        from dss.catalog import TELEMETRY_ITEMS
+        definition = next((item for item in TELEMETRY_ITEMS if item["item_id"] == sample.item_identity.item_id), None)
+        if (definition is None
+            or sample.item_identity.qualified_name != definition["qualified_name"]
+            or sample.item_identity.catalog_digest != definition["catalog_digest"]
+            or sample.raw_value.kind.value != definition["raw_type"]
+            or sample.engineering_value.kind.value != definition["engineering_type"]
+            or sample.unit != definition["unit"] or sample.description != definition["description"]
+            or sample.sample_identity.source_id != "dss-GENERIC"
+            or sample.source != "SIMULATOR" or sample.clock_provenance != "dss-dynamics-clock"
+            or _SOURCE_EPOCH.fullmatch(sample.sample_identity.source_epoch) is None):
+            raise ObservationConflictError("DSS sample differs from the shared immutable satellite database")
 
     @staticmethod
     def _validate_bundled_sample(sample: DomainTelemetrySample) -> None:
@@ -640,7 +743,7 @@ class ObservationRepository:
             raise ObservationValidationError("bounds must be GapBounds")
         received_ns = self._receive_time_ns()
         received_at = _database_time(received_ns)
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("gap", self._lock, self.session_factory) as session:
             try:
                 _host, context = self._require_context(session, generations, lock=True)
                 stream = self._stream(session, context.id, create=True, lock=True)
@@ -732,9 +835,25 @@ class ObservationRepository:
             raise ObservationValidationError("now_unix_ns must be an integer")
         now = _database_time(now_ns)
         changed = 0
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("stale", self._lock, self.session_factory) as session:
             try:
                 evaluated_at = self._database_now(session)
+                # Match snapshot/ingest ordering. Alarm rows reference the
+                # context: taking heads/stream first can deadlock against a
+                # snapshot holding its context while awaiting the stream.
+                context_ids = session.scalars(
+                    select(TelemetryItemHead.context_generation_id)
+                    .join(TelemetrySample, TelemetrySample.id == TelemetryItemHead.sample_id)
+                    .where(TelemetryItemHead.freshness == "FRESH",
+                           TelemetrySample.fresh_until_unix_ns.is_not(None),
+                           TelemetrySample.fresh_until_unix_ns < now_ns)
+                    .distinct().order_by(TelemetryItemHead.context_generation_id)
+                ).all()
+                streams = {}
+                for context_id in context_ids:
+                    session.scalar(select(DriverContextGeneration)
+                        .where(DriverContextGeneration.id == context_id).with_for_update())
+                    streams[context_id] = self._stream(session, context_id, create=True, lock=True)
                 heads = session.scalars(
                     select(TelemetryItemHead)
                     .join(TelemetrySample, TelemetrySample.id == TelemetryItemHead.sample_id)
@@ -742,6 +861,7 @@ class ObservationRepository:
                         TelemetryItemHead.freshness == "FRESH",
                         TelemetrySample.fresh_until_unix_ns.is_not(None),
                         TelemetrySample.fresh_until_unix_ns < now_ns,
+                        TelemetryItemHead.context_generation_id.in_(context_ids),
                     )
                     .order_by(
                         TelemetryItemHead.context_generation_id,
@@ -750,9 +870,7 @@ class ObservationRepository:
                     .with_for_update()
                 ).all()
                 for head in heads:
-                    stream = self._stream(
-                        session, head.context_generation_id, create=True, lock=True
-                    )
+                    stream = streams[head.context_generation_id]
                     assert stream is not None
                     sample = session.get(TelemetrySample, head.sample_id)
                     assert sample is not None
@@ -795,11 +913,14 @@ class ObservationRepository:
             row = session.get(DriverTimeObservation, head.observation_id)
             if row is None:
                 raise ObservationConflictError("driver time head is incomplete")
-            return self._time_dict(row, context)
+            result = self._time_projection(session, row, context)
+            if result is None:
+                raise ObservationNotFoundError("driver time is not available for the admitted epoch")
+            return result
 
     def snapshot(self, context_id: str) -> dict[str, Any]:
         context_id = _identifier(context_id, "context_id")
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("snapshot", self._lock, self.session_factory) as session:
             context = self._active_context(session, context_id, lock=True)
             stream = self._stream(session, context.id, create=True, lock=True)
             assert stream is not None
@@ -812,12 +933,37 @@ class ObservationRepository:
             ).all()
             if len(heads) > MAX_SNAPSHOT_ITEMS:
                 raise ObservationConflictError("snapshot item bound was exceeded")
+            # Read only the bounded current heads, not retained sample/alarm
+            # history. Keep the same context/stream locks across every batch.
+            samples = {row.id: row for row in session.scalars(
+                select(TelemetrySample).where(TelemetrySample.id.in_(
+                    [head.sample_id for head in heads]))
+            )} if heads else {}
+            alarm_heads = session.scalars(select(TelemetryAlarmHead).where(
+                TelemetryAlarmHead.context_generation_id == context.id,
+                TelemetryAlarmHead.item_id.in_([head.item_id for head in heads]),
+            )).all() if heads else []
+            alarms = {row.id: row for row in session.scalars(
+                select(TelemetryAlarmObservation).where(TelemetryAlarmObservation.id.in_(
+                    [head.alarm_observation_id for head in alarm_heads]))
+            )} if alarm_heads else {}
+            limits = {row.id: row for row in session.scalars(
+                select(TelemetryLimitSet).where(TelemetryLimitSet.id.in_(
+                    {alarm.limit_definition_id for alarm in alarms.values()
+                     if alarm.limit_definition_id is not None}))
+            )} if alarms else {}
+            item_alarms = {head.item_id: alarms.get(head.alarm_observation_id)
+                           for head in alarm_heads}
             items: list[dict[str, Any]] = []
             for head in heads:
-                sample = session.get(TelemetrySample, head.sample_id)
+                sample = samples.get(head.sample_id)
                 if sample is None:
                     raise ObservationConflictError("telemetry item head is incomplete")
-                items.append(self._sample_projection(session, sample))
+                item = self._sample_dict(sample, head)
+                alarm = item_alarms.get(head.item_id)
+                item["alarm"] = (self._alarm_projection(alarm, limits.get(alarm.limit_definition_id))
+                                 if alarm is not None else None)
+                items.append(item)
             cursors = session.scalars(
                 select(TelemetrySourceCursor)
                 .where(TelemetrySourceCursor.context_generation_id == context.id)
@@ -835,6 +981,7 @@ class ObservationRepository:
                 sync = "GAPPED"
             else:
                 sync = "COMPLETE"
+            driver_time = self._time_projection(session, time_row, context) if time_row is not None else None
             session.commit()
             return {
                 "schema_version": OBSERVATION_SNAPSHOT_SCHEMA,
@@ -855,9 +1002,7 @@ class ObservationRepository:
                     for cursor in cursors
                 ],
                 "items": items,
-                "driver_time": (
-                    self._time_dict(time_row, context) if time_row is not None else None
-                ),
+                "driver_time": driver_time,
                 "synchronization_state": sync,
             }
 
@@ -1018,10 +1163,17 @@ class ObservationRepository:
             context = self._active_context(session, context_id, lock=True)
             stream = self._stream(session, context.id, create=True, lock=True)
             assert stream is not None
+            admitted_epoch = self._dss_epoch(session, stream.id) if self.dss_enabled else None
             stream.stream_epoch = str(uuid.uuid4())
             stream.last_sequence = 0
             stream.revision += 1
             stream.updated_at = _database_time(self._receive_time_ns())
+            if admitted_epoch is not None:
+                self._emit(session, stream, event_type="telemetry.source_epoch_changed",
+                    aggregate_type="telemetry_source", aggregate_id="dss-GENERIC",
+                    data={"source_id": "dss-GENERIC", "source_epoch": admitted_epoch,
+                          "previous_source_epoch": admitted_epoch, "projection_epoch_carried_forward": True},
+                    created_at=stream.updated_at)
             session.commit()
             return {
                 "stream_epoch": stream.stream_epoch,
@@ -1045,7 +1197,7 @@ class ObservationRepository:
     ) -> None:
         event_id = _identifier(event_id, "event_id")
         published_at = _stored_utc(published_at)
-        with self._lock, self.session_factory() as session:
+        with self._timings.operation("publish", self._lock, self.session_factory) as session:
             row = session.get(ObservationOutboxEvent, event_id, with_for_update=True)
             if row is None:
                 raise ObservationNotFoundError("observation outbox event not found")
@@ -1053,6 +1205,37 @@ class ObservationRepository:
                 row.delivery_attempts += 1
                 row.published_at = published_at
                 session.commit()
+
+    def mark_outbox_published_batch(
+        self, acknowledgements: list[tuple[str, datetime]],
+    ) -> None:
+        """Mark only a bounded, successfully delivered prefix; retain every event."""
+        if type(acknowledgements) is not list or not 1 <= len(acknowledgements) <= MAX_NOTIFICATION_ACKNOWLEDGEMENTS:
+            raise ObservationValidationError("notification acknowledgement count is invalid")
+        timestamps = {}
+        for entry in acknowledgements:
+            if type(entry) is not tuple or len(entry) != 2:
+                raise ObservationValidationError("notification acknowledgement is invalid")
+            event_id = _identifier(entry[0], "event_id")
+            if not isinstance(entry[1], datetime):
+                raise ObservationValidationError("notification publication timestamp is invalid")
+            published_at = _stored_utc(entry[1])
+            if event_id in timestamps:
+                raise ObservationValidationError("notification acknowledgement is duplicated")
+            timestamps[event_id] = published_at
+        with self._timings.operation("publish", self._lock, self.session_factory) as session:
+            rows = session.scalars(select(ObservationOutboxEvent).options(load_only(
+                ObservationOutboxEvent.id, ObservationOutboxEvent.published_at,
+                ObservationOutboxEvent.delivery_attempts,
+            )).where(ObservationOutboxEvent.id.in_(timestamps)).order_by(
+                ObservationOutboxEvent.id).with_for_update()).all()
+            if {row.id for row in rows} != set(timestamps):
+                raise ObservationNotFoundError("observation outbox event not found")
+            for row in rows:
+                if row.published_at is None:
+                    row.delivery_attempts += 1
+                    row.published_at = timestamps[row.id]
+            session.commit()
 
     def get_limits(self, item_id: str, catalog_digest: str) -> dict[str, Any]:
         item_id = _identifier(item_id, "item_id")
@@ -1297,7 +1480,33 @@ class ObservationRepository:
             "uncertainty_ns": str(observation.uncertainty_ns),
             "quality": observation.quality.value,
             "validity": observation.validity.value,
+            **cls._clock_binding(observation),
         }
+
+    @staticmethod
+    def _clock_binding(observation: DomainTimeObservation) -> dict[str, Any]:
+        if not observation.source_epoch:
+            return {}
+        return {"source_epoch": observation.source_epoch,
+                "source_sequence": str(observation.source_sequence),
+                "source_packet_sha256": observation.source_packet_sha256,
+                "database_digest": observation.database_digest}
+
+    def _time_projection(self, session: Session, row: DriverTimeObservation,
+                         context: DriverContextGeneration) -> dict[str, Any] | None:
+        if not self.dss_enabled:
+            return self._time_dict(row, context)
+        event = session.get(ObservationOutboxEvent, self._dss_clock_event_id(row.id))
+        stream = self._stream(session, context.id, create=False, lock=False)
+        data = event.payload["data"] if event is not None else {}
+        if stream is None or not data.get("source_epoch") or self._dss_epoch(session, stream.id) != data["source_epoch"]:
+            return None
+        binding = {key: data[key] for key in ("source_epoch", "source_sequence", "source_packet_sha256", "database_digest")}
+        return self._time_dict(row, context, binding)
+
+    @staticmethod
+    def _dss_clock_event_id(observation_id: str) -> str:
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, "openbexi:dss-clock:" + observation_id))
 
     @classmethod
     def _sample_payload(cls, sample: DomainTelemetrySample) -> dict[str, Any]:
@@ -1330,7 +1539,8 @@ class ObservationRepository:
 
     @staticmethod
     def _time_dict(
-        row: DriverTimeObservation, context: DriverContextGeneration | None
+        row: DriverTimeObservation, context: DriverContextGeneration | None,
+        binding: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return {
             "observation_id": row.id,
@@ -1346,6 +1556,7 @@ class ObservationRepository:
             "uncertainty_ns": str(row.uncertainty_ns),
             "quality": row.quality,
             "validity": row.validity,
+            **(binding or {}),
         }
 
     @staticmethod
@@ -1611,6 +1822,11 @@ class ObservationRepository:
             if alarm.limit_definition_id is not None
             else None
         )
+        return self._alarm_projection(alarm, limit)
+
+    @staticmethod
+    def _alarm_projection(alarm: TelemetryAlarmObservation,
+                          limit: TelemetryLimitSet | None) -> dict[str, Any]:
         return {
             "alarm_observation_id": alarm.id,
             "item_id": alarm.item_id,
@@ -1642,13 +1858,14 @@ class ObservationRepository:
         aggregate_id: str,
         data: dict[str, Any],
         created_at: datetime,
+        event_id: str | None = None,
     ) -> ObservationOutboxEvent:
         if stream.last_sequence >= MAX_OBSERVATION_SEQUENCE:
             raise ObservationConflictError("observation projection sequence is exhausted")
         stream.last_sequence += 1
         stream.revision += 1
         stream.updated_at = created_at
-        event_id = new_id()
+        event_id = event_id or new_id()
         envelope = {
             "schema_version": OBSERVATION_EVENT_SCHEMA,
             "stream": OBSERVATION_STREAM,

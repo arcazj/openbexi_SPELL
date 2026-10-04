@@ -39,6 +39,20 @@ PREDECESSOR = f"v0.{MINOR-1}.0"
 CANDIDATE = ROOT / f"artifacts/v0.{MINOR}-candidate"
 
 
+def image_names() -> set[str]:
+    return {"backend", "driver", "frontend", "proxy"} | ({"dss", "kafka"} if MINOR >= 19 else set())
+
+
+def verify_dss_capture(directory: Path, *, source_commit: str, image_ids: dict) -> dict:
+    from scripts.validate_dss_delivery import validate_report
+    report = json.loads((directory / "dss-validation.json").read_bytes())
+    bindings = json.loads((directory / "dss-bindings.json").read_bytes())
+    require(bindings == {"source_commit": source_commit, "image_ids": image_ids}, "DSS producer bindings differ")
+    validate_report(report, source_commit=source_commit, image_ids=image_ids, root=ROOT,
+                    capture_root=directory / "dss-validation-captures")
+    return report
+
+
 
 class ReleaseError(ValueError):
     pass
@@ -47,6 +61,20 @@ class ReleaseError(ValueError):
 def require(value: bool, message: str) -> None:
     if not value:
         raise ReleaseError(message)
+
+
+def verify_running_image_bindings(services: dict, images: dict) -> None:
+    """Bind every running application service to its inspected/scanned image."""
+    mappings = (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy"),
+                ("bundle-builder-a", "backend"), ("bundle-builder-b", "backend"))
+    if MINOR >= 19:
+        mappings += (("dss", "dss"), ("kafka", "kafka"))
+    for service, image in mappings:
+        actual, expected = services.get(service), images.get(image)
+        require(isinstance(actual, dict) and isinstance(expected, dict)
+                and isinstance(expected.get("image_id"), str) and bool(expected["image_id"])
+                and actual.get("image_id") == expected["image_id"],
+                f"running/scanned images differ: {service}")
 
 
 def git(*args: str, binary: bool = False):
@@ -68,6 +96,8 @@ def policy() -> dict:
     require(data["release_tag"] == TAG and data["product_version"] == VERSION, "policy identity differs")
     require(data["scope"] == PROFILE and data["legacy_system_qualified"] is False, "scope differs")
     require(data["operational_authorization"] is False, "policy authority differs")
+    if MINOR >= 19:
+        require(data.get("dss_validation_required") is True, "mandatory DSS delivery gate is disabled")
     if MINOR >= 16:
         if MINOR >= 19:
             from scripts.validate_v19_gate import validate as validate_entry
@@ -185,8 +215,8 @@ def verify_captures(directory: Path, config: dict) -> dict:
     probe = json.loads((directory / "image-probe.json").read_bytes())
     if MINOR >= 16:
         verify_installed_language_runner(probe)
-    require(set(supply["images"]) == {"backend", "driver", "frontend", "proxy"}, "SBOM inventory differs")
-    require(len({row["image_id"] for row in supply["images"].values()}) == 4, "image identities are not distinct")
+    require(set(supply["images"]) == image_names(), "SBOM inventory differs")
+    require(len({row["image_id"] for row in supply["images"].values()}) == len(image_names()), "image identities are not distinct")
     for component, row in supply["images"].items():
         require(row["high"] == 0 and row["critical"] == 0, "image vulnerability gate failed")
         sbom = json.loads((directory / f"{component}.cdx.json").read_bytes())
@@ -206,8 +236,7 @@ def verify_captures(directory: Path, config: dict) -> dict:
     probe = json.loads((directory / "image-probe.json").read_bytes())
     require(probe["decision"] == "PASS", "image probes failed")
     require(all(probe["images"][name]["image_id"] == row["image_id"] for name, row in supply["images"].items()), "probed/scanned images differ")
-    require(all(probe["services"][service]["image_id"] == supply["images"][name]["image_id"] for service, name in
-                (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy"))), "running/scanned images differ")
+    verify_running_image_bindings(probe["services"], supply["images"])
     validation = json.loads((directory / "sbom-validation.json").read_bytes())
     require(set(validation["schemas"]) == set(supply["images"]) and validation["negative_tamper_rejected"] is True,
             "strict SBOM schema proof differs")
@@ -215,7 +244,12 @@ def verify_captures(directory: Path, config: dict) -> dict:
     require(examples["variant_summary"]["passed"] == 257 and examples["variant_summary"]["failed"] == 0, "inherited variants failed")
     commands = json.loads((directory / "commands.json").read_bytes())
     require(all(row["returncode"] == 0 for row in commands["commands"]), "qualification command failed")
-    require({row["gate"] for row in commands["commands"]} >= set(config["gates"]) | {"frontend-build", "image-probe", "reference-generators", "replay"},
+    required_commands = set(config["gates"]) | {"frontend-build", "image-probe", "reference-generators", "replay", "supply-chain", "prepare"}
+    if MINOR >= 19:
+        required_commands.add("dss-validation")
+        verify_dss_capture(directory, source_commit=commands["source_commit"],
+                           image_ids={name: row["image_id"] for name, row in supply["images"].items()})
+    require({row["gate"] for row in commands["commands"]} >= required_commands,
             "qualification command inventory incomplete")
     require(all(row["source_commit"] == commands["source_commit"] for row in commands["commands"]), "command source differs")
     return gates
@@ -279,6 +313,12 @@ def record(captures: Path) -> None:
         names.add("pilot-soak.json")
     if MINOR >= 16:
         names.add("language-conformance.json")
+    if MINOR >= 19:
+        names |= {"dss-validation.json", "dss-bindings.json", "dss.cdx.json", "kafka.cdx.json", "dss.sarif.json", "kafka.sarif.json"}
+        names |= {path.relative_to(captures).as_posix() for path in (captures / "dss-validation-cases").rglob("*")
+                  if path.is_file() and path.suffix in {".json", ".log"}}
+        names |= {path.relative_to(captures).as_posix() for path in (captures / "dss-validation-captures").rglob("*")
+                  if path.is_file()}
     browser = [path for path in (captures / "browser").rglob("*") if path.is_file() and path.suffix in {".png", ".json"}]
     names |= {path.relative_to(captures).as_posix() for path in browser}
     for name in sorted(names):

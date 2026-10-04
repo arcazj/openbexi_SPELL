@@ -57,7 +57,9 @@ acceptance of a connected system have separate completion criteria.
 
 The v0.19 observation-to-command increment is implemented and in qualification;
 its [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md)
-sets eight bounded proof requirements. Acceptance remains pending.
+sets fourteen proof requirements, including Docker DSS, its shared satellite
+database, actual binary CMD/TLM and exhaustive procedure validation. Acceptance
+remains pending. This DSS dependency must pass before any newer SPELL delivery.
 
 Map every remaining inventory entry and approved requirement to a milestone,
 owner, dependency, source reference, test oracle and completion check. Reconcile
@@ -192,6 +194,10 @@ may remain ownerless, mapped only to prose, or backed by another version's proof
    documentation, tooling, reference checks, replay/soaks and image/supply chain.
 5. Resolve every mandatory failure and missing proof. Environment skips require
    complementary passing evidence; unresolved High/Critical findings block release.
+   Every procedure and embedded/reference case must also match its declared
+   outcome against GENERIC DSS through actual binary CMD/TLM. Reset independent
+   scenarios and retain packet correlation, source/image/database identities and
+   logs. A missing case, unexpected timeout or unavailable environment blocks delivery.
 6. Bind evidence to one source, build four identical packages across two
    independent exports, validate the annotated tag from a clean checkout, push,
    publish and verify every public asset. Record actual counts and limitations.

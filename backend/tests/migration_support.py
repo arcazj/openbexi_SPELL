@@ -14,6 +14,7 @@ from backend.migrations.versions import (
     v0008_development_environment,
     v0009_procedure_catalog_availability,
     v0010_shadow_pilot,
+    v0011_dss_language_ledger,
 )
 
 
@@ -91,6 +92,7 @@ def reset_test_database(engine: Engine) -> None:
 
         # Migration-owned tables must not depend on which ORM modules happened
         # to be imported before this helper runs.
+        v0011_dss_language_ledger.language_cases.drop(connection, checkfirst=True)
         for table in reversed(v0010_shadow_pilot.NEW_TABLES):
             table.drop(connection, checkfirst=True)
         for table in reversed(v0009_procedure_catalog_availability.NEW_TABLES):

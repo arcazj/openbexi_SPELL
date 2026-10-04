@@ -30,6 +30,7 @@ class Settings:
     websocket_keepalive_seconds: float
     command_ack_timeout_seconds: float = 5.0
     driver_enabled: bool = False
+    dss_enabled: bool = False
     driver_target: str = DRIVER_TARGET
     driver_ca_path: Path = DRIVER_CA_PATH
     driver_client_cert_path: Path = DRIVER_CLIENT_CERT_PATH
@@ -49,6 +50,8 @@ class Settings:
     local_session_port: int = 8080
 
     def __post_init__(self) -> None:
+        if type(self.dss_enabled) is not bool or (self.dss_enabled and not self.driver_enabled):
+            raise ValueError("DSS requires an explicitly enabled actual driver")
         if type(self.local_session_enabled) is not bool:
             raise ValueError("SPELL_LOCAL_SESSION_ENABLED must be true or false")
         if type(self.local_session_port) is not int or not 1 <= self.local_session_port <= 65535:
@@ -169,6 +172,7 @@ class Settings:
             driver_enabled=_strict_bool(
                 "SPELL_DRIVER_ENABLED", os.getenv("SPELL_DRIVER_ENABLED", "false")
             ),
+            dss_enabled=_strict_bool("SPELL_DSS_ENABLED", os.getenv("SPELL_DSS_ENABLED", "false")),
             driver_target=DRIVER_TARGET,
             driver_ca_path=DRIVER_CA_PATH,
             driver_client_cert_path=DRIVER_CLIENT_CERT_PATH,

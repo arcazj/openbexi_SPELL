@@ -57,6 +57,9 @@ grpcio==1.82.1 \
     --hash=sha256:f853eae07235a51a27bb5d6a9a175a59ca55dc9b99edc6ce2f76f07332d333ae \
     --hash=sha256:ff99bc8cafb6a952201c37b995f425e641c93ffa6e072258525feab57290141d
     # via -r driver_host/requirements.txt
+kafka-python==3.0.11 \
+    --hash=sha256:9d10cab4e11e02545d82c7e5af5702da5aa46dd4eccd11ad92a50bf6dbbecd14
+    # via -r driver_host/requirements.txt
 protobuf==7.35.1 \
     --hash=sha256:11d6b0ec246892d85215b0a13ca6e0233cf5284b68f0ac02646427f4ff88a799 \
     --hash=sha256:230a75ddfc2de4806e56696ce9640c1cdfdb6543b7cfce98d42a4c0a0e7bdb87 \

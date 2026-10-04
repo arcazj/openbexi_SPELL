@@ -298,7 +298,14 @@ def create_app(
             "driver.lifecycle", event
         ),
     )
-    observation_repository = ObservationRepository(session_factory)
+    observation_ids = tuple(item.item_id for item in CATALOG_ITEMS)
+    if settings.dss_enabled:
+        from dss.catalog import TELEMETRY_ITEMS
+        from .dss_runtime import DssRuntime
+        observation_ids = tuple(item["item_id"] for item in TELEMETRY_ITEMS)
+        supervisor.dss_runtime = DssRuntime(driver_gateway)
+    observation_repository = ObservationRepository(session_factory,
+        dss_enabled=settings.dss_enabled, visible_item_ids=frozenset(observation_ids))
     observation_read_service = ObservationReadService()
     legacy_replay_sources = load_sources()
     shadow_pilot = ShadowPilot(session_factory, legacy_replay_sources)
@@ -308,6 +315,7 @@ def create_app(
         generation_provider=driver_gateway.observation_generations,
         get_time=driver_gateway.get_time,
         get_tm=driver_gateway.get_tm,
+        item_ids=observation_ids,
         poll_seconds=settings.observation_poll_seconds,
         freshness_sweep_seconds=settings.observation_freshness_sweep_seconds,
     )
@@ -384,7 +392,7 @@ def create_app(
         get_tm_resolver=RepositoryGetTMResolver(
             observation_repository,
             execution_context_id,
-            known_item_ids=frozenset(item.item_id for item in CATALOG_ITEMS),
+            known_item_ids=frozenset(observation_ids),
             cancellation_probe=DurableExecutionCancellationProbe(session_factory),
         ),
     )
@@ -720,6 +728,9 @@ def create_app(
         service=development_service,
         identity_dependency=identity,
     )
+
+    from .dss_language_api import install_dss_language_evidence_api
+    install_dss_language_evidence_api(app, identity_dependency=identity, supervisor=supervisor)
 
     install_data_api(
         app,
@@ -2660,14 +2671,18 @@ def create_app(
         if seconds_until_expiry <= 0:
             await websocket.close(code=4401, reason="websocket credentials expired")
             return
+        loop = asyncio.get_running_loop()
+        expiry_deadline = loop.time() + seconds_until_expiry
         try:
-            authority = observation_repository.stream_cursor(context_id)
+            authority = await asyncio.to_thread(
+                observation_repository.stream_cursor, context_id
+            )
         except ObservationRepositoryError:
             await websocket.close(code=4404, reason="observation stream not found")
             return
-
-        loop = asyncio.get_running_loop()
-        expiry_deadline = loop.time() + seconds_until_expiry
+        if loop.time() >= expiry_deadline:
+            await websocket.close(code=4401, reason="websocket credentials expired")
+            return
         await websocket.accept(subprotocol="spell-auth")
         subscription = hub.subscribe(OBSERVATION_STREAM)
         last_sent = after_sequence
@@ -2676,6 +2691,9 @@ def create_app(
         )
 
         async def resync(reason: str, cursor: dict[str, Any]) -> None:
+            if loop.time() >= expiry_deadline:
+                await websocket.close(code=4401, reason="websocket credentials expired")
+                return
             await websocket.send_json(
                 {
                     "schema_version": OBSERVATION_EVENT_SCHEMA,
@@ -2695,13 +2713,32 @@ def create_app(
 
         async def replay_committed() -> bool:
             nonlocal last_sent, authority
-            authority = observation_repository.stream_cursor(context_id)
-            window = observation_repository.replay(
-                context_id,
-                stream_epoch=stream_epoch,
-                after_sequence=last_sent,
-                limit=replay_limit + 1,
-            )
+
+            def read_window():
+                # Both methods own their database sessions. Only immutable
+                # projections cross back to the websocket event loop.
+                cursor = observation_repository.stream_cursor(context_id)
+                window = observation_repository.replay(
+                    context_id,
+                    stream_epoch=stream_epoch,
+                    after_sequence=last_sent,
+                    limit=replay_limit + 1,
+                )
+                return cursor, window
+
+            authority, window = await asyncio.to_thread(read_window)
+            # Rotation can commit between the two independent reads. Resync
+            # metadata must describe the same authoritative replay window.
+            authority = {
+                "stream_epoch": window["stream_epoch"],
+                "last_sequence": window["last_sequence"],
+            }
+            if loop.time() >= expiry_deadline:
+                await websocket.close(code=4401, reason="websocket credentials expired")
+                return False
+            if subscription.overflowed:
+                await resync("CLIENT_QUEUE_OVERFLOW", authority)
+                return False
             if not window["epoch_matches"]:
                 await resync("STREAM_EPOCH_CHANGED", authority)
                 return False
@@ -2744,7 +2781,9 @@ def create_app(
                     )
                     return
                 if subscription.overflowed:
-                    authority = observation_repository.stream_cursor(context_id)
+                    authority = await asyncio.to_thread(
+                        observation_repository.stream_cursor, context_id
+                    )
                     await resync("CLIENT_QUEUE_OVERFLOW", authority)
                     return
                 try:
@@ -2761,7 +2800,17 @@ def create_app(
                             code=4401, reason="websocket credentials expired"
                         )
                         return
-                    authority = observation_repository.stream_cursor(context_id)
+                    authority = await asyncio.to_thread(
+                        observation_repository.stream_cursor, context_id
+                    )
+                    if loop.time() >= expiry_deadline:
+                        await websocket.close(
+                            code=4401, reason="websocket credentials expired"
+                        )
+                        return
+                    if subscription.overflowed:
+                        await resync("CLIENT_QUEUE_OVERFLOW", authority)
+                        return
                     if authority["stream_epoch"] != stream_epoch:
                         await resync("STREAM_EPOCH_CHANGED", authority)
                         return
@@ -2776,6 +2825,20 @@ def create_app(
                         }
                     )
                     continue
+                # Notifications are wake-ups, never data frames. Drain at
+                # most one bounded batch; concurrent commits remain in the
+                # durable replay or leave a wake-up for the next iteration.
+                for _ in range(99):
+                    try:
+                        subscription.queue.get_nowait()
+                    except asyncio.QueueEmpty:
+                        break
+                if subscription.overflowed:
+                    authority = await asyncio.to_thread(
+                        observation_repository.stream_cursor, context_id
+                    )
+                    await resync("CLIENT_QUEUE_OVERFLOW", authority)
+                    return
                 if not await replay_committed():
                     return
         except WebSocketDisconnect:

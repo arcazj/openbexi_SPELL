@@ -1,5 +1,16 @@
 # System Requirements
 
+## Owner DSS Delivery Amendment
+
+The approved v0.19 entry adds `V19-DSS-001`, `V19-DATABASE-001`, `V19-CMD-001`,
+`V19-TLM-001`, `V19-SCENARIOS-001` and `V19-DSS-DELIVERY-001`. Docker GENERIC DSS
+and both actual binary drivers must share state/database; command effects must
+be observable through decoded telemetry. Every procedure and embedded/reference
+case must match its declared outcome before any future delivery. Missing cases,
+unexpected failures/timeouts, unexplained skips and unavailable environments
+block release. Exact allocations are in the [amended entry](../releases/SPELL_v0.19_Pre-Implementation.md#owner-amendment-docker-dss-before-delivery)
+and [DSS contract](../../contracts/dss/README.md).
+
 ## Contract
 
 These requirements define the minimum target behavior of the next-generation

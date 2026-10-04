@@ -201,24 +201,28 @@ async def seed(
         await gateway.close()
 
     deadline = time.monotonic() + timeout_seconds
+    expected_items = ITEM_IDS
+    if settings.dss_enabled:
+        from dss.catalog import TELEMETRY_ITEMS
+        expected_items = tuple(sorted(item["item_id"] for item in TELEMETRY_ITEMS))
     while time.monotonic() < deadline:
         snapshot = observation_repository.snapshot(context_id)
         if (
             snapshot["driver_time"] is not None
             and snapshot["synchronization_state"] == "COMPLETE"
-            and tuple(item["item_id"] for item in snapshot["items"]) == ITEM_IDS
+            and tuple(item["item_id"] for item in snapshot["items"]) == expected_items
             and all(
                 item["quality"] == "GOOD"
                 and item["validity"] == "VALID"
                 and item["freshness"] == "FRESH"
-                and item["alarm"] is not None
+                and (item["alarm"] is not None or (settings.dss_enabled and item["item_id"] not in ITEM_IDS))
                 for item in snapshot["items"]
             )
         ):
             return {
                 "context_id": context_id,
                 "context_generation_id": CONTEXT_GENERATION_ID,
-                "item_ids": list(ITEM_IDS),
+                "item_ids": list(expected_items),
                 "stream_epoch": snapshot["stream_epoch"],
                 "through_sequence": snapshot["through_sequence"],
             }

@@ -28,6 +28,8 @@ RUN python -m pip install --require-hashes -r /tmp/requirements.hashes.lock \
     && rm -f /tmp/requirements.hashes.lock
 
 COPY backend /app/backend
+COPY dss /app/dss
+COPY contracts/dss /app/contracts/dss
 COPY compose.yaml /app/compose.yaml
 COPY contracts/v10 /app/contracts/v10
 COPY contracts/v11 /app/contracts/v11
@@ -43,7 +45,7 @@ COPY spell /app/spell
 COPY procedures /app/procedures
 COPY scripts/issue_dev_token.py scripts/qualify_v03.py \
     scripts/qualify_browser_stream_server.py scripts/compose_qualification.py \
-    scripts/source_fingerprint.py scripts/seed_observation_v07.py \
+    scripts/source_fingerprint.py scripts/seed_observation_v07.py scripts/seed_dss_v19.py \
     scripts/build_zlib_v12.sh /app/scripts/
 
 RUN groupadd --gid 10001 spell \

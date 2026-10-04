@@ -43,6 +43,16 @@ The layout follows the original GUI User Manual 2.4.4:
 opens or validates a selection and refreshes the catalog. **Execution** returns
 to controls or opens prompt settings.
 
+**System > DSS satellite simulator** opens the compact [DSS page](http://127.0.0.1:8080/dss/).
+It shows bus/payload/core state and packet-backed telemetry. Pause to step or
+review a database command, enter typed arguments and confirm separately.
+Commands use the same binary TC ingress as SPELL. An uncertain receipt locks
+further UI commands for that scenario; it is never retried automatically.
+Telemetry shows raw and engineering values, quality, packet identity and Kafka
+publication status. Physical ticks stop while the bounded outbox is full.
+Automatic frames integrate ten 100 ms physics steps and publish once per second;
+manual steps and command effects publish immediately.
+
 Browser differences are recorded in the [UI profile](../contracts/v16/ui_profile.json):
 panes stack on narrow screens, native detached windows are unavailable, and the
 unrestricted legacy Python Shell remains excluded. Original manuals are unchanged.

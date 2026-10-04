@@ -304,6 +304,7 @@ class Supervisor:
         self.command_ack_timeout_seconds = command_ack_timeout_seconds
         self.operator_service = operator_service
         self.observation_runtime = observation_runtime
+        self.dss_runtime = None
         self.observation_anchor_provider = observation_anchor_provider
         self.data_runtime = data_runtime
         self.data_repository = data_repository
@@ -2760,6 +2761,8 @@ class Supervisor:
                     output,
                     resume_prompt_settlement,
                     durable_arguments,
+                    True,
+                    getattr(self, "dss_runtime", None) is not None,
                 ),
                 daemon=True,
             )
@@ -2976,6 +2979,9 @@ class Supervisor:
                         self._handle_data_request(execution_id, handle, message)
                     elif kind == "telecommand_requested":
                         self._handle_telecommand_request(execution_id, handle, message)
+                    elif kind == "language_case_requested":
+                        from .dss_language_supervisor import handle_request
+                        handle_request(self, execution_id, handle, message)
                     else:
                         raise ValueError(f"unsupported worker message kind: {kind!r}")
             except Exception as exc:
@@ -4230,11 +4236,20 @@ class Supervisor:
         try:
             try:
                 if dispatch_authorized:
+                    provider = None
+                    if getattr(self, "dss_runtime", None) is not None:
+                        execution = self.get_execution(execution_id)
+                        observation_epochs = self._dss_command_observation_epochs(execution_id, request["step_index"])
+                        provider = self.dss_runtime.provider(request, preflight,
+                            procedure_id=execution.procedure_id, context_id=execution.context_id,
+                            authorize=lambda: self._dss_dispatch_authorized(execution_id, handle, request),
+                            dispatch_lock=handle.dispatch_lock, observation_epochs=observation_epochs)
                     result = execute_preflight(
                         request,
                         service,
                         preflight,
                         confirmation_actor=confirmation_actor,
+                        provider=provider,
                     )
                 else:
                     result = uncertain_replay_result(
@@ -4265,6 +4280,37 @@ class Supervisor:
         finally:
             with self._lock:
                 self._telecommand_requests.discard(key)
+
+    def _dss_dispatch_authorized(self, execution_id: str, handle: WorkerHandle, request: dict[str, Any]) -> bool:
+        with self._lock, self.session_factory() as session:
+            execution = self._require_worker_epoch(session, execution_id, handle.generation)
+            if (self._workers.get(execution_id) is not handle or execution is None
+                or execution.state not in {"running", "waiting"}
+                or execution.current_step != request["step_index"]):
+                return False
+            if execution.ir_version in _COMPOSED_COMMAND_IR_VERSIONS:
+                self._v18_require_telecommand_guard(execution)
+            return True
+
+    def _dss_command_observation_epochs(self, execution_id: str, index: int) -> frozenset[str]:
+        from .runtime_composition_v19 import command_observation_dependencies
+        from .dss_runtime import captured_observation_epochs
+        epochs: set[str] = set()
+        with self._lock, self.session_factory() as session:
+            execution = session.get(Execution, execution_id)
+            if execution is None or execution.current_step != index:
+                raise ConflictError("DSS command dependency execution changed")
+            for position in command_observation_dependencies(execution.steps, index):
+                step = execution.steps[position]
+                request = observation_request_for_step(execution.id, step)
+                settled = self._observation_event(session, execution.id, "procedure.observation_result", request["request_id"])
+                if settled is None:
+                    # An unexecuted guarded observation has no provenance to use.
+                    continue
+                request = self._v19_durable_observation_request(session, execution, position)
+                canonical = validate_observation_result(request, settled.payload)
+                epochs.update(captured_observation_epochs(session, canonical))
+        return frozenset(epochs)
 
     def _settle_telecommand_result(
         self,
@@ -5455,6 +5501,8 @@ class Supervisor:
                 if isinstance(execution.variables, dict)
                 else {}
             )
+            from .dss_language_supervisor import validate_checkpoint as validate_dss_language_checkpoint
+            validate_dss_language_checkpoint(self, session, execution, message, prior_checkpoint_variables)
             observation_variables = None
             if execution.ir_version == V19_IR_VERSION:
                 if execution.state == "aborting":
@@ -5544,6 +5592,28 @@ class Supervisor:
                             raise ConflictError(
                                 "v0.11 Prompt checkpoint does not match its declaration"
                             )
+                    if execution.ir_version == V19_IR_VERSION and "response_target" in current_step:
+                        # The reference menu uses the inherited typed LIST/INDEX
+                        # target. Its protected selection must come from the
+                        # same durable answer, just as native Prompt targets do.
+                        expected_variables = dict(authoritative_variables)
+                        if should_run:
+                            value = durable_prompt.settled_value
+                            if (current_step.get("prompt_type") != "LIST"
+                                    or current_step.get("list_mode") != "INDEX"
+                                    or durable_prompt.state != "SETTLED"
+                                    or durable_prompt.settlement_outcome != "ANSWERED"
+                                    or type(value) is not int
+                                    or not 0 <= value < len(current_step["choices"])
+                                    or prompt_resolution.get("settlement_id") != durable_prompt.settlement_id
+                                    or prompt_resolution.get("outcome") != "ANSWERED"
+                                    or canonical_hash({"value": prompt_resolution.get("response")})
+                                       != canonical_hash({"value": value})):
+                                raise ConflictError("legacy Prompt target requires its exact answered index settlement")
+                            expected_variables[current_step["response_target"]] = value
+                        if canonical_hash(checkpoint_variables) != canonical_hash(expected_variables):
+                            raise ConflictError("legacy Prompt checkpoint changed its target or unrelated variables")
+                        authoritative_variables = expected_variables
                 elif (
                     current_step.get("type") not in {"send_tc", "prompt"}
                     and prompt_resolution is not None

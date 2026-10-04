@@ -162,9 +162,12 @@ def validate_protobuf_wire(
                 raise DecodeError("conflicting oneof fields")
 
 
+from spell.driver.dss.v1 import dss_pb2
+
 _REQUEST_DESCRIPTORS = {
     f"/{service.full_name}/{method.name}": method.input_type
-    for service in driver_pb2.DESCRIPTOR.services_by_name.values()
+    for module in (driver_pb2, dss_pb2)
+    for service in module.DESCRIPTOR.services_by_name.values()
     for method in service.methods
 }
 

@@ -1,5 +1,15 @@
 # Operations and Observability
 
+## GENERIC DSS Local Operation
+
+The default Compose stack includes DSS, Kafka and actual CMD/TLM drivers.
+Open `http://127.0.0.1:8080/dss/` for state, telemetry, pause/step and confirmed
+database commands. Keep durable volumes when stopping. An unavailable broker
+retains packets and applies outbox backpressure; lost command receipts remain
+uncertain. Scenario reset is disabled outside an explicitly enabled local test
+setup. The [DSS contract](../../contracts/dss/README.md) records database, recovery
+and exhaustive delivery validation boundaries; v0.19 acceptance is pending.
+
 v0.16 adds a compact operator workspace and automatic finite local operator
 sessions; see the [current guide](../../frontend/README.md). The inherited pilot
 report, incident and rollback boundaries below remain unchanged.

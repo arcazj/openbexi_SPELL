@@ -2,14 +2,18 @@
 
 Open <http://127.0.0.1:8080/>, select a procedure in the catalog, then choose **Start procedure**. The local operator session connects automatically. Answer prompts with **Commit response**; **Abort prompt** stops the procedure.
 
-For the three observation demos, enable the driver profile and initialize its
+For the three observation demos, start the default DSS stack and initialize its
 `simulator` context using the [quick-start commands](../README.md#quick-start).
 Missing or stale driver context fails the read; automatic session connection
 alone does not grant observation readiness.
 
+For `language_reference_244`, enable [isolated reference testing](../README.md#language-reference-runner).
+Its cases reset shared satellite state and finish paused; run them without other procedures.
+
 | Procedure | What to try | Expected result |
 |---|---|---|
-| `language_reference_244` | Select an example, direct check, gap check or run-all. | Original 195 adaptations remain available. Direct source and boundary results identify their scope; full SPELL support remains incomplete. Command checks here use isolated helpers and never send commands from the outer procedure. |
+| `dss_command_catalog_v19` | Start and inspect the typed setpoint and SAFE/NOMINAL stages. | TCNAME executes once; mode enters SAFE then NOMINAL. All three command effects are observable in received telemetry. |
+| `language_reference_244` | Select an example, direct check, gap check or run-all. | Original 195 adaptations remain available. Configured DSS checks use isolated workers with parent-brokered actual CMD/TLM; durable inner-case evidence records packet correlation. Local adaptations remain explicitly bounded; full SPELL support is incomplete. |
 | `observation_command_v19` | Read voltage, verify the bounded condition, wait briefly, answer YES, then approve separate command confirmation. | GOOD/FRESH/VALID/COMPLETE data plus TRUE and both decisions execute one command. NO executes none. |
 | `observation_decision_v19` | Start with the deliberately unreachable voltage condition. | Verify overwrites prior TRUE with FALSE; no command is requested. |
 | `observation_wait_v19` | Start and inspect the timeout result. | The condition wait times out; the following command is never requested. |
@@ -20,3 +24,9 @@ alone does not grant observation readiness.
 | `tutorial_core_v18` | Start and inspect variables and messages. | `total=12`, `power=32`, `mask=3`, plus empty and ordinary Display messages. No commands or prompts. |
 
 These examples use the existing local deterministic simulator. Native answers may control whether a literal command runs; command names, arguments and modifiers remain fixed in the source. v0.19 combines bounded target-based observation services with native core and literal commands. GetTM needs acceptable current evidence; Verify stores an explicit outcome and command guards compare it with `"TRUE"`. A wait or prompt does not refresh stored values. Reread telemetry when a fresh decision is required. SKIP/GOTO are unavailable for this profile. Data, file and environment mixtures, dynamic command operands and full native observation signatures remain outside it.
+
+The [DSS scenario inventory](../contracts/dss/procedure_scenarios_v19.json)
+declares initial state, responses, expected outcomes and execution bounds.
+Each independent case resets or isolates satellite state. Delivery requires
+every case to match its declared outcome through actual binary TC and decoded
+Kafka TM; unexpected errors, missing cases and unexplained skips fail the gate.

@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
-from scripts.release_next import VERSION, MINOR, TAG
+from scripts.release_next import VERSION, MINOR, TAG, image_names, verify_running_image_bindings
 
 
 def call(*args):
@@ -16,17 +16,18 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     images = {}
-    for name in ("backend", "driver", "frontend", "proxy"):
+    for name in sorted(image_names()):
         image = f"openbexi-spell-{name}:{TAG}"
         identity = json.loads(call("image", "inspect", image))[0]
+        image = identity["Id"]
         assert identity["Config"]["User"] not in ("", "root", "0", "0:0")
-        root = "/app" if name in {"backend", "driver"} else "/src/frontend" if name == "frontend" else "/usr/share/nginx/html"
+        root = "/app" if name in {"backend", "driver", "dss"} else "/src/frontend" if name == "frontend" else "/opt/kafka" if name == "kafka" else "/usr/share/nginx/html"
         files = call("run", "--rm", "--network", "none", "--entrypoint", "find", image, root, "-type", "f").splitlines()
         forbidden = [value for value in files if Path(value).suffix.lower() in {".pdf", ".zip", ".pyc", ".pyo", ".key", ".pem"}
                      or Path(value).name in {".env", "credentials.json", "secrets.json"}]
         assert not forbidden, (name, forbidden)
         row = {"image_id": identity["Id"], "user": identity["Config"]["User"], "product_files": len(files), "forbidden_files": []}
-        if name in {"backend", "driver"}:
+        if name in {"backend", "driver", "dss"}:
             code = (Path(__file__).with_name("gcc_header_applicability.py")).read_text()
             row["gcc_header_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             if MINOR >= 18:
@@ -38,6 +39,37 @@ def main():
             row["zlib"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             assert row["zlib"]["upstream_commit"] == "df84af25dc1942490e1d1c899a07619152a46148"
             assert row["zlib"]["runtime_version"] == "1.3.2.1-motley"
+        if name == "dss":
+            code = ("import json; from dss import SIMULATOR_VERSION,DYNAMICS_ENGINE_VERSION; "
+                    "from dss.catalog import SatelliteDatabase; d=SatelliteDatabase.load(); "
+                    "print(json.dumps({'simulator_version':SIMULATOR_VERSION,'dynamics_engine_version':DYNAMICS_ENGINE_VERSION,"
+                    "'database_revision':d.revision,'database_digest':d.digest}))")
+            row["dss_identity"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
+            from dss import SIMULATOR_VERSION, DYNAMICS_ENGINE_VERSION
+            from dss.catalog import SatelliteDatabase
+            database = SatelliteDatabase.load()
+            assert row["dss_identity"] == {"simulator_version": SIMULATOR_VERSION, "dynamics_engine_version": DYNAMICS_ENGINE_VERSION,
+                                            "database_revision": database.revision, "database_digest": database.digest}
+        if name == "kafka":
+            version = call("run", "--rm", "--network", "none", "--entrypoint", "/opt/kafka/bin/kafka-topics.sh", image, "--version").strip()
+            assert version.split()[0] == "4.3.1"
+            row["kafka_version"] = version
+            row["java_version"] = call("run", "--rm", "--network", "none", "--entrypoint", "sh", image, "-c", "java -version 2>&1").strip()
+            from scripts.generate_kafka_security_dockerfile import generated
+            from scripts.kafka_security_inventory import LOCK_PATH, verify_inventory
+            generated()  # Validate source coordinates before constructing container arguments.
+            lock_bytes = Path("contracts/dss/kafka_dependency_lock.json").read_bytes()
+            dependencies = json.loads(lock_bytes)["artifacts"]
+            paths = ["/opt/kafka/libs/" + r["url"].rsplit("/", 1)[-1]
+                     for r in dependencies if r["kind"] == "MAVEN"]
+            hashes = {line.split()[1]: line.split()[0] for line in call("run", "--rm", "--network", "none",
+                "--entrypoint", "sha256sum", image, *paths, LOCK_PATH).splitlines()}
+            sizes = {line.split()[1]: int(line.split()[0]) for line in call("run", "--rm", "--network", "none",
+                "--entrypoint", "wc", image, "-c", *paths).splitlines() if line.split()[1] != "total"}
+            installed = [line.split()[0] for line in call("run", "--rm", "--network", "none", "--entrypoint",
+                "apk", image, "list", "--installed", *[r["name"] for r in dependencies if r["kind"] == "APK"]).splitlines()]
+            row["security_dependencies"] = verify_inventory(lock_bytes, hashes=hashes, sizes=sizes,
+                installed_apks=installed, jar_files=[p for p in files if p.endswith(".jar")])
         if name == "backend":
             version = call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", "from backend.version import PRODUCT_VERSION; print(PRODUCT_VERSION)").strip()
             assert version == VERSION
@@ -81,7 +113,10 @@ def main():
                     assert row["language_runner"] == import_module(language_module).expected_image_runner_proof()
         images[name] = row
     services = {}
-    for service in ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy"):
+    service_names = ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy")
+    if MINOR >= 19:
+        service_names += ("dss", "kafka")
+    for service in service_names:
         ids = call("ps", "--filter", f"label=com.docker.compose.project=spellv0{MINOR}release", "--filter", "label=com.docker.compose.service=" + service, "--format", "{{.ID}}").splitlines()
         assert len(ids) == 1
         info = json.loads(call("inspect", ids[0]))[0]
@@ -94,7 +129,9 @@ def main():
             assert host["ReadonlyRootfs"] and "ALL" in host["CapDrop"]
         assert "no-new-privileges:true" in host["SecurityOpt"]
         ports = host.get("PortBindings") or {}
-        if service != "proxy":
+        if service == "dss":
+            assert ports == {"3080/tcp": [{"HostIp": "127.0.0.1", "HostPort": "3080"}]}
+        elif service != "proxy":
             assert not ports
         else:
             assert ports == {"8080/tcp": [{"HostIp": "127.0.0.1", "HostPort": "8080"}]}
@@ -104,6 +141,7 @@ def main():
             for network in info["NetworkSettings"]["Networks"]:
                 assert json.loads(call("network", "inspect", network))[0]["Internal"]
         services[service] = {"running": True, "read_only": host["ReadonlyRootfs"], "ports": ports, "image_id": info["Image"]}
+    verify_running_image_bindings(services, images)
     args.output.write_bytes((json.dumps({"images": images, "services": services, "decision": "PASS"}, indent=2, sort_keys=True) + "\n").encode())
     print(f"{TAG} image and isolation probes: PASS")
 

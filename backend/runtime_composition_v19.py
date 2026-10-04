@@ -14,6 +14,15 @@ from .runtime_composition_v18 import telecommand_dependency_variables as v18_dep
 OBSERVATION_STEP_TYPES = frozenset({"get_tm", "verify", "wait_for"})
 
 
+def command_observation_dependencies(steps: list[dict[str, Any]], index: int) -> tuple[int, ...]:
+    """Static authoritative observation inputs to this command's guard."""
+    prefix = [step for step in steps[:index] if step.get("type") not in {"send_tc", "build_tc"}]
+    needed = v18_dependencies([*prefix, steps[index]])
+    return tuple(position for position, step in enumerate(steps[:index])
+        if (step.get("type") == "wait_for" and "condition" in step) or
+        (step.get("type") in {"get_tm", "verify"} and step.get("target") in needed))
+
+
 def telecommand_dependency_variables(steps: Any) -> frozenset[str]:
     """Protect observation authority and scalars controlling command dispatch."""
     if type(steps) is not list:
@@ -35,6 +44,12 @@ def telecommand_dependency_variables(steps: Any) -> frozenset[str]:
         for step in steps
         if type(step) is dict and step.get("type") in OBSERVATION_STEP_TYPES
     ]
+    # In configured DSS mode a closed language selection can dispatch real
+    # commands. Protect the selection and guard before the broker is entered.
+    roots.extend({"type": "send_tc", "guard": step.get("guard"),
+                  "language_selection": step.get("selection")}
+                 for step in steps if type(step) is dict
+                 and step.get("type") == "language_check")
     return v18_dependencies([*steps, *bindings, *roots])
 
 

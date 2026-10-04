@@ -17,6 +17,8 @@ from .versions import (
     v0008_development_environment,
     v0009_procedure_catalog_availability,
     v0010_shadow_pilot,
+    v0011_dss_language_ledger,
+    v0012_dss_epoch_index,
 )
 
 
@@ -31,6 +33,8 @@ MIGRATIONS = (
     v0008_development_environment,
     v0009_procedure_catalog_availability,
     v0010_shadow_pilot,
+    v0011_dss_language_ledger,
+    v0012_dss_epoch_index,
 )
 metadata = MetaData()
 schema_migrations = Table(
@@ -106,6 +110,10 @@ def run_migrations(
                 v0009_procedure_catalog_availability.verify(connection)
             if v0010_shadow_pilot.VERSION in applied | set(applied_now):
                 v0010_shadow_pilot.verify(connection)
+            if v0011_dss_language_ledger.VERSION in applied | set(applied_now):
+                v0011_dss_language_ledger.verify(connection)
+            if v0012_dss_epoch_index.VERSION in applied | set(applied_now):
+                v0012_dss_epoch_index.verify(connection)
     except Exception:
         if cleanup_v0007_after_rollback:
             with engine.begin() as cleanup_connection:

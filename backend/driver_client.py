@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import time
 import uuid
+import hashlib
+import re
 from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence, Tuple
 
 import grpc
 
 from spell.driver.v1 import driver_pb2, driver_pb2_grpc
+from spell.driver.dss.v1 import dss_pb2
 
 from .driver_domain import (
     CONTRACT_MAJOR,
@@ -70,6 +73,45 @@ from .observation_domain import (
 MAX_MESSAGE_BYTES = 64 * 1024
 SERVER_AUTHORITY = "spell-driver"
 DRIVER_TARGET = "spell-driver:50051"
+
+
+def _dss_clock_binding(envelope: Any, value: Any) -> dict[str, Any]:
+    """Independently bind the additive clock claim to its exact binary TM."""
+    from dss.catalog import DATABASE_DIGEST, DATABASE_REVISION
+    from dss.packets import decode_packet, TM_APID
+
+    raw = bytes(envelope.telemetry_packet)
+    packet = decode_packet(raw)
+    body = packet.body
+    sequence = body.get("tm_sequence")
+    epoch = body.get("satellite_epoch")
+    if (hashlib.sha256(raw).hexdigest() != envelope.packet_sha256
+        or packet.packet_type != 0 or packet.apid != TM_APID
+        or type(sequence) is not int or not 1 <= sequence < 2**64
+        or packet.sequence != sequence & 0x3fff
+        or type(epoch) is not str or re.fullmatch(r"epoch-[0-9a-f]{64}", epoch) is None
+        or body.get("schema_version") != "openbexi.dss.tm/1"
+        or body.get("satellite_id") != "GENERIC"
+        or body.get("database_revision") != DATABASE_REVISION
+        or body.get("database_digest") != DATABASE_DIGEST
+        or body.get("source_id") != "dss-GENERIC"
+        or body.get("clock_provenance") != "dss-dynamics-clock"):
+        raise ValueError("DSS clock source packet identity differs")
+    for key in ("clock_epoch_unix_ns", "simulation_time_ns", "acquired_at_unix_ns", "clock_uncertainty_ns"):
+        if type(body.get(key)) is not int or not 0 <= body[key] < 2**63:
+            raise ValueError("DSS clock source packet time is invalid")
+    uncertainty = body.get("driver_time_uncertainty_ns", body["clock_uncertainty_ns"])
+    if (type(uncertainty) is not int or not 0 <= uncertainty <= 60_000_000_000
+        or value.time_unix_ns != body["clock_epoch_unix_ns"] + body["simulation_time_ns"]
+        or value.acquired_at_unix_ns != body["acquired_at_unix_ns"]
+        or value.uncertainty_ns != uncertainty
+        or value.clock_source != driver_pb2.CLOCK_SOURCE_SIMULATOR
+        or value.provenance != "dss-dynamics-clock"
+        or value.quality != driver_pb2.OBSERVATION_QUALITY_GOOD
+        or value.validity != driver_pb2.OBSERVATION_VALIDITY_VALID):
+        raise ValueError("DSS clock claim differs from its source packet")
+    return {"source_epoch": epoch, "source_sequence": sequence,
+            "source_packet_sha256": envelope.packet_sha256, "database_digest": DATABASE_DIGEST}
 
 
 class DriverTransportError(RuntimeError):
@@ -388,6 +430,8 @@ class DriverClient:
         self._channel = channel
         self._stub = driver_pb2_grpc.DriverInfrastructureServiceStub(channel)
         self._observation_stub = driver_pb2_grpc.DriverObservationServiceStub(channel)
+        from spell.driver.dss.v1 import dss_pb2_grpc
+        self._dss_stub = dss_pb2_grpc.DssServiceStub(channel)
         self._timeout_seconds = timeout_seconds
         self._credential_epoch = credential_epoch
         self._host_profile_digest = host_profile_digest
@@ -451,6 +495,11 @@ class DriverClient:
             (CONTRACT_MAJOR_METADATA, str(CONTRACT_MAJOR)),
             (CREDENTIAL_EPOCH_METADATA, str(self._credential_epoch)),
         )
+
+    async def dss_call(self, method: str, request: Any, *, timeout_seconds: float = 5.0) -> Any:
+        if method not in {"Health", "CommandStage", "PacketEvidence"}:
+            raise ValueError("unknown DSS method")
+        return await self._call(getattr(self._dss_stub, method), request, timeout_seconds=timeout_seconds)
 
     async def _call(
         self,
@@ -680,7 +729,7 @@ class DriverClient:
             raise DriverTransportError(error.code if error else "INTERNAL")
         return _operation(response.operation)
 
-    async def get_time(self, query: GetTimeQuery) -> GetTimeResult:
+    async def get_time(self, query: GetTimeQuery, *, dss: bool = False) -> GetTimeResult:
         remaining = (query.deadline_unix_ns - time.time_ns()) / 1_000_000_000
         if remaining <= 0:
             error = ObservationError(
@@ -690,14 +739,18 @@ class DriverClient:
             return GetTimeResult(error.code, error=error)
         try:
             response = await self._call(
-                self._observation_stub.GetTime,
-                driver_pb2.GetTimeRequest(identity=_observation_identity(query)),
+                self._dss_stub.ClockEvidence if dss else self._observation_stub.GetTime,
+                (dss_pb2.HealthRequest(identity=_observation_identity(query)) if dss
+                 else driver_pb2.GetTimeRequest(identity=_observation_identity(query))),
                 timeout_seconds=min(self._timeout_seconds, remaining),
             )
         except DriverTransportError as exc:
             error = _transport_observation_error(exc.code)
             return GetTimeResult(error.code, error=error)
         try:
+            envelope = response if dss else None
+            if dss:
+                response = envelope.time_response
             if (
                 response.contract_version.major != CONTRACT_MAJOR
                 or response.contract_version.minor > CONTRACT_MINOR
@@ -731,6 +784,7 @@ class DriverClient:
                         _enum_name(value, "validity"), "OBSERVATION_VALIDITY_"
                     )
                 ),
+                **(_dss_clock_binding(envelope, value) if dss else {}),
             )
             return GetTimeResult(code, observation=observation)
         except (KeyError, TypeError, ValueError):

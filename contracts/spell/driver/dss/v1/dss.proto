@@ -1,0 +1,114 @@
+syntax = "proto3";
+package spell.driver.dss.v1;
+
+import "spell/driver/v1/driver.proto";
+
+// Additive local-only DSS boundary. Authentication remains mutual TLS with the
+// existing gateway identity. No endpoint, credential, or source code is accepted.
+service DssService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc ClockEvidence(HealthRequest) returns (ClockEvidenceResponse);
+  rpc CommandStage(CommandStageRequest) returns (CommandStageResponse);
+  rpc PacketEvidence(PacketEvidenceRequest) returns (PacketEvidenceResponse);
+}
+message HealthRequest { spell.driver.v1.ObservationRequestIdentity identity = 1; }
+message ClockEvidenceResponse {
+  spell.driver.v1.GetTimeResponse time_response = 1;
+  bytes telemetry_packet = 2;
+  string packet_sha256 = 3;
+}
+message HealthResponse {
+  bool ready = 1;
+  string database_revision = 2;
+  string database_digest = 3;
+  string satellite_id = 4;
+  string satellite_epoch = 5;
+  string scenario_id = 6;
+  uint64 state_revision = 7;
+  uint64 tm_sequence = 8;
+  string status = 9;
+  uint64 simulation_time_ns = 10;
+  uint64 clock_epoch_unix_ns = 11;
+  uint64 dynamics_tick = 12;
+}
+message Argument {
+  string name = 1;
+  string value_type = 2;
+  string value_format = 3;
+  string radix = 4;
+  string encoded = 5;
+  oneof value {
+    sint64 integer_value = 6;
+    double float_value = 7;
+    bool boolean_value = 8;
+    string string_value = 9;
+  }
+}
+message CommandStageRequest {
+  spell.driver.v1.ObservationRequestIdentity identity = 1;
+  string database_revision = 2;
+  string database_digest = 3;
+  string satellite_id = 4;
+  string satellite_epoch = 5;
+  string scenario_id = 6;
+  string operation_id = 7;
+  string procedure_id = 8;
+  string execution_id = 9;
+  string plan_id = 10;
+  string element_id = 11;
+  string stage = 12;
+  string command_name = 13;
+  repeated Argument arguments = 14;
+  string command_digest = 15;
+  repeated CommandElement elements = 16;
+  repeated Verification verification = 17;
+  double tolerance = 18;
+  Scheduling scheduling = 19;
+}
+message Scheduling {
+  uint64 target_sim_time_ns = 1;
+  uint64 anchor_sim_time_ns = 2;
+  uint64 clock_epoch_unix_ns = 3;
+  optional string time = 4;
+  optional string release_time = 5;
+  uint64 send_delay_ms = 6;
+  uint64 delay_ms = 7;
+}
+message CommandElement {
+  string element_id = 1;
+  string command_name = 2;
+  repeated Argument arguments = 3;
+  string command_digest = 4;
+}
+message Verification {
+  string channel = 1;
+  string operator = 2;
+  Argument expected = 3;
+  optional double tolerance = 4;
+  optional uint64 timeout_ms = 5;
+}
+message CommandStageResponse {
+  bytes acknowledgement_packet = 1;
+  string command_packet_sha256 = 2;
+  string acknowledgement_packet_sha256 = 3;
+  string status = 4;
+}
+message PacketEvidenceRequest {
+  spell.driver.v1.ObservationRequestIdentity identity = 1;
+  string satellite_epoch = 2;
+  uint64 sequence = 3;
+  string operation_id = 4;
+  string packet_sha256 = 5;
+}
+message PacketEvidence {
+  bytes packet = 1;
+  string packet_sha256 = 2;
+  string topic = 3;
+  uint32 partition = 4;
+  uint64 offset = 5;
+  uint64 received_unix_ns = 6;
+}
+message PacketEvidenceResponse {
+  repeated PacketEvidence packets = 1;
+  string status = 2;
+}

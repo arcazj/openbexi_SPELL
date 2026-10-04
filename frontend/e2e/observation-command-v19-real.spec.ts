@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page, type Response, type TestInfo } from "@playwright/test";
 import { createHash } from "node:crypto";
+import { ensureDssObservationReady } from "./dss-readiness";
 
 test.skip(!process.env.SPELL_REAL_BACKEND, "requires the real local v0.19 simulator");
 test.setTimeout(180_000);
@@ -26,6 +27,12 @@ async function request<T>(page: Page, path: string, body?: unknown, token?: stri
     return response.json();
   }, { path, body, token }) as Promise<T>;
 }
+
+test.beforeEach(async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".connection-badge")).toHaveText("CONNECTED", { timeout: 20_000 });
+  await ensureDssObservationReady(page);
+});
 
 async function clickMutation(page: Page, suffix: string, button: Locator, method = "POST") {
   await expect(button).toBeEnabled();

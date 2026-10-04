@@ -25,7 +25,7 @@ test("opens the manual workspace directly and operates its compact procedure vie
     await expect(menu).not.toHaveAttribute("open", "");
   }
 
-  const option = page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option").first();
+  const option = page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option", { name: /^Language Reference 244 / });
   await option.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Select a SPELL 2.4.4 reference example" })).toBeVisible({ timeout: 20_000 });

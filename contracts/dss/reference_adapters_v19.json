@@ -1,0 +1,528 @@
+{
+  "command_mappings": [
+    {
+      "arguments": [
+        "ARG1",
+        "ARG2"
+      ],
+      "legacy_item": "TC.SIMULATOR.RESET",
+      "logical_labels_only": [
+        "resolved_from",
+        "supplied_as",
+        "argument_source",
+        "confirm",
+        "confirm_critical",
+        "monitoring"
+      ],
+      "operation": "Send",
+      "physical_command": "DSS.REFERENCE.SEND"
+    },
+    {
+      "arguments": {
+        "PARAMETER": "TMparam",
+        "VALUE": 23.0
+      },
+      "legacy_item": "TMparam",
+      "operation": "SetGroundParameter",
+      "physical_command": "DSS.REFERENCE.SET_GROUND"
+    }
+  ],
+  "declared_accelerated_simulation_scenarios": [
+    "adaptation:061",
+    "adaptation:062",
+    "adaptation:074",
+    "case:v18-relative-release-intent",
+    "case:v18-bounded-delay-and-timeout"
+  ],
+  "legacy_catalog_digest": "262a617704ae19c95fa6c7cbe7a74577fd4096bda941474052e657bfb54b9fc7",
+  "operations": {
+    "AND_OR": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "AbortRanging": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "AddSharedDataScope": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "AdjustLimits": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Arithmetic": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "BooleanExpression": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "BoundedFor": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "BoundedWhile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "BuildTC": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ClearSharedData": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ClearSharedDataScopes": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CloseDisplay": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CloseFile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CloseWorkspace": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CommandArguments": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CommentNoOp": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CompareMemoryImages": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ConditionalBlock": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ConditionalResult": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ContainerAccess": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "CreateDictionary": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DataContainer": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DataContainerVar": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DeleteFile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DelimitedContinuation": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DictionaryAssignment": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DictionaryData": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DismissUserAction": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Display": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DisplayStep": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "DynamicAssignments": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "EnableDisableAlarm": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "EnableDisableRanging": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "EnableDisableUserAction": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Event": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ExpectedDiagnostic": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ExplicitContinuation": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "FailureAction": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "File": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "FunctionDefaults": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "FunctionResult": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GenerateMemoryReport": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetLimits": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetRangingEquipment": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetRangingStatus": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetResource": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetSharedData": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetSharedDataInformation": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GetTM": {
+      "execution": "ACTUAL_TLM",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Goto": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GroundDatabaseMapping": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "GuardedRecovery": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "IfElifElse": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "IsAlarmed": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "KeywordParameters": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "LoadDictionary": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "LoadLimits": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "LocalFunction": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "MemoryLookup": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "MutableArgument": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "NestedCondition": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Notify": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "OnFalse": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "OpenDisplay": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "OpenFile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "OpenWorkspace": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "PrintDisplay": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ProcedureControlStates": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ProcedureDatabase": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ProcedureLibrary": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ProcedureLibraryCall": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Prompt": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ReadDirectory": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "ReadFile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "RestoreNormalLimits": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SCDBContains": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SCDBKeys": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SCDBLookup": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SaveDictionary": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Send": {
+      "execution": "ACTUAL_CMD",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetGetBasebandConfig": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetGroundParameter": {
+      "execution": "ACTUAL_CMD",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetLimits": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetResource": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetSharedData": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SetUserAction": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "SilentExecution": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "StartProc": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "StartRanging": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "StartRangingCalibration": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Step": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "StringConcatenation": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "StringExpression": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Substring": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "TMTCLookup": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "TestAndSetSharedData": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "TimeArithmetic": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "TimeFormat": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "VerificationFailureDetails": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "Verify": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "VerifyIgnoreCase": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "VerifyRetries": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "WaitFor": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "WaitForCondition": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "WaitProgressIntervals": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "WaitUntil": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    },
+    "WriteFile": {
+      "execution": "EXECUTED_LOCAL_ADAPTATION",
+      "physical_spacecraft_capability_claim": false
+    }
+  },
+  "raw_snippet_execution_claim": false,
+  "release": "v0.19.0",
+  "schema_version": "spell.dss.reference-adapters/1",
+  "scope": "Existing bounded local adaptations execute; CMD/TLM operations additionally use actual binary DSS drivers. Native language completeness is not implied.",
+  "telemetry_aliases": {
+    "TM.POWER.BUS_VOLTAGE": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TM.POWER.BUS_VOLTAGE",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TM.POWER.SAFE_MODE": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TM.POWER.SAFE_MODE",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TM.THERMAL.MODE": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TM.THERMAL.MODE",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TMparam": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TMparam",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TMparam1": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TMparam1",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TMparam2": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TMparam2",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "TMparam3": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "TMparam3",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "tm1": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "tm1",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    },
+    "tm2": {
+      "actual_time": "DSS_PACKET_ACQUISITION_AND_SIMULATION_TIME",
+      "integer_conversion": "EXACT_ONLY_WHEN_LEGACY_VALUE_IS_INTEGER",
+      "item_id": "tm2",
+      "logical_time": "REFERENCE_READ_ORDINAL"
+    }
+  }
+}

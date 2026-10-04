@@ -1,8 +1,8 @@
 """Closed observation, native Prompt/core and simulator command conformance.
 
 Qualification drives separate real workers across the production request/result
-validation and deterministic simulator service boundary. Interactive run-all
-uses isolated service objects: it never dispatches an outer procedure command.
+validation and deterministic simulator service boundary. Configured DSS run-all
+uses isolated inner workers with parent-brokered actual binary CMD/TLM.
 Durable supervisor authority, clocks and recovery have separate API/browser proofs.
 """
 from __future__ import annotations
@@ -22,6 +22,7 @@ from .language_observation_fixture_v19 import condition, ITEM_ID
 COVERAGE_PATH = ROOT / "contracts/v19/language_coverage.json"
 REPORT_SCHEMA = "spell.v19.language-conformance/1"
 CATALOG_PROFILES = tuple(sorted((
+    ("dss_command_catalog_v19", "0.11"),
     ("language_reference_244", "0.19"),
     ("observation_command_v19", "0.19"),
     ("observation_decision_v19", "0.19"),
@@ -79,7 +80,9 @@ def _new_case(identity: str, source: str, *, variables: dict | None = None, logs
 
 _HEADER = "# @language-profile spell-lrm244-conformance/0.19\n"
 _READ = f'reading: float = 0.0\nGetTM({ITEM_ID!r}, target=reading, scalar_type="float")\n'
-_VERIFY = f'status: str = ""\nVerify(condition={condition()!r}, target=status, timeout=0.1)\n'
+# These cases verify result semantics against the full committed satellite
+# snapshot; they do not assert a sub-100ms database response guarantee.
+_VERIFY = f'status: str = ""\nVerify(condition={condition()!r}, target=status, timeout=1.0)\n'
 _READ_FLOW = (_HEADER + 'reading: float = 0.0\nstatus: str = ""\nanswer: str = ""\n'
     + _READ.split('\n', 1)[1] + _VERIFY.split('\n', 1)[1] + 'WaitFor(seconds=0.001)\n'
     'if status == "TRUE" and reading >= 27.5:\n'
@@ -135,7 +138,7 @@ NEW_CASES = (
         logs=[("condition not met", "info")], observations=[_obs("GET_TM", "OK", 28.0),
             _obs("VERIFY", "INDETERMINATE"), _obs("WAIT_FOR", "SATISFIED")]),
     _new_case("verify-overwrites-prior-true", _HEADER + 'status: str = "TRUE"\n'
-        + f'Verify(condition={condition()!r}, target=status, timeout=0.01)\n'
+        + f'Verify(condition={condition()!r}, target=status, timeout=1.0)\n'
         + 'if status == "TRUE":\n    Send(command="CMDNAME")\n'
         + 'else:\n    Display("verification is indeterminate")\n',
         observation_input="stale", variables={"status": "INDETERMINATE"},

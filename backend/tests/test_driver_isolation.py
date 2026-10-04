@@ -407,6 +407,9 @@ def _docker_compose(
             "SPELL_ALLOW_LOCAL_DEV_TOKEN": "true",
             "SPELL_DB_PASSWORD": "compose-isolation-test",
             "SPELL_DRIVER_ENABLED": "true",
+            # Each security probe owns its satellite and must coexist with the
+            # qualified simulator's loopback TC listener.
+            "DSS_TC_PORT": "0",
             "SPELL_JWT_HS256_SECRET": "compose-isolation-test-secret-32-bytes",
         }
     )
