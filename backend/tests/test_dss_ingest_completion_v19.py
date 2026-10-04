@@ -197,20 +197,36 @@ def test_completion_keeps_duplicate_resync_and_generation_fences(observation_sto
 
 @pytest.mark.parametrize("dss", [False, True])
 def test_only_dss_collector_requests_completion_and_still_commits(observation_store, monkeypatch, dss):
+    from dataclasses import replace
+    from backend.tests.test_dss_collector_lifecycle_v19 import unavailable_time
     legacy, factory, generation, clock = observation_store
     repository = configured(observation_store)[0] if dss else legacy
     value = dss_sample(generation, clock) if dss else sample(generation,
         sequence=1, engineering=28.0, observation_number=29006)
-    options, original = [], repository.ingest_sample
+    options, cohorts = [], []
+    original_single, original_batch = repository.ingest_sample, repository.ingest_samples
     def ingest(value, **kwargs):
         options.append(kwargs.copy())
-        return original(value, **kwargs)
+        return original_single(value, **kwargs)
+    def ingest_batch(entries):
+        cohorts.append(entries)
+        return original_batch(entries)
     monkeypatch.setattr(repository, "ingest_sample", ingest)
+    monkeypatch.setattr(repository, "ingest_samples", ingest_batch)
     async def get_tm(_query): return GetTMResult(ObservationResultCode.OK, sample=value)
-    runtime = ObservationRuntime(repository, get_tm=get_tm)
-    assert asyncio.run(runtime._collect_item(generation, value.sample_identity.item_id, 1, cursor=None)) == 1
-    assert options == [{"mode": GetTMMode.CURRENT, "resynchronized": True,
-        **({"include_projection": False} if dss else {})}]
+    runtime = ObservationRuntime(repository, get_tm=get_tm, get_time=unavailable_time,
+        generation_provider=lambda: {"host": replace(generation, context_id="",
+            context_generation="", context_binding_digest=""),
+            "contexts": (generation,), "credential_epoch": 1},
+        item_ids=(value.sample_identity.item_id,))
+    assert asyncio.run(runtime.collect_once()) == 1
+    if dss:
+        assert options == [] and len(cohorts) == 1
+        assert [(entry.sample, entry.mode, entry.resynchronized) for entry in cohorts[0]] == [
+            (value, GetTMMode.CURRENT, True)]
+    else:
+        assert cohorts == []
+        assert options == [{"mode": GetTMMode.CURRENT, "resynchronized": True}]
     result = repository.snapshot("simulator")["items"][0]
     assert result["sample_id"] == value.sample_identity.sample_id
     assert result["freshness"] == "FRESH"

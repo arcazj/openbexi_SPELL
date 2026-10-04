@@ -26,6 +26,7 @@ def install_clock(monkeypatch, now, sleep):
         monotonic=lambda: now[0], time_ns=lambda: int(now[0] * 1_000_000_000)))
     monkeypatch.setattr(observation_service, "asyncio", SimpleNamespace(
         sleep=sleep, gather=asyncio.gather, to_thread=asyncio.to_thread,
+        create_task=asyncio.create_task, shield=asyncio.shield,
         CancelledError=asyncio.CancelledError))
 
 
@@ -46,25 +47,25 @@ def test_continuous_22_item_next_history_stays_fresh_beyond_legacy_lag_threshold
     base_by_item = {value.sample_identity.item_id: value for value in bases}
     received, queries, sleeps, errors = [], [], [], []
     store_lock = threading.Lock()
-    original_ingest = repository.ingest_sample
+    original_ingest = repository._ingest_sample_in_session
 
     def advance(seconds):
         now[0] += seconds
         clock[0] = base_ns + round(now[0] * 1_000_000_000)
 
-    def ingest(value, **kwargs):
+    def ingest(session, value, **kwargs):
         # Deterministic 0.89-second full cohort cost models serialized storage
-        # work. The real repository still commits every item/cursor/alarm and
-        # applies its unchanged five-second acquisition freshness policy.
+        # work. The real repository still persists every item/cursor/alarm in
+        # the cohort commit and applies its unchanged acquisition freshness.
         with store_lock:
-            result = original_ingest(value, **kwargs)
+            result = original_ingest(session, value, **kwargs)
             advance(0.89 / 22)
             received.append((value.sample_identity.item_id,
                 value.sample_identity.source_sequence, value.sample_identity.sample_id,
                 (clock[0] - value.acquired_at_unix_ns) / 1_000_000_000))
             return result
 
-    monkeypatch.setattr(repository, "ingest_sample", ingest)
+    monkeypatch.setattr(repository, "_ingest_sample_in_session", ingest)
     monkeypatch.setattr(repository, "_database_now", lambda session:
         datetime.fromtimestamp(clock[0] / 1_000_000_000, tz=timezone.utc))
 

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from backend.observation_domain import GetTimeResult, ObservationError, ObservationResultCode
+from backend.observation_domain import GetTMMode, GetTimeResult, ObservationError, ObservationResultCode
 from backend.observation_repository import ObservationConflictError
 from backend.observation_service import ObservationRuntime
 from backend.tests.test_driver_client_observation import generations
@@ -30,7 +30,7 @@ def test_failed_epoch_batch_settles_peers_before_next_collector_poll(dss):
             if len(calls) > 2:
                 assert settled == ["peer-committed-or-rejected"]
                 next_cohort.set()
-                return 0
+                return ((context.context_generation, item_id), GetTMMode.NEXT, False, None) if dss else 0
             if item_id == "retired-epoch":
                 await peer_entered.wait()
                 failed.set()
@@ -38,8 +38,11 @@ def test_failed_epoch_batch_settles_peers_before_next_collector_poll(dss):
             peer_entered.set()
             await finish_peer.wait()
             settled.append("peer-committed-or-rejected")
-            return 1
-        runtime._collect_item = collect_item
+            return ((context.context_generation, item_id), GetTMMode.NEXT, False, None) if dss else 1
+        if dss:
+            runtime._request_item = collect_item
+        else:
+            runtime._collect_item = collect_item
         task = asyncio.create_task(runtime._run_collector())
         try:
             await asyncio.wait_for(failed.wait(), 1)
@@ -74,8 +77,8 @@ def test_collect_once_reports_failure_only_after_all_dispatched_items_settle():
             peer_started.set()
             await release.wait()
             settled.append(True)
-            return 1
-        runtime._collect_item = collect_item
+            return ((context.context_generation, item_id), GetTMMode.NEXT, False, None)
+        runtime._request_item = collect_item
         batch = asyncio.create_task(runtime.collect_once())
         await asyncio.wait_for(peer_started.wait(), 1)
         await asyncio.sleep(0)

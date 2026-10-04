@@ -17,7 +17,7 @@ from .observation_domain import (
     GetTimeResult,
     ObservationResultCode,
 )
-from .observation_repository import MAX_NOTIFICATION_ACKNOWLEDGEMENTS, OBSERVATION_STREAM, ObservationRepository, ObservationStaleGenerationError
+from .observation_repository import DssSampleAdmission, MAX_NOTIFICATION_ACKNOWLEDGEMENTS, OBSERVATION_STREAM, ObservationRepository, ObservationStaleGenerationError
 
 
 OBSERVATION_ITEM_IDS = (
@@ -214,6 +214,8 @@ class ObservationRuntime:
                 for row in rows:
                     by_item.setdefault(row["item_id"], row)
                 cursors[context.context_generation] = by_item
+            if self.repository.dss_enabled:
+                return await self._collect_dss_items(contexts, cursors, credential_epoch)
             outcomes = await asyncio.gather(*(
                 self._collect_item(context, item_id, credential_epoch,
                     cursor=cursors[context.context_generation].get(item_id))
@@ -237,7 +239,8 @@ class ObservationRuntime:
                 contexts[0].context_generation if contexts else None
             )
             try:
-                await self._measure("clock_commit", asyncio.to_thread,
+                await self._measure("clock_commit",
+                    self._joined_dss_write if self.repository.dss_enabled else asyncio.to_thread,
                     self.repository.record_time,
                     time_result.observation,
                     context_generation_id=context_generation_id,
@@ -251,10 +254,10 @@ class ObservationRuntime:
         self._collected_samples = sum(results)
         return collected + self._collected_samples
 
-    async def _collect_item(
+    async def _request_item(
         self, generations: Any, item_id: str, credential_epoch: int,
         *, cursor: dict[str, Any] | None,
-    ) -> int:
+    ):
         assert self.get_tm is not None
         key = (generations.context_generation, item_id)
         use_current = (
@@ -280,10 +283,19 @@ class ObservationRuntime:
             credential_epoch=credential_epoch,
         )
         result = await self._measure("sample_rpc", self.get_tm, query)
+        if type(result) is GetTMResult:
+            codes = self._collection_metrics.setdefault("result_codes", {})
+            codes[result.code.value] = codes.get(result.code.value, 0) + 1
+        return key, mode, use_current, result
+
+    async def _collect_item(
+        self, generations: Any, item_id: str, credential_epoch: int,
+        *, cursor: dict[str, Any] | None,
+    ) -> int:
+        key, mode, use_current, result = await self._request_item(
+            generations, item_id, credential_epoch, cursor=cursor)
         if type(result) is not GetTMResult:
             return 0
-        codes = self._collection_metrics.setdefault("result_codes", {})
-        codes[result.code.value] = codes.get(result.code.value, 0) + 1
         if result.code is ObservationResultCode.OK and result.sample is not None:
             await self._measure("sample_commit", asyncio.to_thread,
                 self.repository.ingest_sample,
@@ -307,6 +319,70 @@ class ObservationRuntime:
         elif result.code is ObservationResultCode.STALE_GENERATION:
             self._force_current.add(key)
         return 0
+
+    async def _joined_dss_write(self, callback, *args, **kwargs):
+        # A cancellation cannot abandon a repository thread that may commit.
+        # Join it, then preserve cancellation without advancing the collector.
+        task = asyncio.create_task(asyncio.to_thread(callback, *args, **kwargs))
+        cancellation = None
+        while True:
+            try:
+                result = await asyncio.shield(task)
+                break
+            except asyncio.CancelledError as exc:
+                cancellation = cancellation or exc
+                if task.done():
+                    try:
+                        task.result()
+                    except BaseException:
+                        pass
+                    raise cancellation
+            except BaseException:
+                if cancellation is not None:
+                    raise cancellation
+                raise
+        if cancellation is not None:
+            raise cancellation
+        return result
+
+    async def _collect_dss_items(self, contexts, cursors, credential_epoch):
+        members = [(context, item_id, cursors[context.context_generation].get(item_id))
+            for context in contexts for item_id in self.item_ids]
+        outcomes = await asyncio.gather(*(
+            self._request_item(context, item_id, credential_epoch, cursor=cursor)
+            for context, item_id, cursor in members), return_exceptions=True)
+        # No database admission starts until every actual RPC has settled.
+        for outcome in outcomes:
+            if isinstance(outcome, BaseException):
+                raise outcome
+        collected = []
+        for context in contexts:
+            group = [(member, outcome) for member, outcome in zip(members, outcomes)
+                if member[0].context_generation == context.context_generation]
+            successful = [(outcome[0], DssSampleAdmission(outcome[3].sample,
+                outcome[1], outcome[2])) for _, outcome in group
+                if type(outcome[3]) is GetTMResult
+                and outcome[3].code is ObservationResultCode.OK
+                and outcome[3].sample is not None]
+            if successful:
+                count = await self._measure("sample_commit", self._joined_dss_write,
+                    self.repository.ingest_samples, tuple(entry for _, entry in successful))
+                # Only a completed, successful commit authorizes cursor progress.
+                for key, _entry in successful:
+                    self._force_current.discard(key)
+                collected.append(count)
+            for (generations, item_id, cursor), (key, _mode, _current, result) in group:
+                if type(result) is not GetTMResult:
+                    continue
+                if result.code is ObservationResultCode.GAP and result.gap is not None:
+                    if cursor is not None and result.gap.source_epoch == cursor["source_epoch"]:
+                        await self._measure("gap_commit", self._joined_dss_write,
+                            self.repository.record_gap, generations,
+                            source_id=cursor["source_id"], item_id=item_id, bounds=result.gap)
+                    self._force_current.add(key)
+                elif result.code is ObservationResultCode.STALE_GENERATION:
+                    self._force_current.add(key)
+        return collected
 
     async def _run_projection(self) -> None:
         loop = asyncio.get_running_loop()

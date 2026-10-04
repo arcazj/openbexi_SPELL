@@ -43,6 +43,7 @@ interface ConsoleState {
   dockTab: DockTab;
   loading: boolean;
   pendingAction: string | null;
+  pendingPromptRequestId: string | null;
   error: string | null;
 }
 
@@ -72,6 +73,7 @@ const initialState: ConsoleState = {
   dockTab: "telemetry",
   loading: false,
   pendingAction: null,
+  pendingPromptRequestId: null,
   error: null,
 };
 
@@ -430,12 +432,18 @@ const consoleSlice = createSlice({
         state.pendingAction = null;
         state.error = action.error.message ?? "Execution command was rejected";
       })
-      .addCase(answerPrompt.pending, (state) => {
+      .addCase(answerPrompt.pending, (state, action) => {
         state.pendingAction = "PROMPT_RESPONSE";
+        state.pendingPromptRequestId = action.meta.requestId;
         state.error = null;
       })
       .addCase(answerPrompt.fulfilled, (state, action) => {
-        state.pendingAction = null;
+        if (state.pendingPromptRequestId === action.meta.requestId) {
+          if (state.pendingAction === "PROMPT_RESPONSE") state.pendingAction = null;
+          state.pendingPromptRequestId = null;
+        }
+        const active = state.execution?.active_prompt;
+        if (active?.id !== action.meta.arg.promptId || active.revision !== action.meta.arg.revision) return;
         const promptState = String(action.payload.prompt?.state ?? "").toUpperCase();
         const attemptOutcome = String(action.payload.attempt?.outcome ?? "").toUpperCase();
         if (promptState === "SETTLED" || attemptOutcome === "ACCEPTED_SETTLEMENT") {
@@ -446,7 +454,12 @@ const consoleSlice = createSlice({
         }
       })
       .addCase(answerPrompt.rejected, (state, action) => {
-        state.pendingAction = null;
+        if (state.pendingPromptRequestId === action.meta.requestId) {
+          if (state.pendingAction === "PROMPT_RESPONSE") state.pendingAction = null;
+          state.pendingPromptRequestId = null;
+        }
+        const active = state.execution?.active_prompt;
+        if (active?.id !== action.meta.arg.promptId || active.revision !== action.meta.arg.revision) return;
         state.error = action.error.message ?? "Prompt response was rejected";
       })
       .addCase(loadReport.pending, (state) => {

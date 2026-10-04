@@ -45,6 +45,11 @@ receives an explicit gap with available bounds; CURRENT resynchronizes to the
 latest received sample. The full packet ledger remains available for audit and
 command-effect evidence.
 
+The DSS collector groups up to 128 OK telemetry replies for one context and
+physical epoch in one transaction. Each sample retains its checks, cursor,
+alarm and event history. A conflict rolls back the cohort; its clock is admitted
+only after telemetry commits.
+
 DSS clock observations bind to the exact decoded telemetry packet and its epoch.
 A reset retires the current clock head; historical observations remain available.
 The new clock becomes visible after telemetry admits the new epoch. Time must

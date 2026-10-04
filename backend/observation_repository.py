@@ -6,6 +6,7 @@ import re
 import threading
 import time
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable
@@ -73,6 +74,13 @@ _BUNDLED_ITEM_BY_ID = {item.item_id: item for item in BUNDLED_CATALOG_ITEMS}
 _SOURCE_EPOCH = re.compile(r"^epoch-[0-9a-f]{64}$")
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+
+
+@dataclass(frozen=True)
+class DssSampleAdmission:
+    sample: DomainTelemetrySample
+    mode: GetTMMode
+    resynchronized: bool
 
 
 class ObservationRepositoryError(RuntimeError):
@@ -301,6 +309,18 @@ class ObservationRepository:
                 session.rollback()
                 raise
 
+    def _validate_sample_admission(self, sample, mode, resynchronized) -> None:
+        if type(sample) is not DomainTelemetrySample:
+            raise ObservationValidationError("sample must be a DriverTelemetrySample")
+        if type(mode) is not GetTMMode:
+            raise ObservationValidationError("mode must be a GetTMMode")
+        if type(resynchronized) is not bool:
+            raise ObservationValidationError("resynchronized must be boolean")
+        if self.dss_enabled:
+            self._validate_dss_sample(sample)
+        else:
+            self._validate_bundled_sample(sample)
+
     def ingest_sample(
         self,
         sample: DomainTelemetrySample,
@@ -309,131 +329,103 @@ class ObservationRepository:
         resynchronized: bool = False,
         include_projection: bool = True,
     ) -> dict[str, Any] | None:
-        if type(sample) is not DomainTelemetrySample:
-            raise ObservationValidationError("sample must be a DriverTelemetrySample")
-        if type(mode) is not GetTMMode:
-            raise ObservationValidationError("mode must be a GetTMMode")
-        if type(resynchronized) is not bool:
-            raise ObservationValidationError("resynchronized must be boolean")
+        self._validate_sample_admission(sample, mode, resynchronized)
         if type(include_projection) is not bool:
             raise ObservationValidationError("include_projection must be boolean")
-        if self.dss_enabled:
-            self._validate_dss_sample(sample)
-        else:
-            self._validate_bundled_sample(sample)
         received_ns = self._receive_time_ns()
-        received_at = _database_time(received_ns)
-        payload = self._sample_payload(sample)
-        payload_digest = _canonical_digest(payload)
-        identity = sample.sample_identity
-
         with self._timings.operation("ingest", self._lock, self.session_factory) as session:
             try:
-                _host, context = self._require_context(
-                    session, sample.generations, lock=True
-                )
-                stream = self._stream(session, context.id, create=True, lock=True)
-                assert stream is not None
-                policy = session.get(
-                    ObservationFreshnessPolicy, DEFAULT_POLICY_DEFINITION_ID
-                )
-                if policy is None:
-                    raise ObservationConflictError(
-                        "the pinned freshness policy is unavailable"
-                    )
+                row, changed = self._ingest_sample_in_session(session, sample,
+                    mode=mode, resynchronized=resynchronized, received_ns=received_ns)
+                if changed:
+                    session.commit()
+                return self._sample_projection(session, row) if include_projection else None
+            except IntegrityError as exc:
+                session.rollback()
+                raise ObservationConflictError(
+                    "sample conflicts with durable projection state"
+                ) from exc
+            except Exception:
+                session.rollback()
+                raise
 
-                if self.dss_enabled:
-                    self._fence_dss_epoch(session, context.id, stream, identity.source_epoch, received_at)
+    def ingest_samples(self, admissions: tuple[DssSampleAdmission, ...]) -> int:
+        """Commit one bounded DSS context cohort, retaining every sample/event."""
+        if not self.dss_enabled:
+            raise ObservationValidationError("cohort admission requires the DSS profile")
+        if type(admissions) is not tuple or not 1 <= len(admissions) <= MAX_SNAPSHOT_ITEMS:
+            raise ObservationValidationError("DSS cohort must contain one to 128 admissions")
+        prepared = []
+        generations = epoch = None
+        items, samples, observations = set(), set(), set()
+        for entry in admissions:
+            if type(entry) is not DssSampleAdmission:
+                raise ObservationValidationError("DSS cohort entry must be a DssSampleAdmission")
+            self._validate_sample_admission(entry.sample, entry.mode, entry.resynchronized)
+            value, identity = entry.sample, entry.sample.sample_identity
+            if generations is None:
+                generations, epoch = value.generations, identity.source_epoch
+            elif value.generations != generations or identity.source_epoch != epoch:
+                raise ObservationValidationError("DSS cohort generations and source epoch must agree")
+            if (identity.item_id in items or identity.sample_id in samples
+                    or value.observation_id in observations):
+                raise ObservationValidationError("DSS cohort members must have unique identities")
+            items.add(identity.item_id)
+            samples.add(identity.sample_id)
+            observations.add(value.observation_id)
+            # The repository owns receipt time, captured before queueing on its
+            # lock. No caller timestamp or eventual commit time grants freshness.
+            prepared.append((entry, self._receive_time_ns()))
+        with self._timings.operation("ingest", self._lock, self.session_factory) as session:
+            try:
+                for entry, received_ns in prepared:
+                    self._ingest_sample_in_session(session, entry.sample,
+                        mode=entry.mode, resynchronized=entry.resynchronized,
+                        received_ns=received_ns)
+                session.commit()
+                return len(prepared)
+            except IntegrityError as exc:
+                session.rollback()
+                raise ObservationConflictError(
+                    "sample conflicts with durable projection state"
+                ) from exc
+            except Exception:
+                session.rollback()
+                raise
 
-                existing = session.get(TelemetrySample, identity.sample_id)
-                if existing is not None:
-                    if (
-                        existing.payload_digest != payload_digest
-                        or existing.context_generation_id != context.id
-                    ):
-                        raise ObservationConflictError(
-                            "sample identity was reused with different content"
-                        )
-                    if mode is GetTMMode.CURRENT and resynchronized:
-                        cursor = session.scalar(
-                            select(TelemetrySourceCursor)
-                            .where(
-                                TelemetrySourceCursor.context_generation_id == context.id,
-                                TelemetrySourceCursor.source_id == identity.source_id,
-                                TelemetrySourceCursor.item_id == identity.item_id,
-                            )
-                            .with_for_update()
-                        )
-                        head = session.scalar(
-                            select(TelemetryItemHead)
-                            .where(
-                                TelemetryItemHead.context_generation_id == context.id,
-                                TelemetryItemHead.item_id == identity.item_id,
-                            )
-                            .with_for_update()
-                        )
-                        if (
-                            cursor is None
-                            or head is None
-                            or cursor.source_epoch != identity.source_epoch
-                            or cursor.source_sequence != identity.source_sequence
-                            or head.sample_id != existing.id
-                        ):
-                            raise ObservationConflictError(
-                                "resynchronized CURRENT sample is not the durable source head"
-                            )
-                        if cursor.synchronization_state == "GAPPED":
-                            cursor.synchronization_state = "COMPLETE"
-                            cursor.revision += 1
-                            cursor.updated_at = received_at
-                            head.synchronization_state = "COMPLETE"
-                            head.revision += 1
-                            head.updated_at = received_at
-                            for prior_gap in session.scalars(
-                                select(TelemetryGap)
-                                .where(
-                                    TelemetryGap.context_generation_id == context.id,
-                                    TelemetryGap.source_id == identity.source_id,
-                                    TelemetryGap.item_id == identity.item_id,
-                                    TelemetryGap.state == "OPEN",
-                                )
-                                .with_for_update()
-                            ):
-                                prior_gap.state = "RESOLVED"
-                                prior_gap.resolved_at = received_at
-                                prior_gap.resolution_sample_id = existing.id
-                            self._emit(
-                                session,
-                                stream,
-                                event_type="telemetry.sample_observed",
-                                aggregate_type="telemetry_sample",
-                                aggregate_id=existing.id,
-                                data={
-                                    **self._sample_dict(existing, head),
-                                    "current_head_revision": head.revision,
-                                    "resynchronized": True,
-                                },
-                                created_at=received_at,
-                            )
-                            self._evaluate_alarm(
-                                session,
-                                stream,
-                                existing,
-                                head,
-                                evaluated_at=self._database_now(session),
-                            )
-                            session.commit()
-                    return self._sample_projection(session, existing) if include_projection else None
-                reused_observation = session.scalar(
-                    select(TelemetrySample).where(
-                        TelemetrySample.observation_id == sample.observation_id
-                    )
+    def _ingest_sample_in_session(self, session: Session, sample: DomainTelemetrySample,
+        *, mode: GetTMMode, resynchronized: bool, received_ns: int,
+    ) -> tuple[TelemetrySample, bool]:
+        received_at = _database_time(received_ns)
+        payload_digest = _canonical_digest(self._sample_payload(sample))
+        identity = sample.sample_identity
+        _host, context = self._require_context(
+            session, sample.generations, lock=True
+        )
+        stream = self._stream(session, context.id, create=True, lock=True)
+        assert stream is not None
+        policy = session.get(
+            ObservationFreshnessPolicy, DEFAULT_POLICY_DEFINITION_ID
+        )
+        if policy is None:
+            raise ObservationConflictError(
+                "the pinned freshness policy is unavailable"
+            )
+
+        if self.dss_enabled:
+            self._fence_dss_epoch(session, context.id, stream, identity.source_epoch, received_at)
+
+        existing = session.get(TelemetrySample, identity.sample_id)
+        if existing is not None:
+            if (
+                existing.payload_digest != payload_digest
+                or existing.context_generation_id != context.id
+            ):
+                raise ObservationConflictError(
+                    "sample identity was reused with different content"
                 )
-                if reused_observation is not None:
-                    raise ObservationConflictError(
-                        "observation identity was reused for another sample"
-                    )
-
+            changed = False
+            if mode is GetTMMode.CURRENT and resynchronized:
                 cursor = session.scalar(
                     select(TelemetrySourceCursor)
                     .where(
@@ -451,117 +443,24 @@ class ObservationRepository:
                     )
                     .with_for_update()
                 )
-                gap: tuple[int, int] | None = None
-                synchronization_state = "COMPLETE"
-                if cursor is not None:
-                    if cursor.source_epoch != identity.source_epoch:
-                        if mode is not GetTMMode.CURRENT or not resynchronized:
-                            raise ObservationConflictError(
-                                "source epoch replacement requires a resynchronized CURRENT sample"
-                            )
-                    else:
-                        if identity.source_sequence <= cursor.source_sequence:
-                            raise ObservationConflictError(
-                                "source sequence regressed or reused without identical content"
-                            )
-                        expected = cursor.source_sequence + 1
-                        if identity.source_sequence > expected and not (
-                            mode is GetTMMode.CURRENT and resynchronized
-                        ):
-                            gap = (expected, identity.source_sequence)
-                            synchronization_state = "GAPPED"
-                        elif cursor.synchronization_state == "GAPPED" and not resynchronized:
-                            synchronization_state = "GAPPED"
-
-                freshness, fresh_until = self._freshness(
-                    sample.acquired_at_unix_ns,
-                    received_ns,
-                    sample.clock_uncertainty_ns,
-                    sample.clock_provenance,
-                    policy,
-                )
-                row = TelemetrySample(
-                    id=identity.sample_id,
-                    observation_id=sample.observation_id,
-                    host_generation_id=sample.generations.driver_host_generation,
-                    context_generation_id=context.id,
-                    payload_digest=payload_digest,
-                    item_id=identity.item_id,
-                    qualified_name=sample.item_identity.qualified_name,
-                    catalog_digest=sample.item_identity.catalog_digest,
-                    source_id=identity.source_id,
-                    source_epoch=identity.source_epoch,
-                    source_sequence=identity.source_sequence,
-                    raw_value=self._scalar_dict(sample.raw_value),
-                    engineering_value=self._scalar_dict(sample.engineering_value),
-                    description=sample.description,
-                    unit=sample.unit,
-                    acquired_at_unix_ns=sample.acquired_at_unix_ns,
-                    received_at_unix_ns=received_ns,
-                    received_at=received_at,
-                    source=sample.source,
-                    clock_provenance=sample.clock_provenance,
-                    clock_uncertainty_ns=sample.clock_uncertainty_ns,
-                    validity=sample.validity.value,
-                    quality=sample.quality.value,
-                    quality_reason=sample.quality_reason,
-                    freshness=freshness,
-                    freshness_policy_id=policy.id,
-                    freshness_policy_revision=policy.revision,
-                    fresh_until_unix_ns=fresh_until,
-                )
-                session.add(row)
-                session.flush()
-
-                if cursor is None:
-                    cursor = TelemetrySourceCursor(
-                        context_generation_id=context.id,
-                        source_id=identity.source_id,
-                        item_id=identity.item_id,
-                        source_epoch=identity.source_epoch,
-                        source_sequence=identity.source_sequence,
-                        sample_id=row.id,
-                        synchronization_state=synchronization_state,
-                        revision=0,
-                        updated_at=received_at,
+                if (
+                    cursor is None
+                    or head is None
+                    or cursor.source_epoch != identity.source_epoch
+                    or cursor.source_sequence != identity.source_sequence
+                    or head.sample_id != existing.id
+                ):
+                    raise ObservationConflictError(
+                        "resynchronized CURRENT sample is not the durable source head"
                     )
-                    session.add(cursor)
-                else:
-                    cursor.source_epoch = identity.source_epoch
-                    cursor.source_sequence = identity.source_sequence
-                    cursor.sample_id = row.id
-                    cursor.synchronization_state = synchronization_state
+                if cursor.synchronization_state == "GAPPED":
+                    cursor.synchronization_state = "COMPLETE"
                     cursor.revision += 1
                     cursor.updated_at = received_at
-
-                if head is None:
-                    head = TelemetryItemHead(
-                        context_generation_id=context.id,
-                        item_id=identity.item_id,
-                        sample_id=row.id,
-                        catalog_digest=row.catalog_digest,
-                        source_id=row.source_id,
-                        source_epoch=row.source_epoch,
-                        source_sequence=row.source_sequence,
-                        freshness=freshness,
-                        synchronization_state=synchronization_state,
-                        revision=0,
-                        updated_at=received_at,
-                    )
-                    session.add(head)
-                else:
-                    head.sample_id = row.id
-                    head.catalog_digest = row.catalog_digest
-                    head.source_id = row.source_id
-                    head.source_epoch = row.source_epoch
-                    head.source_sequence = row.source_sequence
-                    head.freshness = freshness
-                    head.synchronization_state = synchronization_state
+                    head.synchronization_state = "COMPLETE"
                     head.revision += 1
                     head.updated_at = received_at
-
-                if resynchronized:
-                    open_gaps = session.scalars(
+                    for prior_gap in session.scalars(
                         select(TelemetryGap)
                         .where(
                             TelemetryGap.context_generation_id == context.id,
@@ -570,72 +469,232 @@ class ObservationRepository:
                             TelemetryGap.state == "OPEN",
                         )
                         .with_for_update()
-                    ).all()
-                    for prior_gap in open_gaps:
+                    ):
                         prior_gap.state = "RESOLVED"
                         prior_gap.resolved_at = received_at
-                        prior_gap.resolution_sample_id = row.id
-
-                session.flush()
-                if gap is not None:
-                    gap_row = TelemetryGap(
-                        context_generation_id=context.id,
-                        source_id=row.source_id,
-                        item_id=row.item_id,
-                        source_epoch=row.source_epoch,
-                        expected_sequence=gap[0],
-                        observed_sequence=gap[1],
-                        state="OPEN",
-                        detected_at=received_at,
-                    )
-                    session.add(gap_row)
-                    session.flush()
+                        prior_gap.resolution_sample_id = existing.id
                     self._emit(
                         session,
                         stream,
-                        event_type="telemetry.gap_detected",
-                        aggregate_type="telemetry_item",
-                        aggregate_id=row.item_id,
+                        event_type="telemetry.sample_observed",
+                        aggregate_type="telemetry_sample",
+                        aggregate_id=existing.id,
                         data={
-                            "gap_id": gap_row.id,
-                            "context_generation_id": context.id,
-                            "item_id": row.item_id,
-                            "source_id": row.source_id,
-                            "source_epoch": row.source_epoch,
-                            "expected_source_sequence": str(gap[0]),
-                            "observed_source_sequence": str(gap[1]),
+                            **self._sample_dict(existing, head),
+                            "current_head_revision": head.revision,
+                            "resynchronized": True,
                         },
                         created_at=received_at,
                     )
+                    self._evaluate_alarm(
+                        session,
+                        stream,
+                        existing,
+                        head,
+                        evaluated_at=self._database_now(session),
+                    )
+                    changed = True
+            return existing, changed
+        reused_observation = session.scalar(
+            select(TelemetrySample).where(
+                TelemetrySample.observation_id == sample.observation_id
+            )
+        )
+        if reused_observation is not None:
+            raise ObservationConflictError(
+                "observation identity was reused for another sample"
+            )
 
-                self._emit(
-                    session,
-                    stream,
-                    event_type="telemetry.sample_observed",
-                    aggregate_type="telemetry_sample",
-                    aggregate_id=row.id,
-                    data={
-                        **self._sample_dict(row, head),
-                        "current_head_revision": head.revision,
-                    },
-                    created_at=received_at,
+        cursor = session.scalar(
+            select(TelemetrySourceCursor)
+            .where(
+                TelemetrySourceCursor.context_generation_id == context.id,
+                TelemetrySourceCursor.source_id == identity.source_id,
+                TelemetrySourceCursor.item_id == identity.item_id,
+            )
+            .with_for_update()
+        )
+        head = session.scalar(
+            select(TelemetryItemHead)
+            .where(
+                TelemetryItemHead.context_generation_id == context.id,
+                TelemetryItemHead.item_id == identity.item_id,
+            )
+            .with_for_update()
+        )
+        gap: tuple[int, int] | None = None
+        synchronization_state = "COMPLETE"
+        if cursor is not None:
+            if cursor.source_epoch != identity.source_epoch:
+                if mode is not GetTMMode.CURRENT or not resynchronized:
+                    raise ObservationConflictError(
+                        "source epoch replacement requires a resynchronized CURRENT sample"
+                    )
+            else:
+                if identity.source_sequence <= cursor.source_sequence:
+                    raise ObservationConflictError(
+                        "source sequence regressed or reused without identical content"
+                    )
+                expected = cursor.source_sequence + 1
+                if identity.source_sequence > expected and not (
+                    mode is GetTMMode.CURRENT and resynchronized
+                ):
+                    gap = (expected, identity.source_sequence)
+                    synchronization_state = "GAPPED"
+                elif cursor.synchronization_state == "GAPPED" and not resynchronized:
+                    synchronization_state = "GAPPED"
+
+        freshness, fresh_until = self._freshness(
+            sample.acquired_at_unix_ns,
+            received_ns,
+            sample.clock_uncertainty_ns,
+            sample.clock_provenance,
+            policy,
+        )
+        row = TelemetrySample(
+            id=identity.sample_id,
+            observation_id=sample.observation_id,
+            host_generation_id=sample.generations.driver_host_generation,
+            context_generation_id=context.id,
+            payload_digest=payload_digest,
+            item_id=identity.item_id,
+            qualified_name=sample.item_identity.qualified_name,
+            catalog_digest=sample.item_identity.catalog_digest,
+            source_id=identity.source_id,
+            source_epoch=identity.source_epoch,
+            source_sequence=identity.source_sequence,
+            raw_value=self._scalar_dict(sample.raw_value),
+            engineering_value=self._scalar_dict(sample.engineering_value),
+            description=sample.description,
+            unit=sample.unit,
+            acquired_at_unix_ns=sample.acquired_at_unix_ns,
+            received_at_unix_ns=received_ns,
+            received_at=received_at,
+            source=sample.source,
+            clock_provenance=sample.clock_provenance,
+            clock_uncertainty_ns=sample.clock_uncertainty_ns,
+            validity=sample.validity.value,
+            quality=sample.quality.value,
+            quality_reason=sample.quality_reason,
+            freshness=freshness,
+            freshness_policy_id=policy.id,
+            freshness_policy_revision=policy.revision,
+            fresh_until_unix_ns=fresh_until,
+        )
+        session.add(row)
+        session.flush()
+
+        if cursor is None:
+            cursor = TelemetrySourceCursor(
+                context_generation_id=context.id,
+                source_id=identity.source_id,
+                item_id=identity.item_id,
+                source_epoch=identity.source_epoch,
+                source_sequence=identity.source_sequence,
+                sample_id=row.id,
+                synchronization_state=synchronization_state,
+                revision=0,
+                updated_at=received_at,
+            )
+            session.add(cursor)
+        else:
+            cursor.source_epoch = identity.source_epoch
+            cursor.source_sequence = identity.source_sequence
+            cursor.sample_id = row.id
+            cursor.synchronization_state = synchronization_state
+            cursor.revision += 1
+            cursor.updated_at = received_at
+
+        if head is None:
+            head = TelemetryItemHead(
+                context_generation_id=context.id,
+                item_id=identity.item_id,
+                sample_id=row.id,
+                catalog_digest=row.catalog_digest,
+                source_id=row.source_id,
+                source_epoch=row.source_epoch,
+                source_sequence=row.source_sequence,
+                freshness=freshness,
+                synchronization_state=synchronization_state,
+                revision=0,
+                updated_at=received_at,
+            )
+            session.add(head)
+        else:
+            head.sample_id = row.id
+            head.catalog_digest = row.catalog_digest
+            head.source_id = row.source_id
+            head.source_epoch = row.source_epoch
+            head.source_sequence = row.source_sequence
+            head.freshness = freshness
+            head.synchronization_state = synchronization_state
+            head.revision += 1
+            head.updated_at = received_at
+
+        if resynchronized:
+            open_gaps = session.scalars(
+                select(TelemetryGap)
+                .where(
+                    TelemetryGap.context_generation_id == context.id,
+                    TelemetryGap.source_id == identity.source_id,
+                    TelemetryGap.item_id == identity.item_id,
+                    TelemetryGap.state == "OPEN",
                 )
-                self._evaluate_alarm(
-                    session, stream, row, head, evaluated_at=self._database_now(session)
-                )
-                session.commit()
-                # The DSS collector consumes only completion, not the returned
-                # read model. Avoid opening a second transaction for unused
-                # head/alarm reads; admission and durable writes are identical.
-                return self._sample_projection(session, row) if include_projection else None
-            except IntegrityError as exc:
-                session.rollback()
-                raise ObservationConflictError(
-                    "sample conflicts with durable projection state"
-                ) from exc
-            except Exception:
-                session.rollback()
-                raise
+                .with_for_update()
+            ).all()
+            for prior_gap in open_gaps:
+                prior_gap.state = "RESOLVED"
+                prior_gap.resolved_at = received_at
+                prior_gap.resolution_sample_id = row.id
+
+        session.flush()
+        if gap is not None:
+            gap_row = TelemetryGap(
+                context_generation_id=context.id,
+                source_id=row.source_id,
+                item_id=row.item_id,
+                source_epoch=row.source_epoch,
+                expected_sequence=gap[0],
+                observed_sequence=gap[1],
+                state="OPEN",
+                detected_at=received_at,
+            )
+            session.add(gap_row)
+            session.flush()
+            self._emit(
+                session,
+                stream,
+                event_type="telemetry.gap_detected",
+                aggregate_type="telemetry_item",
+                aggregate_id=row.item_id,
+                data={
+                    "gap_id": gap_row.id,
+                    "context_generation_id": context.id,
+                    "item_id": row.item_id,
+                    "source_id": row.source_id,
+                    "source_epoch": row.source_epoch,
+                    "expected_source_sequence": str(gap[0]),
+                    "observed_source_sequence": str(gap[1]),
+                },
+                created_at=received_at,
+            )
+
+        self._emit(
+            session,
+            stream,
+            event_type="telemetry.sample_observed",
+            aggregate_type="telemetry_sample",
+            aggregate_id=row.id,
+            data={
+                **self._sample_dict(row, head),
+                "current_head_revision": head.revision,
+            },
+            created_at=received_at,
+        )
+        self._evaluate_alarm(
+            session, stream, row, head, evaluated_at=self._database_now(session)
+        )
+        return row, True
 
     @staticmethod
     def _dss_epoch_query(stream_id: str, stream_epoch: str):

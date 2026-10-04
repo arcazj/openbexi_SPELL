@@ -1,7 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page, type Response, type TestInfo } from "@playwright/test";
 import { createHash } from "node:crypto";
+import { writeFile } from "node:fs/promises";
 import { ensureDssObservationReady } from "./dss-readiness";
+import { clickDevelopmentMutation, type MutationObservation } from "./development-mutation";
 
 test.skip(!process.env.SPELL_REAL_BACKEND, "requires the real local v0.19 simulator");
 test.setTimeout(180_000);
@@ -14,6 +16,14 @@ type Snapshot = {
   active_prompt: { id: string; prompt_profile: string | null } | null;
 };
 type Event = { event_type: string; payload: { request_id?: string; operation?: string; outcome?: string; value?: unknown; step_index?: number; checkpoint?: { confirmed_by: string | null; provider_call_count: number } } };
+type Resource = { resource_id: string; project_id: string; path: string; kind: string; content: string; content_sha256: string; media_type: string; revision: number; metadata: { language_profile: string } };
+type Workspace = { workspace_revision: number; project: { project_id: string; workspace_revision: number; manifest: { language_profile: string } }; resources: Resource[] };
+
+async function recordMutation(testInfo: TestInfo, name: string, observations: MutationObservation[]) {
+  const path = testInfo.outputPath(`${name}-responses.json`);
+  await writeFile(path, `${JSON.stringify(observations, null, 2)}\n`, "utf8");
+  await testInfo.attach(`${name}-responses`, { path, contentType: "application/json" });
+}
 
 async function request<T>(page: Page, path: string, body?: unknown, token?: string): Promise<T> {
   return page.evaluate(async ({ path, body, token }) => {
@@ -134,24 +144,65 @@ test("authors and promotes the exact observation workflow before independently c
     await dialog.getByLabel("Project name").fill(`Observation ${runId} ${testInfo.project.name}`);
     await expect(dialog.getByLabel("Language profile")).toHaveValue(profile);
     const projectResponse = await clickMutation(page, "/api/v1/development/projects", dialog.getByRole("button", { name: "Apply", exact: true }));
-    const project = ((await projectResponse.json()) as { project: { project_id: string; owner_subject: string } }).project;
+    const project = ((await projectResponse.json()) as { project: { project_id: string; owner_subject: string; workspace_revision: number } }).project;
     const projectId = project.project_id;
     await expect(page.getByRole("combobox", { name: "Project" })).toHaveValue(projectId);
+    await workspaceRefreshed(page, projectResponse);
+    const { workspace: initialWorkspace } = await request<{ workspace: Workspace }>(page, `/api/v1/development/projects/${projectId}/workspace`);
+    expect(initialWorkspace.project).toMatchObject({ project_id: projectId, workspace_revision: project.workspace_revision, manifest: { language_profile: profile } });
+    expect(initialWorkspace.workspace_revision).toBe(project.workspace_revision);
+    const resourceName = `src/${procedureId}.spell.py`;
+    expect(initialWorkspace.resources.filter((item) => item.path === resourceName)).toEqual([]);
+    const template = [`# @procedure ${procedureId}`, `# @display-name ${procedureId}`, "# @description Local simulator procedure", `# @language-profile ${profile}`, "", `\"\"\"${procedureId} local simulator procedure.\"\"\"`, "Log('Procedure ready')", ""].join("\n");
+    const templateDigest = createHash("sha256").update(template).digest("hex");
     await area(page, "Explorer");
     await page.getByRole("button", { name: "New procedure" }).click();
     const creation = page.getByRole("dialog", { name: "Create procedure" });
-    await creation.getByLabel("Project-relative path").fill(`src/${procedureId}.spell.py`);
-    const resourceResponse = await clickMutation(page, "/resources", creation.getByRole("button", { name: "Apply", exact: true }));
-    const resource = ((await resourceResponse.json()) as { resource: { resource_id: string } }).resource;
+    await creation.getByLabel("Project-relative path").fill(resourceName);
+    const create = creation.getByRole("button", { name: "Apply", exact: true });
+    await expect(create).toBeEnabled();
+    const resourceResponse = await clickDevelopmentMutation(page, `/api/v1/development/projects/${projectId}/resources`, create, {
+      path: resourceName, kind: "PROCEDURE", media_type: "text/x-python", content: template,
+      content_sha256: templateDigest, expected_workspace_revision: project.workspace_revision,
+    }, (observations) => recordMutation(testInfo, "authoring-create", observations), "POST");
+    const created = (await resourceResponse.json()) as { project: { workspace_revision: number }; resource: { resource_id: string; media_type: string; revision: number } };
+    const resource = created.resource;
+    expect(created.project.workspace_revision).toBe(project.workspace_revision + 1);
+    expect(resource.revision).toBe(1);
     await workspaceRefreshed(page, resourceResponse);
+    const resourcePath = `/api/v1/development/projects/${projectId}/resources/${resource.resource_id}`;
+    const createdDocument = await request<{ resource: Resource }>(page, resourcePath);
+    expect(createdDocument.resource).toMatchObject({ resource_id: resource.resource_id, project_id: projectId, path: resourceName, kind: "PROCEDURE", content: template, content_sha256: templateDigest, media_type: "text/x-python", revision: 1, metadata: { language_profile: profile } });
+    const { workspace: createdWorkspace } = await request<{ workspace: Workspace }>(page, `/api/v1/development/projects/${projectId}/workspace`);
+    expect(createdWorkspace.workspace_revision).toBe(created.project.workspace_revision);
+    expect(createdWorkspace.project).toMatchObject({ project_id: projectId, workspace_revision: created.project.workspace_revision, manifest: { language_profile: profile } });
+    expect(createdWorkspace.resources.filter((item) => item.path === resourceName).map((item) => item.resource_id)).toEqual([resource.resource_id]);
+    expect(createdWorkspace.resources.filter((item) => !initialWorkspace.resources.some((prior) => prior.resource_id === item.resource_id)).map((item) => item.resource_id)).toEqual([resource.resource_id]);
+    expect(createdWorkspace.resources).toHaveLength(initialWorkspace.resources.length + 1);
     await area(page, "Problems");
     await page.getByRole("checkbox", { name: "Check on save" }).uncheck();
     await area(page, "Editor");
     const editor = page.getByLabel("Procedure source editor");
     await expect(editor).toHaveValue(new RegExp(`# @language-profile ${profile.replaceAll(".", "\\.")}`));
     await editor.fill(source);
-    const saveResponse = await clickMutation(page, `/resources/${resource.resource_id}`, page.getByRole("button", { name: "Save resource" }), "PUT");
+    const save = page.getByRole("button", { name: "Save resource" });
+    await expect(save).toBeEnabled();
+    const saveResponse = await clickDevelopmentMutation(page, resourcePath, save, {
+      content: source, content_sha256: sourceDigest, media_type: resource.media_type,
+      expected_workspace_revision: created.project.workspace_revision,
+    }, (observations) => recordMutation(testInfo, "authoring-save", observations));
+    const saved = await saveResponse.json() as { project: { workspace_revision: number }; resource: { revision: number } };
+    expect(saved.project.workspace_revision).toBe(created.project.workspace_revision + 1);
+    expect(saved.resource.revision).toBe(resource.revision + 1);
     await workspaceRefreshed(page, saveResponse);
+    await expect(page.getByLabel("Unsaved changes", { exact: true })).toHaveCount(0);
+    await expect(save).toBeDisabled();
+    await expect(editor).toHaveValue(source);
+    const durable = await request<{ resource: Resource }>(page, resourcePath);
+    expect(durable.resource).toMatchObject({ resource_id: resource.resource_id, path: `src/${procedureId}.spell.py`, content: source, content_sha256: sourceDigest, media_type: resource.media_type, revision: saved.resource.revision, metadata: { language_profile: profile } });
+    const { workspace: durableWorkspace } = await request<{ workspace: Workspace }>(page, `/api/v1/development/projects/${projectId}/workspace`);
+    expect(durableWorkspace.workspace_revision).toBe(saved.project.workspace_revision);
+    expect(durableWorkspace.project).toMatchObject({ workspace_revision: saved.project.workspace_revision, manifest: { language_profile: profile } });
     await area(page, "Problems");
     const checkResponse = await clickMutation(page, "/checks", page.getByRole("button", { name: "Run semantic check" }));
     const jobId = ((await checkResponse.json()) as { job: { job_id: string } }).job.job_id;
