@@ -21,11 +21,11 @@ OUT = ROOT / f".qualification/v{MINOR}/final"
 QUALIFIER = "openbexi-spell-qualification:next"
 IMAGE_NAMES = ("backend", "driver", "frontend", "proxy") + (("dss", "kafka") if MINOR >= 19 else ())
 IMAGES = {name: f"openbexi-spell-{name}:{TAG}" for name in IMAGE_NAMES}
-COMPOSE_TESTS = [
+COMPOSE_TESTS = ["backend/tests/test_driver_isolation.py::" + name for name in (
     "test_created_compose_driver_has_runtime_isolation_controls",
     "test_live_bundle_builders_are_networkless_independent_and_reproducible",
     "test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
-]
+)] + (["backend/tests/test_proxy_dns_recovery_v19.py::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart"] if MINOR >= 19 else [])
 DOC_TESTS = ["scripts/tests/test_markdown_preview_v09.py", "scripts/tests/test_documentation_tree_layout.py"]
 TOOL_TESTS = ["scripts/tests/test_release_v12.py", "scripts/tests/test_release_next.py", "scripts/tests/test_spell_auditor_tool.py"]
 if MINOR >= 18:
@@ -167,7 +167,7 @@ class Producer:
         elif gate in {"sqlite", "postgresql", "compose", "documentation", "tooling"}:
             tests = {
                 "sqlite": ["backend/tests", "driver_host/tests"], "postgresql": ["backend/tests"],
-                "compose": ["backend/tests/test_driver_isolation.py::" + name for name in COMPOSE_TESTS],
+                "compose": COMPOSE_TESTS,
                 "documentation": DOC_TESTS, "tooling": TOOL_TESTS,
             }[gate]
             extra, network = [], "none"

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from scripts.release_next import ROOT, POLICY, MINOR, junit, require, write_json
+from scripts.qualify_next import COMPOSE_TESTS
 
 
 def main():
@@ -26,7 +27,9 @@ def main():
                 "skipped": sorted(skipped if skipped is not None else [r["identity"] for r in selected if r["skip"]])}
     backend = [r for r in rows if r["identity"].startswith("backend.tests.")]
     driver = [r for r in rows if r["identity"].startswith("driver_host.tests.")]
-    compose = config["gates"]["compose"]["identities"]
+    compose = sorted(name.replace("/", ".").replace(".py::", "::") for name in COMPOSE_TESTS)
+    require(set(compose) <= {row["identity"] for row in backend}, "Compose case missing from collection")
+    config["gates"]["compose"] = gate([row for row in backend if row["identity"] in compose], [])
     tools = [r for r in rows if r["identity"].startswith(("scripts.tests.test_release_v12::",
              "scripts.tests.test_release_next::", "scripts.tests.test_spell_auditor_tool::",
              "scripts.tests.test_gcc_aligned_new_applicability::", "scripts.tests.test_dss_delivery::",

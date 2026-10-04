@@ -1160,10 +1160,11 @@
       "identities": [
         "backend.tests.test_driver_isolation::test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
         "backend.tests.test_driver_isolation::test_created_compose_driver_has_runtime_isolation_controls",
-        "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible"
+        "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible",
+        "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart"
       ],
       "skipped": [],
-      "tests": 3
+      "tests": 4
     },
     "documentation": {
       "identities": [
@@ -3380,6 +3381,7 @@
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[604800-None-604800.0-None-None]",
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[None-None-None-None-None]",
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[None-YES-None-None-None]",
+        "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart",
         "backend.tests.test_qualification::test_inclusive_schedule_and_actual_timing_gate",
         "backend.tests.test_qualification::test_linear_slope_reports_units_per_x_unit",
         "backend.tests.test_qualification::test_percentile_uses_nearest_rank",
@@ -4454,9 +4456,10 @@
       "skipped": [
         "backend.tests.test_driver_isolation::test_backend_restart_reuses_same_epoch_with_no_worker_credential_access",
         "backend.tests.test_driver_isolation::test_created_compose_driver_has_runtime_isolation_controls",
-        "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible"
+        "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible",
+        "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart"
       ],
-      "tests": 3067
+      "tests": 3068
     },
     "sqlite": {
       "identities": [
@@ -6457,6 +6460,7 @@
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[604800-None-604800.0-None-None]",
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[None-None-None-None-None]",
         "backend.tests.test_prompt_v17::test_native_timeout_specific_section_and_zero_policy[None-YES-None-None-None]",
+        "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart",
         "backend.tests.test_qualification::test_inclusive_schedule_and_actual_timing_gate",
         "backend.tests.test_qualification::test_linear_slope_reports_units_per_x_unit",
         "backend.tests.test_qualification::test_percentile_uses_nearest_rank",
@@ -7671,12 +7675,13 @@
         "backend.tests.test_observation_epoch_index_postgresql_v19::test_postgresql_epoch_index_upgrade_and_actual_forced_generic_plan[False]",
         "backend.tests.test_observation_epoch_index_postgresql_v19::test_postgresql_epoch_index_upgrade_and_actual_forced_generic_plan[True]",
         "backend.tests.test_observation_lock_order_v19::test_freshness_sweep_waits_for_context_before_stream_and_alarm_fk",
+        "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart",
         "backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[False]",
         "backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[True]",
         "backend.tests.test_shared_data_v08::test_postgresql_latest_revision_reconstruction_uses_parent_row_locks",
         "backend.tests.test_shared_data_v08::test_two_owners_can_use_the_same_namespace_id_on_postgresql"
       ],
-      "tests": 3188
+      "tests": 3189
     },
     "tooling": {
       "identities": [

@@ -5,6 +5,9 @@ DSS is the shared local satellite simulator for SPELL CMD and TLM. Start it with
 Pause before reviewing a command or stepping the dynamics. The command page uses
 the same binary TCP ingress as SPELL and requires a separate confirmation.
 
+The proxy refreshes backend and DSS service addresses through Docker DNS with a
+one-second cache so container replacement does not retain the previous address.
+
 `satellite_database.json` binds commands, arguments, telemetry and the fixed
 100 ms bus/payload dynamics. Its exact file SHA-256 accompanies every packet,
 driver receipt and delivery report. Simulator and dynamics versions are `0.1.0`.
