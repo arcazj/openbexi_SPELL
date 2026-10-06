@@ -1,0 +1,124 @@
+<testsuites id="" name="" tests="32" failures="0" skipped="0" errors="0" time="257.61474000000004">
+<testsuite name="dss-v19-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="2" failures="0" skipped="0" time="7.434" errors="0">
+<testcase name="[chromium] DSS controls a persisted satellite and sends confirmed binary commands through its compact pages" classname="dss-v19-real.spec.ts" time="1.418">
+</testcase>
+<testcase name="[chromium] SPELL command confirmation changes the same DSS state and binds actual Kafka telemetry" classname="dss-v19-real.spec.ts" time="6.016">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="6.41" errors="0">
+<testcase name="[chromium] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="6.41">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.355" errors="0">
+<testcase name="[chromium] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.355">
+</testcase>
+</testsuite>
+<testsuite name="local-session-v16-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="3" failures="0" skipped="0" time="6.404" errors="0">
+<testcase name="[chromium] automatically connects, reloads and renews the same local operator" classname="local-session-v16-real.spec.ts" time="4.092">
+</testcase>
+<testcase name="[chromium] recovers a fresh browser after the simulator is unavailable" classname="local-session-v16-real.spec.ts" time="1.206">
+</testcase>
+<testcase name="[chromium] rejects non-browser bootstrap and leaves API authentication enforced" classname="local-session-v16-real.spec.ts" time="1.106">
+</testcase>
+</testsuite>
+<testsuite name="manual-workspace-v16-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="12.874" errors="0">
+<testcase name="[chromium] opens the manual workspace directly and operates its compact procedure views" classname="manual-workspace-v16-real.spec.ts" time="12.874">
+</testcase>
+</testsuite>
+<testsuite name="native-telecommand-v18-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="2" failures="0" skipped="0" time="29.472" errors="0">
+<testcase name="[chromium] native NO and Abort prevent dispatch while YES requires separate command confirmation" classname="native-telecommand-v18-real.spec.ts" time="12.067">
+</testcase>
+<testcase name="[chromium] server default skips dispatch and catalog tutorials prove direct built load-only and core results" classname="native-telecommand-v18-real.spec.ts" time="17.405">
+</testcase>
+</testsuite>
+<testsuite name="observation-command-v19-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="2" failures="0" skipped="0" time="29.926" errors="0">
+<testcase name="[chromium] authors and promotes the exact observation workflow before independently confirmed dispatch" classname="observation-command-v19-real.spec.ts" time="13.556">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|browser\observation-command-v19-re-0c729-endently-confirmed-dispatch-chromium\attachments\authoring-create-responses-ece7c95ebb99a7838fe2d0c1e7fce41d3dc77272.json]]
+
+[[ATTACHMENT|browser\observation-command-v19-re-0c729-endently-confirmed-dispatch-chromium\attachments\authoring-save-responses-3abd07b1ceceb64191d855e803c3c4cca1abdc5f.json]]
+]]>
+</system-out>
+</testcase>
+<testcase name="[chromium] false observations, native NO and Abort, and wait timeout preserve zero command dispatch" classname="observation-command-v19-real.spec.ts" time="16.37">
+</testcase>
+</testsuite>
+<testsuite name="prompt-v17-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="10.19" errors="0">
+<testcase name="[chromium] resets native drafts, retains warning after reload and distinguishes CANCEL from Abort" classname="prompt-v17-real.spec.ts" time="10.19">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.724" errors="0">
+<testcase name="[chromium] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="2.724">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="9.409" errors="0">
+<testcase name="[chromium] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="9.409">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="chromium" tests="1" failures="0" skipped="0" time="1.754" errors="0">
+<testcase name="[chromium] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="1.754">
+</testcase>
+</testsuite>
+<testsuite name="dss-v19-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="2" failures="0" skipped="0" time="8.165" errors="0">
+<testcase name="[mobile] DSS controls a persisted satellite and sends confirmed binary commands through its compact pages" classname="dss-v19-real.spec.ts" time="2.203">
+</testcase>
+<testcase name="[mobile] SPELL command confirmation changes the same DSS state and binds actual Kafka telemetry" classname="dss-v19-real.spec.ts" time="5.962">
+</testcase>
+</testsuite>
+<testsuite name="language-reference-v10-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="8.727" errors="0">
+<testcase name="[mobile] selects Example 195 through the single v0.10 runner and records PASS evidence" classname="language-reference-v10-real.spec.ts" time="8.727">
+</testcase>
+</testsuite>
+<testsuite name="legacy-observation-v12-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="1.417" errors="0">
+<testcase name="[mobile] inspects read-only replay and switches to the simulator" classname="legacy-observation-v12-real.spec.ts" time="1.417">
+</testcase>
+</testsuite>
+<testsuite name="local-session-v16-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="3" failures="0" skipped="0" time="7.391" errors="0">
+<testcase name="[mobile] automatically connects, reloads and renews the same local operator" classname="local-session-v16-real.spec.ts" time="4.881">
+</testcase>
+<testcase name="[mobile] recovers a fresh browser after the simulator is unavailable" classname="local-session-v16-real.spec.ts" time="1.258">
+</testcase>
+<testcase name="[mobile] rejects non-browser bootstrap and leaves API authentication enforced" classname="local-session-v16-real.spec.ts" time="1.252">
+</testcase>
+</testsuite>
+<testsuite name="manual-workspace-v16-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="14.673" errors="0">
+<testcase name="[mobile] opens the manual workspace directly and operates its compact procedure views" classname="manual-workspace-v16-real.spec.ts" time="14.673">
+</testcase>
+</testsuite>
+<testsuite name="native-telecommand-v18-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="2" failures="0" skipped="0" time="36.463" errors="0">
+<testcase name="[mobile] native NO and Abort prevent dispatch while YES requires separate command confirmation" classname="native-telecommand-v18-real.spec.ts" time="15.421">
+</testcase>
+<testcase name="[mobile] server default skips dispatch and catalog tutorials prove direct built load-only and core results" classname="native-telecommand-v18-real.spec.ts" time="21.042">
+</testcase>
+</testsuite>
+<testsuite name="observation-command-v19-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="2" failures="0" skipped="0" time="32.222" errors="0">
+<testcase name="[mobile] authors and promotes the exact observation workflow before independently confirmed dispatch" classname="observation-command-v19-real.spec.ts" time="15.053">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|browser\observation-command-v19-re-0c729-endently-confirmed-dispatch-mobile\attachments\authoring-create-responses-75aac6d8bc108ee57e60415a349a57072617ddf1.json]]
+
+[[ATTACHMENT|browser\observation-command-v19-re-0c729-endently-confirmed-dispatch-mobile\attachments\authoring-save-responses-d07aef47fea13cdad5e6b3f068cd2b028361a839.json]]
+]]>
+</system-out>
+</testcase>
+<testcase name="[mobile] false observations, native NO and Abort, and wait timeout preserve zero command dispatch" classname="observation-command-v19-real.spec.ts" time="17.169">
+</testcase>
+</testsuite>
+<testsuite name="prompt-v17-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="10.546" errors="0">
+<testcase name="[mobile] resets native drafts, retains warning after reload and distinguishes CANCEL from Abort" classname="prompt-v17-real.spec.ts" time="10.546">
+</testcase>
+</testsuite>
+<testsuite name="shadow-pilot-v15-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="3.541" errors="0">
+<testcase name="[mobile] records independent review, incident rollback and a read-only restore" classname="shadow-pilot-v15-real.spec.ts" time="3.541">
+</testcase>
+</testsuite>
+<testsuite name="synthetic-control-v13-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="10.73" errors="0">
+<testcase name="[mobile] returns a controlled procedure to confirmed read-only state" classname="synthetic-control-v13-real.spec.ts" time="10.73">
+</testcase>
+</testsuite>
+<testsuite name="telemetry-adapter-v14-real.spec.ts" timestamp="2026-10-06T17:29:40.827Z" hostname="mobile" tests="1" failures="0" skipped="0" time="2.315" errors="0">
+<testcase name="[mobile] reads typed telemetry and verifies shadow comparison and fallback" classname="telemetry-adapter-v14-real.spec.ts" time="2.315">
+</testcase>
+</testsuite>
+</testsuites>

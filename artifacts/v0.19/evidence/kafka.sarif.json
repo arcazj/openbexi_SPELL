@@ -1,0 +1,885 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "fullName": "Docker Scout",
+          "informationUri": "https://docker.com/products/docker-scout",
+          "name": "docker scout",
+          "rules": [
+            {
+              "id": "CVE-2026-46675",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-46675"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-46675?s=alpine&n=libpng&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C1.6.59-r0",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                |\n|Package         pkg:apk/alpine/libpng@1.6.58-r1?os_name=alpine&os_version=3.23  |\n|Affected range  <1.6.59-r0                                                      |\n|Fixed version   1.6.59-r0                                                       |\n"
+              },
+              "properties": {
+                "affected_version": "<1.6.59-r0",
+                "cvssV3_severity": "UNSPECIFIED",
+                "fixed_version": "1.6.59-r0",
+                "purls": [
+                  "pkg:apk/alpine/libpng@1.6.58-r1?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "3.1",
+                "tags": [
+                  "UNSPECIFIED"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-56392",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-56392"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-56392?s=alpine&n=coreutils&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D9.8-r1",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                |\n|Package         pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  |\n|Affected range  <=9.8-r1                                                        |\n|Fixed version   not fixed                                                       |\n"
+              },
+              "properties": {
+                "affected_version": "<=9.8-r1",
+                "cvssV3_severity": "LOW",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "1.8",
+                "tags": [
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-30258",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2025-30258"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2025-30258?s=alpine&n=gnupg&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D2.4.9-r0",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                              |\n|Package         pkg:apk/alpine/gnupg@2.4.9-r0?os_name=alpine&os_version=3.23  |\n|Affected range  <=2.4.9-r0                                                    |\n|Fixed version   not fixed                                                     |\n"
+              },
+              "properties": {
+                "affected_version": "<=2.4.9-r0",
+                "cvssV3_severity": "LOW",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/gnupg@2.4.9-r0?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "2.7",
+                "tags": [
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2016-2781",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2016-2781"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2016-2781?s=alpine&n=coreutils&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D9.8-r1",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                |\n|Package         pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  |\n|Affected range  <=9.8-r1                                                        |\n|Fixed version   not fixed                                                       |\n"
+              },
+              "properties": {
+                "affected_version": "<=9.8-r1",
+                "cvssV3_severity": "MEDIUM",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "4.6",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-56391",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-56391"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-56391?s=alpine&n=coreutils&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D9.8-r1",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                |\n|Package         pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  |\n|Affected range  <=9.8-r1                                                        |\n|Fixed version   not fixed                                                       |\n"
+              },
+              "properties": {
+                "affected_version": "<=9.8-r1",
+                "cvssV3_severity": "MEDIUM",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "4.6",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-2100",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-2100"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-2100?s=alpine&n=p11-kit&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C0.26.2-r0",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                 |\n|Package         pkg:apk/alpine/p11-kit@0.25.5-r2?os_name=alpine&os_version=3.23  |\n|Affected range  <0.26.2-r0                                                       |\n|Fixed version   0.26.2-r0                                                        |\n"
+              },
+              "properties": {
+                "affected_version": "<0.26.2-r0",
+                "cvssV3_severity": "MEDIUM",
+                "fixed_version": "0.26.2-r0",
+                "purls": [
+                  "pkg:apk/alpine/p11-kit@0.25.5-r2?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "5.3",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-49844",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-49844: Improper Encoding or Escaping of Output"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-49844?s=github&n=log4j-api&ns=org.apache.logging.log4j&t=maven&vr=%3E%3D2.13.1%2C%3C2.25.5",
+              "help": {
+                "text": "Improper encoding of non-finite floating-point values during MapMessage JSON serialization in Apache Log4j API produces output that is not valid JSON. This issue affects Apache Log4j API versions 2.13.1 through 2.25.4 and version 2.26.0.\n\nThe fix for CVE-2026-34481 did not cover all code paths: when a MapMessage contains a non-finite IEEE 754 value (NaN, Infinity, or -Infinity), MapMessage.asJson() emits the corresponding bare token. RFC 8259 does not permit these tokens, so a conformant parser rejects the resulting document.\n\nThe defect is reachable only when both of the following conditions hold:\n\n  *  The application uses the  message resolver https://logging.apache.org/log4j/2.x/manual/json-template-layout.html#event-template-resolver-message  of JsonTemplateLayout or any other layout that relies on MapMessage.asJson() or MapMessage.getFormattedMessage(new String[]{\"JSON\"}).\n  *  The application logs a MapMessage that contains an attacker-controlled floating-point value.\n\n\nAn attacker who can supply a non-finite value can cause the affected layout to emit malformed JSON, which may corrupt the enclosing log record or disrupt downstream log ingestion and parsing.\n\nUsers are advised to upgrade to Apache Log4j API 2.25.5 or 2.26.1, both of which emit RFC 8259-compliant JSON for non-finite values.\n",
+                "markdown": "> Improper encoding of non-finite floating-point values during MapMessage JSON serialization in Apache Log4j API produces output that is not valid JSON. This issue affects Apache Log4j API versions 2.13.1 through 2.25.4 and version 2.26.0.\n\nThe fix for CVE-2026-34481 did not cover all code paths: when a MapMessage contains a non-finite IEEE 754 value (NaN, Infinity, or -Infinity), MapMessage.asJson() emits the corresponding bare token. RFC 8259 does not permit these tokens, so a conformant parser rejects the resulting document.\n\nThe defect is reachable only when both of the following conditions hold:\n\n  *  The application uses the  message resolver https://logging.apache.org/log4j/2.x/manual/json-template-layout.html#event-template-resolver-message  of JsonTemplateLayout or any other layout that relies on MapMessage.asJson() or MapMessage.getFormattedMessage(new String[]{\"JSON\"}).\n  *  The application logs a MapMessage that contains an attacker-controlled floating-point value.\n\n\nAn attacker who can supply a non-finite value can cause the affected layout to emit malformed JSON, which may corrupt the enclosing log record or disrupt downstream log ingestion and parsing.\n\nUsers are advised to upgrade to Apache Log4j API 2.25.5 or 2.26.1, both of which emit RFC 8259-compliant JSON for non-finite values.\n\n|                                                                                                                                                       |\n|Package                                                                                           pkg:maven/org.apache.logging.log4j/log4j-api@2.25.4  |\n|Affected range                                                                                    >=2.13.1,<2.25.5                                     |\n|Fixed version                                                                                     2.25.5                                               |\n|[[CVSS Score 6.3] [CVSS Vector CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:L/SA:N]]                                                       |\n"
+              },
+              "properties": {
+                "affected_version": ">=2.13.1,<2.25.5",
+                "cvssV3": 6.3,
+                "cvssV3_severity": "MEDIUM",
+                "cvssV3_vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:L/SA:N",
+                "fixed_version": "2.25.5",
+                "purls": [
+                  "pkg:maven/org.apache.logging.log4j/log4j-api@2.25.4"
+                ],
+                "security-severity": "6.3",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-60876",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2025-60876"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2025-60876?s=alpine&n=busybox&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D1.37.0-r30",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                  |\n|Package         pkg:apk/alpine/busybox@1.37.0-r30?os_name=alpine&os_version=3.23  |\n|Affected range  <=1.37.0-r30                                                      |\n|Fixed version   not fixed                                                         |\n"
+              },
+              "properties": {
+                "affected_version": "<=1.37.0-r30",
+                "cvssV3_severity": "MEDIUM",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/busybox@1.37.0-r30?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "6.5",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-59949",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-59949: Out-of-bounds Read"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-59949?s=github&n=lz4-java&ns=at.yawk.lz4&t=maven&vr=%3C%3D1.11.0",
+              "help": {
+                "text": "### Summary\n\nInsufficient validation of byte array arguments in JNI-based XXHash implementations in lz4-java 1.11.0 and earlier allows callers to crash the JVM by passing an invalid array reference or invalid range to native XXHash methods.\n\nThis affects applications where an attacker can influence the byte array object or the `off` / `len` arguments passed to affected XXHash APIs. It does **not** affect the common case where only the contents of a valid byte array are attacker-controlled.\n\nJava-based XXHash implementations are *not* affected.\n\n### Details\n\nThe JNI-backed XXHash implementations pass caller-provided byte array arguments to native code. The affected APIs are:\n\n- `XXHashFactory.nativeInstance().hash32().hash(byte[] buf, int off, int len, int seed)`\n- `XXHashFactory.nativeInstance().hash64().hash(byte[] buf, int off, int len, long seed)`\n- `XXHashFactory.nativeInstance().newStreamingHash32(seed).update(byte[] bytes, int off, int len)`\n- `XXHashFactory.nativeInstance().newStreamingHash64(seed).update(byte[] bytes, int off, int len)`\n\nBefore the fix, the streaming JNI implementations did not validate `bytes`, `off`, or `len` before calling `XXHashJNI.XXH32_update` / `XXHashJNI.XXH64_update`. The non-streaming JNI implementations called `SafeUtils.checkRange`, but `SafeUtils.checkRange(byte[], int, int)` skipped all array access when `len == 0`, so a null byte array with a zero length could still reach JNI.\n\nAs a result:\n\n- `hash(null, 0, 0, seed)` and `update(null, 0, 0)` could pass a null array reference to JNI, causing a fatal JVM crash in `GetPrimitiveArrayCritical`.\n- `update(new byte[16], 0, Integer.MAX_VALUE)` could cause native XXHash code to read far beyond the end of the Java array, causing a fatal JVM crash and potentially exposing in-process memory to the native routine before the crash.\n\nThe oversized-length non-streaming `hash(new byte[16], 0, Integer.MAX_VALUE, seed)` case was already rejected in Java before this fix. The missing validation affected the streaming oversized-length case and the zero-length null-array case for both streaming and non-streaming JNI XXHash APIs.\n\nThe impact of this vulnerability depends on how user code uses the XXHash API. Code that hashes attacker-controlled byte contents in a valid, correctly bounded array is not affected. Code may be affected if an attacker can cause the application to pass a null array, an attacker-controlled offset, or an attacker-controlled length to the native XXHash API. The primary impact is denial of service due to JVM termination. For oversized lengths, native code may also read outside the Java array before the process crashes.\n\n### Mitigation\n\nlz4-java 1.11.1 fixes this issue without requiring changes in user code.\n\nIf you cannot upgrade, avoid passing attacker-controlled array references, offsets, or lengths to JNI-backed XXHash APIs. In particular, validate that arrays are non-null and that `off` and `len` describe a range fully contained in the array before calling native XXHash methods.\n\nUsing `XXHashFactory.safeInstance()` avoids the JNI boundary and is not affected by this native crash behavior.\n",
+                "markdown": "> ### Summary\n\nInsufficient validation of byte array arguments in JNI-based XXHash implementations in lz4-java 1.11.0 and earlier allows callers to crash the JVM by passing an invalid array reference or invalid range to native XXHash methods.\n\nThis affects applications where an attacker can influence the byte array object or the `off` / `len` arguments passed to affected XXHash APIs. It does **not** affect the common case where only the contents of a valid byte array are attacker-controlled.\n\nJava-based XXHash implementations are *not* affected.\n\n### Details\n\nThe JNI-backed XXHash implementations pass caller-provided byte array arguments to native code. The affected APIs are:\n\n- `XXHashFactory.nativeInstance().hash32().hash(byte[] buf, int off, int len, int seed)`\n- `XXHashFactory.nativeInstance().hash64().hash(byte[] buf, int off, int len, long seed)`\n- `XXHashFactory.nativeInstance().newStreamingHash32(seed).update(byte[] bytes, int off, int len)`\n- `XXHashFactory.nativeInstance().newStreamingHash64(seed).update(byte[] bytes, int off, int len)`\n\nBefore the fix, the streaming JNI implementations did not validate `bytes`, `off`, or `len` before calling `XXHashJNI.XXH32_update` / `XXHashJNI.XXH64_update`. The non-streaming JNI implementations called `SafeUtils.checkRange`, but `SafeUtils.checkRange(byte[], int, int)` skipped all array access when `len == 0`, so a null byte array with a zero length could still reach JNI.\n\nAs a result:\n\n- `hash(null, 0, 0, seed)` and `update(null, 0, 0)` could pass a null array reference to JNI, causing a fatal JVM crash in `GetPrimitiveArrayCritical`.\n- `update(new byte[16], 0, Integer.MAX_VALUE)` could cause native XXHash code to read far beyond the end of the Java array, causing a fatal JVM crash and potentially exposing in-process memory to the native routine before the crash.\n\nThe oversized-length non-streaming `hash(new byte[16], 0, Integer.MAX_VALUE, seed)` case was already rejected in Java before this fix. The missing validation affected the streaming oversized-length case and the zero-length null-array case for both streaming and non-streaming JNI XXHash APIs.\n\nThe impact of this vulnerability depends on how user code uses the XXHash API. Code that hashes attacker-controlled byte contents in a valid, correctly bounded array is not affected. Code may be affected if an attacker can cause the application to pass a null array, an attacker-controlled offset, or an attacker-controlled length to the native XXHash API. The primary impact is denial of service due to JVM termination. For oversized lengths, native code may also read outside the Java array before the process crashes.\n\n### Mitigation\n\nlz4-java 1.11.1 fixes this issue without requiring changes in user code.\n\nIf you cannot upgrade, avoid passing attacker-controlled array references, offsets, or lengths to JNI-backed XXHash APIs. In particular, validate that arrays are non-null and that `off` and `len` describe a range fully contained in the array before calling native XXHash methods.\n\nUsing `XXHashFactory.safeInstance()` avoids the JNI boundary and is not affected by this native crash behavior.\n\n|                                                                                                                      |\n|Package                                                                        pkg:maven/at.yawk.lz4/lz4-java@1.10.2  |\n|Affected range                                                                 <=1.11.0                               |\n|Fixed version                                                                  1.11.1                                 |\n|[[CVSS Score 6.5] [CVSS Vector CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:H]]                                         |\n"
+              },
+              "properties": {
+                "affected_version": "<=1.11.0",
+                "cvssV3": 6.5,
+                "cvssV3_severity": "MEDIUM",
+                "cvssV3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:H",
+                "fixed_version": "1.11.1",
+                "purls": [
+                  "pkg:maven/at.yawk.lz4/lz4-java@1.10.2"
+                ],
+                "security-severity": "6.5",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-41989",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "CVE-2026-41989"
+              },
+              "helpUri": "https://scout.docker.com/v/CVE-2026-41989?s=alpine&n=libgcrypt&ns=alpine&t=apk&osn=alpine&osv=3.23&vr=%3C%3D1.11.2-r0",
+              "help": {
+                "text": "\n",
+                "markdown": "> \n\n|                                                                                   |\n|Package         pkg:apk/alpine/libgcrypt@1.11.2-r0?os_name=alpine&os_version=3.23  |\n|Affected range  <=1.11.2-r0                                                        |\n|Fixed version   not fixed                                                          |\n"
+              },
+              "properties": {
+                "affected_version": "<=1.11.2-r0",
+                "cvssV3_severity": "MEDIUM",
+                "fixed_version": "not fixed",
+                "purls": [
+                  "pkg:apk/alpine/libgcrypt@1.11.2-r0?os_name=alpine&os_version=3.23"
+                ],
+                "security-severity": "6.7",
+                "tags": [
+                  "MEDIUM"
+                ]
+              }
+            }
+          ],
+          "version": "1.24.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2026-46675",
+          "ruleIndex": 0,
+          "kind": "fail",
+          "level": "none",
+          "message": {
+            "text": "Vulnerability   :CVE-2026-46675                                                  \nSeverity        :UNSPECIFIED                                                     \nPackage         :pkg:apk/alpine/libpng@1.6.58-r1?os_name=alpine&os_version=3.23  \nAffected range  :<1.6.59-r0                                                      \nFixed version   :1.6.59-r0                                                       \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/lib/libpng16.so.16.58.0"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-56392",
+          "ruleIndex": 1,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-56392                                                  \nSeverity         :LOW                                                             \nPackage          :pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  \nAffected range   :<=9.8-r1                                                        \nFixed version    :not fixed                                                       \nEPSS Score       :0.001860                                                        \nEPSS Percentile  :0.074380                                                        \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/bin/coreutils"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/env"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/fmt"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/sha512sum"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/coreutils/libstdbuf.so"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-30258",
+          "ruleIndex": 2,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Vulnerability    :CVE-2025-30258                                                \nSeverity         :LOW                                                           \nPackage          :pkg:apk/alpine/gnupg@2.4.9-r0?os_name=alpine&os_version=3.23  \nAffected range   :<=2.4.9-r0                                                    \nFixed version    :not fixed                                                     \nEPSS Score       :0.001920                                                      \nEPSS Percentile  :0.080310                                                      \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/dirmngr"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/dirmngr-client"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-agent"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-card"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-connect-agent"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-mail-tube"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-wks-client"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpg-wks-server"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgconf"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgparsemail"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgsm"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgsplit"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgtar"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/gpgv"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/kbxutil"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/watchgnupg"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/dirmngr_ldap"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-auth"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-check-pattern"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-pair-tool"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-preset-passphrase"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-protect-tool"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/gpg-wks-client"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/keyboxd"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/sbin/addgnupghome"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/sbin/applygnupgdefaults"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/share/gnupg/distsigkey.gpg"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/share/gnupg/help.txt"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/share/gnupg/sks-keyservers.netCA.pem"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2016-2781",
+          "ruleIndex": 3,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2016-2781                                                   \nSeverity         :MEDIUM                                                          \nPackage          :pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  \nAffected range   :<=9.8-r1                                                        \nFixed version    :not fixed                                                       \nEPSS Score       :0.004280                                                        \nEPSS Percentile  :0.348530                                                        \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/bin/coreutils"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/env"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/fmt"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/sha512sum"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/coreutils/libstdbuf.so"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-56391",
+          "ruleIndex": 4,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-56391                                                  \nSeverity         :MEDIUM                                                          \nPackage          :pkg:apk/alpine/coreutils@9.8-r1?os_name=alpine&os_version=3.23  \nAffected range   :<=9.8-r1                                                        \nFixed version    :not fixed                                                       \nEPSS Score       :0.001710                                                        \nEPSS Percentile  :0.058120                                                        \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/bin/coreutils"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/env"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/fmt"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/sha512sum"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/coreutils/libstdbuf.so"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-2100",
+          "ruleIndex": 5,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-2100                                                    \nSeverity         :MEDIUM                                                           \nPackage          :pkg:apk/alpine/p11-kit@0.25.5-r2?os_name=alpine&os_version=3.23  \nAffected range   :<0.26.2-r0                                                       \nFixed version    :0.26.2-r0                                                        \nEPSS Score       :0.011600                                                         \nEPSS Percentile  :0.660220                                                         \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/pkcs11/pkcs11.conf.example"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/p11-kit"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/trust"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/lib/libp11-kit.so.0.4.1"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/lib/pkcs11/p11-kit-trust.so"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/p11-kit/p11-kit-remote"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/libexec/p11-kit/trust-extract-compat"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/share/p11-kit/modules/p11-kit-trust.module"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-49844",
+          "ruleIndex": 6,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-49844                                                   \nSeverity         :MEDIUM                                                           \nPackage          :pkg:maven/org.apache.logging.log4j/log4j-api@2.25.4              \nAffected range   :>=2.13.1,<2.25.5                                                 \nFixed version    :2.25.5                                                           \nCVSS Score       :6.3                                                              \nCVSS Vector      :CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:L/SA:N  \nEPSS Score       :0.008130                                                         \nEPSS Percentile  :0.555410                                                         \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/opt/kafka/libs/log4j-api-2.25.4.jar"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-60876",
+          "ruleIndex": 7,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2025-60876                                                    \nSeverity         :MEDIUM                                                            \nPackage          :pkg:apk/alpine/busybox@1.37.0-r30?os_name=alpine&os_version=3.23  \nAffected range   :<=1.37.0-r30                                                      \nFixed version    :not fixed                                                         \nEPSS Score       :0.002910                                                          \nEPSS Percentile  :0.197040                                                          \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/bin/busybox"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/busybox-paths.d/busybox"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/logrotate.d/acpid"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/network/if-up.d/dad"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/securetty"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/etc/udhcpc/udhcpc.conf"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/bin/ssl_client"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/share/udhcpc/default.script"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-59949",
+          "ruleIndex": 8,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-59949                                \nSeverity         :MEDIUM                                        \nPackage          :pkg:maven/at.yawk.lz4/lz4-java@1.10.2         \nAffected range   :<=1.11.0                                      \nFixed version    :1.11.1                                        \nCVSS Score       :6.5                                           \nCVSS Vector      :CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:H  \nEPSS Score       :0.004660                                      \nEPSS Percentile  :0.381640                                      \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/opt/kafka/libs/lz4-java-1.10.2.jar"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-41989",
+          "ruleIndex": 9,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Vulnerability    :CVE-2026-41989                                                     \nSeverity         :MEDIUM                                                             \nPackage          :pkg:apk/alpine/libgcrypt@1.11.2-r0?os_name=alpine&os_version=3.23  \nAffected range   :<=1.11.2-r0                                                        \nFixed version    :not fixed                                                          \nEPSS Score       :0.001920                                                           \nEPSS Percentile  :0.080130                                                           \n"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/lib/apk/db/installed"
+                }
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/usr/lib/libgcrypt.so.20.6.0"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
