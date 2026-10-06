@@ -221,17 +221,26 @@ def test_token_expiry_during_offloaded_read_emits_no_late_frame(
     stream, auth_config, monkeypatch, boundary,
 ):
     client, repository, _, _ = stream
+    # Allow database-backed setup to finish before crossing real signed expiry.
     access_token = issue_local_dev_token(auth_config, subject="expiring-observation",
-        role="viewer", peer_host="127.0.0.1", lifetime_seconds=2)
+        role="viewer", peer_host="127.0.0.1", lifetime_seconds=10)
     expires = decode_token(auth_config, access_token).expires_at
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    def finish_after_expiry(original):
+    expired_read = threading.Event()
+
+    def finish_after_expiry(original, *, skip_reads=0):
+        calls = 0
         def read(*args, **kwargs):
+            nonlocal calls
+            calls += 1
             result = original(*args, **kwargs)
+            if calls <= skip_reads:
+                return result
             # The wait deliberately crosses the actual signed credential's
             # expiry, not a production timeout or freshness-policy change.
             threading.Event().wait(max(0, expires - time.time()) + 0.02)
+            expired_read.set()
             return result
         return read
 
@@ -241,18 +250,25 @@ def test_token_expiry_during_offloaded_read_emits_no_late_frame(
             with connected(stream, headers):
                 raise AssertionError("expired handshake was accepted")
         assert closed.value.code == 4401
+        assert expired_read.is_set()
         return
+    if boundary == "keepalive":
+        # Install before connecting: the next keepalive read can already be
+        # scheduled when the test consumes the first frame. Initial authority,
+        # replay and first keepalive account for exactly three cursor reads.
+        monkeypatch.setattr(repository, "stream_cursor",
+            finish_after_expiry(repository.stream_cursor, skip_reads=3))
     with connected(stream, headers) as websocket:
         assert websocket.receive_json()["event_type"] == "stream.keepalive"
         if boundary == "replay":
             append_sample(stream, 2)
             monkeypatch.setattr(repository, "replay", finish_after_expiry(repository.replay))
             burst(client, 100)
-        else:
+        elif boundary == "overflow":
             monkeypatch.setattr(repository, "stream_cursor", finish_after_expiry(repository.stream_cursor))
-            if boundary == "overflow":
-                burst(client, 600)
+            burst(client, 600)
         expect_close(websocket, 4401, "websocket credentials expired")
+        assert expired_read.is_set()
 
 
 @pytest.mark.parametrize("reason", ["SEQUENCE_AHEAD_OF_AUTHORITY", "CURSOR_UNAVAILABLE", "REPLAY_LIMIT_EXCEEDED"])

@@ -279,7 +279,13 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
         "registered_user_action_invocations",
         "durable_arguments",
         "safe_point_ack_required",
+        "dss_language_enabled",
     }
+    assert worker_main.args.args[-1].arg == "dss_language_enabled"
+    assert isinstance(worker_main.args.args[-1].annotation, ast.Name)
+    assert worker_main.args.args[-1].annotation.id == "bool"
+    assert isinstance(worker_main.args.defaults[-1], ast.Constant)
+    assert worker_main.args.defaults[-1].value is False
     assert not any(
         marker in argument.lower()
         for argument in worker_arguments
@@ -301,6 +307,11 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
     assert isinstance(keywords["target"], ast.Name)
     assert keywords["target"].id == "worker_main"
     assert isinstance(keywords["args"], ast.Tuple)
+    # The DSS selector crosses the process boundary only as a presence boolean.
+    expected_dss_flag = ast.parse(
+        'getattr(self, "dss_runtime", None) is not None', mode="eval"
+    ).body
+    assert ast.dump(keywords["args"].elts[-1]) == ast.dump(expected_dss_flag)
     process_arguments = [
         item.id for item in keywords["args"].elts if isinstance(item, ast.Name)
     ]

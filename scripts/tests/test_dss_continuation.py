@@ -43,6 +43,7 @@ def source_repo(tmp_path, monkeypatch):
         "scripts/qualify_dss_v19.py":"original qualification\n",
         "scripts/freeze_next_catalog.py":"tools = ('scripts.tests.test_dss_delivery::',)\n",
         "contracts/v19/release_policy.json":json.dumps(_policy())}
+    files.update({name: "original gate source\n" for name in continuation.REVIEWED_GATE_CORRECTIONS})
     for name, text in files.items():
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -103,6 +104,46 @@ def test_continuation_pins_reviewed_ui_bytes_and_ancestry(source_repo, monkeypat
     else:
         assert set(continuation.verify_source_compatibility(head, root=root)) == set(names) | {
             "scripts/qualify_dss_v19.py"}
+
+
+@pytest.mark.parametrize("source_path", sorted(continuation.REVIEWED_GATE_CORRECTIONS))
+@pytest.mark.parametrize("mutation", [None, "changed-source", "changed-mode", "runtime-change", "deleted-source", "missing-baseline-source"])
+def test_continuation_pins_exact_reviewed_gate_correction_before_copy(source_repo, tmp_path, monkeypatch, source_path, mutation):
+    root, _ = source_repo
+    path = root / source_path
+    if mutation == "missing-baseline-source":
+        path.unlink()
+        monkeypatch.setattr(continuation, "BASELINE_SOURCE", _commit(root))
+    approved = b"reviewed qualification correction\n"
+    path.write_bytes(approved)
+    hashes = dict(continuation.REVIEWED_GATE_CORRECTIONS)
+    hashes[source_path] = continuation.sha256(approved)
+    monkeypatch.setattr(continuation, "REVIEWED_GATE_CORRECTIONS", hashes)
+    head = _commit(root)
+    if mutation == "changed-mode":
+        _git(root, "update-index", "--chmod=+x", source_path)
+        _git(root, "commit", "-qm", "unreviewed file mode")
+        head = _git(root, "rev-parse", "HEAD")
+    elif mutation == "changed-source":
+        path.write_bytes(approved + b"unreviewed source change\n")
+        head = _commit(root)
+    elif mutation == "runtime-change":
+        (root / "backend/worker.py").write_bytes(b"changed worker\n")
+        head = _commit(root)
+    elif mutation == "deleted-source":
+        path.unlink()
+        head = _commit(root)
+    if mutation is None:
+        assert continuation.verify_source_compatibility(head, root=root) == [source_path]
+    else:
+        output = tmp_path / "new-final"
+        output.mkdir()
+        qualifier = SimpleNamespace(bindings={"source_commit": head}, output=output / "dss-validation.json",
+                                    results={}, scenarios=[], captures={})
+        with pytest.raises(ValueError):
+            continuation.restore_prefix(qualifier, tmp_path / "archive-not-read", root=root)
+        assert qualifier.results == {} and qualifier.scenarios == [] and qualifier.captures == {}
+        assert list(output.iterdir()) == []
 
 
 @pytest.mark.parametrize("mutation",["backend","procedure","database","dependency","added-runtime","deleted-runtime","nonancestor"])

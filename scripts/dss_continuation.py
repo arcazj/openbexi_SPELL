@@ -17,6 +17,13 @@ from scripts.validate_dss_delivery import (
 )
 
 BASELINE_SOURCE = "3e7d991123034bf6c83408f100bbdb00d7cc78ae"
+REVIEWED_GATE_CORRECTIONS = {
+    'backend/tests/test_driver_isolation.py': '35c0239459aba455a1ab1fe05293cf4931341a9511135429558e155d63dd3e47',
+    'backend/tests/test_observation_websocket_batching_v19.py': 'b66fddeb938c3be4e19d2dc306c97e46f209a66e3985e2a447e4d7c92886651b',
+    'backend/tests/test_reference_runner_v10.py': 'c7e578a0c47f702f723a647f3eed537b7a0755aff7dc8ce711523c2a661a69d7',
+    'backend/tests/test_shadow_pilot_v15.py': '5f16a0de1bb4124fa1e51fad167bc1f87fe7a99569ac3e308f00aa56e060eb79',
+    'scripts/qualify_reference_examples_v10.py': 'cee6d1b6426a613859f96ef7625d76ac1d1a4a032e49b034470ade531e899b94',
+}
 REVIEWED_UI_SOURCE = "c18614444e918160e8c80fa9cde236db5793da91"
 REVIEWED_UI_FILES = frozenset({
     "frontend/src/components/DataDock.tsx", "frontend/src/development/main.tsx",
@@ -33,6 +40,7 @@ QUALIFICATION_ONLY = frozenset({
     "scripts/qualify_next.py", "scripts/tests/test_dss_delivery.py",
     "scripts/tests/test_dss_continuation.py", "contracts/v19/release_policy.json",
     "contracts/dss/README.md", "scripts/freeze_next_catalog.py",
+    *REVIEWED_GATE_CORRECTIONS,
 })
 BASELINE_DOCUMENTS = {
     "dss-validation.json": "11f649e8abca49f86ae7e48caa6e7cbacb55ccb916c6905c97cc127bfa653fd6",
@@ -68,7 +76,7 @@ def _tree(root, commit):
 
 
 def verify_source_compatibility(source_commit, *, root=ROOT):
-    """Pin runtime bytes and the exact separately reviewed metallic UI commit."""
+    """Pin runtime bytes, the reviewed UI and exact gate-correction files."""
     require(source_commit != BASELINE_SOURCE, "continuation requires the reviewed qualification fix")
     _git(root, "merge-base", "--is-ancestor", BASELINE_SOURCE, source_commit)
     old, new = _tree(root, BASELINE_SOURCE), _tree(root, source_commit)
@@ -85,6 +93,12 @@ def verify_source_compatibility(source_commit, *, root=ROOT):
     require(changed and set(changed) <= QUALIFICATION_ONLY | REVIEWED_UI_FILES,
             "continuation changes runtime or unreviewed source: " + ", ".join(changed[:20]))
     require(all(name in new for name in old), "continuation deletes tracked source")
+    for name, approved_sha256 in REVIEWED_GATE_CORRECTIONS.items():
+        if name in changed:
+            # These exact gate corrections do not change the pinned runtime.
+            require(name in old and name in new and old[name][0] == new[name][0]
+                    and sha256(_git(root, "show", source_commit + ":" + name)) == approved_sha256,
+                    "continuation gate correction differs from reviewed bytes or mode: " + name)
     if "contracts/v19/release_policy.json" in changed:
         _validate_policy_change(json.loads(_git(root, "show", BASELINE_SOURCE + ":contracts/v19/release_policy.json")),
             json.loads(_git(root, "show", source_commit + ":contracts/v19/release_policy.json")))

@@ -56,15 +56,18 @@ def qualify() -> dict[str, object]:
         VARIANT_CONTRACT, example_contracts=contract
     )
     catalog = ProcedureCatalog(PROCEDURES).list()
+    reference_runners = [item for item in catalog if item.id == "language_reference_244"]
+    if len(reference_runners) != 1:
+        raise RuntimeError("bundled procedure catalog lacks the exact reference-example runner")
+    runner = reference_runners[0]
     from backend.language_conformance_v18 import CATALOG_PROFILES as V18_CATALOG_PROFILES
     from backend.language_conformance_v19 import CATALOG_PROFILES as V19_CATALOG_PROFILES
-    expected_catalog = ([identity for identity, _ in V19_CATALOG_PROFILES] if catalog and catalog[0].ir_version == "0.19"
-        else [identity for identity, _ in V18_CATALOG_PROFILES] if catalog and catalog[0].ir_version == "0.18"
-        else ["language_reference_244", "prompt_workflow_v17"] if catalog and catalog[0].ir_version == "0.17"
+    expected_catalog = ([identity for identity, _ in V19_CATALOG_PROFILES] if runner.ir_version == "0.19"
+        else [identity for identity, _ in V18_CATALOG_PROFILES] if runner.ir_version == "0.18"
+        else ["language_reference_244", "prompt_workflow_v17"] if runner.ir_version == "0.17"
         else ["language_reference_244"])
     if [item.id for item in catalog] != expected_catalog:
         raise RuntimeError("bundled procedure catalog differs from the versioned reference profile")
-    runner = catalog[0]
     if runner.ir_version not in {"0.10", "0.16", "0.17", "0.18", "0.19"}:
         raise RuntimeError("reference-example runner did not compile to an accepted reference IR")
     analysis = analyze_source(

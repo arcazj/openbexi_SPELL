@@ -58,7 +58,7 @@ def test_first_catalog_runner_routes_prompt_index_to_example_195(
 ) -> None:
     procedures = ProcedureCatalog(ROOT / "procedures").list()
     assert [procedure.id for procedure in procedures] == [identity for identity, _ in CATALOG_PROFILES]
-    procedure = procedures[0]
+    procedure = next(item for item in procedures if item.id == "language_reference_244")
     assert procedure.ir_version == "0.19"
 
     thread, control, output = _start_worker(

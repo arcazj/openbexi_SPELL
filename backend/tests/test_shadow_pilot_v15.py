@@ -293,9 +293,11 @@ def test_migration_is_static_and_repeated_start_preserves_reports(client, operat
 def test_prior_migration_upgrade_is_atomic_and_repeatable(tmp_path, monkeypatch, failure):
     engine, _ = create_database(f"sqlite:///{(tmp_path / 'pilot-upgrade.db').as_posix()}")
     all_migrations = migrations.MIGRATIONS
-    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations[:-1])
+    target_index = next(index for index, item in enumerate(all_migrations) if item.VERSION == migration.VERSION)
+    target_migrations = all_migrations[:target_index + 1]
+    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations[:target_index])
     run_migrations(engine)
-    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations)
+    monkeypatch.setattr(migrations, "MIGRATIONS", target_migrations)
     original = migration.verify
     if failure:
         monkeypatch.setattr(migration, "verify", lambda _: (_ for _ in ()).throw(RuntimeError("injected migration failure")))
@@ -314,9 +316,11 @@ def test_postgresql_prior_upgrade_failure_and_repeat(monkeypatch, failure):
     engine, _ = create_database(os.environ["SPELL_MIGRATION_TEST_DATABASE_URL"])
     reset_test_database(engine)
     all_migrations = migrations.MIGRATIONS
-    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations[:-1])
+    target_index = next(index for index, item in enumerate(all_migrations) if item.VERSION == migration.VERSION)
+    target_migrations = all_migrations[:target_index + 1]
+    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations[:target_index])
     run_migrations(engine)
-    monkeypatch.setattr(migrations, "MIGRATIONS", all_migrations)
+    monkeypatch.setattr(migrations, "MIGRATIONS", target_migrations)
     original = migration.verify
     if failure:
         monkeypatch.setattr(migration, "verify", lambda _: (_ for _ in ()).throw(RuntimeError("injected migration failure")))
