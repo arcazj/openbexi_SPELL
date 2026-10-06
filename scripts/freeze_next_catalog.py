@@ -33,7 +33,8 @@ def main():
     tools = [r for r in rows if r["identity"].startswith(("scripts.tests.test_release_v12::",
              "scripts.tests.test_release_next::", "scripts.tests.test_spell_auditor_tool::",
              "scripts.tests.test_gcc_aligned_new_applicability::", "scripts.tests.test_dss_delivery::",
-             "scripts.tests.test_dss_release_gate::", "scripts.tests.test_seed_dss_v19::"))]
+             "scripts.tests.test_dss_release_gate::", "scripts.tests.test_seed_dss_v19::",
+             "scripts.tests.test_dss_continuation::"))]
     docs = [r for r in rows if r["identity"].startswith(("scripts.tests.test_markdown_preview_v09::",
             "scripts.tests.test_documentation_tree_layout::"))]
     config["gates"]["sqlite"] = gate(backend + driver)

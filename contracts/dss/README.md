@@ -121,3 +121,19 @@ remain in a temporary local token file and are excluded from reports.
 If authority is lost during an in-flight reference subject, its durable intent
 remains unresolved. Resume or recovery cannot authorize an automatic resend;
 completed subjects retain their committed results.
+
+For the retained v0.19 numeric-default validation failure, pass
+`--resume-from <retained-archive>` to the `dss-validation` gate. Continuation
+independently reconstructs the 947 completed identities and eight scenarios
+from pinned raw captures and case logs, then executes the 22 remaining scenarios.
+It preserves the failed report and each carried execution's original source
+binding. Native numeric wire strings and typed procedure results are checked
+separately against the durable settlement and its audit event.
+
+The source guard permits only the closed qualification changes and the exact
+reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`.
+Runtime, procedures, database and dependency bytes remain pinned; additional
+UI edits cannot inherit this exception. Current frontend images and all other
+release gates still require fresh qualification on the final source. A resumed
+PASS requires all 954 identities, ten procedures and 30 scenarios; retained
+results are never relabelled as fresh executions.

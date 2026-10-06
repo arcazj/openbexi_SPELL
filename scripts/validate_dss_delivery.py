@@ -239,7 +239,7 @@ def validate_report(report: dict, *, source_commit: str, image_ids: dict[str, st
     required = {"schema_version", "release", "source_commit", "image_ids", "database_identity",
                 "inventory_sha256", "decision", "full_language_compatibility", "results", "scenarios", "raw_captures",
                 "reproduction", "counts"}
-    require(set(report) == required, "DSS report fields differ")
+    require(set(report) in (required, required | {"continuation"}), "DSS report fields differ")
     require(report["schema_version"] == SCHEMA and report["decision"] == "PASS",
             "DSS delivery did not pass")
     require(report["full_language_compatibility"] is False, "DSS evidence cannot assert full language compatibility")
@@ -272,6 +272,11 @@ def validate_report(report: dict, *, source_commit: str, image_ids: dict[str, st
     require(type(references) is dict and references, "raw DSS captures are missing")
     require(capture_root is not None,"DSS capture directory is required")
     captures = CaptureStore(capture_root, references)
+    continuation = None
+    if "continuation" in report:
+        from scripts.dss_continuation import validate_continuation, expected_evidence_source
+        continuation = validate_continuation(report,source_commit=source_commit,image_ids=image_ids,
+            capture_root=capture_root,root=root)
     referenced={row.get("evidence",{}).get("raw_capture_sha256") for row in report["results"]+report["scenarios"]}
     executed_names, telemetry_names = set(), set()
     # Stream the complete integrity/coverage audit. Retain only identities, not
@@ -304,7 +309,9 @@ def validate_report(report: dict, *, source_commit: str, image_ids: dict[str, st
         if "oracle" in definition:
             require(canonical(result["observed"]) == canonical(definition["oracle"]),
                     "DSS semantic oracle differs: " + identity)
-        _validate_evidence(result["evidence"], identity, captures, source_commit)
+        evidence_source = source_commit if continuation is None else expected_evidence_source(
+            continuation,identity,result["evidence"]["raw_capture_sha256"],source_commit)
+        _validate_evidence(result["evidence"], identity, captures, evidence_source)
         capture=captures[result["evidence"]["raw_capture_sha256"]]
         if definition["kind"] == "MENU_SELECTION":
             require(result["observed"] == {"selection": definition["selection"], "targets": definition["targets"]},
@@ -335,7 +342,9 @@ def validate_report(report: dict, *, source_commit: str, image_ids: dict[str, st
                 and row["status"] == "PASS" and row["definition_sha256"] == definition["definition_sha256"]
                 and canonical(row["observed"]) == canonical(definition["expected"]),
                 "DSS scenario did not satisfy its independent oracle: " + row["id"])
-        _validate_evidence(row["evidence"], row["id"], captures, source_commit)
+        evidence_source = source_commit if continuation is None else expected_evidence_source(
+            continuation,row["id"],row["evidence"]["raw_capture_sha256"],source_commit)
+        _validate_evidence(row["evidence"], row["id"], captures, evidence_source)
         require(canonical(observed_procedure(captures[row["evidence"]["raw_capture_sha256"]],definition))
                 ==canonical(definition["expected"]),"scenario raw evidence differs from reported outcome")
     require(canonical(report["counts"]) == canonical(delivery_counts(manifest["inventory"], results, actual_scenarios, references)),
@@ -704,7 +713,15 @@ def observed_procedure(capture: dict, definition: dict) -> dict:
     actions=[row for row in definition["operator_actions"] if row["action"]!="await_warning"]
     prompts=capture["typed_prompts"]
     require(len(prompts)==len(actions),"procedure prompt settlement coverage differs")
+    from backend.prompt_v17 import PROMPT_PROFILE
+    from backend.procedure_parser import ProcedureCatalog
+    from scripts.dss_prompt_validation import validate_native_prompt_action
+    source_steps=ProcedureCatalog.__new__(ProcedureCatalog).validate_source(source.decode("utf-8")).steps
+    native_prompt_indexes={step["index"] for step in source_steps if step.get("prompt_profile")==PROMPT_PROFILE}
     for action,prompt in zip(actions,prompts):
+        if prompt.get("prompt_profile") == PROMPT_PROFILE or prompt.get("step_index") in native_prompt_indexes:
+            validate_native_prompt_action(prompt,action,capture["operator_audit"],execution_id=execution["id"])
+            continue
         settlement=prompt.get("settlement") or {}
         if action["action"]=="abort":require(settlement.get("outcome")=="CANCELLED","operator abort did not cancel prompt")
         else:

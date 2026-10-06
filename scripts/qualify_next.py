@@ -31,7 +31,8 @@ TOOL_TESTS = ["scripts/tests/test_release_v12.py", "scripts/tests/test_release_n
 if MINOR >= 18:
     TOOL_TESTS.append("scripts/tests/test_gcc_aligned_new_applicability.py")
 if MINOR >= 19:
-    TOOL_TESTS += ["scripts/tests/test_dss_delivery.py", "scripts/tests/test_dss_release_gate.py", "scripts/tests/test_seed_dss_v19.py"]
+    TOOL_TESTS += ["scripts/tests/test_dss_delivery.py", "scripts/tests/test_dss_release_gate.py",
+                   "scripts/tests/test_seed_dss_v19.py", "scripts/tests/test_dss_continuation.py"]
 
 
 def docker_python(*args, network="none", extra=()):
@@ -74,13 +75,16 @@ def renewing_credential(renew, private_token: Path, *, interval=600):
 
 
 class Producer:
-    def __init__(self, gate):
+    def __init__(self, gate, *, resume_from=None):
+        require(resume_from is None or (MINOR >= 19 and gate == "dss-validation"),
+                "continuation is supported only for the DSS validation gate")
         require(not git("status", "--porcelain"), "qualification requires clean committed source")
         OUT.mkdir(parents=True, exist_ok=True)
         if gate not in {"prepare", "candidate"}:
             verify_candidate(policy())
         self.gate, self.source, self.binding = gate, git("rev-parse", "HEAD"), fingerprint()
         self.commands = []
+        self.resume_from = Path(resume_from).resolve() if resume_from is not None else None
 
     def run(self, command, *, cwd=ROOT, env=None, output=None, private=False, timeout=None):
         started = time.monotonic()
@@ -219,10 +223,17 @@ class Producer:
                 temporary.write_bytes(token.encode())
                 temporary.replace(private_token)
             with renewing_credential(renew, private_token):
+                resume_args, resume_mount = [], []
+                if self.resume_from is not None:
+                    require(self.resume_from.is_dir() and self.resume_from != OUT.resolve(),
+                            "DSS continuation requires a separate retained archive")
+                    resume_args = ["--resume-from", "/retained-dss"]
+                    resume_mount = ["-v", f"{self.resume_from.as_posix()}:/retained-dss:ro"]
                 self.run(docker_python("-m", "scripts.qualify_dss_v19", "--backend-url", "http://proxy:8080",
                     "--dss-url", "http://dss:8081/api/v1", "--bindings", "/evidence/dss-bindings.json",
-                    "--output", "/evidence/dss-validation.json", network=f"spellv0{MINOR}release_spell-internal",
-                    extra=["-e", "SPELL_DSS_GATE_TOKEN_FILE=/evidence/dss-gate.token"]))
+                    "--output", "/evidence/dss-validation.json", *resume_args,
+                    network=f"spellv0{MINOR}release_spell-internal",
+                    extra=["-e", "SPELL_DSS_GATE_TOKEN_FILE=/evidence/dss-gate.token", *resume_mount]))
         elif gate == "browser":
             token = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
                 "backend", "python", "/app/scripts/issue_dev_token.py", "--subject", f"v0{MINOR}-browser-qualification",
@@ -278,14 +289,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("gate", choices=("prepare", "candidate", "sqlite", "postgresql", "compose", "documentation", "tooling",
         "frontend", "frontend-build", "replay", "reference-generators", "dss-validation", "browser", "image-probe", "supply-chain", "assemble"))
+    parser.add_argument("--resume-from", type=Path)
     args = parser.parse_args()
+    if args.resume_from is not None and (MINOR < 19 or args.gate != "dss-validation"):
+        parser.error("--resume-from is supported only for DSS validation")
     if args.gate == "assemble":
         captures = [json.loads(path.read_bytes()) for path in sorted(OUT.glob("*.command.json")) if path.name != "candidate.command.json"]
         require(len(captures) == (14 if MINOR >= 19 else 13), "missing canonical gate capture")
         require(all(row["source_commit"] == git("rev-parse", "HEAD") and row["source_fingerprint"] == fingerprint() for row in captures), "capture source differs")
         write_json(OUT / "commands.json", {"source_commit": git("rev-parse", "HEAD"), "commands": [command for row in captures for command in row["commands"]]})
     else:
-        Producer(args.gate).execute()
+        Producer(args.gate, resume_from=args.resume_from).execute()
 
 
 if __name__ == "__main__":

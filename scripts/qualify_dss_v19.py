@@ -355,7 +355,8 @@ class DeliveryQualifier:
                 action_index += 1
                 continue
             if action["action"] == "await_default":
-                default_prompt = {"id":prompt["id"], "value":action["value"]}
+                default_prompt = {"id":prompt["id"], "value":action["value"],
+                                  "prompt_profile":prompt.get("prompt_profile")}
                 answered.add(prompt["id"])
                 action_index += 1
                 continue
@@ -395,10 +396,6 @@ class DeliveryQualifier:
         report=self.backend.call(f"/api/v1/executions/{execution_id}/report")
         capture["typed_prompts"]=report["typed_prompts"]
         capture["operator_audit"]=report["operator_audit"]
-        if default_prompt is not None:
-            if not any(row["id"]==default_prompt["id"] and row.get("settlement",{}).get("actor")=="operator-reconciler"
-                       and row["settlement"].get("value")==default_prompt["value"] for row in report["typed_prompts"]):
-                raise ValueError(identity + ": automatic default lacks an actual settlement event")
         if selection is not None:
             from backend.dss_language_broker import result_for_request, selected_subjects
             evidence = self.backend.call(f"/api/v1/executions/{execution_id}/dss-language-evidence")
@@ -424,6 +421,32 @@ class DeliveryQualifier:
                     +"&packet_sha256="+packet["packet_sha256"])
                 packets.extend(driver["packets"])
             capture.update(dss=collect_evidence(self.dss.call,state["scenario_id"],conflict_retries=3), driver=packets)
+        if default_prompt is not None:
+            try:
+                from backend.prompt_v17 import PROMPT_PROFILE
+                from scripts.dss_prompt_validation import validate_native_prompt_action
+                matching=[row for row in report["typed_prompts"] if row["id"]==default_prompt["id"]]
+                if len(matching)!=1:
+                    raise ValueError("automatic default prompt identity differs")
+                prompt=matching[0]
+                if (default_prompt["prompt_profile"]==PROMPT_PROFILE
+                        or prompt.get("prompt_profile")==PROMPT_PROFILE):
+                    validate_native_prompt_action(prompt,{"action":"await_default","value":default_prompt["value"]},
+                        report["operator_audit"],execution_id=execution_id,expected_prompt_id=default_prompt["id"])
+                elif not (prompt.get("settlement",{}).get("actor")=="operator-reconciler"
+                          and prompt["settlement"].get("value")==default_prompt["value"]):
+                    raise ValueError("automatic default lacks an actual settlement event")
+            except ValueError as exc:
+                # Retain actual report/events and binary evidence before failing;
+                # this diagnostic never creates a successful scenario result.
+                capture["elapsed_seconds"]=time.monotonic()-started
+                retained={"identity":identity,"execution_id":execution_id,"decision":"FAIL",
+                          "failure":str(exc),"report":report,"capture":capture}
+                data=canonical(retained)
+                if len(data)>16_000_000:
+                    raise ValueError("ordinary prompt failure evidence exceeds16MiB") from exc
+                self.logs.joinpath(identity.replace(":","-")+"-failed.json").write_bytes(data+b"\n")
+                raise ValueError(identity+": "+str(exc)) from exc
         capture["elapsed_seconds"]=time.monotonic()-started
         if capture["elapsed_seconds"]>spec["wall_timeout_seconds"]:
             raise ValueError(identity+": execution and evidence collection exceeded declared wall bound")
@@ -502,8 +525,18 @@ class DeliveryQualifier:
         if any(health.get(key) != reproduction["runtime_configuration"][key]
                for key in ("automatic_interval_ns", "physics_ticks_per_frame")):
             raise ValueError("Actual DSS publication cadence differs from the declared reproduction configuration")
+        continuation=getattr(self,"continuation",None)
+        scenario_start=0
+        if continuation is not None:
+            if (getattr(self,"_continuation_validated",False) is not True
+                    or sorted(self.results)!=continuation["completed_identities"]
+                    or [row["id"] for row in self.scenarios]!=continuation["completed_scenarios"]
+                    or len(self.scenarios)!=8):
+                raise ValueError("DSS continuation prefix has not been independently restored")
+            all_evidence=self.results["menu:343"]["evidence"]
+            scenario_start=len(self.scenarios)
         # Every menu choice executes independently; Run-all additionally repeats every nested case.
-        for selection in range(registry.ALL_SELECTION + 1):
+        for selection in (() if continuation is not None else range(registry.ALL_SELECTION + 1)):
             identity = f"menu:{selection:03}"
             self.current_identity=identity
             print(identity, flush=True)
@@ -524,7 +557,7 @@ class DeliveryQualifier:
             # Raw child captures are now persisted and hash-addressed. Do not
             # keep the full Run-all archive alive during report validation.
             del capture, subject
-        for definition in self.manifest["scenarios"]:
+        for definition in self.manifest["scenarios"][scenario_start:]:
             self.current_identity="scenario:"+definition["id"]
             print("scenario:" + definition["id"], flush=True)
             if definition["id"] == "catalog-reference-all":
@@ -553,6 +586,7 @@ class DeliveryQualifier:
             "inventory_sha256":self.manifest["inventory_sha256"],"decision":"PASS","full_language_compatibility":False,
             "results":[self.results[key] for key in sorted(self.results)],"scenarios":self.scenarios,"raw_captures":self.captures,
             "reproduction":reproduction}
+        if continuation is not None:report["continuation"]=continuation
         report["counts"] = delivery_counts(self.manifest["inventory"], report["results"], self.scenarios, self.captures)
         validate_report(report,source_commit=self.bindings["source_commit"],image_ids=self.bindings["image_ids"],capture_root=self.capture_root)
         self.current_identity = "final-state"
@@ -569,16 +603,17 @@ def main() -> int:
     parser.add_argument("--dss-url", default="http://127.0.0.1:8080/dss/api/v1")
     parser.add_argument("--bindings", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--resume-from", type=Path)
     args = parser.parse_args()
     if args.write_contract:
-        if args.check_contract or args.output or args.bindings:
+        if args.check_contract or args.output or args.bindings or args.resume_from:
             parser.error("contract generation cannot be combined with qualification")
         MANIFEST.parent.mkdir(parents=True, exist_ok=True)
         MANIFEST.write_bytes((json.dumps(build_manifest(), indent=2, sort_keys=True) + "\n").encode("ascii"))
         REFERENCE_MAPPING.write_bytes((json.dumps(reference_mapping(), indent=2, sort_keys=True) + "\n").encode("ascii"))
         return 0
     if args.check_contract:
-        if args.output or args.bindings:
+        if args.output or args.bindings or args.resume_from:
             parser.error("contract checking is not qualification")
         if canonical(load_manifest(RELEASE)) != canonical(build_manifest()):
             raise ValueError("reviewed DSS scenario definitions are stale")
@@ -597,6 +632,9 @@ def main() -> int:
             raise ValueError("DSS qualification bindings differ")
         qualifier=DeliveryQualifier(Api(args.backend_url,os.environ.get("SPELL_DSS_GATE_TOKEN") or "token-file"),
             Api(args.dss_url),bindings,args.output)
+        if args.resume_from:
+            from scripts.dss_continuation import restore_prefix
+            restore_prefix(qualifier,args.resume_from)
         qualifier.run()
     except Exception as exc:
         args.output.write_bytes(canonical({"schema_version":"spell.dss.delivery/1","release":RELEASE,

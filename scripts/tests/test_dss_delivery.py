@@ -1166,3 +1166,203 @@ def test_execution_spec_rejects_unbounded_time_or_undeclared_physical_inputs(tam
     elif tamper=="bound":raw["execution_spec"]["wall_timeout_seconds"]=9000
     else:raw["execution_spec"]["confirmations"]=["YES"]
     with pytest.raises(ValueError):validate_execution_spec(raw,spec,state,faults)
+
+
+def _native_action_receipt(kind="NUM", *, automatic=True, wire="2.5", ordinal=1, abort=False):
+    """Public prompt/audit DTOs; literal wire values are independent test oracles."""
+    import uuid
+    identity = lambda offset: str(uuid.UUID(int=ordinal * 10 + offset))
+    actor = "operator-reconciler" if automatic else "qualification-operator"
+    outcome = "CANCELLED" if abort else "ANSWERED"
+    prompt = {"id": identity(1), "execution_id": "prompt-test-execution", "step_index": (ordinal-1)*2,
+        "revision": 2, "state": "SETTLED", "type": kind, "prompt_profile": "spell-lrm244/0.17",
+        "question": "Prompt " + str(ordinal), "list_mode": "KEY" if kind == "LIST" else None,
+        "options": [{"key":"A","label":"Primary"},{"key":"B","label":"Backup"}] if kind == "LIST" else [],
+        "default": wire if automatic else None, "opened_at": "2026-10-04T12:00:00+00:00",
+        "response_deadline": "2026-10-04T12:00:01+00:00" if automatic else None,
+        "warning_at": None, "warning_emitted_at": None,
+        "settings": {"PROMPT_PROFILE":"spell-lrm244/0.17", "PROMPT_RESPONSE_TIMEOUT":1.0 if automatic else None,
+            "PROMPT_WARNING_DELAY":None, "NO_CONTROLLER_GRACE":None},
+        "settlement": {"id":identity(2),"actor":actor,"outcome":outcome,"value":None if abort else wire,
+            "settled_at":"2026-10-04T12:00:01.250000+00:00"}}
+    payload = {"prompt_id":prompt["id"], "settlement_id":prompt["settlement"]["id"],
+        "outcome":outcome if automatic else "ACCEPTED_SETTLEMENT"}
+    if not automatic:payload.update(attempt_id=identity(3),settlement_outcome=outcome)
+    audit = [{"id":identity(4), "sequence":ordinal, "event_type":"prompt.settled",
+        "aggregate_type":"operator_prompt", "aggregate_id":prompt["id"], "actor":actor,
+        "created_at":prompt["settlement"]["settled_at"], "payload":payload}]
+    return prompt, audit
+
+
+@pytest.mark.parametrize("kind,automatic,wire,requested,expected", [
+    ("NUM",True,"2.5",2.5,2.5), ("NUM",False,"3.5","3.5",3.5),
+    ("YES_NO",True,"NO","NO","NO"), ("LIST",False,"A","A","A"),
+    ("ALPHA",False,"qualification","qualification","qualification"),
+    ("OK_CANCEL",False,"CANCEL","CANCEL","CANCEL"),
+], ids=["numeric-default","numeric-explicit","default-no","list-key","text","cancel-is-value"])
+def test_native_prompt_receipt_preserves_canonical_wire_and_typed_result(kind,automatic,wire,requested,expected):
+    from scripts.dss_prompt_validation import validate_native_prompt_action
+    prompt,audit=_native_action_receipt(kind,automatic=automatic,wire=wire)
+    original=deepcopy((prompt,audit))
+    actual=validate_native_prompt_action(prompt,{"action":"await_default" if automatic else "answer","value":requested},
+        audit,execution_id=prompt["execution_id"],expected_prompt_id=prompt["id"])
+    assert type(actual) is type(expected) and actual == expected
+    assert (prompt,audit) == original
+
+
+@pytest.mark.parametrize("mutation", [
+    "float-wire","boolean-wire","noncanonical-wire","nonfinite-wire","wrong-value","wrong-actor",
+    "wrong-outcome","foreign-prompt","foreign-execution","settlement-id","missing-audit","duplicate-audit",
+    "audit-prompt","audit-settlement","audit-actor","audit-outcome","no-deadline","early-settlement",
+    "wrong-deadline","boolean-timeout","wrong-default","wrong-audit-time",
+])
+def test_native_numeric_default_rejects_forged_wire_authority_and_deadline(mutation):
+    from scripts.dss_prompt_validation import validate_native_prompt_action
+    prompt,audit=_native_action_receipt()
+    prompt_id=prompt["id"]
+    if mutation == "float-wire":prompt["settlement"]["value"]=2.5
+    elif mutation == "boolean-wire":prompt["settlement"]["value"]=True
+    elif mutation == "noncanonical-wire":prompt["settlement"]["value"]="2.50"
+    elif mutation == "nonfinite-wire":prompt["settlement"]["value"]="NaN"
+    elif mutation == "wrong-value":prompt["settlement"]["value"]="3.5"
+    elif mutation == "wrong-actor":prompt["settlement"]["actor"]=audit[0]["actor"]="qualification-operator"
+    elif mutation == "wrong-outcome":prompt["settlement"]["outcome"]=audit[0]["payload"]["outcome"]="TIMED_OUT"
+    elif mutation == "foreign-prompt":prompt["id"]="00000000-0000-0000-0000-000000000099"
+    elif mutation == "foreign-execution":prompt["execution_id"]="another-execution"
+    elif mutation == "settlement-id":prompt["settlement"]["id"]="00000000-0000-0000-0000-000000000099"
+    elif mutation == "missing-audit":audit=[]
+    elif mutation == "duplicate-audit":audit.append(deepcopy(audit[0]))
+    elif mutation == "audit-prompt":audit[0]["payload"]["prompt_id"]="another-prompt"
+    elif mutation == "audit-settlement":audit[0]["payload"]["settlement_id"]="another-settlement"
+    elif mutation == "audit-actor":audit[0]["actor"]="another-operator"
+    elif mutation == "audit-outcome":audit[0]["payload"]["outcome"]="ACCEPTED_SETTLEMENT"
+    elif mutation == "no-deadline":prompt["response_deadline"]=None
+    elif mutation == "early-settlement":prompt["settlement"]["settled_at"]="2026-10-04T12:00:00.999999+00:00"
+    elif mutation == "wrong-deadline":prompt["response_deadline"]="2026-10-04T12:00:02+00:00"
+    elif mutation == "boolean-timeout":prompt["settings"]["PROMPT_RESPONSE_TIMEOUT"]=True
+    elif mutation == "wrong-default":prompt["default"]="3.5"
+    else:audit[0]["created_at"]="2026-10-04T12:00:01.249999+00:00"
+    with pytest.raises(ValueError):
+        validate_native_prompt_action(prompt,{"action":"await_default","value":2.5},audit,
+            execution_id="prompt-test-execution",expected_prompt_id=prompt_id)
+
+
+def test_native_prompt_abort_remains_distinct_from_cancel_answer():
+    from scripts.dss_prompt_validation import validate_native_prompt_action
+    prompt,audit=_native_action_receipt("OK_CANCEL",automatic=False,wire="CANCEL",abort=True)
+    assert validate_native_prompt_action(prompt,{"action":"abort"},audit,
+        execution_id=prompt["execution_id"]) is None
+    with pytest.raises(ValueError):
+        validate_native_prompt_action(prompt,{"action":"answer","value":"CANCEL"},audit,
+            execution_id=prompt["execution_id"])
+
+
+@pytest.mark.parametrize("mode", ["default","explicit","missing-default-audit","wrong-default-value"])
+def test_four_prompt_producer_never_advances_actions_on_repeated_stale_prompt_ids(tmp_path,monkeypatch,mode):
+    """Exercise the real producer loop with scripted API DTOs, not live DSS evidence."""
+    from types import SimpleNamespace
+    from scripts import qualify_dss_v19 as producer
+    from backend import dss_capture,dss_scenarios
+    default=mode != "explicit"
+    definition=next(row for row in scenario_definitions() if row["id"] == (
+        "prompt-warning-default" if default else "prompt-cancel-is-value"))
+    wires=["A" if default else "B","2.5" if default else "3.5",
+        "qualification" if default else "backup","OK" if default else "CANCEL"]
+    receipts=[_native_action_receipt(kind,automatic=default and index==1,wire=wire,ordinal=index+1)
+        for index,(kind,wire) in enumerate(zip(["LIST","NUM","ALPHA","OK_CANCEL"],wires))]
+    prompts=[row[0] for row in receipts]
+    audits=[audit for _,rows in receipts for audit in rows]
+    prompts[0]["warning_emitted_at"]="2026-10-04T12:00:01+00:00" if default else None
+    if default:audits.insert(0,{"event_type":"prompt.warning_due","aggregate_id":prompts[0]["id"],
+        "aggregate_type":"operator_prompt","actor":"operator-reconciler","payload":{"prompt_id":prompts[0]["id"]}})
+    execution={"id":"prompt-test-execution","state":"prompting","revision":1,"variables":{}}
+    snapshots=[]
+    for index,prompt in enumerate(prompts):
+        active={**deepcopy(prompt),"state":"OPEN","settlement":None,"revision":1}
+        if index==0 and default:
+            snapshots.append({"execution":deepcopy(execution),"active_prompt":{**active,"warning_emitted_at":None}})
+        # Previous already-handled IDs reappear even after the next prompt opens.
+        snapshots.extend({"execution":deepcopy(execution),"active_prompt":deepcopy(active)} for _ in range(3))
+        if index:
+            snapshots.append({"execution":deepcopy(execution),"active_prompt":deepcopy(prompts[index-1])})
+    snapshots.append({"execution":{**execution,"state":"completed","variables":definition["expected"]["variables"]},"active_prompt":None})
+    if mode=="missing-default-audit":audits=[row for row in audits if row.get("aggregate_id")!=prompts[1]["id"]]
+    if mode=="wrong-default-value":prompts[1]["settlement"]["value"]="3.5"
+    posted=[]
+    def backend(path,body=None,**kwargs):
+        if path=="/api/v1/telemetry/snapshot?context_id=simulator":return {}
+        if path=="/api/v1/executions":return {"execution":execution}
+        if path.endswith("/snapshot"):
+            assert snapshots, "producer exhausted its bounded scripted prompt sequence"
+            return snapshots.pop(0)
+        if path.endswith("/control"):
+            assert body["action"]=="ACQUIRE"
+            return {"control_lease":{"id":"lease","revision":1,"control_fencing_token":1}}
+        if path.endswith("/responses"):
+            posted.append((path.split("/")[-2],body["action"],body["value"]))
+            return {}
+        if path.endswith("/report"):return {"typed_prompts":prompts,"operator_audit":audits}
+        if path.startswith("/api/v1/procedures/"):
+            return {"source":(producer.ROOT/"procedures/prompt_workflow_v17.spell.py").read_text(encoding="utf-8")}
+        raise AssertionError(path)
+    clock=[0.0]
+    monkeypatch.setattr(producer,"time",SimpleNamespace(monotonic=lambda:clock[0],sleep=lambda seconds:clock.__setitem__(0,clock[0]+seconds)))
+    monkeypatch.setattr(dss_scenarios,"snapshot_matches_scenario",lambda *args:True)
+    controls=[]
+    monkeypatch.setattr(dss_capture,"set_running",lambda _call,running,**kwargs:controls.append(running))
+    monkeypatch.setattr(dss_capture,"collect_evidence",lambda *args,**kwargs:{"scenario_id":"prompt-scenario","epoch":"epoch-unit","packets":[]})
+    qualifier=producer.DeliveryQualifier.__new__(producer.DeliveryQualifier)
+    qualifier.logs=tmp_path
+    qualifier.backend=SimpleNamespace(call=backend)
+    qualifier.dss=SimpleNamespace(call=lambda *args:None)
+    qualifier.reset=lambda *args:{"scenario_id":"prompt-scenario","epoch":"epoch-unit"}
+    qualifier.events=lambda _id:[]
+    if mode.startswith(("missing-","wrong-")):
+        with pytest.raises(ValueError):qualifier.run_procedure(definition["id"],"prompt_workflow_v17",definition["operator_actions"])
+        assert not (tmp_path/(definition["id"]+".json")).exists()
+        import json
+        retained=json.loads((tmp_path/(definition["id"]+"-failed.json")).read_bytes())
+        assert retained["decision"]=="FAIL" and retained["report"]["typed_prompts"]==prompts
+        assert retained["capture"]["driver"]==[] and retained["capture"]["dss"]["packets"]==[]
+    else:
+        capture=qualifier.run_procedure(definition["id"],"prompt_workflow_v17",definition["operator_actions"])
+        assert capture["execution"]["state"]=="completed"
+        assert type(capture["execution"]["variables"]["rate"]) is float
+        assert capture["execution"]["variables"]["rate"]==(2.5 if default else 3.5)
+    assert not snapshots
+    assert posted==[(prompt["id"],"COMMIT",wire) for index,(prompt,wire) in enumerate(zip(prompts,wires)) if not(default and index==1)]
+    assert controls==[True,False]
+
+
+@pytest.mark.parametrize("mode",["default","explicit","stripped-profile","wrong-wire"])
+def test_independent_procedure_oracle_checks_native_wire_without_legacy_fallback(monkeypatch,mode):
+    """Isolate report prompt semantics; transport execution has separate real proofs."""
+    from scripts import validate_dss_delivery as validator
+    default=mode != "explicit"
+    definition=next(row for row in scenario_definitions() if row["id"] == (
+        "prompt-warning-default" if default else "prompt-cancel-is-value"))
+    wires=["A" if default else "B","2.5" if default else "3.5",
+        "qualification" if default else "backup","OK" if default else "CANCEL"]
+    receipts=[_native_action_receipt(kind,automatic=default and index==1,wire=wire,ordinal=index+1)
+        for index,(kind,wire) in enumerate(zip(["LIST","NUM","ALPHA","OK_CANCEL"],wires))]
+    prompts=[row[0] for row in receipts]
+    audits=[audit for _,rows in receipts for audit in rows]
+    if default:audits.append({"event_type":"prompt.warning_due"})
+    if mode=="stripped-profile":prompts[1].pop("prompt_profile")
+    if mode=="wrong-wire":prompts[1]["settlement"]["value"]=2.5
+    source=(validator.ROOT/definition["subject"].removeprefix("procedure:")).read_bytes()
+    execution={"id":"prompt-test-execution","state":"completed","procedure_hash":sha256(source),
+        "variables":deepcopy(definition["expected"]["variables"])}
+    capture={"execution":execution,"procedure":{"source":source.decode()},
+        "actions":definition["operator_actions"],"typed_prompts":prompts,"operator_audit":audits,
+        "initial_dss_state":{},"dss":{"scenario_id":"unit","epoch":"unit","faults":{},"commands":[]},
+        "events":[{"execution_id":execution["id"],"sequence":index+1,"event_type":"procedure.log",
+            "payload":{"message":message}} for index,message in enumerate(definition["expected"]["logs"])]}
+    monkeypatch.setattr(validator,"validate_execution_spec",lambda *args:None)
+    monkeypatch.setattr(validator,"validate_transport_capture",lambda *args,**kwargs:{"executed_commands":0,"loaded_unexecuted_commands":0})
+    monkeypatch.setattr(validator,"validate_outer_source_execution",lambda *args:[])
+    monkeypatch.setattr(validator,"_validate_stage_receipts",lambda *args:None)
+    if mode in {"stripped-profile","wrong-wire"}:
+        with pytest.raises(ValueError):validator.observed_procedure(capture,definition)
+    else:
+        assert validator.observed_procedure(capture,definition)==definition["expected"]
