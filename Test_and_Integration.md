@@ -1,19 +1,10 @@
 # Test and Integration Plan
 
-## v0.19.0 In Qualification
+## v0.19.0 Qualification
 
-Bounded observation-to-command workflows are implemented under the approved
-[v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md).
-Full canonical qualification, immutable release binding and publication are
-pending; v0.18.0 remains the accepted predecessor. Current limits and behavior
-are in the [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
+Annotated `v0.19.0` passed independent clean-tag validation and was published. The seven final suites recorded 7,130 passed executions; all 45 environment-selected skips were resolved by complementary runs. The candidate gate passed 1325 checks. Four package builds across two independent exports matched, with no accepted exceptions.
 
-The owner added a mandatory Docker GENERIC DSS gate before every new delivery.
-All procedures, embedded cases, reference variants and menu choices must execute
-through actual binary CMD and Kafka TLM with declared scenarios and expected
-outcomes. The [DSS contract](contracts/dss/README.md) describes strict inventory,
-packet correlation and version-specific reports. Earlier pre-DSS candidate or
-regression results do not satisfy this new gate.
+Detailed gate counts and bindings are in the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding). The DSS gate covers 954 inventory identities and 30 fault scenarios; six image SBOMs/audits passed. Results below remain historical evidence for their named versions.
 
 ## v0.18.0 Qualification
 
@@ -147,8 +138,8 @@ this planning/source record does not independently claim completed tests.
 | Field | Value |
 | --- | --- |
 | Project | OpenBEXI SPELL |
-| Accepted predecessor | `v0.17.0`, release commit `e525b9c842e3c26a35058d85fc40bd3ee4b16c85`; direct core language and native prompts |
-| Current release state | v0.18.0 accepted; tag object `0bdd0ade51dbcc7822927fb95b5f962b6194b40f`, release commit `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48` |
+| Accepted predecessor | `v0.18.0`, release commit `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48`; native command composition |
+| Current release state | v0.19.0 accepted; see the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) for immutable bindings |
 | v0.10 owner direction | One bundled procedure must select all 195 Language Reference 2.4.4 examples and every bounded semantic adaptation must pass before delivery |
 | v0.11 direction | Closed deterministic simulator telecommand scope under `V11-GATE-0A`; no live dispatch or operational authority |
 | v0.12 direction | Qualified independent synthetic observation fixtures and GET-only replay; real legacy environment deferred |
@@ -158,7 +149,8 @@ this planning/source record does not independently claim completed tests.
 | v0.16 direction | Qualified language inventory/direct cases, manual workspace and automatic finite local operator sessions |
 | v0.17 direction | Qualified direct core language, native Display/Prompt semantics and source-bound conformance evidence |
 | v0.18 direction | Qualified native command composition, durable dispatch/recovery and additional testing procedures |
-| Date | Updated 2026-10-02 |
+| v0.19 direction | Qualified observation-to-command workflows, durable authority/recovery, aligned authoring and binary DSS transport |
+| Date | Updated 2026-10-06 |
 | Applies to | v0.1 documentation baseline and every product version from v0.2 onward |
 | Operational authorization | None |
 

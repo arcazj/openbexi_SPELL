@@ -1,8 +1,6 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-03. **v0.18.0 is accepted and published.** This roadmap covers
-the remaining work through a complete **v1.0.0 local simulator**, followed by
-the additional gates for a connected deployment if that scope is selected.
+Updated 2026-10-06. **v0.19.0 is accepted and published.** This roadmap covers the remaining work through a complete **v1.0.0 local simulator**, followed by the additional gates for a connected deployment if that scope is selected.
 
 Future versions are **planning targets**, not delivered features or guaranteed
 dates. A milestone may require several releases. Update its scope and target
@@ -13,16 +11,16 @@ is valid before its acceptance gate passes.
 
 ## Current Baseline
 
-| Item | Accepted v0.18.0 baseline |
+| Item | Accepted v0.19.0 baseline |
 | --- | --- |
-| Procedure execution | Bounded core language and native Prompt/Display compose with simulator BuildTC/Send; other service profiles remain separately bounded. |
+| Procedure execution | Bounded GetTM/Verify/WaitFor combine with native core language, Prompt/Display and literal BuildTC/Send through the shared-database Docker DSS and binary CCSDS/Kafka transport; other service profiles remain separately bounded. |
 | Operator UI | Compact GUI-manual workspace, automatic local connection at `http://127.0.0.1:8080/`, execution views and durable operator controls. |
-| Development | Existing project editing, checks, history, immutable bundles and simulator promotion; newer language authoring/promotion coverage still needs alignment. |
-| Language evidence | 128 cases: 95 direct-source checks and 33 expected rejections; 195 adaptations retain 257 variants. |
+| Development | Explicit v0.19 authoring profile supports checks, immutable builds, separate review, promotion and execution; legacy authoring remains supported. |
+| Language evidence | 148 cases: 112 direct-source checks and 36 expected rejections; 195 adaptations retain 257 variants. |
 | Remaining coverage | 763 inventory entries: 195 ADAPTED, 79 PARTIAL and 489 GAP. A GAP can mean missing implementation, missing proof or a manual conflict. |
-| Qualification | 5,146 passed test executions; 24 environment-selected skips resolved by complementary runs; 395 candidate checks; four matching package builds. |
+| Qualification | 7,130 passed test executions; 45 environment-selected skips resolved by complementary runs; 1325 candidate checks; four matching package builds. |
 
-The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding)
+The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding)
 owns exact bindings and evidence. Earlier delivery is retained in the
 [release index](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md) and
 [version timeline](VERSION_TIMELINE.md).
@@ -55,11 +53,7 @@ acceptance of a connected system have separate completion criteria.
 
 ## Planning Baseline And Entry Reviews
 
-The v0.19 observation-to-command increment is implemented and in qualification;
-its [entry record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md)
-sets fourteen proof requirements, including Docker DSS, its shared satellite
-database, actual binary CMD/TLM and exhaustive procedure validation. Acceptance
-remains pending. This DSS dependency must pass before any newer SPELL delivery.
+The v0.19 observation-to-command increment is accepted. Its [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) records the 14 bounded proof requirements and their qualification, including mandatory DSS delivery. Future milestones below remain planned and require their own entry and exit gates.
 
 Map every remaining inventory entry and approved requirement to a milestone,
 owner, dependency, source reference, test oracle and completion check. Reconcile
@@ -67,7 +61,7 @@ the original manuals with the generated design and record each conflict or
 Python 3 compatibility decision before implementing the affected behavior.
 
 Use [all supplied SPELL references](SPELL_DOCUMENTATION/), the
-[language coverage matrix](contracts/v18/language_coverage.json), the
+[language coverage matrix](contracts/v19/language_coverage.json), the
 [system requirements](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/requirements/SYSTEM_REQUIREMENTS.md),
 and the [open decisions](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/quality/OPEN_DECISIONS.md).
 The broader design remains Draft until its applicable decisions and requirements
@@ -88,9 +82,9 @@ Qualify the relevant limit semantics before v0.27 command tests, and all
 language-required simulator service contracts before the v0.30 gate. Bring
 these prerequisites forward from v0.28/v0.31 as needed.
 
-| Planned target | Deliverables | Exit evidence |
+| Milestone | Deliverables | Exit evidence |
 | --- | --- | --- |
-| **v0.19.0: Observation-to-command workflows** | Combine existing bounded GetTM, Verify and WaitFor with native prompts, expressions, branches and BuildTC/Send. Retain current literal service identifiers and command operands. | Complete read/check/wait/decision/command procedures; authoritative typed results and command guards; stale/missing/bad-quality data, timeout, abort and recovery tests. |
+| **v0.19.0: Observation-to-command workflows** | **Accepted.** Bounded observations, native decisions and literal commands; aligned authoring and Docker DSS with binary CCSDS/Kafka transport. | [148 language checks and durable runtime qualification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding); read-time snapshots, typed outcomes, authority, abort/recovery and no SKIP/GOTO. |
 | **v0.20.0: Complete values and collections** | Documented scalar conversions, arithmetic, math and strings; lists, dictionaries, tuples, indexing, slicing, unpacking and mutation; typed value serialization. | Type/coercion and aliasing rules, expression results, persistence, malformed input and bounded memory/size tests. |
 | **v0.21.0: Functions, loops and libraries** | Function parameters, defaults, returns and scope; documented for/while, break and continue; immutable procedure libraries, modules and qualified names. | Call/scope/import semantics, dependency pinning, source maps and declared execution/resource limits; no arbitrary host-code execution. |
 | **v0.22.0: Time, defaults and error handling** | Complete TIME parsing, formats and arithmetic; ChangeLanguageConfig and configuration precedence; DriverException and documented exception handling; result/failure actions and silent execution. | Every relevant default, modifier, timeout, return and error path has direct proof; manual ambiguities have recorded resolutions. |

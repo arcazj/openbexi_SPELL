@@ -1,16 +1,8 @@
 # Next-Generation SPELL Documentation
 
-## v0.19.0 Local Increment In Qualification
+## v0.19.0 Accepted Local Increment
 
-The owner also requires Docker GENERIC DSS, actual binary CMD/Kafka TLM and
-exhaustive procedure validation before any future delivery. See the
-[DSS contract](../contracts/dss/README.md) for database, scenarios and strict
-source/image-bound evidence. Acceptance remains pending.
-
-The [v0.19 implementation](releases/SPELL_v0.19_Implementation.md) adds bounded
-observation-to-command procedures and aligned authoring. Acceptance and
-publication are pending; v0.18.0 remains the accepted local predecessor.
-The broader design and GUI manual/PDF remain Draft.
+Accepted [v0.19.0](releases/SPELL_v0.19_Implementation.md#accepted-release-binding) adds bounded observation-to-command procedures, aligned authoring and Docker DSS binary CCSDS/Kafka transport. The [mandatory DSS gate](../contracts/dss/README.md) remains a prerequisite for every subsequent delivery. The broader design and GUI manual/PDF remain Draft.
 
 ## Purpose
 
@@ -48,7 +40,7 @@ accountable human roles in [DOCUMENT_CONTROL.md](DOCUMENT_CONTROL.md) accept it.
 | Source review | 304 of 304 supplied pages reviewed |
 | Project-declared AI assistance tool | ChatGPT 5.6 SOL |
 | Product implementation from this Draft baseline | None claimed by the specification itself |
-| Parent product | Accepted local simulator v0.18.0; predecessor v0.17.0; updated 2026-10-02 |
+| Parent product | Accepted local simulator v0.19.0; predecessor v0.18.0; updated 2026-10-06 |
 | Operational authorization | None |
 | Approval state | Draft; multidisciplinary review required |
 | Local v0.4 Gate G0 readiness | `PASS`; Candidate A scope, exclusions, budgets, and test plan project-owner approved; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |
@@ -64,7 +56,7 @@ invented: they are assigned an owner and gate in
 
 ## Local Product Releases
 
-Product releases and this broader Draft specification have separate versions and acceptance boundaries. Accepted [v0.18.0](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) adds bounded native prompt-to-command workflows and testing procedures, retaining earlier language behavior, the compact workspace and automatic local sessions. The latest accepted local increments are:
+Product releases and this broader Draft specification have separate versions and acceptance boundaries. The latest accepted local increments are:
 
 | Release | Delivered local scope | Evidence |
 | --- | --- | --- |
@@ -74,6 +66,7 @@ Product releases and this broader Draft specification have separate versions and
 | v0.16.0 | Language coverage and direct cases, compact manual workspace, automatic local sessions | [Accepted release record](releases/SPELL_v0.16_Implementation.md#accepted-release-binding) |
 | v0.17.0 | Direct core language, native prompts and expanded conformance evidence | [Accepted release record](releases/SPELL_v0.17_Implementation.md#accepted-release-binding) |
 | v0.18.0 | Native command workflows, durable authority/recovery and expanded testing procedures | [Accepted release record](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) |
+| v0.19.0 | Observation-to-command workflows, aligned authoring and Docker DSS | [Accepted release record](releases/SPELL_v0.19_Implementation.md#accepted-release-binding) |
 
 Use the [current console guide](../frontend/README.md) for delivered workflows
 and the [release index](releases/README.md) for earlier increments. The

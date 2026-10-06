@@ -1,16 +1,8 @@
 # Document Control
 
-## v0.19.0 Local Increment In Qualification
+## v0.19.0 Accepted Local Increment
 
-The [v0.19 implementation](releases/SPELL_v0.19_Implementation.md) adds bounded
-observation-to-command procedures and aligned authoring. Acceptance and
-publication are pending; v0.18.0 remains the accepted local predecessor.
-The broader design and GUI manual/PDF remain Draft.
-
-The owner added Docker GENERIC DSS and exhaustive actual CMD/TLM procedure
-validation as prerequisites for every new delivery. The [DSS contract](../contracts/dss/README.md)
-binds the shared database, packet paths and version-specific evidence. Earlier
-pre-DSS results cannot establish acceptance of this amended scope.
+Accepted [v0.19.0](releases/SPELL_v0.19_Implementation.md#accepted-release-binding) adds bounded observation-to-command procedures, aligned authoring and Docker DSS binary CCSDS/Kafka transport. The [mandatory DSS gate](../contracts/dss/README.md) remains a prerequisite for every subsequent delivery. The broader design and GUI manual/PDF remain Draft.
 
 ## Baseline Identity
 
@@ -31,7 +23,7 @@ The specification version is independent of product releases, the legacy SPELL
 2.4.4 manuals, later legacy binaries, procedure repositories, driver versions,
 and deployment configuration versions.
 
-As of 2026-10-02, the parent product is accepted at [v0.18.0](releases/SPELL_v0.18_Implementation.md#accepted-release-binding) for bounded native command workflows and added testing procedures. The [release index](releases/README.md) and [console guide](../frontend/README.md) describe delivered behavior. The broader specification and GUI manual/PDF remain Draft; this local release does not establish full language compatibility, real legacy qualification or operational authorization.
+As of 2026-10-06, the accepted local product is [v0.19.0](releases/SPELL_v0.19_Implementation.md#accepted-release-binding). The [release index](releases/README.md) and [console guide](../frontend/README.md) describe delivered behavior. Product acceptance does not establish full language compatibility, real legacy qualification or operational authorization.
 
 ## Normative Language
 

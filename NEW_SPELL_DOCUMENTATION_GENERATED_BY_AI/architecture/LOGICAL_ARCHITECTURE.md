@@ -7,9 +7,7 @@ dynamics. SPELL CMD sends database-resolved binary CCSDS TC to port 3080; DSS
 publishes committed binary TM to Kafka and SPELL TLM decodes it into durable
 observations. Both drivers bind the same epoch and database. The separate
 compact DSS page observes and controls that state through the same TC ingress.
-See the [DSS contract](../../contracts/dss/README.md); acceptance remains pending
-until exhaustive actual-driver qualification passes. Broader architecture below
-remains a separately governed target design.
+See the [DSS contract](../../contracts/dss/README.md) and [accepted v0.19 record](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding). Broader architecture below remains a separately governed target design.
 
 ## Design Shape
 

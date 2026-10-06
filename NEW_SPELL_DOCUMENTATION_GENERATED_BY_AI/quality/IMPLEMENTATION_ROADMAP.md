@@ -2,7 +2,7 @@
 
 ## Current Local Increment
 
-v0.18.0 is accepted and published for bounded native command workflows and additional testing procedures. Its [release record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding) owns scope and evidence; v0.17.0 is its accepted predecessor. Broader phases below retain separate Draft gates.
+v0.19.0 is accepted and published for bounded observation-to-command workflows, aligned authoring and Docker DSS. Its [release record](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns scope and evidence; v0.18.0 is its accepted predecessor. Broader phases below retain separate Draft gates.
 
 ## Roadmap Rule
 

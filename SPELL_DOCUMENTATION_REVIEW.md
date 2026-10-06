@@ -9,8 +9,8 @@
 | Coverage | Historical set: seven PDF files and 304 of 304 pages reviewed; current folder also contains two supplementary earlier manuals |
 | Review purpose | Rebaseline the OpenBEXI SPELL roadmap against documented SPELL behavior |
 | Baseline at original review | SPELL v0.3.0, tag `v0.3.0` |
-| Current release context | v0.18.0 accepted and published for bounded native command workflows; predecessor v0.17.0 |
-| Product alignment updated | 2026-10-02; original source-review date and evidence remain historical |
+| Current release context | v0.19.0 accepted and published for bounded observation-to-command workflows and Docker DSS; predecessor v0.18.0 |
+| Product alignment updated | 2026-10-06; original source-review date and evidence remain historical |
 | Product implementation change | None |
 | Operational authorization | None |
 | Product packaging | Source-reference PDFs are versioned in the repository and excluded from product images and release packages |

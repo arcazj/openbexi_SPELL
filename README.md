@@ -4,7 +4,7 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-**v0.19.0 implementation is in qualification** for bounded observation-to-command workflows and the Docker GENERIC DSS. The [v0.19 record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md) describes the new behavior and limits. v0.18.0 remains the accepted predecessor until all release gates pass.
+**v0.19.0 is accepted and published** for bounded observation-to-command workflows, aligned authoring and the Docker DSS with binary CCSDS/Kafka command and telemetry transport. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds its scope, limits and qualification; v0.18.0 is its accepted predecessor.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -159,7 +159,7 @@ Every procedure and embedded/reference case must also pass against the same
 DSS through the actual binary CMD/TLM paths. Missing cases, unexplained skips,
 unexpected failures/timeouts or an unavailable simulator block delivery.
 
-After acceptance, validate a clean checkout of the annotated `v0.19.0` tag:
+Validate a clean checkout of the accepted annotated `v0.19.0` tag:
 
 ```powershell
 .\scripts\run_release_next.ps1 -Module scripts.release_next `

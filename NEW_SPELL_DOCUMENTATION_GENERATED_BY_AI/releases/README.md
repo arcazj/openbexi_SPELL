@@ -26,10 +26,9 @@ as `PROJECT_ROADMAP.md`, `VERSION_TIMELINE.md`, `Test_and_Integration.md`, and
 | v0.16 | [Pre-Implementation](SPELL_v0.16_Pre-Implementation.md) | [Accepted `v0.16.0`](SPELL_v0.16_Implementation.md#accepted-release-binding); language coverage, compact manual workspace and automatic local sessions |
 | v0.17 | [Pre-Implementation](SPELL_v0.17_Pre-Implementation.md) | [Accepted `v0.17.0`](SPELL_v0.17_Implementation.md#accepted-release-binding); direct language conformance and native Display/Prompt behavior |
 | v0.18 | [Pre-Implementation](SPELL_v0.18_Pre-Implementation.md) | [Accepted `v0.18.0`](SPELL_v0.18_Implementation.md#accepted-release-binding); native command workflows and testing procedures |
+| v0.19 | [Pre-Implementation](SPELL_v0.19_Pre-Implementation.md) | [Accepted `v0.19.0`](SPELL_v0.19_Implementation.md#accepted-release-binding); observation-to-command workflows, aligned authoring and Docker DSS |
 
-| v0.19 | [Pre-Implementation](SPELL_v0.19_Pre-Implementation.md) | [Implementation](SPELL_v0.19_Implementation.md); observation-to-command workflows and Docker DSS; exhaustive actual-driver qualification pending |
-
-**v0.18.0** is accepted and published; **v0.17.0** is its accepted predecessor.
+**v0.19.0** is accepted and published; **v0.18.0** is its accepted predecessor.
 The
 [console guide](../../frontend/README.md) describes current operator workflows.
 These local synthetic releases do not establish full SPELL 2.4.4 language

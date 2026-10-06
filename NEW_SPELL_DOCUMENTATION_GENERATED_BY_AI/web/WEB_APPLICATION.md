@@ -8,7 +8,7 @@ Pause/step and typed database commands require current epoch/revision; commands
 receive separate confirmation and traverse the real TC ingress. SPELL retains
 its original compact GUI-manual workspace and direct local connection.
 See the [console guide](../../frontend/README.md) and
-[DSS contract](../../contracts/dss/README.md). Delivery qualification is pending.
+[DSS contract](../../contracts/dss/README.md). Delivery qualification is bound in the accepted v0.19 release record.
 
 ## v0.16 Workspace
 
@@ -17,10 +17,12 @@ compact v0.16 workspace. Navigation/utilities sit beside Master/procedure tabs;
 source Code/Data/Result rows take the main area, with controls, prompts and logs
 below. The owner's automatic local connection replaces the listener dialog.
 See the [operator guide](../../frontend/README.md) and
-[accepted release record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding)
+[accepted release record](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding)
 for current behavior and qualification. The broader design below remains Draft.
 
 ## Accepted Local Product Profile
+
+Accepted [v0.19.0](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding) adds observation-to-command workflows, truthful IR19 navigation availability, aligned authoring and DSS state/telemetry controls. The compact workspace and automatic local connection remain.
 
 Accepted v0.18.0 adds bounded native prompt-to-command workflows and four testing procedures. The [accepted record](../releases/SPELL_v0.18_Implementation.md#accepted-release-binding) binds proof; the compact workspace and automatic local connection remain.
 

@@ -1,12 +1,20 @@
 # OpenBEXI SPELL Version Timeline
 
-## v0.19.0 In Qualification
+## 2026-10-06 - v0.19.0 Accepted
 
-Bounded observation-to-command workflows are implemented under the approved
-[v0.19 entry](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Pre-Implementation.md).
-Full canonical qualification, immutable release binding and publication are
-pending; v0.18.0 remains the accepted predecessor. Current limits and behavior
-are in the [implementation record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
+Independent clean-tag validation and public asset verification passed. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns qualification totals and scope.
+
+| Milestone | America/New_York time | Git identity |
+| --- | --- | --- |
+| DSS amended entry gate | 2026-10-03 16:17:00 EDT | `6e7f1d071edf6926a49737526ea8c4c5fc793c0e` |
+| Initial DSS implementation | 2026-10-04 07:08:42 EDT | `0c25ff24ebeeba23ea171b03067c17dab518fa23` |
+| Candidate source | 2026-10-06 13:10:55 EDT | `39d7ad0e48c9d4b08579b8fe0c9f046d85069ca2` |
+| Qualified source | 2026-10-06 13:19:06 EDT | `8658e3c62b62d9c9431f3d0478d336faaf83a9e3` |
+| Release commit | 2026-10-06 15:42:13 EDT | `57cc80d969ebc222d47f0e8d19f962682c47d10c` |
+| Annotated tag | 2026-10-06 15:42:21 EDT | `de2ec8f3db9c079838591a06d2d5b743fabb9b11` |
+| GitHub publication | 2026-10-06 15:51:59 EDT | [Release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.0) |
+
+**2d 23h 25m 21s dss amended entry gate-to-tag**; **2d 8h 33m 39s initial dss implementation-to-tag**; **2h 23m 15s qualified source-to-tag**; **0h 00m 08s release commit-to-tag**. These are exact Git intervals, not active engineering effort.
 
 ## 2026-10-02 - v0.18.0 Accepted
 
@@ -133,11 +141,11 @@ this planning/source record does not independently claim completed tests.
 
 | Field | Value |
 | --- | --- |
-| Document revision | Accepted v0.18.0 local simulator baseline |
-| Update type | Record v0.18.0 acceptance, publication and exact Git intervals |
-| Updated | 2026-10-02 |
+| Document revision | Accepted v0.19.0 local simulator baseline |
+| Update type | Record v0.19.0 acceptance, publication and exact Git intervals |
+| Updated | 2026-10-06 |
 | Time zone for local timestamps | America/New_York; EDT (UTC-04:00) for the recorded July through October 2026 events |
-| Accepted product baseline | SPELL v0.18.0, tag object `0bdd0ade51dbcc7822927fb95b5f962b6194b40f`, release commit `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48` |
+| Accepted product baseline | SPELL v0.19.0; see the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) |
 | v0.3.1 status | Author-recorded documentation set prepared; no release commit or tag claimed |
 | v0.4 status | Accepted 2026-08-12; annotated tag `v0.4.0`; Final 74/74 tests and 209/209 assertions passed; no accepted exceptions |
 | v0.5 status | Accepted 2026-08-14 at annotated tag `v0.5.0`; scope remains bounded to `V05-IR-001`; no accepted exceptions |
@@ -156,6 +164,7 @@ this planning/source record does not independently claim completed tests.
 | v0.16 current status | Accepted 2026-10-01 at annotated tag `v0.16.0`; 3,976 passed executions, 24 resolved environment skips, 159 candidate checks, and no accepted exceptions |
 | v0.17 current status | Accepted 2026-10-02 at `v0.17.0`; 4,563 passed executions, 24 resolved environment skips, 363 candidate checks, no accepted exceptions |
 | v0.18 current status | Accepted 2026-10-02 at `v0.18.0`; 5,146 passed executions, 24 resolved environment skips, 395 candidate checks, no accepted exceptions |
+| v0.19 current status | Accepted and published 2026-10-06; exact bindings and qualification in the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |

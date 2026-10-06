@@ -8,7 +8,7 @@ database commands. Keep durable volumes when stopping. An unavailable broker
 retains packets and applies outbox backpressure; lost command receipts remain
 uncertain. Scenario reset is disabled outside an explicitly enabled local test
 setup. The [DSS contract](../../contracts/dss/README.md) records database, recovery
-and exhaustive delivery validation boundaries; v0.19 acceptance is pending.
+and exhaustive delivery validation boundaries; the [accepted v0.19 record](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds qualification.
 
 v0.16 adds a compact operator workspace and automatic finite local operator
 sessions; see the [current guide](../../frontend/README.md). The inherited pilot

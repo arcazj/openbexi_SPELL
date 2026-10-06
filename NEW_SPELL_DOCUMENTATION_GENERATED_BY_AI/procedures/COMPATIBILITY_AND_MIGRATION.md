@@ -2,8 +2,7 @@
 
 ## v0.19 Observation-To-Command Workflows
 
-v0.19 implementation is undergoing qualification; the accepted release remains
-v0.18.0. IR 0.19 combines existing bounded GetTM/Verify/WaitFor with native
+Accepted [v0.19.0](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding) succeeds v0.18.0. IR 0.19 combines existing bounded GetTM/Verify/WaitFor with native
 Prompt/Display, scalar expressions and simulator BuildTC/Send. Earlier stored
 IR retains its contract. See the [approved scope](../releases/SPELL_v0.19_Pre-Implementation.md)
 and [current language coverage](../../contracts/v19/language_coverage.json).
@@ -71,7 +70,7 @@ iterations. Timeout is bounded to seven days.
 
 ## Accepted Local Product Profile
 
-The accepted product baseline is v0.18.0 as of 2026-10-02. Its native-command increment retains the compact manual workspace, automatic local sessions and
+The accepted product baseline is v0.19.0 as of 2026-10-06. Its observation-to-command increment retains the compact manual workspace, automatic local sessions and
 [v0.13 fenced procedure control](../releases/SPELL_v0.13_Implementation.md),
 [v0.14 read-only telemetry adaptation](../releases/SPELL_v0.14_Implementation.md),
 and [v0.15 shadow-pilot review and report recovery](../releases/SPELL_v0.15_Implementation.md).

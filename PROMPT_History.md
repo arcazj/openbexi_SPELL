@@ -1,5 +1,9 @@
 # Prompt History
 
+## 2026-10-06 - v0.19.0 Published
+
+The authorized observation-to-command and DSS increment is accepted and published. The [GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.0) contains four verified assets; the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns exact results and bindings. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile.
+
 ## 2026-10-03 - Mandatory Docker DSS Before Any Delivery
 
 Before v0.19 delivery, the owner required Docker DSS, one GENERIC satellite

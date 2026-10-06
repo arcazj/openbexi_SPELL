@@ -1,16 +1,9 @@
 # Changelog
 
-## v0.19.0 Local Increment In Qualification
+## v0.19 Acceptance Closeout - 2026-10-06
 
-The [v0.19 implementation](releases/SPELL_v0.19_Implementation.md) adds bounded
-observation-to-command procedures and aligned authoring. Acceptance and
-publication are pending; v0.18.0 remains the accepted local predecessor.
-The broader design and GUI manual/PDF remain Draft.
-
-The owner added Docker GENERIC DSS, one shared command/telemetry database, actual
-binary CMD/Kafka TLM and exhaustive procedure validation as prerequisites for
-every future delivery. The [DSS contract](../contracts/dss/README.md) records the
-integration and strict evidence gate. Pre-DSS results do not establish acceptance.
+- Recorded accepted and published [v0.19.0](releases/SPELL_v0.19_Implementation.md#accepted-release-binding), actual qualification totals and exact Git bindings.
+- Preserved the mandatory DSS gate for every later delivery, historical releases, original manuals, broader Draft status and explicit language limits.
 
 All material changes to the specification are recorded here. Product release
 history remains in the parent project and is not duplicated as document history.

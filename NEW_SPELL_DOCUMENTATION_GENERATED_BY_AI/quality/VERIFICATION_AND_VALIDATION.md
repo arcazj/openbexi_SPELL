@@ -12,6 +12,10 @@ and engine versions, database digest, six image identities, per-case logs and
 correlated raw packets. The [DSS contract](../../contracts/dss/README.md) owns
 reproduction commands and evidence format; bounded adaptations remain explicit.
 
+## Accepted v0.19 Application
+
+Independent clean-tag validation and public asset verification passed. The [accepted record](../releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns exact results and bindings. Historical helper, actual-worker, durable runtime and binary DSS delivery proofs remain distinct; no full language compatibility is claimed.
+
 ## Accepted v0.18 Application
 
 Annotated `v0.18.0` passed independent clean-tag validation and was published. The seven final suites recorded 5,146 passed executions; all 24 environment-selected skips were resolved by complementary runs. The candidate gate passed 395 checks. Four package builds across two independent exports matched, with no accepted exceptions.

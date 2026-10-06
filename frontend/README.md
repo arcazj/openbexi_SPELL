@@ -1,7 +1,6 @@
 # SPELL v0.19 Console
 
-The v0.19 source changes are implemented; release qualification and publication
-are pending. See the [current release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md).
+v0.19.0 is accepted and published. See the [accepted release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding).
 
 Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
 simulator. No token entry is needed. If the backend is unavailable, use
