@@ -331,6 +331,7 @@ def test_continuation_canonical_gate_mounts_archive_read_only_and_records_execut
     original = b'{"decision":"FAIL"}\n'
     (archive / "dss-validation.json").write_bytes(original)
     monkeypatch.setattr(qualify_next, "OUT", out)
+    monkeypatch.setattr(qualify_next, "LINUX_SOURCE", {"volume": "unit-qualified-source"})
     producer = qualify_next.Producer.__new__(qualify_next.Producer)
     producer.gate, producer.source, producer.resume_from = "dss-validation", "a" * 40, archive
     commands = []
@@ -347,6 +348,8 @@ def test_continuation_canonical_gate_mounts_archive_read_only_and_records_execut
     execution = commands[-1][0]
     assert ["--resume-from", "/retained-dss"] == execution[-2:]
     assert f"{archive.as_posix()}:/retained-dss:ro" in execution
+    assert "unit-qualified-source:/workspace:ro" in execution
+    assert f"{(qualify_next.ROOT / '.git').as_posix()}:/workspace/.git:ro" in execution
     assert finished == [True] and commands[-2][1]["private"] is True
     assert not (out / "dss-gate.token").exists()
     assert (archive / "dss-validation.json").read_bytes() == original

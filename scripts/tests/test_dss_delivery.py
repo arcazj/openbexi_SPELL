@@ -12,6 +12,82 @@ from scripts.qualify_dss_v19 import build_manifest, scenario_definitions
 from scripts.validate_dss_delivery import canonical, load_manifest, sha256, source_inventory, validate_report, validate_transport_capture, reproduction_metadata, delivery_counts
 
 
+@pytest.mark.parametrize('mutation', [None, 'wrong-pin', 'same-size-bytes', 'missing-file',
+                                      'extra-file', 'linked-file', 'changed-mode', 'unsafe-path'])
+def test_qualification_linux_source_audit_rejects_tampering(tmp_path, mutation):
+    import hashlib
+    import json
+    import subprocess
+    import sys
+    from scripts.qualify_next import SOURCE_AUDIT
+
+    source = tmp_path / 'source.py'
+    data = b'qualified_source = True\n'
+    source.write_bytes(data)
+    source.chmod(0o644)
+    manifest = {'schema_version': 'spell.qualification-linux-source/1', 'source_commit': 'a' * 40,
+                'files': {'source.py': {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'mode': '644'}}}
+    if mutation == 'unsafe-path':
+        manifest['files']['../escape'] = manifest['files'].pop('source.py')
+    raw = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
+    (tmp_path / '.spell-source-snapshot.json').write_bytes(raw)
+    pin = hashlib.sha256(raw).hexdigest()
+    if mutation == 'wrong-pin':
+        pin = '0' * 64
+    elif mutation == 'same-size-bytes':
+        source.write_bytes(data.replace(b'True', b'None'))
+    elif mutation == 'missing-file':
+        source.unlink()
+    elif mutation == 'extra-file':
+        (tmp_path / 'injected.py').write_text('injected = True\n')
+    elif mutation == 'linked-file':
+        other = tmp_path / 'other.py'
+        other.write_bytes(data)
+        source.unlink()
+        source.symlink_to(other)
+    elif mutation == 'changed-mode':
+        source.chmod(0o755)
+    result = subprocess.run([sys.executable, '-c', SOURCE_AUDIT, str(tmp_path), pin],
+                            capture_output=True, timeout=15)
+    if mutation is None:
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout) == {'decision': 'PASS', 'source_commit': 'a' * 40,
+                                            'manifest_sha256': pin, 'files': 1}
+    else:
+        assert result.returncode != 0
+        assert not result.stdout
+
+
+@pytest.mark.parametrize('raw_crlf', [False, True])
+def test_qualification_linux_source_requires_exact_committed_disk_bytes(tmp_path, raw_crlf):
+    import subprocess
+    from scripts.qualify_next import source_snapshot_input
+    from scripts.release_next import ReleaseError
+
+    def git(*args):
+        return subprocess.check_output(['git', '-C', str(tmp_path), *args])
+    git('init', '-q')
+    git('config', 'user.name', 'Qualification source test')
+    git('config', 'user.email', 'source-test@example.invalid')
+    git('config', 'core.autocrlf', 'true')
+    source = tmp_path / 'source.py'
+    source.write_bytes(b'qualified_source = True\n')
+    git('add', '--', 'source.py')
+    git('commit', '-qm', 'Exact source input')
+    if raw_crlf:
+        source.write_bytes(b'qualified_source = True\r\n')
+        git('add', '--', 'source.py')
+        assert not git('status', '--porcelain')
+        with pytest.raises(ReleaseError, match='Raw source bytes differ'):
+            source_snapshot_input(tmp_path)
+    else:
+        manifest, raw, payloads = source_snapshot_input(tmp_path)
+        assert manifest['source_commit'] == git('rev-parse', 'HEAD').decode().strip()
+        assert manifest['files']['source.py']['mode'] == '644'
+        assert payloads['source.py'] == source.read_bytes()
+        assert raw.endswith(b'\n')
+
+
 def _write_sidecar(directory, value):
     data = canonical(value)
     identity = sha256(data)

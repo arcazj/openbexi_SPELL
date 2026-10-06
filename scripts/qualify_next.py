@@ -4,15 +4,19 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import hashlib
+import io
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import secrets
 import shutil
 import subprocess
 import sys
+import tarfile
 import threading
 import time
+import uuid
 
 from scripts.release_next import ROOT, VERSION, MINOR, TAG, POLICY, fingerprint, git, require, write_json, verify_candidate, policy
 from scripts.gcc_header_applicability import resolve
@@ -35,9 +39,145 @@ if MINOR >= 19:
                    "scripts/tests/test_seed_dss_v19.py", "scripts/tests/test_dss_continuation.py"]
 
 
+SOURCE_AUDIT = r'''import hashlib,json,stat,sys
+from pathlib import Path,PurePosixPath
+root=Path(sys.argv[1]);pin=sys.argv[2]
+raw=(root/'.spell-source-snapshot.json').read_bytes()
+if hashlib.sha256(raw).hexdigest()!=pin:raise SystemExit('source manifest hash differs')
+manifest=json.loads(raw);names=set(manifest['files'])
+for name,row in manifest['files'].items():
+ p=PurePosixPath(name)
+ if p.is_absolute() or '..' in p.parts or str(p)!=name:raise SystemExit('unsafe source path')
+ file=root/name
+ if file.is_symlink() or not file.is_file():raise SystemExit('missing or linked source file: '+name)
+ data=file.read_bytes()
+ if len(data)!=row['bytes'] or hashlib.sha256(data).hexdigest()!=row['sha256']:raise SystemExit('source bytes differ: '+name)
+ if stat.S_IMODE(file.stat().st_mode)!=int(row['mode'],8):raise SystemExit('source mode differs: '+name)
+actual=set()
+for file in root.rglob('*'):
+ if file.is_symlink():raise SystemExit('linked snapshot entry')
+ if file.is_file():actual.add(file.relative_to(root).as_posix())
+if actual!=names|{'.spell-source-snapshot.json'}:raise SystemExit('unexpected source files')
+print(json.dumps({'decision':'PASS','source_commit':manifest['source_commit'],'manifest_sha256':pin,'files':len(names)}))
+'''
+
+
+def source_snapshot_input(root):
+    """Bind every tracked regular disk file and its Git mode before Linux copying."""
+    require(not subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain']),
+            'Linux source snapshot requires clean committed source')
+    source = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
+    rows = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z']).split(b'\0')
+    files, payloads = {}, {}
+    for record in filter(None, rows):
+        header, encoded = record.split(b'\t', 1)
+        mode, blob, stage = header.decode().split()
+        name = encoded.decode('utf-8')
+        relative = PurePosixPath(name)
+        require(stage == '0' and mode in {'100644', '100755'} and name not in files
+                and not relative.is_absolute() and '..' not in relative.parts and str(relative) == name
+                and not any(value in name for value in ('\r', '\n', '\0')),
+                'Unsafe tracked Linux source entry')
+        path = root / name
+        require(path.is_file() and not path.is_symlink(), 'Missing or linked source file: ' + name)
+        data = path.read_bytes()
+        require(hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest() == blob,
+                'Raw source bytes differ from the committed Git blob: ' + name)
+        files[name] = {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'mode': mode[-3:]}
+        payloads[name] = data
+    require(files and sum(map(len, payloads.values())) <= 1_000_000_000, 'Linux source snapshot size differs')
+    require((root / '.git').is_dir(), 'Canonical qualification requires a standalone Git checkout')
+    value = {'schema_version': 'spell.qualification-linux-source/1', 'source_commit': source, 'files': files}
+    raw = (json.dumps(value, sort_keys=True, indent=2) + '\n').encode()
+    return value, raw, payloads
+
+
+def linux_source_snapshot(*, gate, snapshot=None):
+    """Stage once per source identity, then audit a read-only Linux volume."""
+    if snapshot is None:
+        manifest, raw, payloads = source_snapshot_input(ROOT)
+        pin = hashlib.sha256(raw).hexdigest()
+        volume = f'spellv0{MINOR}-qualified-source-' + manifest['source_commit'][:12] + '-' + pin[:32]
+        snapshot = {'source_commit': manifest['source_commit'], 'manifest_sha256': pin,
+                    'files': len(manifest['files']), 'bytes': sum(map(len, payloads.values())),
+                    'volume': volume, 'manifest': manifest, 'audits': []}
+    else:
+        raw = (json.dumps(snapshot['manifest'], sort_keys=True, indent=2) + '\n').encode()
+        pin, volume, payloads = snapshot['manifest_sha256'], snapshot['volume'], None
+    commands = []
+    def call(*args, timeout=30, input=None):
+        began = time.monotonic()
+        result = subprocess.run(['docker', *map(str, args)], input=input, capture_output=True, timeout=timeout)
+        commands.append({'command': ['docker', *[str(value).replace(str(ROOT), '<repository>') for value in args]],
+                         'returncode': result.returncode, 'seconds': round(time.monotonic()-began, 3)})
+        require(result.returncode == 0, 'Linux source staging command failed: ' + str(args[0]))
+        return result.stdout
+    names = call('volume', 'ls', '--filter', 'name=^'+volume+'$', '--format', '{{.Name}}').decode().splitlines()
+    require(names in ([], [volume]), 'Linux source volume identity differs')
+    new = not names
+    if new:
+        require(payloads is not None, 'Audited source volume disappeared during qualification')
+        call('volume', 'create', '--label', 'openbexi.qualification.source='+snapshot['source_commit'],
+             '--label', 'openbexi.qualification.manifest='+pin, volume)
+    labels = json.loads(call('volume', 'inspect', volume))[0]['Labels']
+    require(labels.get('openbexi.qualification.source') == snapshot['source_commit']
+            and labels.get('openbexi.qualification.manifest') == pin, 'Foreign Linux source volume')
+    marker = uuid.uuid4().hex
+    name = f'spell-v{MINOR}-source-audit-'+marker
+    mode = 'rw' if new else 'ro'
+    cid = call('create', '--name', name, '--label', 'openbexi.qualification.source-audit='+marker,
+               '--network', 'none', '-v', volume+':/snapshot:'+mode, '--entrypoint', 'python',
+               QUALIFIER, '-c', SOURCE_AUDIT, '/snapshot', pin).decode().strip()
+    require(re.fullmatch('[0-9a-f]{64}', cid), 'Source audit container ID differs')
+    def owned():
+        record = json.loads(call('inspect', cid))[0]
+        require(record['Id'] == cid and record['Name'] == '/'+name
+                and record['Config']['Labels'].get('openbexi.qualification.source-audit') == marker,
+                'Source audit container ownership differs')
+        return record
+    try:
+        owned()
+        if new:
+            archive = io.BytesIO()
+            with tarfile.open(fileobj=archive, mode='w') as tar:
+                git_directory = tarfile.TarInfo('.git')
+                git_directory.type, git_directory.mode = tarfile.DIRTYPE, 0o755
+                tar.addfile(git_directory)
+                for filename, data in sorted({**payloads, '.spell-source-snapshot.json': raw}.items()):
+                    item = tarfile.TarInfo(filename)
+                    item.size, item.mtime = len(data), 0
+                    item.mode = int(manifest['files'][filename]['mode'], 8) if filename in payloads else 0o644
+                    tar.addfile(item, io.BytesIO(data))
+            call('cp', '-', cid+':/snapshot', input=archive.getvalue(), timeout=120)
+            archive.close()
+        call('start', cid, timeout=20)
+        exit_code = call('wait', cid, timeout=120).decode().strip()
+        record = owned()
+        require(exit_code == '0' and record['State']['ExitCode'] == 0 and not record['State']['Running'],
+                'Linux source audit failed')
+        audit = json.loads(call('logs', cid))
+        require(audit == {'decision': 'PASS', 'source_commit': snapshot['source_commit'],
+                         'manifest_sha256': pin, 'files': snapshot['files']}, 'Linux source audit receipt differs')
+        snapshot['audits'].append({'gate': gate, 'receipt': audit, 'commands': commands})
+        write_json(OUT / (gate+'.source-snapshot.json'), snapshot)
+        return snapshot
+    finally:
+        state = owned()['State']
+        if not state['Running'] and state['Pid'] == 0:
+            call('rm', cid, timeout=20)
+        if snapshot['audits']:
+            write_json(OUT / (gate+'.source-snapshot.json'), snapshot)
+
+
+LINUX_SOURCE = None
+
+
 def docker_python(*args, network="none", extra=()):
+    require(LINUX_SOURCE is not None, "Python qualification requires an audited Linux source snapshot")
     return ["docker", "run", "--rm", "--network", network,
-            "-v", f"{ROOT.as_posix()}:/workspace:ro", "-v", f"{OUT.as_posix()}:/evidence",
+            "-v", f"{LINUX_SOURCE['volume']}:/workspace:ro",
+            "-v", f"{(ROOT / '.git').as_posix()}:/workspace/.git:ro",
+            "-v", f"{OUT.as_posix()}:/evidence",
             *extra, QUALIFIER, *args]
 
 
@@ -76,6 +216,7 @@ def renewing_credential(renew, private_token: Path, *, interval=600):
 
 class Producer:
     def __init__(self, gate, *, resume_from=None):
+        global LINUX_SOURCE
         require(resume_from is None or (MINOR >= 19 and gate == "dss-validation"),
                 "continuation is supported only for the DSS validation gate")
         require(not git("status", "--porcelain"), "qualification requires clean committed source")
@@ -85,6 +226,12 @@ class Producer:
         self.gate, self.source, self.binding = gate, git("rev-parse", "HEAD"), fingerprint()
         self.commands = []
         self.resume_from = Path(resume_from).resolve() if resume_from is not None else None
+        self.linux_source = None
+        LINUX_SOURCE = None
+        if gate in {"candidate", "sqlite", "postgresql", "compose", "documentation", "tooling",
+                    "reference-generators", "replay", "image-probe", "supply-chain", "dss-validation"}:
+            self.linux_source = linux_source_snapshot(gate=gate)
+            LINUX_SOURCE = self.linux_source
 
     def run(self, command, *, cwd=ROOT, env=None, output=None, private=False, timeout=None):
         started = time.monotonic()
@@ -110,9 +257,12 @@ class Producer:
         return result.stdout
 
     def finish(self):
+        if self.linux_source is not None:
+            linux_source_snapshot(gate=self.gate, snapshot=self.linux_source)
         require(self.source == git("rev-parse", "HEAD") and self.binding == fingerprint(), "source changed during qualification")
         write_json(OUT / f"{self.gate}.command.json", {"source_commit": self.source,
-                   "source_fingerprint": self.binding, "commands": self.commands})
+                   "source_fingerprint": self.binding, "commands": self.commands,
+                   **({"linux_source_snapshot": self.linux_source} if self.linux_source is not None else {})})
         print(f"{self.gate}: PASS commands={len(self.commands)}")
 
     def execute(self):
@@ -297,7 +447,14 @@ def main():
         captures = [json.loads(path.read_bytes()) for path in sorted(OUT.glob("*.command.json")) if path.name != "candidate.command.json"]
         require(len(captures) == (14 if MINOR >= 19 else 13), "missing canonical gate capture")
         require(all(row["source_commit"] == git("rev-parse", "HEAD") and row["source_fingerprint"] == fingerprint() for row in captures), "capture source differs")
-        write_json(OUT / "commands.json", {"source_commit": git("rev-parse", "HEAD"), "commands": [command for row in captures for command in row["commands"]]})
+        write_json(OUT / "commands.json", {
+            "source_commit": git("rev-parse", "HEAD"),
+            "commands": [command for row in captures for command in row["commands"]],
+            "linux_source_snapshots": {path.name.removesuffix('.command.json'): row['linux_source_snapshot']
+                for path, row in zip(sorted(path for path in OUT.glob('*.command.json')
+                                            if path.name != 'candidate.command.json'), captures)
+                if 'linux_source_snapshot' in row},
+        })
     else:
         Producer(args.gate, resume_from=args.resume_from).execute()
 

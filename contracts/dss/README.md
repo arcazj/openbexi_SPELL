@@ -142,3 +142,8 @@ UI edits cannot inherit this exception. Current frontend images and all other
 release gates still require fresh qualification on the final source. A resumed
 PASS requires all 954 identities, ten procedures and 30 scenarios; retained
 results are never relabelled as fresh executions.
+
+Python qualification runs use a read-only Linux source snapshot. Every tracked
+file must match its committed Git bytes and mode; the snapshot is hash-checked
+before and after each gate. This keeps worker imports on Linux storage while
+preserving runtime deadlines. Private credentials and output use separate mounts.
