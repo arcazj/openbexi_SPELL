@@ -25,6 +25,8 @@ REVIEWED_GATE_CORRECTIONS = {
     'backend/tests/test_synthetic_control_v13.py': '5b515513cfd433b40ea63c47b46b480b240647c9f2bf7537aafc5f630b46a8e9',
     'backend/tests/test_v11_operator_integration.py': '058b6e823b8bd352dbfb0f177e01c9973425c47e815367368e82a0070918bd36',
     'scripts/qualify_reference_examples_v10.py': 'cee6d1b6426a613859f96ef7625d76ac1d1a4a032e49b034470ade531e899b94',
+    # Exact build-only security update: source-map-js 1.2.1 -> 1.2.2.
+    'frontend/package-lock.json': '251bee71f99caf0740d61b11268d9e609d7d612c32d86a00319cccc865878c53',
 }
 REVIEWED_UI_SOURCE = "faf953abadaa88a8de7e42e7800ad2138ca65a8e"
 REVIEWED_UI_FILES = frozenset({
@@ -78,7 +80,7 @@ def _tree(root, commit):
 
 
 def verify_source_compatibility(source_commit, *, root=ROOT):
-    """Pin runtime bytes, the reviewed UI and exact gate-correction files."""
+    """Pin runtime bytes, reviewed UI and exact qualification/build corrections."""
     require(source_commit != BASELINE_SOURCE, "continuation requires the reviewed qualification fix")
     _git(root, "merge-base", "--is-ancestor", BASELINE_SOURCE, source_commit)
     old, new = _tree(root, BASELINE_SOURCE), _tree(root, source_commit)
@@ -97,7 +99,7 @@ def verify_source_compatibility(source_commit, *, root=ROOT):
     require(all(name in new for name in old), "continuation deletes tracked source")
     for name, approved_sha256 in REVIEWED_GATE_CORRECTIONS.items():
         if name in changed:
-            # These exact gate corrections do not change the pinned runtime.
+            # Exact gate/build corrections do not change the pinned DSS runtime.
             require(name in old and name in new and old[name][0] == new[name][0]
                     and sha256(_git(root, "show", source_commit + ":" + name)) == approved_sha256,
                     "continuation gate correction differs from reviewed bytes or mode: " + name)

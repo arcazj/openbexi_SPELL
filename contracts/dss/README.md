@@ -139,7 +139,11 @@ named reference-runner selection, version-specific migration checks and control
 fixture ownership acquired before the worker starts its timer, and bounded
 worker readiness before the unchanged v0.11 prompt deadline. These
 corrections retain the existing execution, expiry and rollback assertions.
-Runtime, procedures, database and dependency bytes remain pinned; additional
+The frontend build lock also pins the exact `source-map-js` 1.2.2 security update
+for [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+Only that package's version, registry URL and integrity change; six existing
+source-tamper guards additionally cover this exact lockfile. DSS runtime,
+procedures, database and all other dependency bytes remain pinned; additional
 UI edits cannot inherit this exception. Current frontend images and all other
 release gates still require fresh qualification on the final source. A resumed
 PASS requires all 954 identities, ten procedures and 30 scenarios; retained
