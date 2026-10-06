@@ -131,10 +131,11 @@ binding. Native numeric wire strings and typed procedure results are checked
 separately against the durable settlement and its audit event.
 
 The source guard permits only the closed qualification changes and the exact
-reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`. Five
+reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`. Six
 separately reviewed gate-correction files are pinned to their exact SHA-256
 and original modes: worker-isolation assertions, real token-expiry scheduling,
-named reference-runner selection and version-specific migration checks. These
+named reference-runner selection, version-specific migration checks and control
+fixture ownership acquired before the worker starts its timer. These
 corrections retain the existing execution, expiry and rollback assertions.
 Runtime, procedures, database and dependency bytes remain pinned; additional
 UI edits cannot inherit this exception. Current frontend images and all other

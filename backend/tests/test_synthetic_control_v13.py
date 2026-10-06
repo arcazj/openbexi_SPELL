@@ -28,7 +28,15 @@ def procedures_dir(procedures_dir):
 def controlled(client, operator_headers):
     service, supervisor = client.app.state.operator_service, client.app.state.supervisor
     execution = supervisor.create_execution(client.app.state.catalog.get("v13"), actor="pytest-operator",
-        role="operator", reason="v13 control qualification", idempotency_key="v13-create", automatic=True)
+        role="operator", reason="v13 control qualification", idempotency_key="v13-create", automatic=False)
+    # Acquire control before the worker starts its three-second wait. The
+    # preparation PAUSE still uses the real fenced compatibility operation.
+    lease = service.acquire_control(execution.id, expected_execution_revision=execution.revision,
+        actor="pytest-operator", holder_session_id="v13-session", client_instance_key_id="v13-client",
+        lease_seconds=120, idempotency_key="v13-lease", reason="qualification controller")["control_lease"]
+    supervisor.issue_command(execution.id, command_type="start",
+        expected_revision=supervisor.get_execution(execution.id).revision, idempotency_key="v13-start",
+        actor="pytest-operator", role="operator", reason="start owned control qualification", correlation_id=None, payload={})
     deadline = time.monotonic() + 8
     while time.monotonic() < deadline:
         current = supervisor.get_execution(execution.id)
@@ -37,9 +45,6 @@ def controlled(client, operator_headers):
         time.sleep(0.02)
     assert current.state == "waiting"
     assert service.get_execution_projection(execution.id)["state"] == "WAITING"
-    lease = service.acquire_control(execution.id, expected_execution_revision=current.revision,
-        actor="pytest-operator", holder_session_id="v13-session", client_instance_key_id="v13-client",
-        lease_seconds=120, idempotency_key="v13-lease", reason="qualification controller")["control_lease"]
     current = supervisor.get_execution(execution.id)
     body = dict(operation="STEP", operation_id=str(uuid.uuid4()), source_digest=current.procedure_hash,
         expected_execution_revision=current.revision, reason="exercise bounded control", lease_id=lease["id"],

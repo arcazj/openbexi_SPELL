@@ -22,6 +22,7 @@ REVIEWED_GATE_CORRECTIONS = {
     'backend/tests/test_observation_websocket_batching_v19.py': 'b66fddeb938c3be4e19d2dc306c97e46f209a66e3985e2a447e4d7c92886651b',
     'backend/tests/test_reference_runner_v10.py': 'c7e578a0c47f702f723a647f3eed537b7a0755aff7dc8ce711523c2a661a69d7',
     'backend/tests/test_shadow_pilot_v15.py': '5f16a0de1bb4124fa1e51fad167bc1f87fe7a99569ac3e308f00aa56e060eb79',
+    'backend/tests/test_synthetic_control_v13.py': '5b515513cfd433b40ea63c47b46b480b240647c9f2bf7537aafc5f630b46a8e9',
     'scripts/qualify_reference_examples_v10.py': 'cee6d1b6426a613859f96ef7625d76ac1d1a4a032e49b034470ade531e899b94',
 }
 REVIEWED_UI_SOURCE = "c18614444e918160e8c80fa9cde236db5793da91"
