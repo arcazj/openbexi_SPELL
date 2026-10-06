@@ -237,12 +237,113 @@ def create_linux_pytest_evidence(gate, source):
     return evidence
 
 
+def require_pytest_reader_owner(row, evidence):
+    reader = evidence['reader']
+    require(row['Id'] == reader['id'] and row['Name'] == '/'+reader['name']
+            and row['Image'] == reader['image_id']
+            and row['Config']['Labels'].get('openbexi.qualification.evidence-reader') == reader['marker']
+            and row['Config']['Labels'].get('openbexi.qualification.source') == evidence['source_commit']
+            and row['HostConfig']['NetworkMode'] == 'none', 'Pytest reader ownership differs')
+    mounts = {item['Destination']: item for item in row['Mounts']}
+    require(set(mounts) == {'/snapshot', '/source'} and all(
+        mounts[path]['Type'] == 'volume' and mounts[path]['Name'] == volume and mounts[path]['RW'] is False
+        for path, volume in (('/snapshot', evidence['volume']), ('/source', evidence['source_snapshot']['volume']))),
+        'Pytest reader mounts differ')
+
+
+def start_linux_pytest_reader(evidence, snapshot):
+    """Prepare one owned read-only reader before the heavy test writer starts."""
+    require(snapshot['source_commit'] == evidence['source_commit'] and len(snapshot['audits']) == 1,
+            'Pytest reader source binding differs')
+    require('reader' not in evidence, 'Pytest reader already exists')
+    call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
+    require_pytest_evidence_owner(json.loads(call('volume', 'inspect', evidence['volume']))[0], evidence)
+    marker = uuid.uuid4().hex
+    name = f'spell-v{MINOR}-pytest-evidence-reader-'+marker
+    cid = call('create', '--name', name, '--label', 'openbexi.qualification.evidence-reader='+marker,
+               '--label', 'openbexi.qualification.source='+evidence['source_commit'], '--network', 'none',
+               '-v', evidence['volume']+':/snapshot:ro', '-v', snapshot['volume']+':/source:ro',
+               '--entrypoint', 'python', QUALIFIER, '-c', 'import time;time.sleep(7200)').decode().strip()
+    require(re.fullmatch('[0-9a-f]{64}', cid), 'Pytest reader container ID differs')
+    row = json.loads(call('inspect', cid))[0]
+    evidence['reader'] = {'id': cid, 'name': name, 'marker': marker, 'image_id': row['Image']}
+    evidence['source_snapshot'] = snapshot
+    require_pytest_reader_owner(row, evidence)
+    try:
+        call('start', cid, timeout=20)
+        row = json.loads(call('inspect', cid))[0]
+        require_pytest_reader_owner(row, evidence)
+        require(row['State']['Running'] and row['State']['Pid'] > 0, 'Pytest reader did not start')
+        evidence['reader']['started_before_writer'] = True
+    except BaseException:
+        close_linux_pytest_reader(evidence)
+        raise
+    finally:
+        write_json(OUT/(evidence['gate']+'.pytest-evidence.json'), evidence)
+
+
+def close_linux_pytest_reader(evidence):
+    call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
+    row = json.loads(call('inspect', evidence['reader']['id']))[0]
+    require_pytest_reader_owner(row, evidence)
+    if row['State']['Running']:
+        call('stop', '--time', '3', row['Id'], timeout=20)
+        row = json.loads(call('inspect', row['Id']))[0]
+        require_pytest_reader_owner(row, evidence)
+    require(not row['State']['Running'] and row['State']['Pid'] == 0, 'Pytest reader is still running')
+    call('rm', row['Id'], timeout=20)
+    evidence['reader']['cleanup'] = 'owned_stopped_reader_removed'
+
+
+def collect_started_linux_pytest_reader(evidence):
+    """Audit actual post-run source/report bytes without starting a new container."""
+    call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
+    reader = evidence['reader']
+    cid = reader['id']
+    try:
+        row = json.loads(call('inspect', cid))[0]
+        require_pytest_reader_owner(row, evidence)
+        require(reader['started_before_writer'] and row['State']['Running'] and row['State']['Pid'] > 0,
+                'Prepared pytest reader is not running')
+        snapshot = evidence['source_snapshot']
+        begin = len(evidence['commands'])
+        audit = json.loads(call('exec', cid, 'python', '-c', SOURCE_AUDIT, '/source',
+                               snapshot['manifest_sha256'], timeout=120))
+        require(audit == {'decision': 'PASS', 'source_commit': snapshot['source_commit'],
+                         'manifest_sha256': snapshot['manifest_sha256'], 'files': snapshot['files']},
+                'Post-run Linux source audit receipt differs')
+        snapshot['audits'].append({'gate': evidence['gate'], 'receipt': audit,
+                                  'commands': evidence['commands'][begin:]})
+        require(len(snapshot['audits']) == 2, 'Pytest source audit count differs')
+        evidence['source_after_verified'] = True
+        write_json(OUT/(evidence['gate']+'.source-snapshot.json'), snapshot)
+        receipt = json.loads(call('exec', cid, 'python', '-c', PYTEST_REPORT_AUDIT,
+                                 evidence['report_name'], timeout=120))
+        with tempfile.TemporaryDirectory(prefix='pytest-copy-', dir=OUT) as staging:
+            require(Path(staging).resolve().is_relative_to(OUT.resolve())
+                    and Path(staging).resolve() != OUT.resolve(), 'Unsafe pytest report copy staging')
+            destination = Path(staging)/evidence['report_name']
+            call('cp', cid+':/snapshot/'+evidence['report_name'], str(destination), timeout=60)
+            require(destination.is_file() and not destination.is_symlink(), 'Copied pytest evidence is not a regular file')
+            data = destination.read_bytes()
+            validate_pytest_report_copy(evidence['report_name'], receipt, data)
+            destination.replace(OUT/evidence['report_name'])
+            require((OUT/evidence['report_name']).read_bytes() == data, 'Host pytest report changed during replacement')
+        evidence['reports'].append({'linux': receipt, 'host_sha256': hashlib.sha256(data).hexdigest(),
+                                    'host_bytes': len(data), 'verified_unchanged': True})
+    finally:
+        close_linux_pytest_reader(evidence)
+        write_json(OUT/(evidence['gate']+'.pytest-evidence.json'), evidence)
+
+
 def collect_linux_pytest_evidence(evidence):
     """Copy one fresh report after its writer exits; verify Linux bytes before replacing the host file."""
     call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
     require(evidence['gate'] in PYTEST_GATES and evidence['report_name'] == evidence['gate']+'.xml',
             'Pytest evidence report identity differs')
     require_pytest_evidence_owner(json.loads(call('volume', 'inspect', evidence['volume']))[0], evidence)
+    if 'reader' in evidence:
+        return collect_started_linux_pytest_reader(evidence)
     marker = uuid.uuid4().hex
     name = f'spell-v{MINOR}-pytest-evidence-audit-'+marker
     cid = call('create', '--name', name, '--label', 'openbexi.qualification.evidence-audit='+marker,
@@ -362,6 +463,7 @@ class Producer:
             LINUX_SOURCE = self.linux_source
         if gate in PYTEST_GATES:
             self.pytest_evidence = create_linux_pytest_evidence(gate, self.source)
+            start_linux_pytest_reader(self.pytest_evidence, self.linux_source)
             LINUX_PYTEST_EVIDENCE = self.pytest_evidence
 
     def run(self, command, *, cwd=ROOT, env=None, output=None, private=False, timeout=None):
@@ -390,7 +492,12 @@ class Producer:
         return result.stdout
 
     def finish(self):
-        if self.linux_source is not None:
+        if self.pytest_evidence is not None:
+            require(self.pytest_evidence.get('source_after_verified')
+                    and len(self.linux_source['audits']) == 2
+                    and self.pytest_evidence['reader'].get('cleanup') == 'owned_stopped_reader_removed',
+                    'Pytest post-run source audit or reader cleanup is missing')
+        elif self.linux_source is not None:
             linux_source_snapshot(gate=self.gate, snapshot=self.linux_source)
         require(self.source == git("rev-parse", "HEAD") and self.binding == fingerprint(), "source changed during qualification")
         if self.pytest_evidence is not None:

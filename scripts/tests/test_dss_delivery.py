@@ -1536,3 +1536,72 @@ def test_failed_pytest_command_retains_its_actual_report_before_rejection(tmp_pa
     with pytest.raises(ValueError):controller.run(['docker','run','--rm','image','-m','pytest'])
     assert collected==[controller.pytest_evidence]
     assert (tmp_path/'postgresql.xml').read_bytes()==b'actual failed report'
+
+
+def _owned_pytest_reader():
+    evidence={'source_commit':'a'*40,'volume':'owned-report','gate':'postgresql','report_name':'postgresql.xml',
+        'commands':[],'reports':[], 'source_snapshot':{'source_commit':'a'*40,'volume':'owned-source',
+            'manifest_sha256':'b'*64,'files':1,'audits':[{'receipt':{'decision':'PASS'}}]},
+        'reader':{'id':'c'*64,'name':'owned-reader','marker':'d'*32,'image_id':'sha256:'+'e'*64,
+                  'started_before_writer':True}}
+    row={'Id':'c'*64,'Name':'/owned-reader','Image':'sha256:'+'e'*64,
+        'Config':{'Labels':{'openbexi.qualification.evidence-reader':'d'*32,
+                            'openbexi.qualification.source':'a'*40}},
+        'HostConfig':{'NetworkMode':'none'},'State':{'Running':True,'Pid':123},
+        'Mounts':[{'Type':'volume','Name':name,'Destination':path,'RW':False}
+                  for path,name in [('/source','owned-source'),('/snapshot','owned-report')]]}
+    return evidence,row
+
+
+@pytest.mark.parametrize('tamper',['id','name','image','marker','source','network','writable-source','report-volume','extra-mount'])
+def test_prepared_pytest_reader_rejects_foreign_identity_or_writable_mounts(tamper):
+    from scripts.qualify_next import require_pytest_reader_owner
+    evidence,row=_owned_pytest_reader()
+    require_pytest_reader_owner(row,evidence)
+    if tamper=='id':row['Id']='f'*64
+    elif tamper=='name':row['Name']='/foreign-reader'
+    elif tamper=='image':row['Image']='sha256:'+'f'*64
+    elif tamper=='marker':row['Config']['Labels']['openbexi.qualification.evidence-reader']='f'*32
+    elif tamper=='source':row['Config']['Labels']['openbexi.qualification.source']='f'*40
+    elif tamper=='network':row['HostConfig']['NetworkMode']='bridge'
+    elif tamper=='writable-source':row['Mounts'][0]['RW']=True
+    elif tamper=='report-volume':row['Mounts'][1]['Name']='foreign-report'
+    else:row['Mounts'].append({'Type':'bind','Destination':'/unexpected','RW':False})
+    with pytest.raises(ValueError):require_pytest_reader_owner(row,evidence)
+
+
+@pytest.mark.parametrize('tamper',[None,'source','report'])
+def test_post_pytest_audits_copy_exact_bytes_without_starting_another_container(tmp_path,monkeypatch,tamper):
+    import json
+    from copy import deepcopy
+    from scripts import qualify_next as producer
+    evidence,row=_owned_pytest_reader()
+    data=b'<testsuites><testsuite><testcase classname="actual" name="result"/></testsuite></testsuites>'
+    report=_linux_pytest_report_receipt(data)
+    operations=[]
+    def call(record,*args,**kwargs):
+        operations.append(args[0])
+        assert args[0] not in {'create','start','run'}
+        record['commands'].append({'command':['docker',*map(str,args)],'returncode':0})
+        if args[0]=='inspect':return json.dumps([deepcopy(row)]).encode()
+        if args[0]=='exec' and args[-2]=='/source':
+            return json.dumps({'decision':'PASS','source_commit':'f'*40 if tamper=='source' else 'a'*40,
+                'manifest_sha256':'b'*64,'files':1}).encode()
+        if args[0]=='exec':return json.dumps(report).encode()
+        if args[0]=='cp':
+            Path(args[-1]).write_bytes(data.replace(b'result',b'forged') if tamper=='report' else data)
+        elif args[0]=='stop':row['State'].update(Running=False,Pid=0)
+        else:assert args[0]=='rm'
+        return b''
+    monkeypatch.setattr(producer,'OUT',tmp_path)
+    monkeypatch.setattr(producer,'pytest_evidence_command',call)
+    if tamper:
+        with pytest.raises(ValueError):producer.collect_started_linux_pytest_reader(evidence)
+        assert not (tmp_path/'postgresql.xml').exists() and not evidence['reports']
+    else:
+        producer.collect_started_linux_pytest_reader(evidence)
+        assert (tmp_path/'postgresql.xml').read_bytes()==data
+        assert evidence['reports'][0]['host_sha256']==report['sha256']
+        assert evidence['source_after_verified'] and len(evidence['source_snapshot']['audits'])==2
+    assert operations[-4:]==['inspect','stop','inspect','rm']
+    assert evidence['reader']['cleanup']=='owned_stopped_reader_removed'

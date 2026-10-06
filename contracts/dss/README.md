@@ -131,11 +131,12 @@ binding. Native numeric wire strings and typed procedure results are checked
 separately against the durable settlement and its audit event.
 
 The source guard permits only the closed qualification changes and the exact
-reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`. Six
+reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`. Seven
 separately reviewed gate-correction files are pinned to their exact SHA-256
 and original modes: worker-isolation assertions, real token-expiry scheduling,
 named reference-runner selection, version-specific migration checks and control
-fixture ownership acquired before the worker starts its timer. These
+fixture ownership acquired before the worker starts its timer, and bounded
+worker readiness before the unchanged v0.11 prompt deadline. These
 corrections retain the existing execution, expiry and rollback assertions.
 Runtime, procedures, database and dependency bytes remain pinned; additional
 UI edits cannot inherit this exception. Current frontend images and all other
@@ -150,6 +151,10 @@ preserving runtime deadlines. Private credentials and output use separate mounts
 
 Pytest reports use a fresh Linux evidence volume for each gate. After the writer
 exits, an owned read-only helper checks the report inventory and hashes the XML.
+This helper starts before pytest and also verifies the source after pytest using
+`docker exec`; report collection starts no new containers after a long suite.
+Its identity, image, network isolation and read-only source/report volumes are
+checked before collection and cleanup.
 The host copy must match those exact bytes before it replaces the workspace
 report. Failed reports are retained before the command is rejected; successful
 gates remove only their verified, owned evidence volume.

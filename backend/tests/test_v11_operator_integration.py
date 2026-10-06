@@ -50,7 +50,90 @@ def _start_v11_execution(
         automatic=True,
         operator_settings=settings or {},
     )
+    _wait_for_worker_started(client, execution.id)
     return execution.id
+
+
+def _wait_for_worker_started(client, execution_id: str, *, timeout: float = 30) -> None:
+    """Finish bounded process setup before starting the prompt-specific deadline."""
+    deadline = time.monotonic() + timeout
+    last_state = None
+    while time.monotonic() < deadline:
+        with client.app.state.session_factory() as session:
+            execution = session.get(Execution, execution_id)
+            assert execution is not None
+            last_state = execution.state
+            started = session.scalar(select(Event).where(
+                Event.execution_id == execution_id, Event.event_type == "worker.started"
+            ))
+            if started is not None:
+                assert started.payload["generation"] == execution.worker_generation
+                assert type(started.payload["pid"]) is int and started.payload["pid"] > 0
+                return
+            assert last_state not in {"failed", "aborted", "recovery_required"}, (
+                f"worker setup failed: {last_state}"
+            )
+        time.sleep(0.05)
+    raise AssertionError(f"worker setup did not finish: {last_state}")
+
+
+def _clocked_worker_setup(monkeypatch, *, receipt="ready", prompt_open=True):
+    from types import SimpleNamespace
+    clock = [0.0]
+    requests = []
+
+    class Session:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def get(self, *args):
+            return SimpleNamespace(state="failed" if receipt == "terminal" else "starting", worker_generation=1)
+
+        def scalar(self, *args):
+            if clock[0] < 20 or receipt in {"never", "terminal"}:
+                return None
+            return SimpleNamespace(payload={"generation": 2 if receipt == "generation" else 1,
+                "pid": True if receipt == "boolean-pid" else 0 if receipt == "zero-pid" else 123})
+
+    def get(*args, **kwargs):
+        requests.append(clock[0])
+        return SimpleNamespace(status_code=200, text="clocked prompt",
+            json=lambda: {"execution": {"state": "prompting"}, "active_prompt":
+                {"id": "prompt", "state": "OPEN"} if prompt_open else None})
+
+    client = SimpleNamespace(get=get, app=SimpleNamespace(state=SimpleNamespace(
+        session_factory=Session,
+        catalog=SimpleNamespace(validate_source=lambda *args: SimpleNamespace(ir_version="0.11")),
+        supervisor=SimpleNamespace(create_execution=lambda *args, **kwargs: SimpleNamespace(id="execution")),
+    )))
+    monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(time, "sleep", lambda _: clock.__setitem__(0, clock[0] + 1))
+    return client, clock, requests
+
+
+@pytest.mark.parametrize("prompt_open", [True, False])
+def test_worker_setup_finishes_before_the_unchanged_prompt_deadline(monkeypatch, prompt_open):
+    client, clock, requests = _clocked_worker_setup(monkeypatch, prompt_open=prompt_open)
+    execution_id = _start_v11_execution(client, "source", "clocked")
+    assert execution_id == "execution" and clock[0] == 20 and requests == []
+    if prompt_open:
+        _, prompt = _wait_for_open_prompt(client, execution_id, {})
+        assert prompt["id"] == "prompt" and requests == [20]
+    else:
+        with pytest.raises(AssertionError, match="did not open"):
+            _wait_for_open_prompt(client, execution_id, {})
+        assert requests[0] == 20 and clock[0] == 32
+
+
+@pytest.mark.parametrize("receipt", ["never", "terminal", "generation", "boolean-pid", "zero-pid"])
+def test_worker_setup_rejects_missing_failed_or_foreign_process_readiness(monkeypatch, receipt):
+    client, clock, requests = _clocked_worker_setup(monkeypatch, receipt=receipt)
+    with pytest.raises(AssertionError):
+        _start_v11_execution(client, "source", "clocked-negative")
+    assert requests == [] and clock[0] <= 30
 
 
 def _wait_for_open_prompt(
