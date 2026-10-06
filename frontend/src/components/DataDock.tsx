@@ -51,6 +51,11 @@ function TelemetryChart() {
         components.TooltipComponent,
         renderers.CanvasRenderer,
       ]);
+      const theme = getComputedStyle(document.documentElement);
+      const chartColor = (name: string, fallback: string) => theme.getPropertyValue(name).trim() || fallback;
+      const labelColor = chartColor("--metal-muted", "#465865");
+      const gridColor = chartColor("--metal-line-soft", "#b4c1cb");
+      const seriesColor = chartColor("--metal-teal", "#356b68");
       chart = echarts.init(container, undefined, { renderer: "canvas" });
       chart.setOption({
         animation: false,
@@ -58,14 +63,14 @@ function TelemetryChart() {
         tooltip: { trigger: "axis" },
         xAxis: {
           type: "time",
-          axisLabel: { color: "#5d6872", fontSize: 10 },
+          axisLabel: { color: labelColor, fontSize: 10 },
           splitLine: { show: false },
         },
         yAxis: {
           type: "value",
           scale: true,
-          axisLabel: { color: "#5d6872", fontSize: 10 },
-          splitLine: { lineStyle: { color: "#dfe3e6" } },
+          axisLabel: { color: labelColor, fontSize: 10 },
+          splitLine: { lineStyle: { color: gridColor } },
         },
         series: [
           {
@@ -74,8 +79,8 @@ function TelemetryChart() {
             showSymbol: chartPoints.length < 30,
             symbolSize: 5,
             data: chartPoints,
-            lineStyle: { color: "#087f73", width: 2 },
-            itemStyle: { color: "#087f73" },
+            lineStyle: { color: seriesColor, width: 2 },
+            itemStyle: { color: seriesColor },
           },
         ],
       });

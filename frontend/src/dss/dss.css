@@ -1,61 +1,62 @@
-:root { font-family: Arial, sans-serif; color: #202b35; background: #e4e7eb; font-synthesis: none; }
+:root { font-family: Arial, sans-serif; color: var(--metal-ink); background: var(--metal-canvas); font-synthesis: none; }
 * { box-sizing: border-box; }
 body { margin: 0; font-size: 13px; }
 button, input, select { font: inherit; }
 button, a, input, summary, [tabindex="0"] { outline-offset: 3px; }
-button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible { outline: 2px solid #075f9b; }
-button { min-height: 30px; padding: 4px 10px; border: 1px solid #788694; border-radius: 2px; background: #fff; color: #202b35; cursor: pointer; }
-button:hover:not(:disabled) { background: #e8f1f8; }
-button:disabled { cursor: default; color: #66727e; background: #e5e8eb; border-color: #adb5bd; }
-a { color: #064d80; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible { outline: 2px solid var(--metal-blue); }
+button { min-height: 30px; padding: 4px 10px; border: 1px solid var(--metal-line); border-radius: 2px; background: var(--metal-button-gradient); color: var(--metal-ink); cursor: pointer; }
+button:hover:not(:disabled) { background: var(--metal-blue-soft); }
+button:disabled { cursor: default; color: var(--metal-muted); background: var(--metal-surface-soft); border-color: var(--metal-line); }
+a { color: var(--metal-blue); }
 .dss-shell { min-height: 100vh; display: flex; flex-direction: column; }
-.dss-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f7f8f9; border-bottom: 1px solid #9ca8b3; padding: 8px 12px; }
+.dss-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--metal-dark-gradient); border-bottom: 1px solid var(--metal-dark-line); padding: 8px 12px; color: var(--metal-on-dark); }
 h1 { margin: 0; font-size: 18px; } h1 span { font-size: 14px; font-weight: normal; margin-left: 8px; }
-.dss-status, .dss-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 5px 12px; background: #eef1f4; border-bottom: 1px solid #aeb8c1; font-size: 12px; }
-.dss-status strong { color: #184d33; } .dss-status button { min-height: 24px; padding: 2px 8px; margin-left: auto; }
-.dss-tabs { padding: 6px 12px 0; border-bottom: 1px solid #8e9eab; background: #dbe1e6; }
+.dss-header a { color: var(--metal-on-dark); }
+.dss-status, .dss-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 5px 12px; background: var(--metal-chrome-gradient); border-bottom: 1px solid var(--metal-line); font-size: 12px; }
+.dss-status strong { color: var(--metal-green); } .dss-status button { min-height: 24px; padding: 2px 8px; margin-left: auto; }
+.dss-tabs { padding: 6px 12px 0; border-bottom: 1px solid var(--metal-line); background: var(--metal-chrome-gradient); }
 .dss-tabs [role="tablist"] { display: flex; gap: 3px; }
-.dss-tabs button { min-width: 100px; border-bottom: 0; border-radius: 3px 3px 0 0; background: #e9edf1; }
-.dss-tabs button[aria-selected="true"] { background: #fff; font-weight: bold; border-top: 3px solid #075f9b; }
-main { flex: 1; min-width: 0; padding: 10px 12px; background: #fff; }
+.dss-tabs button { min-width: 100px; border-bottom: 0; border-radius: 3px 3px 0 0; background: var(--metal-surface-soft); }
+.dss-tabs button[aria-selected="true"] { background: var(--metal-surface); font-weight: bold; border-top: 3px solid var(--metal-blue); color: var(--metal-blue); }
+main { flex: 1; min-width: 0; padding: 10px 12px; background: var(--metal-surface); }
 .dss-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.dss-controls span, .dss-caption { color: #475563; font-size: 12px; }
+.dss-controls span, .dss-caption { color: var(--metal-muted); font-size: 12px; }
 .dss-controls span { margin-left: 8px; }
-.dss-notice { min-height: 18px; margin: 6px 0; color: #334b61; }
+.dss-notice { min-height: 18px; margin: 6px 0; color: var(--metal-blue); }
 .dss-subsystems { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-h2 { font-size: 13px; padding: 6px 8px; margin: 0; background: #dde4eb; border: 1px solid #aeb8c1; }
+h2 { font-size: 13px; padding: 6px 8px; margin: 0; background: var(--metal-chrome-gradient); border: 1px solid var(--metal-line); }
 table { border-collapse: collapse; width: 100%; font-size: 12px; }
-th, td { padding: 6px 8px; border: 1px solid #bcc5cd; text-align: left; }
-thead th { background: #eef1f4; font-weight: bold; }
+th, td { padding: 6px 8px; border: 1px solid var(--metal-line); text-align: left; }
+thead th { background: var(--metal-chrome); font-weight: bold; }
 tbody th { font-weight: normal; }
-tbody tr:nth-child(even) { background: #f5f7f9; }
+tbody tr:nth-child(even) { background: var(--metal-surface-soft); }
 .dss-subsystem table { table-layout: fixed; }
 .dss-subsystem th:first-child { width: 58%; }
 .dss-subsystem td { overflow-wrap: anywhere; font-family: Consolas, monospace; }
 .dss-telemetry-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .dss-telemetry-tools label { display: flex; align-items: center; gap: 8px; }
-input { height: 30px; max-width: 190px; border: 1px solid #788694; padding: 4px 6px; }
+input { height: 30px; max-width: 190px; border: 1px solid var(--metal-line); padding: 4px 6px; }
 .dss-table-scroll { overflow-x: auto; max-width: 100%; }
 .dss-table-scroll table { min-width: 650px; }
 .dss-table-scroll td { font-family: Consolas, monospace; }
-.dss-packet { margin-top: 10px; border: 1px solid #aeb8c1; }
-.dss-packet summary { cursor: pointer; padding: 6px 8px; background: #eef1f4; }
+.dss-packet { margin-top: 10px; border: 1px solid var(--metal-line); }
+.dss-packet summary { cursor: pointer; padding: 6px 8px; background: var(--metal-surface-soft); }
 .dss-packet dl { padding: 0 8px; } .dss-packet dd { margin: 3px 0 10px; overflow-wrap: anywhere; font-family: Consolas, monospace; }
 .dss-packet code { display: block; overflow-wrap: anywhere; max-height: 200px; overflow-y: auto; padding: 8px; }
-.dss-error { margin: 0; padding: 8px 12px; color: #761c1c; background: #ffeded; border-bottom: 1px solid #bd8a8a; }
-.dss-command { margin-top: 12px; border: 1px solid #aeb8c1; }
-.dss-command h2 { border: 0; border-bottom: 1px solid #aeb8c1; }
+.dss-error { margin: 0; padding: 8px 12px; color: var(--metal-red-deep); background: var(--metal-red-soft); border-bottom: 1px solid var(--metal-red-line); }
+.dss-command { margin-top: 12px; border: 1px solid var(--metal-line); }
+.dss-command h2 { border: 0; border-bottom: 1px solid var(--metal-line); }
 .dss-command form { padding: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .dss-command label { display: flex; gap: 6px; align-items: center; }
-.dss-command select { min-height: 30px; max-width: 100%; padding: 4px; color: #202b35; border: 1px solid #788694; background: #fff; }
+.dss-command select { min-height: 30px; max-width: 100%; padding: 4px; color: var(--metal-ink); border: 1px solid var(--metal-line); background: var(--metal-surface); }
 .dss-arguments { width: 100%; display: flex; flex-wrap: wrap; gap: 8px 14px; }
 .dss-arguments label { font-size: 12px; }
-.dss-confirm input { width: 16px; height: 16px; accent-color: #075f9b; }
+.dss-confirm input { width: 16px; height: 16px; accent-color: var(--metal-blue); }
 .dss-command .dss-caption, .dss-command-error, .dss-command-result { padding: 0 8px; }
 .dss-command-result { overflow-wrap: anywhere; padding-bottom: 8px; font-size: 12px; }
 .dss-command-result ul { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-left: 18px; }
-.dss-command-error { color: #761c1c; }
-.dss-command-effect { color: #475563; font-size: 12px; }
-.dss-footer { border-top: 1px solid #aeb8c1; border-bottom: 0; }
+.dss-command-error { color: var(--metal-red-deep); }
+.dss-command-effect { color: var(--metal-muted); font-size: 12px; }
+.dss-footer { border-top: 1px solid var(--metal-line); border-bottom: 0; }
 .dss-footer span { overflow-wrap: anywhere; max-width: 100%; }
 @media (max-width: 700px) { .dss-subsystems { grid-template-columns: 1fr; } .dss-header h1 span { display: block; margin: 3px 0 0; } .dss-controls span { width: 100%; margin: 3px 0; } main { padding: 8px; } .dss-status { gap: 6px 10px; } .dss-telemetry-tools label { width: 100%; } .dss-command form>label, .dss-arguments label { flex-wrap: wrap; max-width: 100%; } }

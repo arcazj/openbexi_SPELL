@@ -1,0 +1,62 @@
+/* Shared silver, pewter and graphite palette for every SPELL workspace. */
+:root {
+  color-scheme: light;
+  --metal-ink: #1d2933;
+  --metal-ink-soft: #31424f;
+  --metal-muted: #465865;
+  --metal-canvas: #cbd3da;
+  --metal-surface: #f7f9fa;
+  --metal-surface-soft: #e9eef2;
+  --metal-chrome: #d7dfe6;
+  --metal-line: #748795;
+  --metal-line-soft: #b4c1cb;
+  --metal-dark: #2c3b47;
+  --metal-dark-raised: #3a4c5b;
+  --metal-dark-line: #718694;
+  --metal-on-dark: #f7fafc;
+  --metal-on-dark-muted: #ced9e1;
+  --metal-teal: #356b68;
+  --metal-teal-deep: #254f4d;
+  --metal-teal-soft: #dce8e6;
+  --metal-teal-line: #789b98;
+  --metal-blue: #3c5e7b;
+  --metal-blue-soft: #dbe5ed;
+  --metal-blue-line: #7c96ab;
+  --metal-selection: #c5d7e4;
+  --metal-amber: #805622;
+  --metal-amber-soft: #eee3cf;
+  --metal-amber-line: #aa8c5e;
+  --metal-red: #923f3c;
+  --metal-red-deep: #752f2c;
+  --metal-red-soft: #f0dedc;
+  --metal-red-line: #b88882;
+  --metal-green: #35634d;
+  --metal-green-soft: #dce8df;
+  --metal-green-line: #7c9c87;
+  --metal-purple: #6e4b7b;
+  --metal-teal-bright: #afd5cf;
+  --metal-green-bright: #bdd6c5;
+  --metal-amber-bright: #e7ce9f;
+  --metal-red-bright: #e9bab4;
+  --metal-chrome-gradient: linear-gradient(180deg, #eef2f5 0%, #d7dfe6 100%);
+  --metal-dark-gradient: linear-gradient(180deg, #3b4c59 0%, #293946 100%);
+  --metal-button-gradient: linear-gradient(180deg, #f9fbfc 0%, #e1e8ee 100%);
+  --metal-selection-wash: rgba(60, 94, 123, 0.24);
+  --metal-error-wash: rgba(146, 63, 60, 0.12);
+  --metal-backdrop: rgba(29, 41, 51, 0.5);
+  --metal-shadow: rgba(29, 41, 51, 0.18);
+  --metal-shadow-deep: rgba(29, 41, 51, 0.28);
+}
+
+input, select, textarea {
+  color: var(--metal-ink);
+  background-color: var(--metal-surface);
+  accent-color: var(--metal-blue);
+}
+
+input::placeholder, textarea::placeholder { color: var(--metal-muted); opacity: 1; }
+::selection { color: var(--metal-ink); background: var(--metal-selection); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--metal-blue); outline-offset: 2px; }
+.console-header :focus-visible, .dev-header :focus-visible, .dss-header :focus-visible {
+  outline-color: var(--metal-on-dark);
+}

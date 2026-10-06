@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { DevelopmentApp } from "./DevelopmentApp";
+import "../metallicTheme.css";
 import "./styles.css";
 
 const root = document.getElementById("development-root");
