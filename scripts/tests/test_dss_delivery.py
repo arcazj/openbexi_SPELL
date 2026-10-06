@@ -1605,3 +1605,65 @@ def test_post_pytest_audits_copy_exact_bytes_without_starting_another_container(
         assert evidence['source_after_verified'] and len(evidence['source_snapshot']['audits'])==2
     assert operations[-4:]==['inspect','stop','inspect','rm']
     assert evidence['reader']['cleanup']=='owned_stopped_reader_removed'
+
+
+def _clocked_v11_worker_setup(monkeypatch, *, receipt="ready", prompt_open=True):
+    import time
+    from types import SimpleNamespace
+    clock = [0.0]
+    requests = []
+
+    class Session:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def get(self, *args):
+            return SimpleNamespace(state="failed" if receipt == "terminal" else "starting", worker_generation=1)
+
+        def scalar(self, *args):
+            if clock[0] < 20 or receipt in {"never", "terminal"}:
+                return None
+            return SimpleNamespace(payload={"generation": 2 if receipt == "generation" else 1,
+                "pid": True if receipt == "boolean-pid" else 0 if receipt == "zero-pid" else 123})
+
+    def get(*args, **kwargs):
+        requests.append(clock[0])
+        return SimpleNamespace(status_code=200, text="clocked prompt",
+            json=lambda: {"execution": {"state": "prompting"}, "active_prompt":
+                {"id": "prompt", "state": "OPEN"} if prompt_open else None})
+
+    client = SimpleNamespace(get=get, app=SimpleNamespace(state=SimpleNamespace(
+        session_factory=Session,
+        catalog=SimpleNamespace(validate_source=lambda *args: SimpleNamespace(ir_version="0.11")),
+        supervisor=SimpleNamespace(create_execution=lambda *args, **kwargs: SimpleNamespace(id="execution")),
+    )))
+    monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(time, "sleep", lambda _: clock.__setitem__(0, clock[0] + 1))
+    return client, clock, requests
+
+
+@pytest.mark.parametrize("prompt_open", [True, False])
+def test_v11_worker_setup_finishes_before_the_unchanged_prompt_deadline(monkeypatch, prompt_open):
+    from backend.tests import test_v11_operator_integration as operator
+    client, clock, requests = _clocked_v11_worker_setup(monkeypatch, prompt_open=prompt_open)
+    execution_id = operator._start_v11_execution(client, "source", "clocked")
+    assert execution_id == "execution" and clock[0] == 20 and requests == []
+    if prompt_open:
+        _, prompt = operator._wait_for_open_prompt(client, execution_id, {})
+        assert prompt["id"] == "prompt" and requests == [20]
+    else:
+        with pytest.raises(AssertionError, match="did not open"):
+            operator._wait_for_open_prompt(client, execution_id, {})
+        assert requests[0] == 20 and clock[0] == 32
+
+
+@pytest.mark.parametrize("receipt", ["never", "terminal", "generation", "boolean-pid", "zero-pid"])
+def test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness(monkeypatch, receipt):
+    from backend.tests import test_v11_operator_integration as operator
+    client, clock, requests = _clocked_v11_worker_setup(monkeypatch, receipt=receipt)
+    with pytest.raises(AssertionError):
+        operator._start_v11_execution(client, "source", "clocked-negative")
+    assert requests == [] and clock[0] <= 30

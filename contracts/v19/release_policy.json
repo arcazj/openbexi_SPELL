@@ -1158,6 +1158,13 @@
     "scripts.tests.test_dss_delivery::test_scenario_readiness_requires_complete_epoch_and_declared_clock[old-epoch]",
     "scripts.tests.test_dss_delivery::test_scenario_readiness_requires_complete_epoch_and_declared_clock[provenance]",
     "scripts.tests.test_dss_delivery::test_stale_source_specs_bind_exact_rejection_oracles_and_raw_acquisition_age",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_finishes_before_the_unchanged_prompt_deadline[False]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_finishes_before_the_unchanged_prompt_deadline[True]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[boolean-pid]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[generation]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[never]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[terminal]",
+    "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[zero-pid]",
     "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[extra]",
     "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[images]",
     "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[source]",
@@ -4578,13 +4585,6 @@
         "backend.tests.test_v11_operator_integration::test_inspection_edit_cannot_redirect_a_future_command_selector",
         "backend.tests.test_v11_operator_integration::test_ordinary_prompt_recovery_is_retained_before_v11_send",
         "backend.tests.test_v11_operator_integration::test_same_second_confirmed_failure_recovery_selects_failure_prompt",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_finishes_before_the_unchanged_prompt_deadline[False]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_finishes_before_the_unchanged_prompt_deadline[True]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[boolean-pid]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[generation]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[never]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[terminal]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[zero-pid]",
         "backend.tests.test_virtual_files_v08::test_activation_ancestor_swap_is_blocked_or_remains_parent_handle_relative",
         "backend.tests.test_virtual_files_v08::test_activation_rejects_preexisting_ancestor_link_without_creating_outside",
         "backend.tests.test_virtual_files_v08::test_committed_object_link_substitution_never_reaches_outside_content",
@@ -4748,7 +4748,7 @@
         "backend.tests.test_driver_isolation::test_live_bundle_builders_are_networkless_independent_and_reproducible",
         "backend.tests.test_proxy_dns_recovery_v19::test_actual_nginx_recovers_backend_and_dss_dns_replacement_without_restart"
       ],
-      "tests": 3122
+      "tests": 3115
     },
     "sqlite": {
       "identities": [
@@ -7711,13 +7711,6 @@
         "backend.tests.test_v11_operator_integration::test_inspection_edit_cannot_redirect_a_future_command_selector",
         "backend.tests.test_v11_operator_integration::test_ordinary_prompt_recovery_is_retained_before_v11_send",
         "backend.tests.test_v11_operator_integration::test_same_second_confirmed_failure_recovery_selects_failure_prompt",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_finishes_before_the_unchanged_prompt_deadline[False]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_finishes_before_the_unchanged_prompt_deadline[True]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[boolean-pid]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[generation]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[never]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[terminal]",
-        "backend.tests.test_v11_operator_integration::test_worker_setup_rejects_missing_failed_or_foreign_process_readiness[zero-pid]",
         "backend.tests.test_virtual_files_v08::test_activation_ancestor_swap_is_blocked_or_remains_parent_handle_relative",
         "backend.tests.test_virtual_files_v08::test_activation_rejects_preexisting_ancestor_link_without_creating_outside",
         "backend.tests.test_virtual_files_v08::test_committed_object_link_substitution_never_reaches_outside_content",
@@ -8039,7 +8032,7 @@
         "backend.tests.test_shared_data_v08::test_postgresql_latest_revision_reconstruction_uses_parent_row_locks",
         "backend.tests.test_shared_data_v08::test_two_owners_can_use_the_same_namespace_id_on_postgresql"
       ],
-      "tests": 3243
+      "tests": 3236
     },
     "tooling": {
       "identities": [
@@ -8396,6 +8389,13 @@
         "scripts.tests.test_dss_delivery::test_scenario_readiness_requires_complete_epoch_and_declared_clock[old-epoch]",
         "scripts.tests.test_dss_delivery::test_scenario_readiness_requires_complete_epoch_and_declared_clock[provenance]",
         "scripts.tests.test_dss_delivery::test_stale_source_specs_bind_exact_rejection_oracles_and_raw_acquisition_age",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_finishes_before_the_unchanged_prompt_deadline[False]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_finishes_before_the_unchanged_prompt_deadline[True]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[boolean-pid]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[generation]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[never]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[terminal]",
+        "scripts.tests.test_dss_delivery::test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness[zero-pid]",
         "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[extra]",
         "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[images]",
         "scripts.tests.test_dss_release_gate::test_contradictory_producer_sidecar_blocks_dss_acceptance[source]",
@@ -8595,7 +8595,7 @@
         "scripts.tests.test_spell_auditor_tool::test_header_rules_are_loaded_from_the_declared_policy"
       ],
       "skipped": [],
-      "tests": 550
+      "tests": 557
     }
   },
   "legacy_system_qualified": false,

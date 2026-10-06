@@ -23,7 +23,7 @@ REVIEWED_GATE_CORRECTIONS = {
     'backend/tests/test_reference_runner_v10.py': 'c7e578a0c47f702f723a647f3eed537b7a0755aff7dc8ce711523c2a661a69d7',
     'backend/tests/test_shadow_pilot_v15.py': '5f16a0de1bb4124fa1e51fad167bc1f87fe7a99569ac3e308f00aa56e060eb79',
     'backend/tests/test_synthetic_control_v13.py': '5b515513cfd433b40ea63c47b46b480b240647c9f2bf7537aafc5f630b46a8e9',
-    'backend/tests/test_v11_operator_integration.py': '21f3e871c2bcba205cd6664dc2db5999f759ae2ae641031218fc5f7b805940a9',
+    'backend/tests/test_v11_operator_integration.py': '058b6e823b8bd352dbfb0f177e01c9973425c47e815367368e82a0070918bd36',
     'scripts/qualify_reference_examples_v10.py': 'cee6d1b6426a613859f96ef7625d76ac1d1a4a032e49b034470ade531e899b94',
 }
 REVIEWED_UI_SOURCE = "c18614444e918160e8c80fa9cde236db5793da91"
