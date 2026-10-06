@@ -226,6 +226,50 @@ def test_continuation_evidence_source_cannot_relabel_or_replace_carried_capture(
     with pytest.raises(ValueError):continuation.expected_evidence_source(proof,"menu:000","d"*64,current)
 
 
+def test_continuation_retained_index_stays_fixed_after_actual_new_capture_storage(source_repo, tmp_path, monkeypatch):
+    """Index ownership after envelope/oracle checks; no full delivery PASS is fabricated."""
+    from scripts.qualify_dss_v19 import DeliveryQualifier
+    root, _ = source_repo
+    (root / "scripts/qualify_dss_v19.py").write_text("reviewed qualification fix\n", encoding="utf-8")
+    source = _commit(root)
+    images = {name: "sha256:" + str(index) * 64
+              for index, name in enumerate(sorted(continuation.IMAGE_NAMES), 1)}
+    archive, out = tmp_path / "retained-unit-prefix", tmp_path / "new-unit-output"
+    for directory in (archive, out):
+        (directory / "dss-validation-captures").mkdir(parents=True)
+        (directory / "dss-validation-cases").mkdir()
+    original = continuation.canonical({"scope": "UNIT_PREFIX_ONLY"})
+    digest = continuation.sha256(original)
+    (archive / "dss-validation-captures" / (digest + ".json")).write_bytes(original)
+    for name in continuation.BASELINE_DOCUMENTS:
+        (archive / name).write_bytes(b'{"scope":"UNIT_ENVELOPE_ONLY"}')
+    retained = {"unit:retained": {"id": "unit:retained", "evidence": {"raw_capture_sha256": digest}}}
+    monkeypatch.setattr(continuation, "_baseline", lambda *args: ({"decision": "FAIL"}, {"image_ids": images}))
+    monkeypatch.setattr(continuation, "_reconstruct", lambda *args: (retained, []))
+    qualifier = DeliveryQualifier.__new__(DeliveryQualifier)
+    qualifier.bindings = {"source_commit": source, "image_ids": images}
+    qualifier.output = out / "dss-validation.json"
+    qualifier.capture_root, qualifier.logs = out / "dss-validation-captures", out / "dss-validation-cases"
+    qualifier.results, qualifier.scenarios, qualifier.captures, qualifier.manifest = {}, [], {}, {}
+    proof = continuation.restore_prefix(qualifier, archive, root=root)
+    checkpoint = json.loads((out / "dss-continuation-checkpoint.json").read_bytes())
+    initial_index = deepcopy(proof["baseline_capture_references"])
+
+    new = {"execution": {"id": "unit-new-execution"},
+           "dss": {"scenario_id": "unit-new-scenario", "epoch": "unit-new-epoch"}}
+    evidence = qualifier.evidence(new)
+    new_digest = evidence["raw_capture_sha256"]
+    assert (qualifier.capture_root / (new_digest + ".json")).read_bytes() == continuation.canonical(new)
+    serialized = json.loads(continuation.canonical({"continuation": proof, "raw_captures": qualifier.captures}))
+    assert new_digest in serialized["raw_captures"] and new_digest not in initial_index
+    assert serialized["continuation"]["baseline_capture_references"] == initial_index
+    assert serialized["continuation"] == checkpoint
+    qualifier.captures[digest]["size"] += 1
+    assert proof["baseline_capture_references"] == initial_index
+    assert continuation.expected_evidence_source(proof, "unit:retained", digest, source) == continuation.BASELINE_SOURCE
+    assert continuation.expected_evidence_source(proof, "unit:new", new_digest, source) == source
+
+
 @pytest.mark.parametrize("gate", ["candidate", "sqlite", "frontend", "assemble"])
 def test_continuation_canonical_cli_rejects_resume_for_other_gates(monkeypatch, gate):
     import sys

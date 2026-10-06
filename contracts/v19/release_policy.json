@@ -845,6 +845,7 @@
     "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[image]",
     "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[prepare-returncode]",
     "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[raw-index]",
+    "scripts.tests.test_dss_continuation::test_continuation_retained_index_stays_fixed_after_actual_new_capture_storage",
     "scripts.tests.test_dss_delivery::test_bootstrap_retention_failure_preserves_primary_error",
     "scripts.tests.test_dss_delivery::test_broker_bootstrap_failure_never_creates_source_or_pauses_foreign_epoch[clock]",
     "scripts.tests.test_dss_delivery::test_broker_bootstrap_failure_never_creates_source_or_pauses_foreign_epoch[foreign-reset]",
@@ -7987,6 +7988,7 @@
         "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[image]",
         "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[prepare-returncode]",
         "scripts.tests.test_dss_continuation::test_continuation_rejects_rehashed_substitution_of_pinned_baseline[raw-index]",
+        "scripts.tests.test_dss_continuation::test_continuation_retained_index_stays_fixed_after_actual_new_capture_storage",
         "scripts.tests.test_dss_delivery::test_bootstrap_retention_failure_preserves_primary_error",
         "scripts.tests.test_dss_delivery::test_broker_bootstrap_failure_never_creates_source_or_pauses_foreign_epoch[clock]",
         "scripts.tests.test_dss_delivery::test_broker_bootstrap_failure_never_creates_source_or_pauses_foreign_epoch[foreign-reset]",
@@ -8417,7 +8419,7 @@
         "scripts.tests.test_spell_auditor_tool::test_header_rules_are_loaded_from_the_declared_policy"
       ],
       "skipped": [],
-      "tests": 468
+      "tests": 469
     }
   },
   "legacy_system_qualified": false,

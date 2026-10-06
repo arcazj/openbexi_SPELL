@@ -353,7 +353,11 @@ def restore_prefix(qualifier, archive: Path, *, root=ROOT):
     # Copy only named public records; env files, credentials, failures and gate
     # command receipts are never installed as successful current-attempt output.
     _copy_public_prefix(archive, qualifier.capture_root, qualifier.logs, documents, refs, logs)
-    qualifier.results, qualifier.scenarios, qualifier.captures = results, scenarios, refs
+    # New executions extend the live index. Keep the pinned baseline snapshot
+    # independent, including its nested path/size records.
+    qualifier.results, qualifier.scenarios, qualifier.captures = results, scenarios, {
+        digest: dict(reference) for digest, reference in refs.items()
+    }
     qualifier.continuation = proof
     qualifier.output.with_name("dss-continuation-checkpoint.json").write_bytes(canonical(proof) + b"\n")
     qualifier._continuation_validated = True
