@@ -1,0 +1,11 @@
+{
+  "file_count": 960,
+  "package_sha256": "fe37d37924e23d3b65b6f76666221445b23a2b27b434e5ea6944634d97c1f4e3",
+  "qualification_sha256": "925a2dcbccfea98dcf3edbac540b2deb2f0eae241ebec660cdd0bea52a89d77a",
+  "release_tag": "v0.19.0",
+  "repeated_builds": 2,
+  "schema_version": "spell.v19.release-manifest/1",
+  "scope": "LOCAL_SIMULATOR_OBSERVATION_COMMAND_WORKFLOWS",
+  "source_commit": "8658e3c62b62d9c9431f3d0478d336faaf83a9e3",
+  "source_fingerprint": "0e499314ee2c525a9c75cde1718d1ba2f6c0729848964cf53fa8f06c6b788249"
+}
