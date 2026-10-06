@@ -149,6 +149,15 @@ file must match its committed Git bytes and mode; the snapshot is hash-checked
 before and after each gate. This keeps worker imports on Linux storage while
 preserving runtime deadlines. Private credentials and output use separate mounts.
 
+The PostgreSQL and SQLite gates collect their complete frozen case inventories,
+then run every module once in a fresh pytest process. This prevents earlier
+test fixtures and process memory from accumulating in later worker-start checks.
+Every original case, skip rule and runtime deadline is retained. The combined
+JUnit report contains the unchanged child testcase elements and a zero-case
+metadata suite with each raw child report, log, command and SHA-256. A failed
+module stops the gate without retry; missing, duplicated or renamed cases fail
+qualification. The combined inventory and skips must match the frozen policy.
+
 Pytest reports use a fresh Linux evidence volume for each gate. After the writer
 exits, an owned read-only helper checks the report inventory and hashes the XML.
 This helper starts before pytest and also verifies the source after pytest using

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 from contextlib import contextmanager
 import hashlib
 import io
@@ -39,6 +40,117 @@ if MINOR >= 18:
 if MINOR >= 19:
     TOOL_TESTS += ["scripts/tests/test_dss_delivery.py", "scripts/tests/test_dss_release_gate.py",
                    "scripts/tests/test_seed_dss_v19.py", "scripts/tests/test_dss_continuation.py"]
+
+
+MODULE_PYTEST = "from scripts.qualify_next import run_module_pytest; import json,sys; run_module_pytest(sys.argv[1],json.loads(sys.argv[2]))"
+MODULE_COLLECTION = r'''import json,sys,pytest
+from pathlib import Path
+from _pytest.junitxml import mangle_test_address
+class Catalog:
+ def pytest_collection_finish(self,session):
+  rows=[]
+  for item in session.items:
+   names=mangle_test_address(item.nodeid)
+   rows.append({'identity':'.'.join(names[:-1])+'::'+names[-1],'file':item.nodeid.split('::',1)[0]})
+  Path(sys.argv[1]).write_text(json.dumps(rows))
+raise SystemExit(pytest.main([*json.loads(sys.argv[2]),'--collect-only','-q','-p','no:cacheprovider'],plugins=[Catalog()]))
+'''
+
+
+def partition_module_pytest(catalog, expected):
+    """Partition the actual collection without dropping, renaming or repeating cases."""
+    require(type(catalog) is list and catalog and type(expected) is list and expected
+            and len(expected) == len(set(expected)), 'Invalid module pytest inventory')
+    groups, identities = {}, []
+    for row in catalog:
+        require(type(row) is dict and set(row) == {'identity', 'file'}
+                and type(row['identity']) is str and type(row['file']) is str, 'Invalid module pytest row')
+        name = row['file']
+        path = PurePosixPath(name)
+        require(not path.is_absolute() and '..' not in path.parts and str(path) == name
+                and name.startswith(('backend/tests/', 'driver_host/tests/')) and name.endswith('.py')
+                and '\\' not in name and not any(char in name for char in '\r\n\0'), 'Unsafe pytest module')
+        module = name[:-3].replace('/', '.')
+        require(row['identity'].startswith((module + '::', module + '.')), 'Pytest module identity differs')
+        identities.append(row['identity'])
+        groups.setdefault(name, []).append(row['identity'])
+    require(len(identities) == len(set(identities)) and set(identities) == set(expected),
+            'Module pytest collection differs from the frozen inventory')
+    return list(groups.items())
+
+
+def append_module_pytest_report(aggregate, name, raw, expected, command, returncode, log):
+    """Retain raw child evidence and append its unchanged testcase elements."""
+    require(aggregate.tag == 'testsuites' and type(raw) is bytes and type(log) is bytes
+            and 0 < len(raw) <= 32_000_000 and len(log) <= 32_000_000
+            and type(returncode) is int and type(command) is list and len(command) == 9
+            and command[:4] == [sys.executable, '-m', 'pytest', name]
+            and command[4:8] == ['-q', '-p', 'no:cacheprovider', '--tb=short']
+            and command[8].startswith('--junitxml=/tmp/'), 'Pytest module command or bytes differ')
+    metadata = next((row for row in aggregate if row.get('name') == 'spell.pytest-modules'), None)
+    if metadata is None:
+        metadata = ET.SubElement(aggregate, 'testsuite', name='spell.pytest-modules', tests='0',
+                                 failures='0', errors='0', skipped='0', time='0')
+        ET.SubElement(metadata, 'properties')
+    properties = metadata.find('properties')
+    require(not any(row.get('name') == name for row in properties), 'Repeated pytest module')
+    record = {'module': name, 'command': command, 'returncode': returncode, 'expected_identities': expected,
+              'report_sha256': hashlib.sha256(raw).hexdigest(), 'report_base64': base64.b64encode(raw).decode('ascii'),
+              'log_sha256': hashlib.sha256(log).hexdigest(), 'log_base64': base64.b64encode(log).decode('ascii')}
+    ET.SubElement(properties, 'property', name=name, value=json.dumps(record, sort_keys=True))
+    document = ET.fromstring(raw)
+    require(document.tag == 'testsuites' and document.findall('testsuite'), 'Invalid pytest module XML')
+    aggregate.extend(document.findall('testsuite'))
+    cases = document.findall('.//testcase')
+    actual = [row.get('classname', '') + '::' + row.get('name', '') for row in cases]
+    require(len(actual) == len(set(actual)) and set(actual) <= set(expected), 'Unexpected pytest module cases')
+    if returncode == 0:
+        require(set(actual) == set(expected)
+                and not any(child.tag in {'failure', 'error'} for row in cases for child in row),
+                'Successful pytest module has missing or failed cases')
+    return record
+
+
+def run_module_pytest(gate, tests, *, expected=None):
+    """Run each collected database-test module once in a fresh pytest process."""
+    require(gate in {'sqlite', 'postgresql'}, 'Module isolation is limited to database gates')
+    frozen = policy()['gates'][gate]
+    identities = frozen['identities'] if expected is None else expected
+    output = Path('/evidence') / (gate + '.xml')
+    aggregate = ET.Element('testsuites')
+    with tempfile.TemporaryDirectory(prefix='spell-pytest-modules-', dir='/tmp') as staging:
+        staging = Path(staging)
+        catalog_path = staging / 'catalog.json'
+        collected = subprocess.run([sys.executable, '-c', MODULE_COLLECTION, str(catalog_path), json.dumps(tests)],
+                                   capture_output=True)
+        sys.stdout.buffer.write(collected.stdout + collected.stderr)
+        sys.stdout.buffer.flush()
+        require(collected.returncode == 0, 'Module pytest collection failed')
+        groups = partition_module_pytest(json.loads(catalog_path.read_bytes()), identities)
+        for index, (name, selected) in enumerate(groups):
+            report = staging / (str(index) + '.xml')
+            command = [sys.executable, '-m', 'pytest', name, '-q', '-p', 'no:cacheprovider', '--tb=short',
+                       '--junitxml=' + str(report)]
+            print('START pytest module ' + name, flush=True)
+            result = subprocess.run(command, capture_output=True)
+            log = result.stdout + result.stderr
+            sys.stdout.buffer.write(log)
+            sys.stdout.buffer.flush()
+            require(report.is_file() and not report.is_symlink(), 'Pytest module report is missing or linked')
+            try:
+                append_module_pytest_report(aggregate, name, report.read_bytes(), selected, command, result.returncode, log)
+            finally:
+                pending = output.with_suffix('.pending')
+                pending.write_bytes(ET.tostring(aggregate, encoding='utf-8', xml_declaration=True))
+                pending.replace(output)
+            if result.returncode != 0:
+                raise SystemExit(result.returncode)
+            print('FINISH pytest module ' + name, flush=True)
+    if expected is None:
+        from scripts.release_next import junit
+        actual = junit(output)
+        require(all(actual[key] == frozen[key] for key in ('tests', 'identities', 'skipped')),
+                'Combined pytest report differs from the frozen gate')
 
 
 SOURCE_AUDIT = r'''import hashlib,json,stat,sys
@@ -398,7 +510,7 @@ LINUX_PYTEST_EVIDENCE = None
 
 def docker_python(*args, network="none", extra=()):
     require(LINUX_SOURCE is not None, "Python qualification requires an audited Linux source snapshot")
-    pytest_command = args[:2] == ('-m', 'pytest')
+    pytest_command = args[:2] == ('-m', 'pytest') or args[:2] == ('-c', MODULE_PYTEST)
     require(not pytest_command or LINUX_PYTEST_EVIDENCE is not None, 'Pytest qualification requires fresh Linux evidence storage')
     evidence_path = LINUX_PYTEST_EVIDENCE['volume'] if pytest_command else OUT.as_posix()
     return ["docker", "run", "--rm", "--network", network,
@@ -575,8 +687,11 @@ class Producer:
                 extra = ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "SPELL_RUN_COMPOSE_RUNTIME_TESTS=1",
                          "-e", f"SPELL_IMAGE_TAG={TAG}-isolation"]
                 network = "bridge"
-            self.run(docker_python("-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short",
-                                   f"--junitxml=/evidence/{gate}.xml", network=network, extra=extra))
+            if gate in {'sqlite', 'postgresql'}:
+                self.run(docker_python('-c', MODULE_PYTEST, gate, json.dumps(tests), network=network, extra=extra))
+            else:
+                self.run(docker_python("-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short",
+                                       f"--junitxml=/evidence/{gate}.xml", network=network, extra=extra))
         elif gate in {"frontend", "frontend-build"}:
             npm = shutil.which("npm.cmd") or shutil.which("npm")
             if gate == "frontend":

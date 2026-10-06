@@ -1667,3 +1667,151 @@ def test_v11_worker_setup_rejects_missing_failed_or_foreign_process_readiness(mo
     with pytest.raises(AssertionError):
         operator._start_v11_execution(client, "source", "clocked-negative")
     assert requests == [] and clock[0] <= 30
+
+
+def _module_pytest_catalog():
+    return [
+        {'file': 'backend/tests/test_alpha.py', 'identity': 'backend.tests.test_alpha::first'},
+        {'file': 'backend/tests/test_beta.py', 'identity': 'backend.tests.test_beta::second'},
+        {'file': 'backend/tests/test_alpha.py', 'identity': 'backend.tests.test_alpha.Checks::third'},
+    ]
+
+
+@pytest.mark.parametrize('mutation', [None, 'missing', 'extra', 'duplicate', 'foreign-file',
+                                      'unsafe-file', 'empty', 'expected-duplicate', 'bad-keys'])
+def test_module_pytest_partition_requires_every_frozen_case_exactly_once(mutation):
+    from scripts.qualify_next import partition_module_pytest
+    catalog = _module_pytest_catalog()
+    expected = [row['identity'] for row in catalog]
+    if mutation == 'missing':
+        catalog.pop()
+    elif mutation == 'extra':
+        catalog.append({'file': catalog[0]['file'], 'identity': 'backend.tests.test_alpha::unreviewed'})
+    elif mutation == 'duplicate':
+        catalog.append(dict(catalog[0]))
+    elif mutation == 'foreign-file':
+        catalog[0]['file'] = 'backend/tests/test_beta.py'
+    elif mutation == 'unsafe-file':
+        catalog[0]['file'] = 'backend/tests/../test_alpha.py'
+    elif mutation == 'empty':
+        catalog = []
+    elif mutation == 'expected-duplicate':
+        expected.append(expected[0])
+    elif mutation == 'bad-keys':
+        catalog[0]['alias'] = catalog[0]['identity']
+    if mutation is not None:
+        with pytest.raises(ValueError):
+            partition_module_pytest(catalog, expected)
+    else:
+        assert partition_module_pytest(catalog, expected) == [
+            ('backend/tests/test_alpha.py', [expected[0], expected[2]]),
+            ('backend/tests/test_beta.py', [expected[1]]),
+        ]
+
+
+def _module_pytest_xml(identities, *, failure=False):
+    import xml.etree.ElementTree as ET
+    document = ET.Element('testsuites')
+    suite = ET.SubElement(document, 'testsuite', name='pytest', tests=str(len(identities)),
+                          failures='1' if failure else '0', errors='0', skipped='0', time='0.5')
+    for index, identity in enumerate(identities):
+        classname, name = identity.split('::', 1)
+        case = ET.SubElement(suite, 'testcase', classname=classname, name=name, time='0.25')
+        if failure and index == 0:
+            ET.SubElement(case, 'failure', message='actual child failure').text = 'original failure bytes'
+    return ET.tostring(document, encoding='utf-8', xml_declaration=True)
+
+
+@pytest.mark.parametrize('mutation', [None, 'wrong-case', 'duplicate', 'missing', 'wrong-root',
+                                      'bad-xml', 'hidden-failure', 'changed-command', 'repeated-module', 'boolean-code'])
+def test_module_pytest_report_keeps_raw_bytes_and_rejects_changed_or_failed_success(mutation):
+    import base64
+    import hashlib
+    import json
+    import sys
+    import xml.etree.ElementTree as ET
+    from scripts.qualify_next import append_module_pytest_report
+    name = 'backend/tests/test_alpha.py'
+    expected = [_module_pytest_catalog()[0]['identity']]
+    command = [sys.executable, '-m', 'pytest', name, '-q', '-p', 'no:cacheprovider',
+               '--tb=short', '--junitxml=/tmp/module.xml']
+    original = _module_pytest_xml(expected)
+    raw, code, log = original, 0, b'one real child run\n'
+    aggregate = ET.Element('testsuites')
+    if mutation == 'wrong-case':
+        raw = _module_pytest_xml(['backend.tests.test_alpha::unreviewed'])
+    elif mutation == 'duplicate':
+        raw = _module_pytest_xml(expected * 2)
+    elif mutation == 'missing':
+        raw = _module_pytest_xml([])
+    elif mutation == 'wrong-root':
+        raw = b'<testsuite><testcase classname="backend.tests.test_alpha" name="first"/></testsuite>'
+    elif mutation == 'bad-xml':
+        raw = b'<testsuites>'
+    elif mutation == 'hidden-failure':
+        raw = _module_pytest_xml(expected, failure=True)
+    elif mutation == 'changed-command':
+        command[7] = '--reruns=1'
+    elif mutation == 'repeated-module':
+        append_module_pytest_report(aggregate, name, raw, expected, command, code, log)
+    elif mutation == 'boolean-code':
+        code = True
+    if mutation is not None:
+        with pytest.raises((ValueError, ET.ParseError)):
+            append_module_pytest_report(aggregate, name, raw, expected, command, code, log)
+    else:
+        record = append_module_pytest_report(aggregate, name, raw, expected, command, code, log)
+        retained = json.loads(aggregate.find('./testsuite/properties/property').get('value'))
+        assert record == retained and record['returncode'] == 0 and record['command'] == command
+        assert base64.b64decode(record['report_base64']) == original
+        assert record['report_sha256'] == hashlib.sha256(original).hexdigest()
+        assert base64.b64decode(record['log_base64']) == log
+        assert record['log_sha256'] == hashlib.sha256(log).hexdigest()
+        assert ET.tostring(aggregate.findall('.//testcase')[0]) == ET.tostring(ET.fromstring(original).find('.//testcase'))
+        assert len(aggregate.findall('.//testcase')) == 1
+        assert aggregate.find('testsuite').get('tests') == '0'
+
+
+def test_module_pytest_stops_at_first_failure_without_retry_and_retains_the_failed_report(monkeypatch, tmp_path):
+    import base64
+    import json
+    import subprocess
+    import xml.etree.ElementTree as ET
+    import scripts.qualify_next as producer
+    catalog = _module_pytest_catalog()
+    expected = [row['identity'] for row in catalog]
+    output = tmp_path / 'evidence'
+    output.mkdir()
+    path_type = Path
+    monkeypatch.setattr(producer, 'Path', lambda value: output if value == '/evidence' else path_type(value))
+    monkeypatch.setattr(producer, 'policy', lambda: {'gates': {'postgresql': {'identities': expected}}})
+    calls = []
+    raw = _module_pytest_xml([expected[0], expected[2]], failure=True)
+    def run(command, *, capture_output):
+        assert capture_output is True
+        calls.append(command)
+        if command[1:3] == ['-c', producer.MODULE_COLLECTION]:
+            Path(command[3]).write_text(json.dumps(catalog))
+            return subprocess.CompletedProcess(command, 0, b'actual collection', b'')
+        assert command[3] == 'backend/tests/test_alpha.py'
+        Path(command[-1].split('=', 1)[1]).write_bytes(raw)
+        return subprocess.CompletedProcess(command, 1, b'actual failed child', b'')
+    monkeypatch.setattr(producer.subprocess, 'run', run)
+    with pytest.raises(SystemExit) as stopped:
+        producer.run_module_pytest('postgresql', ['backend/tests'])
+    assert stopped.value.code == 1 and len(calls) == 2
+    report = ET.parse(output / 'postgresql.xml')
+    record = json.loads(report.find('./testsuite/properties/property').get('value'))
+    assert record['returncode'] == 1 and base64.b64decode(record['report_base64']) == raw
+    assert base64.b64decode(record['log_base64']) == b'actual failed child'
+    assert len(report.findall('.//testcase')) == 2 and len(report.findall('.//failure')) == 1
+    assert {path.name for path in output.iterdir()} == {'postgresql.xml'}
+
+
+def test_module_pytest_uses_the_same_readonly_source_and_linux_report_storage(monkeypatch):
+    import scripts.qualify_next as producer
+    monkeypatch.setattr(producer, 'LINUX_SOURCE', {'volume': 'owned-source'})
+    monkeypatch.setattr(producer, 'LINUX_PYTEST_EVIDENCE', {'volume': 'owned-reports'})
+    command = producer.docker_python('-c', producer.MODULE_PYTEST, 'postgresql', '["backend/tests"]')
+    assert 'owned-source:/workspace:ro' in command and 'owned-reports:/evidence' in command
+    assert command[-4:] == ['-c', producer.MODULE_PYTEST, 'postgresql', '["backend/tests"]']
