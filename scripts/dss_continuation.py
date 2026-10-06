@@ -26,7 +26,7 @@ REVIEWED_GATE_CORRECTIONS = {
     'backend/tests/test_v11_operator_integration.py': '058b6e823b8bd352dbfb0f177e01c9973425c47e815367368e82a0070918bd36',
     'scripts/qualify_reference_examples_v10.py': 'cee6d1b6426a613859f96ef7625d76ac1d1a4a032e49b034470ade531e899b94',
 }
-REVIEWED_UI_SOURCE = "c18614444e918160e8c80fa9cde236db5793da91"
+REVIEWED_UI_SOURCE = "faf953abadaa88a8de7e42e7800ad2138ca65a8e"
 REVIEWED_UI_FILES = frozenset({
     "frontend/src/components/DataDock.tsx", "frontend/src/development/main.tsx",
     "frontend/src/development/styles.css", "frontend/src/dss/dss.css",

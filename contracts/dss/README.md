@@ -131,7 +131,8 @@ binding. Native numeric wire strings and typed procedure results are checked
 separately against the durable settlement and its audit event.
 
 The source guard permits only the closed qualification changes and the exact
-reviewed metallic UI commit `c18614444e918160e8c80fa9cde236db5793da91`. Seven
+reviewed metallic UI commit `faf953abadaa88a8de7e42e7800ad2138ca65a8e`, including the bronze string
+text correction for highlighted source rows (5.13:1 contrast). Seven
 separately reviewed gate-correction files are pinned to their exact SHA-256
 and original modes: worker-isolation assertions, real token-expiry scheduling,
 named reference-runner selection, version-specific migration checks and control
