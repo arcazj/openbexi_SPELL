@@ -14,9 +14,11 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 import threading
 import time
 import uuid
+import xml.etree.ElementTree as ET
 
 from scripts.release_next import ROOT, VERSION, MINOR, TAG, POLICY, fingerprint, git, require, write_json, verify_candidate, policy
 from scripts.gcc_header_applicability import resolve
@@ -169,15 +171,139 @@ def linux_source_snapshot(*, gate, snapshot=None):
             write_json(OUT / (gate+'.source-snapshot.json'), snapshot)
 
 
+PYTEST_GATES = frozenset({'candidate', 'sqlite', 'postgresql', 'compose', 'documentation', 'tooling'})
+PYTEST_REPORT_AUDIT = r'''import hashlib,json,stat,sys
+from pathlib import Path
+root=Path('/snapshot');expected=sys.argv[1]
+entries=list(root.iterdir())
+if len(entries)!=1 or entries[0].name!=expected:raise SystemExit('pytest evidence inventory differs')
+file=entries[0]
+if file.is_symlink() or not stat.S_ISREG(file.stat().st_mode):raise SystemExit('pytest evidence is not a regular file')
+data=file.read_bytes()
+if not 0<len(data)<=32_000_000:raise SystemExit('pytest evidence size differs')
+print(json.dumps({'name':expected,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'mode':format(stat.S_IMODE(file.stat().st_mode),'03o')}))
+'''
+
+
+def require_pytest_evidence_owner(record, evidence):
+    labels = record.get('Labels') or {}
+    require(record.get('Name') == evidence['volume']
+            and labels.get('openbexi.qualification.evidence') == evidence['marker']
+            and labels.get('openbexi.qualification.source') == evidence['source_commit'],
+            'Foreign pytest evidence volume')
+
+
+def validate_pytest_report_copy(expected, receipt, data):
+    require(expected in {gate+'.xml' for gate in PYTEST_GATES}
+            and receipt.get('name') == expected, 'Pytest report name differs')
+    require(type(receipt.get('bytes')) is int and 0 < receipt['bytes'] <= 32_000_000
+            and len(data) == receipt['bytes'] and receipt.get('mode') == '644',
+            'Pytest report size or mode differs')
+    require(receipt.get('sha256') == hashlib.sha256(data).hexdigest(),
+            'Copied pytest report bytes differ from Linux evidence')
+    try:
+        document = ET.fromstring(data)
+    except ET.ParseError as error:
+        raise ValueError('Copied pytest report is not valid XML') from error
+    require(document.tag == 'testsuites' and document.findall('.//testcase'),
+            'Copied pytest report has no actual test cases')
+
+
+def pytest_evidence_command(evidence, *args, timeout=30):
+    began = time.monotonic()
+    result = subprocess.run(['docker', *map(str, args)], capture_output=True, timeout=timeout)
+    def display(value):
+        return str(value).replace(str(ROOT), '<repository>').replace(ROOT.as_posix(), '<repository>')
+    evidence['commands'].append({'command': ['docker', *map(display, args)], 'returncode': result.returncode,
+                                 'seconds': round(time.monotonic()-began, 3)})
+    require(result.returncode == 0, 'Pytest evidence operation failed: '+str(args[0]))
+    return result.stdout
+
+
+def create_linux_pytest_evidence(gate, source):
+    require(gate in PYTEST_GATES and re.fullmatch('[0-9a-f]{40}', source), 'Pytest evidence identity differs')
+    marker = uuid.uuid4().hex
+    evidence = {'schema_version': 'spell.qualification-linux-pytest-evidence/1',
+                'gate': gate, 'source_commit': source, 'marker': marker,
+                'volume': f'spell-v{MINOR}-pytest-evidence-'+marker,
+                'report_name': gate+'.xml', 'commands': [], 'reports': []}
+    call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
+    require(not call('volume', 'ls', '--filter', 'name=^'+evidence['volume']+'$', '--format', '{{.Name}}').strip(),
+            'Pytest evidence volume already exists')
+    call('volume', 'create', '--label', 'openbexi.qualification.evidence='+marker,
+         '--label', 'openbexi.qualification.source='+source, evidence['volume'])
+    require_pytest_evidence_owner(json.loads(call('volume', 'inspect', evidence['volume']))[0], evidence)
+    write_json(OUT/(gate+'.pytest-evidence.json'), evidence)
+    return evidence
+
+
+def collect_linux_pytest_evidence(evidence):
+    """Copy one fresh report after its writer exits; verify Linux bytes before replacing the host file."""
+    call = lambda *args, **kwargs: pytest_evidence_command(evidence, *args, **kwargs)
+    require(evidence['gate'] in PYTEST_GATES and evidence['report_name'] == evidence['gate']+'.xml',
+            'Pytest evidence report identity differs')
+    require_pytest_evidence_owner(json.loads(call('volume', 'inspect', evidence['volume']))[0], evidence)
+    marker = uuid.uuid4().hex
+    name = f'spell-v{MINOR}-pytest-evidence-audit-'+marker
+    cid = call('create', '--name', name, '--label', 'openbexi.qualification.evidence-audit='+marker,
+               '--network', 'none', '-v', evidence['volume']+':/snapshot:ro', '--entrypoint', 'python',
+               QUALIFIER, '-c', PYTEST_REPORT_AUDIT, evidence['report_name']).decode().strip()
+    require(re.fullmatch('[0-9a-f]{64}', cid), 'Pytest report audit container ID differs')
+    def owned():
+        row = json.loads(call('inspect', cid))[0]
+        require(row['Id'] == cid and row['Name'] == '/'+name
+                and row['Config']['Labels'].get('openbexi.qualification.evidence-audit') == marker,
+                'Pytest report audit container ownership differs')
+        return row
+    try:
+        owned()
+        call('start', cid, timeout=20)
+        code = call('wait', cid, timeout=120).decode().strip()
+        state = owned()['State']
+        require(code == '0' and state['ExitCode'] == 0 and not state['Running'], 'Linux pytest report audit failed')
+        receipt = json.loads(call('logs', cid))
+        with tempfile.TemporaryDirectory(prefix='pytest-copy-', dir=OUT) as staging:
+            require(Path(staging).resolve().is_relative_to(OUT.resolve())
+                    and Path(staging).resolve() != OUT.resolve(), 'Unsafe pytest report copy staging')
+            destination = Path(staging)/evidence['report_name']
+            call('cp', cid+':/snapshot/'+evidence['report_name'], str(destination), timeout=60)
+            require(destination.is_file() and not destination.is_symlink(), 'Copied pytest evidence is not a regular file')
+            data = destination.read_bytes()
+            validate_pytest_report_copy(evidence['report_name'], receipt, data)
+            destination.replace(OUT/evidence['report_name'])
+            require((OUT/evidence['report_name']).read_bytes() == data, 'Host pytest report changed during replacement')
+        evidence['reports'].append({'linux': receipt, 'host_sha256': hashlib.sha256(data).hexdigest(),
+                                    'host_bytes': len(data), 'verified_unchanged': True})
+    finally:
+        state = owned()['State']
+        if not state['Running'] and state['Pid'] == 0:
+            call('rm', cid, timeout=20)
+        write_json(OUT/(evidence['gate']+'.pytest-evidence.json'), evidence)
+
+
+def close_linux_pytest_evidence(evidence):
+    require(evidence['reports'] and all(row['verified_unchanged'] for row in evidence['reports']),
+            'Cannot remove unverified pytest evidence')
+    row = json.loads(pytest_evidence_command(evidence, 'volume', 'inspect', evidence['volume']))[0]
+    require_pytest_evidence_owner(row, evidence)
+    pytest_evidence_command(evidence, 'volume', 'rm', evidence['volume'])
+    evidence['cleanup'] = 'owned_verified_report_volume_removed'
+    write_json(OUT/(evidence['gate']+'.pytest-evidence.json'), evidence)
+
+
 LINUX_SOURCE = None
+LINUX_PYTEST_EVIDENCE = None
 
 
 def docker_python(*args, network="none", extra=()):
     require(LINUX_SOURCE is not None, "Python qualification requires an audited Linux source snapshot")
+    pytest_command = args[:2] == ('-m', 'pytest')
+    require(not pytest_command or LINUX_PYTEST_EVIDENCE is not None, 'Pytest qualification requires fresh Linux evidence storage')
+    evidence_path = LINUX_PYTEST_EVIDENCE['volume'] if pytest_command else OUT.as_posix()
     return ["docker", "run", "--rm", "--network", network,
             "-v", f"{LINUX_SOURCE['volume']}:/workspace:ro",
             "-v", f"{(ROOT / '.git').as_posix()}:/workspace/.git:ro",
-            "-v", f"{OUT.as_posix()}:/evidence",
+            "-v", f"{evidence_path}:/evidence",
             *extra, QUALIFIER, *args]
 
 
@@ -216,7 +342,7 @@ def renewing_credential(renew, private_token: Path, *, interval=600):
 
 class Producer:
     def __init__(self, gate, *, resume_from=None):
-        global LINUX_SOURCE
+        global LINUX_SOURCE, LINUX_PYTEST_EVIDENCE
         require(resume_from is None or (MINOR >= 19 and gate == "dss-validation"),
                 "continuation is supported only for the DSS validation gate")
         require(not git("status", "--porcelain"), "qualification requires clean committed source")
@@ -227,11 +353,16 @@ class Producer:
         self.commands = []
         self.resume_from = Path(resume_from).resolve() if resume_from is not None else None
         self.linux_source = None
+        self.pytest_evidence = None
         LINUX_SOURCE = None
+        LINUX_PYTEST_EVIDENCE = None
         if gate in {"candidate", "sqlite", "postgresql", "compose", "documentation", "tooling",
                     "reference-generators", "replay", "image-probe", "supply-chain", "dss-validation"}:
             self.linux_source = linux_source_snapshot(gate=gate)
             LINUX_SOURCE = self.linux_source
+        if gate in PYTEST_GATES:
+            self.pytest_evidence = create_linux_pytest_evidence(gate, self.source)
+            LINUX_PYTEST_EVIDENCE = self.pytest_evidence
 
     def run(self, command, *, cwd=ROOT, env=None, output=None, private=False, timeout=None):
         started = time.monotonic()
@@ -253,6 +384,8 @@ class Producer:
                               "command": [display(arg) for arg in command],
                               "returncode": result.returncode,
                               "seconds": round(time.monotonic() - started, 3)})
+        if self.pytest_evidence is not None and command[:3] == ['docker', 'run', '--rm']:
+            collect_linux_pytest_evidence(self.pytest_evidence)
         require(result.returncode == 0, f"{self.gate} command failed; inspect its local log")
         return result.stdout
 
@@ -260,9 +393,12 @@ class Producer:
         if self.linux_source is not None:
             linux_source_snapshot(gate=self.gate, snapshot=self.linux_source)
         require(self.source == git("rev-parse", "HEAD") and self.binding == fingerprint(), "source changed during qualification")
+        if self.pytest_evidence is not None:
+            close_linux_pytest_evidence(self.pytest_evidence)
         write_json(OUT / f"{self.gate}.command.json", {"source_commit": self.source,
                    "source_fingerprint": self.binding, "commands": self.commands,
-                   **({"linux_source_snapshot": self.linux_source} if self.linux_source is not None else {})})
+                   **({"linux_source_snapshot": self.linux_source} if self.linux_source is not None else {}),
+                   **({'linux_pytest_evidence': self.pytest_evidence} if self.pytest_evidence is not None else {})})
         print(f"{self.gate}: PASS commands={len(self.commands)}")
 
     def execute(self):
@@ -454,6 +590,10 @@ def main():
                 for path, row in zip(sorted(path for path in OUT.glob('*.command.json')
                                             if path.name != 'candidate.command.json'), captures)
                 if 'linux_source_snapshot' in row},
+            "linux_pytest_evidence": {path.name.removesuffix('.command.json'): row['linux_pytest_evidence']
+                for path, row in zip(sorted(path for path in OUT.glob('*.command.json')
+                                            if path.name != 'candidate.command.json'), captures)
+                if 'linux_pytest_evidence' in row},
         })
     else:
         Producer(args.gate, resume_from=args.resume_from).execute()

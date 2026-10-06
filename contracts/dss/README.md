@@ -147,3 +147,9 @@ Python qualification runs use a read-only Linux source snapshot. Every tracked
 file must match its committed Git bytes and mode; the snapshot is hash-checked
 before and after each gate. This keeps worker imports on Linux storage while
 preserving runtime deadlines. Private credentials and output use separate mounts.
+
+Pytest reports use a fresh Linux evidence volume for each gate. After the writer
+exits, an owned read-only helper checks the report inventory and hashes the XML.
+The host copy must match those exact bytes before it replaces the workspace
+report. Failed reports are retained before the command is rejected; successful
+gates remove only their verified, owned evidence volume.

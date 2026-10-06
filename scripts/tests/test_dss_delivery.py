@@ -1442,3 +1442,97 @@ def test_independent_procedure_oracle_checks_native_wire_without_legacy_fallback
         with pytest.raises(ValueError):validator.observed_procedure(capture,definition)
     else:
         assert validator.observed_procedure(capture,definition)==definition["expected"]
+
+
+def _linux_pytest_report_receipt(data):
+    import hashlib
+    return {'name':'postgresql.xml','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'mode':'644'}
+
+
+def test_linux_pytest_report_copy_keeps_the_exact_report_bytes():
+    from scripts.qualify_next import validate_pytest_report_copy
+    data=b'<testsuites><testsuite><testcase classname="actual" name="result"/></testsuite></testsuites>'
+    assert validate_pytest_report_copy('postgresql.xml',_linux_pytest_report_receipt(data),data) is None
+
+
+@pytest.mark.parametrize('tamper',['same-size-case','truncated','wrong-name','executable','boolean-size','invalid-xml','empty-cases'])
+def test_linux_pytest_report_copy_rejects_changed_or_invalid_evidence(tamper):
+    from scripts.qualify_next import validate_pytest_report_copy
+    data=b'<testsuites><testsuite><testcase classname="actual" name="result"/></testsuite></testsuites>'
+    receipt=_linux_pytest_report_receipt(data)
+    if tamper=='same-size-case':data=data.replace(b'result',b'forged')
+    elif tamper=='truncated':data=data[:-1]
+    elif tamper=='wrong-name':receipt['name']='candidate.xml'
+    elif tamper=='executable':receipt['mode']='755'
+    elif tamper=='boolean-size':receipt['bytes']=True
+    elif tamper=='invalid-xml':
+        data=b'<testsuites>'
+        receipt=_linux_pytest_report_receipt(data)
+    elif tamper=='empty-cases':
+        data=b'<testsuites><testsuite tests="0"/></testsuites>'
+        receipt=_linux_pytest_report_receipt(data)
+    with pytest.raises(ValueError):validate_pytest_report_copy('postgresql.xml',receipt,data)
+
+
+@pytest.mark.parametrize('tamper',['volume','source','marker','missing-labels'])
+def test_linux_pytest_report_volume_rejects_foreign_ownership(tamper):
+    from copy import deepcopy
+    from scripts.qualify_next import require_pytest_evidence_owner
+    expected={'volume':'spell-v19-pytest-evidence-owned','source_commit':'a'*40,'marker':'b'*32}
+    original={'Name':expected['volume'],'Labels':{'openbexi.qualification.source':expected['source_commit'],
+              'openbexi.qualification.evidence':expected['marker']}}
+    require_pytest_evidence_owner(original,expected)
+    changed=deepcopy(original)
+    if tamper=='volume':changed['Name']='foreign-evidence'
+    elif tamper=='source':changed['Labels']['openbexi.qualification.source']='c'*40
+    elif tamper=='marker':changed['Labels']['openbexi.qualification.evidence']='d'*32
+    elif tamper=='missing-labels':changed['Labels']={}
+    with pytest.raises(ValueError):require_pytest_evidence_owner(changed,expected)
+
+
+@pytest.mark.parametrize('tamper',['extra-file','symlink','directory'])
+def test_linux_pytest_report_inventory_rejects_noncanonical_entries(tmp_path,tamper):
+    import subprocess,sys
+    from scripts.qualify_next import PYTEST_REPORT_AUDIT
+    snapshot=tmp_path/'snapshot';snapshot.mkdir()
+    report=snapshot/'postgresql.xml'
+    report.write_bytes(b'<testsuites><testsuite><testcase name="actual"/></testsuite></testsuites>')
+    if tamper=='extra-file':(snapshot/'unbound.xml').write_bytes(report.read_bytes())
+    elif tamper=='symlink':
+        target=tmp_path/'outside.xml';target.write_bytes(report.read_bytes());report.unlink();report.symlink_to(target)
+    else:report.unlink();report.mkdir()
+    code=PYTEST_REPORT_AUDIT.replace("root=Path('/snapshot')","root=Path(sys.argv[2])")
+    actual=subprocess.run([sys.executable,'-c',code,'postgresql.xml',str(snapshot)],capture_output=True)
+    assert actual.returncode!=0 and not actual.stdout
+
+
+def test_pytest_report_mount_uses_linux_storage_and_preserves_read_only_source(monkeypatch):
+    from scripts import qualify_next as producer
+    monkeypatch.setattr(producer,'LINUX_SOURCE',{'volume':'owned-linux-source'})
+    monkeypatch.setattr(producer,'LINUX_PYTEST_EVIDENCE',{'volume':'fresh-linux-report'})
+    command=producer.docker_python('-m','pytest','backend/tests','--junitxml=/evidence/postgresql.xml')
+    mounts=[command[index+1] for index,value in enumerate(command) if value=='-v']
+    assert 'owned-linux-source:/workspace:ro' in mounts
+    assert f"{(producer.ROOT/'.git').as_posix()}:/workspace/.git:ro" in mounts
+    assert 'fresh-linux-report:/evidence' in mounts
+    assert f'{producer.OUT.as_posix()}:/evidence' not in mounts
+
+
+def test_failed_pytest_command_retains_its_actual_report_before_rejection(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from scripts import qualify_next as producer
+    monkeypatch.setattr(producer,'OUT',tmp_path)
+    monkeypatch.setattr(producer.subprocess,'run',lambda *args,**kwargs:SimpleNamespace(returncode=1,stdout=b'actual failure',stderr=b''))
+    controller=producer.Producer.__new__(producer.Producer)
+    controller.gate='postgresql';controller.source='a'*40;controller.commands=[]
+    controller.pytest_evidence={'volume':'owned-linux-report'}
+    collected=[]
+    def collect(evidence):
+        assert controller.commands[0]['returncode']==1
+        assert (tmp_path/'postgresql-00.log').read_bytes()==b'actual failure'
+        (tmp_path/'postgresql.xml').write_bytes(b'actual failed report')
+        collected.append(evidence)
+    monkeypatch.setattr(producer,'collect_linux_pytest_evidence',collect)
+    with pytest.raises(ValueError):controller.run(['docker','run','--rm','image','-m','pytest'])
+    assert collected==[controller.pytest_evidence]
+    assert (tmp_path/'postgresql.xml').read_bytes()==b'actual failed report'
