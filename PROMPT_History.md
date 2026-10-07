@@ -1,5 +1,32 @@
 # Prompt History
 
+## 2026-10-06 - Updated Python Procedure Runtime
+
+The owner requested: "I updated test_Python.py, make the runtime supporting the
+updated test_Python.py". The received script has 39 topics and SHA-256
+`5c518ce8aa3c1c9ede2206f49f0ee5dd17b29b2cd4fc52e282329f9fe51fb644`.
+Its example body is preserved; three metadata/docstring lines now identify the
+explicit Python profile. The accepted source digest is
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+
+The compatibility decision is a separate opt-in CPython 3.13.14 service, one
+source-bound atomic script step, durable output/results, bounded resources and
+fenced process controls. Existing SPELL profiles retain their closed validators.
+The prior six-check adapter is retained as `test_python_core.spell.py`.
+The language reference's Python foundation (LRM 2.4.4, section 2/2.1, page 14)
+and the server manual's executor controls (Server 2.4.4, page 6) were reviewed.
+Reference SHA-256 values are respectively
+`ed13fae748997a48d6930ac40a30fb31f8b54119be0005a0431a1920613801c3`
+and `ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9`.
+Native line stepping, live-object inspection/editing/recovery, and SPELL driver
+APIs are outside this extension; its limits are explicit in the
+[procedure instructions](procedures/README.md#python-feature-reference).
+No legacy implementation or manual content is copied into the runtime.
+
+Standing master commit/push authorization applies. Accepted v0.19.0 release
+artifacts and evidence are preserved; v0.19.1 release qualification remains
+separate work.
+
 ## 2026-10-06 - v0.19.0 Published
 
 The authorized observation-to-command and DSS increment is accepted and published. The [GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.0) contains four verified assets; the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns exact results and bindings. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile.

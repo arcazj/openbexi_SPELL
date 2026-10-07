@@ -1,5 +1,21 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-06 - Authorized Python Runtime Extension
+
+The owner requested runtime support for the updated `procedures/test_Python.py`.
+Implement this as the explicit `python-stdlib/3.13` profile with source-bound
+`python/1` IR and an opt-in isolated CPython service. This authorizes native
+Python execution only inside that service's unprivileged chroot and private
+network namespace; preserve the closed AST/IR rules for existing SPELL profiles.
+Capture exact source, digest, output and exit status, enforce resource/lifetime
+bounds, and retain generation fencing and operator authority. Python live objects
+cannot be checkpointed, edited or replayed after interruption. See the
+[runtime setup and limits](procedures/README.md#python-feature-reference).
+
+This is repository work after the accepted v0.19.0 release, not acceptance of
+v0.19.1 or a new release. Immutable accepted artifacts and their qualification
+remain unchanged; the full version-delivery DSS gate below still applies.
+
 ## 2026-10-06 - v0.19.0 Accepted
 
 The authorized observation-to-command and DSS release is accepted and published; the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds its evidence. Preserve typed durable observations, read-time snapshot semantics, separate command confirmation and no-resend recovery. Full SPELL 2.4.4 compatibility, real legacy qualification and operational authorization remain outside this local simulator profile.

@@ -48,8 +48,16 @@ class Settings:
     bundle_build_timeout_seconds: float = 30.0
     local_session_enabled: bool = False
     local_session_port: int = 8080
+    python_request_directory: Path | None = None
+    python_response_directory: Path | None = None
 
     def __post_init__(self) -> None:
+        python_directories = (self.python_request_directory, self.python_response_directory)
+        if any(path is not None for path in python_directories):
+            if any(path is None or not path.is_absolute() for path in python_directories):
+                raise ValueError("both isolated Python protocol directories must be absolute")
+            if self.python_request_directory == self.python_response_directory:
+                raise ValueError("isolated Python protocol directories must differ")
         if type(self.dss_enabled) is not bool or (self.dss_enabled and not self.driver_enabled):
             raise ValueError("DSS requires an explicitly enabled actual driver")
         if type(self.local_session_enabled) is not bool:
@@ -218,4 +226,6 @@ class Settings:
                 "SPELL_LOCAL_SESSION_ENABLED", os.getenv("SPELL_LOCAL_SESSION_ENABLED", "false")
             ),
             local_session_port=int(os.getenv("SPELL_LOCAL_SESSION_PORT", "8080")),
+            python_request_directory=(Path(value) if (value := os.getenv("SPELL_PYTHON_REQUEST_DIR")) else None),
+            python_response_directory=(Path(value) if (value := os.getenv("SPELL_PYTHON_RESPONSE_DIR")) else None),
         )

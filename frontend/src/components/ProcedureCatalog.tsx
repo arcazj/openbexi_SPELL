@@ -124,7 +124,7 @@ export function ProcedureCatalog() {
                 else moveSelection(event, index);
               }}>
               <FileCode2 aria-hidden="true" size={18} />
-              <span><strong>{procedure.name}</strong><small>v{procedure.version} - {procedure.step_count} steps</small></span>
+              <span><strong>{procedure.name}</strong><small>{procedure.version === "python/1" ? "Python 3.13 · script" : `v${procedure.version} - ${procedure.step_count} steps`}</small></span>
             </button>
           ))}
           {filtered.length === 0 && <div className="empty-list" role="option" aria-selected="false" aria-disabled="true">No matching procedures</div>}

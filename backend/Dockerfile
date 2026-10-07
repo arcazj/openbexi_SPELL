@@ -57,6 +57,8 @@ RUN groupadd --gid 10001 spell \
         /var/lib/openbexi-spell/builder/responses-a \
         /var/lib/openbexi-spell/builder/responses-b \
         /var/lib/openbexi-spell/builder/responses \
+        /var/lib/openbexi-spell/python/requests \
+        /var/lib/openbexi-spell/python/responses \
     && chown -R spell:spell /var/lib/openbexi-spell \
     && chown -R spell:spell /app
 

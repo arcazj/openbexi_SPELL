@@ -11,6 +11,11 @@ future SPELL work. Derived specifications cannot silently replace its behavior.
 The simulator has no live GCS or spacecraft connection and no operational
 approval. Full SPELL Language Reference 2.4.4 compatibility is not claimed.
 
+The optional [Python runtime](procedures/README.md#python-feature-reference)
+runs the updated `test_Python.py` directly from the executor, including its 39
+language and standard-library topics. Enable `compose.python.yaml` to use it.
+This extension is separate from the accepted v0.19.0 release qualification.
+
 ## Quick Start
 
 Install Git and Docker with Compose v2, then run:

@@ -370,10 +370,18 @@ def worker_main(
     durable_arguments: dict[str, Any] | None = None,
     safe_point_ack_required: bool = True,
     dss_language_enabled: bool = False,
+    python_runtime_configuration: dict[str, str] | None = None,
 ) -> None:
     """Validate and execute data-only IR in a spawned process."""
 
     _replace_worker_environment()
+    from .native_python import IR_VERSION as PYTHON_IR_VERSION
+    if ir_version == PYTHON_IR_VERSION:
+        from .native_python_worker import run
+        run(execution_id, generation, steps, start_step, start_command_id,
+            checkpoint_variables, control, output, python_runtime_configuration,
+            safe_point_ack_required=safe_point_ack_required)
+        return
 
     def send(kind: str, **fields: Any) -> None:
         output.put({"kind": kind, "generation": generation, **fields})

@@ -78,6 +78,7 @@ from .ir_v16 import IR_VERSION as V16_IR_VERSION, validate_ir_v16
 from .ir_v17 import IR_VERSION as V17_IR_VERSION, V17ValidationError, validate_ir_v17
 from .ir_v18 import IR_VERSION as V18_IR_VERSION, V18ValidationError, validate_ir_v18
 from .ir_v19 import IR_VERSION as V19_IR_VERSION, V19ValidationError, validate_ir_v19
+from .native_python import IR_VERSION as PYTHON_IR_VERSION, validate_ir as validate_python_ir
 from .runtime_composition_v19 import (
     OBSERVATION_STEP_TYPES, filter_observation_result,
     observation_checkpoint_variables, telecommand_dependency_variables,
@@ -139,7 +140,7 @@ _WORKER_HANDLE_UNSET = object()
 _DATA_RUNTIME_BINDING_KEY = "_runtime_binding"
 _TELECOMMAND_RUNTIME_BINDING_KEY = "_telecommand_runtime_binding"
 _V06_PLUS_IR_VERSIONS = frozenset(
-    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION}
+    {V06_IR_VERSION, V07_IR_VERSION, V08_IR_VERSION, V10_IR_VERSION, V11_IR_VERSION, V16_IR_VERSION, V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION, PYTHON_IR_VERSION}
 )
 _TELECOMMAND_IR_VERSIONS = frozenset({V11_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION})
 _NATIVE_PROMPT_IR_VERSIONS = frozenset({V17_IR_VERSION, V18_IR_VERSION, V19_IR_VERSION})
@@ -431,7 +432,7 @@ class Supervisor:
             return
         reparsed = self.catalog.validate_source(
             procedure.source,
-            f"{procedure.id}.spell.py",
+            f"{procedure.id}.py" if procedure.ir_version == PYTHON_IR_VERSION and not procedure.path.name.endswith(".spell.py") else f"{procedure.id}.spell.py",
             path=procedure.path,
         )
         if (
@@ -482,6 +483,11 @@ class Supervisor:
     ) -> Execution:
         if role not in {"operator", "admin"}:
             raise AuthorizationError("operator role required")
+        if procedure.ir_version == PYTHON_IR_VERSION:
+            if getattr(self, "python_runtime_configuration", None) is None:
+                raise ConflictError("the isolated Python runtime is not configured; enable compose.python.yaml")
+            if initial_variables or background_allowed:
+                raise ConflictError("Python scripts require empty initial variables and foreground execution")
         if not idempotency_key or len(idempotency_key) > 200:
             raise ConflictError(
                 "idempotency key is required and must not exceed 200 characters"
@@ -1247,6 +1253,8 @@ class Supervisor:
                 raise ConflictError(
                     f"revision mismatch: expected {expected_revision}, current {execution.revision}"
                 )
+            if execution.ir_version == PYTHON_IR_VERSION and command_type == "recover":
+                raise ConflictError("Python live objects cannot be recovered; create a new execution")
             self._validate_transition(execution.state, command_type)
             state_before = execution.state
             command = Command(
@@ -2324,6 +2332,8 @@ class Supervisor:
             predecessor = session.get(Execution, predecessor_id)
             if predecessor is None:
                 raise NotFoundError("predecessor execution not found")
+            if predecessor.ir_version == PYTHON_IR_VERSION:
+                raise ConflictError("Python scripts require an explicitly created new execution")
             existing = session.scalar(
                 select(Execution).where(
                     Execution.created_by == actor,
@@ -2579,6 +2589,9 @@ class Supervisor:
                 or execution.state != expected_state
             ):
                 raise ConflictError("execution is no longer eligible to spawn a worker")
+            if execution.ir_version == PYTHON_IR_VERSION and (
+                    command.command_type != "start" or execution.current_step != 0 or execution.worker_generation != 0):
+                raise ConflictError("Python scripts cannot replay a previously claimed execution")
             previous = self._workers.get(execution_id)
             if previous is not None:
                 raise ConflictError("execution already has a live worker")
@@ -2679,7 +2692,9 @@ class Supervisor:
                         resume_prompt.step_index if resume_prompt is not None else None
                     )
                 validator = (
-                    validate_ir_v19
+                    validate_python_ir
+                    if ir_version == PYTHON_IR_VERSION
+                    else validate_ir_v19
                     if ir_version == V19_IR_VERSION
                     else validate_ir_v18
                     if ir_version == V18_IR_VERSION
@@ -2764,6 +2779,7 @@ class Supervisor:
                     durable_arguments,
                     True,
                     getattr(self, "dss_runtime", None) is not None,
+                    getattr(self, "python_runtime_configuration", None),
                 ),
                 daemon=True,
             ))
@@ -5485,6 +5501,19 @@ class Supervisor:
                 return False
             step_index = message["step_index"]
             next_step = message["next_step"]
+            if execution.ir_version == PYTHON_IR_VERSION:
+                if execution.state == "aborting" or message.get("prompt_resolution") is not None:
+                    raise ConflictError("Python checkpoint cannot advance during abort or contain prompts")
+                validate_python_ir(PYTHON_IR_VERSION, execution.steps, start_step=next_step,
+                                   checkpoint_variables=message.get("variables"), expected_total_steps=execution.total_steps)
+                result = session.scalar(select(Event).where(Event.execution_id == execution_id,
+                    Event.event_type == "procedure.python_result").order_by(Event.sequence.desc()).limit(1))
+                if (result is None or result.payload.get("state") != "COMPLETED"
+                        or result.payload.get("exit_code") != 0
+                        or result.payload.get("source_sha256") != execution.procedure_hash
+                        or message["variables"].get("python_stdout_lines") != result.payload.get("stdout_lines")
+                        or message["variables"].get("python_stderr_lines") != result.payload.get("stderr_lines")):
+                    raise ConflictError("Python checkpoint requires its source-bound successful result")
             if execution.ir_version == V19_IR_VERSION and (
                     type(step_index) is not int or type(next_step) is not int):
                 raise ConflictError("observation workflow checkpoint indexes must be integers")

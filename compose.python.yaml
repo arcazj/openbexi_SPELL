@@ -1,0 +1,62 @@
+# Opt-in CPython runtime for explicit python-stdlib/3.13 catalog scripts.
+services:
+  proxy:
+    image: ${SPELL_PYTHON_PROXY_IMAGE:-openbexi-spell-proxy:python-local}
+  backend:
+    image: ${SPELL_PYTHON_BACKEND_IMAGE:-openbexi-spell-backend:python-local}
+    environment:
+      SPELL_PYTHON_REQUEST_DIR: /var/lib/openbexi-spell/python/requests
+      SPELL_PYTHON_RESPONSE_DIR: /var/lib/openbexi-spell/python/responses
+    volumes:
+      - spell-python-requests:/var/lib/openbexi-spell/python/requests
+      - spell-python-responses:/var/lib/openbexi-spell/python/responses
+    depends_on:
+      python-runtime:
+        condition: service_healthy
+  bundle-builder-a:
+    image: ${SPELL_PYTHON_BACKEND_IMAGE:-openbexi-spell-backend:python-local}
+  bundle-builder-b:
+    image: ${SPELL_PYTHON_BACKEND_IMAGE:-openbexi-spell-backend:python-local}
+  python-runtime:
+    image: openbexi-spell-python:${SPELL_PYTHON_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: backend/python_runtime.Dockerfile
+      args:
+        SPELL_PYTHON_BACKEND_IMAGE: ${SPELL_PYTHON_BACKEND_IMAGE:-openbexi-spell-backend:python-local}
+    environment:
+      SPELL_PYTHON_REQUEST_DIR: /var/lib/openbexi-spell/python/requests
+      SPELL_PYTHON_RESPONSE_DIR: /var/lib/openbexi-spell/python/responses
+    user: "0:0"
+    network_mode: none
+    read_only: true
+    init: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid,nodev
+      - /opt/spell-python/tmp:size=32m,noexec,nosuid,nodev,mode=0711
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - SYS_CHROOT
+      - KILL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: "0.50"
+    healthcheck:
+      test: ["CMD", "python", "-m", "backend.native_python_runner", "--healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    volumes:
+      - spell-python-requests:/var/lib/openbexi-spell/python/requests:ro
+      - spell-python-responses:/var/lib/openbexi-spell/python/responses
+volumes:
+  spell-python-requests:
+  spell-python-responses:

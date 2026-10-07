@@ -23,6 +23,20 @@ def test_exact_current_catalog_profiles(client, viewer_headers):
     assert [(row["id"], row["version"]) for row in response.json()["items"]] == list(CATALOG_PROFILES)
 
 
+def test_python_demo_executes_supported_core_checks_without_commands(client, operator_headers, viewer_headers, monkeypatch):
+    calls = _install_dispatch_spy(monkeypatch)
+    identity = create_execution(client, operator_headers, "test_python_core")
+    completed = wait_for_state(client, identity, viewer_headers, {"completed"})
+    variables = completed["execution"]["variables"]
+    assert variables["checks_passed"] == 6
+    assert type(variables["checks_passed"]) is int
+    for name in ("types_ok", "arithmetic_ok", "integer_operators_ok", "logic_ok",
+                 "loop_ok", "function_ok", "all_checks_passed"):
+        assert variables[name] is True, name
+    assert variables["total"] == 10 and variables["function_calls"] == 1
+    assert calls == [] and set(_counts(client, identity).values()) == {0}
+
+
 @pytest.mark.parametrize("answer", ["YES", "NO"])
 def test_bundled_observation_requires_native_and_separate_command_decisions(client, operator_headers, viewer_headers, monkeypatch, answer):
     seeded(client)

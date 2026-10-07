@@ -1,5 +1,41 @@
 # Test and Integration Plan
 
+## 2026-10-06 Python Runtime Extension
+
+This unreleased extension uses the updated exact `test_Python.py` in the
+executor. The focused native suite passed **35 tests with no skips** against
+the actual network-isolated runner, including all **39 topics with zero optional
+capability skips**, source/IR tampering, output binding, nonzero exits, filesystem
+and credential isolation, external network denial, actual pause/resume/abort,
+timeout/output limits, escaped descendant cleanup, worker loss, lease fencing,
+disabled navigation/replay, durable success/failure checkpoints, and a slow
+output consumer that persists every log before the worker exits.
+An actual runner restart returned `PYTHON_RUNNER_RESTARTED`, retained a single
+`once` output, and did not replay the script.
+
+The real browser started **Test Python** from the simulator catalog and reached
+**FINISHED**: **261 checks, 39 topics, zero optional skips**, 345 stdout lines and
+zero stderr lines. Its captured-source SHA-256 matched
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+Unsupported controls were disabled. All nine local services were healthy after
+deployment; DSS, driver, Kafka and PostgreSQL retained their container/image and
+mount identities, and DSS remained paused.
+
+An additional **201 backend regressions** passed across parsing, worker fencing,
+operator controls, observation checkpoints, DSS lifecycle/checkpoints, settings,
+the current catalog and reference qualification. **186 frontend tests** and the
+strict production TypeScript/Vite build passed. Reproduction requires the
+optional runtime described in [the procedure README](procedures/README.md#python-feature-reference);
+run `backend/tests/test_native_python.py` with
+`SPELL_TEST_PYTHON_REQUEST_DIR` and `SPELL_TEST_PYTHON_RESPONSE_DIR` pointing to
+the dedicated mounted protocol volumes. Use a disposable test database and
+temporary data directory, with networking disabled for the test process.
+
+Local detailed logs and source backup are retained in
+`.qualification/python-runtime/`. These results qualify this runtime change;
+they are not a new full version-delivery DSS/acceptance report. The accepted
+release bindings below remain immutable.
+
 ## v0.19.0 Qualification
 
 Annotated `v0.19.0` passed independent clean-tag validation and was published. The seven final suites recorded 7,130 passed executions; all 45 environment-selected skips were resolved by complementary runs. The candidate gate passed 1325 checks. Four package builds across two independent exports matched, with no accepted exceptions.

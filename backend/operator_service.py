@@ -72,7 +72,7 @@ _ABSOLUTE_TIME = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$")
-_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16", "0.17", "0.18", "0.19"})
+_FENCED_OPERATOR_IR_VERSIONS = frozenset({"0.6", "0.7", "0.8", "0.10", "0.11", "0.16", "0.17", "0.18", "0.19", "python/1"})
 _SECRET_PATH = re.compile(
     r"(?:^|[._-])(secret|password|passwd|token|credential|private[_-]?key|api[_-]?key)(?:$|[._-])",
     re.IGNORECASE,
@@ -174,6 +174,11 @@ def v19_state_allowed_actions(state: str) -> list[str]:
     projected = _LEGACY_STATE_PROJECTION.get(state)
     return sorted(command.lower() for command, (states, _) in _COMMAND_MATRIX.items()
                   if command not in {"SKIP", "GOTO"} and projected in states)
+
+
+def python_state_allowed_actions(state: str) -> list[str]:
+    return [action for action in v19_state_allowed_actions(state)
+            if action in {"run", "pause", "stop", "abort"}]
 
 
 _PROMPT_TYPES = {
@@ -2795,6 +2800,9 @@ class OperatorService:
                     )
                 if execution.ir_version == "0.19" and command_type in {"SKIP", "GOTO"}:
                     raise OperatorValidationError("OBSERVATION_NAVIGATION_FORBIDDEN: v0.19 excludes SKIP/GOTO")
+                if execution.ir_version == "python/1" and (
+                        command_type not in {"RUN", "PAUSE", "STOP", "ABORT"} or target):
+                    raise OperatorValidationError("PYTHON_COMMAND_UNSUPPORTED: scripts support run, pause, stop and abort at script boundaries")
                 in_flight = session.scalar(
                     select(OperatorCommand.id).where(
                         OperatorCommand.execution_id == execution_id,
@@ -7226,7 +7234,7 @@ class OperatorService:
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
             projection = session.get(ExecutionOperatorState, execution_id)
-            safe_to_edit = projection is not None and projection.state in {
+            safe_to_edit = execution.ir_version != "python/1" and projection is not None and projection.state in {
                 "PAUSED",
                 "PROMPT",
                 "INTERRUPTED",
@@ -7650,6 +7658,8 @@ class OperatorService:
             execution = session.get(Execution, execution_id, with_for_update=True)
             if execution is None:
                 raise OperatorNotFoundError("execution not found")
+            if execution.ir_version == "python/1":
+                raise OperatorValidationError("PYTHON_COMMAND_UNSUPPORTED: Python live objects are not editable")
             if (
                 execution.ir_version in {"0.11", "0.18", "0.19"}
                 and container_name is None

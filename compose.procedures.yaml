@@ -1,0 +1,11 @@
+# Local procedure development: load the repository catalog without rebuilding images.
+# Use together with compose.yaml; persistent service volumes remain in place.
+services:
+  backend:
+    volumes:
+      - type: bind
+        source: ./procedures
+        target: /app/procedures
+        read_only: true
+        bind:
+          create_host_path: false

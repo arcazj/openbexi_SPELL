@@ -35,8 +35,8 @@ def test_generated_runner_is_current_and_catalog_has_exact_six_reviewed_procedur
     assert OUTPUT.read_bytes() == render().encode("ascii")
     assert sorted(
         path.relative_to(ROOT / "procedures").as_posix()
-        for path in (ROOT / "procedures").rglob("*.spell.py")
-    ) == [identity + ".spell.py" for identity, _ in CATALOG_PROFILES]
+        for path in (ROOT / "procedures").rglob("*.py")
+    ) == [identity + (".py" if profile == "python/1" else ".spell.py") for identity, profile in CATALOG_PROFILES]
 
     procedures = ProcedureCatalog(ROOT / "procedures").list()
     assert [(item.id, item.ir_version) for item in procedures] == list(CATALOG_PROFILES)

@@ -47,6 +47,8 @@ from .ir_v11 import (
 from .ir_v16 import IR_VERSION as V16_IR_VERSION, ALL_SELECTION, CASESET_SHA256, validate_ir_v16
 from .core_v17 import MAX_POWER_EXPONENT, has_core_expressions
 from .prompt_v17 import normalize_native_prompt_declaration, native_prompt_result_type
+from .native_python import (IR_VERSION as PYTHON_IR_VERSION, LANGUAGE_PROFILE as PYTHON_LANGUAGE_PROFILE,
+                            has_profile as has_python_profile, script_step, validate_ir as validate_python_ir)
 
 
 SUPPORTED_TYPES = {"bool", "float", "int", "str"}
@@ -109,6 +111,8 @@ V08_DATA_CALLS = frozenset(
 
 
 def language_profile_for_ir(ir_version: str) -> str:
+    if ir_version == PYTHON_IR_VERSION:
+        return PYTHON_LANGUAGE_PROFILE
     if ir_version == V19_IR_VERSION:
         return V19_LANGUAGE_PROFILE
     if ir_version == V18_IR_VERSION:
@@ -218,6 +222,12 @@ class ProcedureCatalog:
                     path = parent / filename
                     if filename.endswith(".spell.py"):
                         paths.append(self._validated_catalog_path(path))
+                    elif filename.endswith(".py"):
+                        candidate = self._validated_catalog_path(path)
+                        with candidate.open("rb") as source_file:
+                            header = source_file.read(4096).decode("utf-8", errors="replace")
+                        if has_python_profile(header):
+                            paths.append(candidate)
         procedures = [self.parse(path) for path in sorted(paths)]
         if self._promoted_loader is not None:
             procedures.extend(self._promoted_loader())
@@ -240,7 +250,7 @@ class ProcedureCatalog:
     def parse(self, path: Path) -> Procedure:
         path = self._validated_catalog_path(path)
         relative = path.relative_to(self._catalog_root()).as_posix()
-        source_name = relative.removesuffix(".spell.py") + ".spell.py"
+        source_name = relative
         if path.stat().st_size > MAX_SOURCE_BYTES:
             raise ProcedureValidationError(
                 path.name,
@@ -322,7 +332,7 @@ class ProcedureCatalog:
             not relative.parts
             or len(relative.parts) > MAX_CATALOG_DEPTH
             or relative.as_posix().startswith("../")
-            or not relative.as_posix().endswith(".spell.py")
+            or not relative.as_posix().endswith(".py")
         ):
             raise self._catalog_path_error("procedure path is outside the virtual library")
         current = root
@@ -420,6 +430,19 @@ class ProcedureCatalog:
             raise ProcedureValidationError(source_name, [diagnostic]) from exc
 
         self._validate_ast_complexity(tree, source_name)
+        if has_python_profile(source):
+            try:
+                step = script_step(source, Path(source_name).name)
+                validated = validate_python_ir(PYTHON_IR_VERSION, [step])
+            except IRValidationError as exc:
+                raise ProcedureValidationError(source_name, [ProcedureDiagnostic(
+                    code="PYTHON100", message=exc.message, line=None, column=None)]) from exc
+            procedure_id = source_name.removesuffix(".spell.py").removesuffix(".py")
+            return Procedure(id=procedure_id, name=procedure_id.replace("_", " ").title(),
+                             description=ast.get_docstring(tree) or "Isolated Python standard-library script",
+                             path=path or Path(source_name), source=source,
+                             sha256=hashlib.sha256(source_bytes).hexdigest(),
+                             steps=tuple(validated.steps), ir_version=PYTHON_IR_VERSION)
         compiler = _Compiler(source_name)
         try:
             description, steps = compiler.compile(tree)

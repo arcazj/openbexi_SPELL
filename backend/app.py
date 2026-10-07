@@ -186,6 +186,10 @@ def create_app(
         ),
     )
     virtual_files = VirtualFileService(settings.resolved_data_dir)
+    supervisor.python_runtime_configuration = (
+        {"requests": str(settings.python_request_directory), "responses": str(settings.python_response_directory)}
+        if settings.python_request_directory is not None else None
+    )
     data_permission_resolver = LocalDataPermissionResolver()
 
     def admitted_worker_generation(execution_id: str) -> int:

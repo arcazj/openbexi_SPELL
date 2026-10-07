@@ -32,6 +32,8 @@ CATALOG_PROFILES = tuple(sorted((
     ("native_command_default_v18", "0.18"),
     ("prompt_workflow_v17", "0.17"),
     ("telecommand_modes_v18", "0.11"),
+    ("test_Python", "python/1"),
+    ("test_python_core", "0.17"),
     ("tutorial_core_v18", "0.17"),
 )))
 
