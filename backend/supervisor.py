@@ -1168,6 +1168,16 @@ class Supervisor:
                 .limit(50)
             ).all()
             serialized_events = [event_dict(item) for item in events]
+            # Native scripts have a bounded output stream, but can emit more
+            # than the general 200-event window. Retain all their output when
+            # reopening or refreshing the executor, including early topics.
+            logs = [item for item in serialized_events if item["event_type"] == "procedure.log"]
+            if execution.ir_version == PYTHON_IR_VERSION:
+                logs = [event_dict(item) for item in session.scalars(
+                    select(Event).where(Event.execution_id == execution_id,
+                                        Event.event_type == "procedure.log")
+                    .order_by(Event.sequence).limit(1000)
+                ).all()]
             data = execution_dict(execution)
             data.update(
                 {
@@ -1187,9 +1197,7 @@ class Supervisor:
                     item for item in serialized_events if item["event_type"] == "telemetry.sample"
                 ],
                 "events": serialized_events,
-                "logs": [
-                    item for item in serialized_events if item["event_type"] == "procedure.log"
-                ],
+                "logs": logs,
                 "commands": [command_dict(item) for item in commands],
                 "active_prompt": next(
                     (prompt_dict(item) for item in prompts if item.status == "open"), None

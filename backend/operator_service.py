@@ -8310,6 +8310,10 @@ class OperatorService:
             execution = session.get(Execution, execution_id)
             if execution is None or execution.revision != expected_execution_revision:
                 raise OperatorConflictError("execution revision conflict")
+            if execution.ir_version == "python/1":
+                raise OperatorValidationError(
+                    "PYTHON_COMMAND_UNSUPPORTED: Python scripts do not support line breakpoints; use Run/Pause/Stop/Abort"
+                )
             if line not in {item.get("line") for item in execution.steps}:
                 raise OperatorValidationError("breakpoint target is not executable")
             line_id = f"line:{line}"

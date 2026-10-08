@@ -1,5 +1,49 @@
 # Test and Integration Plan
 
+## 2026-10-08 Python Full-Procedure Execution
+
+The unchanged `test_Python.py` source was exercised through the isolated runner,
+the executor API and the deployed browser. Final runs passed **42 native tests
+with zero skips**, **130 backend regression tests**, and **189 frontend tests**.
+The strict TypeScript/Vite production build and backend/runner/proxy image
+builds passed.
+
+The browser execution `52163882-97a0-4eac-b120-7668be5a625f` reached FINISHED
+with **261 checks, 39 topics, zero skips, 345 stdout lines, zero stderr lines**.
+The captured source digest remains
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+All output lines remained in the Logs view after a page reload and reopening the
+execution. No browser exceptions, procedure errors, worker crashes or command
+acknowledgement timeouts occurred in that execution.
+
+Native acceptance now includes completion of the full procedure after
+pause/resume, fenced Stop and Abort settlement, complete output in a reopened
+snapshot, explicit rejection of native line breakpoints, and bounded retry of
+an actual atomic replacement between stat and open. Immutable-file changes,
+in-place rewrites and invalid files still fail validation. Source-control and
+compatibility UI tests prevent unsupported mutations even for a controller who
+owns a paused Python execution. Native line debugging remains outside this
+script profile.
+
+Retained evidence: `.qualification/python-execution-20261008/native.log`,
+`workspace.log`, `frontend.log`, `proxy-image.log`, `browser-result.json`,
+`executor-source.png`, `executor-result.png`, and `preservation-result.json`.
+The initial concurrent native run entered recovery before output; its original
+failure log is retained, and the assertion now includes diagnostic runtime
+events. Its focused rerun, final native suite and deployed browser run passed.
+The subsequent full-script pause/resume test exposed an atomic-read race, which
+was fixed and given a deterministic regression test. The initial regression run
+exhausted its 128 MiB temporary test disk; the final 512 MiB test disk run passed
+all 130 cases. These test resources do not change the runtime's limits. The host
+build completed, but its first reporting wrapper could not print a Unicode
+success marker; the retained production image build independently passed.
+
+Five local extension services were updated and are healthy. DSS state and the
+existing DSS, driver, Kafka, PostgreSQL and PKI containers/mounts were retained;
+DSS remains paused and the already stopped driver was not restarted. No accepted
+release evidence, tag or artifact was changed, and this does not claim the full
+v0.19.1 release/DSS qualification.
+
 ## 2026-10-06 Python Runtime Extension
 
 This unreleased extension uses the updated exact `test_Python.py` in the

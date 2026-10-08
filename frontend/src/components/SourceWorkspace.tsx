@@ -39,6 +39,10 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   const [historyHasMore, setHistoryHasMore] = useState<Partial<Record<WorkspaceHistoryView, boolean>>>({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const source = execution.source ?? "";
+  const canSetBreakpoints = canMutate && execution.source_controls?.breakpoints !== false;
+  const canRunToLine = canMutate && execution.source_controls?.run_to_line !== false;
+  const scriptControlsOnly = execution.source_controls?.breakpoints === false && execution.source_controls?.run_to_line === false;
+  const scriptControlExplanation = "Python scripts support Run, Pause, Stop and Abort. Line breakpoints and Run to Line are unavailable.";
   const sourceLines = source ? source.split("\n") : [];
   const textEntries = history.TEXT ?? (execution.text_entries?.length ? execution.text_entries : legacyEntries(execution.text, "procedure", "text"));
   const asRunEntries = history.AS_RUN ?? (execution.as_run_entries?.length ? execution.as_run_entries : legacyEntries(execution.as_run_source, "execution", "as-run"));
@@ -145,6 +149,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   const searchBinding = tab === "source" ? `Digest ${execution.source_digest?.slice(0, 12) ?? "unavailable"}` : `Cursor ${execution.view_cursor ?? execution.last_sequence}`;
 
   const toggleBreakpoint = async (line: number) => {
+    if (!canSetBreakpoints) return;
     const enabled = !breakpoints.has(line);
     setError(null);
     try {
@@ -160,6 +165,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   };
 
   const runToLine = async () => {
+    if (!canRunToLine) return;
     setError(null);
     try {
       const proof = currentControlProof(execution.controller_lease);
@@ -177,6 +183,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   };
 
   const clearBreakpoints = async () => {
+    if (!canSetBreakpoints) return;
     setError(null);
     try {
       await api.clearBreakpoints(execution.id, execution.revision, currentControlProof(execution.controller_lease));
@@ -211,7 +218,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
             onClick={() => setSelectedLine(lineNumber)}>
             <td>{interactive && <button type="button" className="breakpoint-toggle"
               aria-label={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint on line ${lineNumber}`}
-              title={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canMutate}
+              title={scriptControlsOnly ? scriptControlExplanation : `${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canSetBreakpoints}
               onClick={(event) => { event.stopPropagation(); void toggleBreakpoint(lineNumber); }}>
               {breakpoints.has(lineNumber) ? <CircleDot aria-hidden="true" size={11} /> : <Circle aria-hidden="true" size={11} />}
             </button>}</td>
@@ -237,6 +244,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
     <section className="source-workspace" aria-labelledby="source-title">
       <div className="presentation-indicators">
         <span>Step: {execution.steps.find((step) => step.id === execution.current_step_id)?.label ?? "(None)"}</span>
+        {scriptControlsOnly && <span title={scriptControlExplanation}>Python script · Run / Pause / Stop / Abort</span>}
         <label><input type="checkbox" checked={autoScroll} onChange={(event) => setAutoScroll(event.target.checked)} /> Auto-scroll</label>
         <button type="button" aria-label="Decrease code font" disabled={fontSize <= 10} onClick={() => setFontSize((size) => size - 1)}>-</button>
         <button type="button" aria-label="Increase code font" disabled={fontSize >= 18} onClick={() => setFontSize((size) => size + 1)}>+</button>
@@ -252,8 +260,8 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
         </div>
         <label className="source-search"><Search aria-hidden="true" size={14} /><span className="sr-only">Search selected procedure view</span><input type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Literal search" /></label>
         <span className="source-search-binding" title={searchBinding}>{searching ? "Searching" : hasQuery ? `${matchCount} matches` : searchBinding}</span>
-        <button type="button" className="icon-command" aria-label="Remove all breakpoints" title="Remove all breakpoints" onClick={() => void clearBreakpoints()} disabled={!canMutate || breakpoints.size === 0}><Trash2 aria-hidden="true" size={14} /></button>
-        <button type="button" className="toolbar-command" aria-label={`Run to line ${selectedLine}`} onClick={() => void runToLine()} disabled={!canMutate || !execution.source_digest || !["PAUSED", "INTERRUPTED"].includes(execution.state)} title={execution.source_digest ? "Run atomically to selected line" : "Pinned source digest unavailable"}><Play aria-hidden="true" size={14} /><span>Line {selectedLine}</span></button>
+        <button type="button" className="icon-command" aria-label="Remove all breakpoints" title={scriptControlsOnly ? scriptControlExplanation : "Remove all breakpoints"} onClick={() => void clearBreakpoints()} disabled={!canSetBreakpoints || breakpoints.size === 0}><Trash2 aria-hidden="true" size={14} /></button>
+        <button type="button" className="toolbar-command" aria-label={`Run to line ${selectedLine}`} onClick={() => void runToLine()} disabled={!canRunToLine || !execution.source_digest || !["PAUSED", "INTERRUPTED"].includes(execution.state)} title={scriptControlsOnly ? scriptControlExplanation : execution.source_digest ? "Run atomically to selected line" : "Pinned source digest unavailable"}><Play aria-hidden="true" size={14} /><span>Line {selectedLine}</span></button>
       </div>
       {(error || searchError) && <div className="source-error" role="alert">{error ?? searchError}</div>}
       <div className="source-body">

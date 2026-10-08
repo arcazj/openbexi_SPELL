@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 
 from .development_bundle_protocol import atomic_protocol_write, read_protocol_file, require_protocol_directory
+from .development_domain import DevelopmentCorruptionError
 from .native_python import (LANGUAGE_PROFILE, PYTHON_VERSION, MAX_OUTPUT_BYTES, MAX_PROTOCOL_BYTES,
                             MAX_JOB_SECONDS, MAX_RUN_SECONDS, canonical, script_step)
 
@@ -22,8 +23,19 @@ READY = {"schema_version": READY_SCHEMA, "profile": LANGUAGE_PROFILE,
          "max_output_bytes": MAX_OUTPUT_BYTES, "isolation": "network-none-chroot-unprivileged/1"}
 
 
-def read_json(path: Path) -> dict:
-    raw = read_protocol_file(path, label="Python runtime protocol", maximum_bytes=MAX_PROTOCOL_BYTES)
+def read_json(path: Path, *, mutable: bool = False) -> dict:
+    # Only status/control/heartbeat frames may be atomically replaced. An inode
+    # switch between lstat and open is legitimate for those frames; retry a
+    # bounded number of times, retaining all primitive checks on each attempt.
+    # In-place rewrites, symlinks, noncanonical JSON and immutable-file changes
+    # remain corruption. Binding and monotonicity checks still apply in poll().
+    for attempt in range(4):
+        try:
+            raw = read_protocol_file(path, label="Python runtime protocol", maximum_bytes=MAX_PROTOCOL_BYTES)
+            break
+        except DevelopmentCorruptionError as exc:
+            if not mutable or str(exc) != "Python runtime protocol changed before read" or attempt == 3:
+                raise
     value = json.loads(raw)
     if type(value) is not dict or canonical(value) != raw:
         raise ValueError("Python protocol must be a canonical object")
@@ -112,7 +124,7 @@ class PythonClient:
         path = self.responses / (self.id + ".response.json")
         if not path.exists():
             return None
-        value = read_json(path)
+        value = read_json(path, mutable=True)
         fields = {"schema_version", "request_id", "request_sha256", "state", "revision",
                   "control_revision", "stdout", "stderr", "exit_code", "error_code"}
         if (set(value) != fields or value["schema_version"] != RESPONSE_SCHEMA

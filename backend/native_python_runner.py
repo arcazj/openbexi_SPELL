@@ -51,10 +51,10 @@ def kill_children() -> None:
     signal_children()
 
 
-def protocol_read(path: Path) -> dict:
+def protocol_read(path: Path, *, mutable: bool = False) -> dict:
     os.seteuid(PROTOCOL_UID)
     try:
-        return read_json(path)
+        return read_json(path, mutable=mutable)
     finally:
         os.seteuid(0)
 
@@ -133,7 +133,7 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
                 active_elapsed += now - last_tick
             last_tick = now
             if control_path.exists():
-                control = protocol_read(control_path)
+                control = protocol_read(control_path, mutable=True)
                 if (set(control) != {"request_id", "request_sha256", "revision", "action"}
                         or control["request_id"] != identity or control["request_sha256"] != digest
                         or type(control["revision"]) is not int or control["revision"] < 1
@@ -160,7 +160,7 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
                 frame["error_code"] = "PYTHON_TIMEOUT" if forced_state == "TIMED_OUT" else "PYTHON_CANCELLED"
                 kill_children()
             heartbeat_path = request_path.with_name(identity + ".heartbeat.json")
-            heartbeat = protocol_read(heartbeat_path) if heartbeat_path.exists() else None
+            heartbeat = protocol_read(heartbeat_path, mutable=True) if heartbeat_path.exists() else None
             if (heartbeat is None or set(heartbeat) != {"request_id", "request_sha256", "at_ms"}
                     or heartbeat["request_id"] != identity or heartbeat["request_sha256"] != digest
                     or type(heartbeat["at_ms"]) is not int

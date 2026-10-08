@@ -11,6 +11,7 @@ import { ProcedureViews } from "./ProcedureViews";
 import { SourceWorkspace } from "./SourceWorkspace";
 import { HighlightedSource, lineObservations } from "./tabularSource";
 import { CommandEntry } from "./CommandEntry";
+import { api } from "../api";
 
 vi.mock("./DataDock", () => ({ DataDock: () => <section aria-label="Execution data" /> }));
 
@@ -32,6 +33,21 @@ function storeWith(execution?: ExecutionSnapshot) {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("manual-aligned procedure workspace", () => {
+  it("prevents unsupported Python line controls even while the controller owns a paused execution", async () => {
+    const execution = { ...snapshot(), source_controls: { breakpoints: false, run_to_line: false }, breakpoints: [1] };
+    const setBreakpoint = vi.spyOn(api, "setBreakpoint");
+    const clearBreakpoints = vi.spyOn(api, "clearBreakpoints");
+    render(<Provider store={storeWith(execution)}><SourceWorkspace execution={execution} canMutate /></Provider>);
+    expect(screen.getByText("Python script · Run / Pause / Stop / Abort")).toBeVisible();
+    for (const button of screen.getAllByRole("button", { name: /breakpoint|Run to line/i })) {
+      expect(button).toBeDisabled();
+      await userEvent.click(button);
+    }
+    expect(setBreakpoint).not.toHaveBeenCalled();
+    expect(clearBreakpoints).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("routes typed control through the enabled button and preserves the abort confirmation action", async () => {
     const run = vi.fn(); const confirmAbort = vi.fn();
     function Controls() {

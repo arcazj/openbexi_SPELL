@@ -1,5 +1,45 @@
 # Prompt History
 
+## 2026-10-08 - Full Python Procedure Execution Reliability
+
+The owner requested: "I want full execution of this procedure with zero issue"
+after showing an unsupported breakpoint error for `test_Python.py`. The existing
+native profile runs the full procedure body without adaptation. Its captured
+source remains SHA-256
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+
+Corrected a race when reading atomically replaced status/control/heartbeat files:
+only a change between stat and open gets up to four read attempts. Immutable
+requests, in-place corruption, canonical JSON, source binding, output continuity
+and terminal immutability retain their validators. Native snapshots retain the
+bounded procedure output beyond the general 200-event window. Authoritative
+source-control capabilities disable unsupported native breakpoints and Run to
+Line, and the compatibility panel now obeys the same allowed actions as the main
+toolbar. The breakpoint API also rejects a native line-1 pseudo-breakpoint.
+
+The native profile still executes one complete script step; this work does not
+add native line stepping, object inspection/editing or replay. The source pane
+states its Run/Pause/Stop/Abort controls. Reference review covered LRM 2.4.4
+section 2/2.1 (page 14), Server 2.4.4 executor controls (page 6), and GUI 2.4.4
+sections 3.2.1, 3.2.2, 3.2.4 and 5.8 (pages 11, 14, 17, 44-45). The GUI source
+SHA-256 is `1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6`;
+LRM and Server identities are recorded in the preceding runtime entry.
+
+Final validation passed 42 native runtime tests with no skips, 130 backend
+regression tests and 189 frontend tests, plus the production frontend build.
+The native tests include the exact full script, its completion after pause/resume,
+Stop/Abort settlement, a deterministic atomic replacement, corruption rejection,
+and complete output after refresh. The deployed browser execution
+`52163882-97a0-4eac-b120-7668be5a625f` reached FINISHED: 261 checks, 39 topics,
+zero optional skips, 345 stdout lines and zero stderr lines. Reopening after a
+page reload displayed all 345 lines; no browser exceptions were recorded.
+
+Evidence is retained under `.qualification/python-execution-20261008/`, including
+initial failures, final logs, source/results screenshots and service preservation.
+The existing DSS state remains paused and unchanged; DSS, driver, Kafka,
+PostgreSQL and PKI container identities/mounts were preserved. This is an
+unreleased extension after v0.19.0, not a new accepted version or publication.
+
 ## 2026-10-06 - Updated Python Procedure Runtime
 
 The owner requested: "I updated test_Python.py, make the runtime supporting the

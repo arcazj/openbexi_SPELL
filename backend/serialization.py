@@ -98,6 +98,7 @@ def execution_dict(execution: Execution) -> dict[str, Any]:
     elif execution.ir_version == "python/1":
         from .operator_service import python_state_allowed_actions
         availability["allowed_actions"] = python_state_allowed_actions(execution.state)
+        availability["source_controls"] = {"breakpoints": False, "run_to_line": False}
     return {
         "id": execution.id,
         "procedure_id": execution.procedure_id,

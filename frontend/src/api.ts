@@ -736,6 +736,10 @@ function normalizeSnapshot(body: JsonObject): ExecutionSnapshot {
     last_sequence: Number(body.last_sequence ?? execution.last_sequence ?? 0),
     source: typeof execution.source === "string" ? execution.source : undefined,
     source_digest: optionalString(execution.source_digest),
+    source_controls: execution.source_controls === undefined ? undefined : {
+      breakpoints: (execution.source_controls as JsonObject | null)?.breakpoints === true,
+      run_to_line: (execution.source_controls as JsonObject | null)?.run_to_line === true,
+    },
     steps,
     telemetry: telemetryEvents.map(eventTelemetry),
     events,

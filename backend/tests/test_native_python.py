@@ -9,7 +9,8 @@ from pathlib import Path
 import pytest
 
 from backend.native_python import IR_VERSION, LANGUAGE_PROFILE, canonical, script_step, validate_ir
-from backend.native_python_protocol import PythonClient, READY, RESPONSE_SCHEMA, TERMINAL, write_json
+from backend.native_python_protocol import PythonClient, READY, RESPONSE_SCHEMA, TERMINAL, read_json, write_json
+from backend.development_domain import DevelopmentCorruptionError
 from backend.ir_v03 import IRValidationError
 from backend.procedure_parser import ProcedureCatalog, ProcedureValidationError
 from backend.serialization import execution_dict
@@ -84,6 +85,45 @@ def test_protocol_rejects_wrong_binding_and_rewritten_output(tmp_path):
         client.close()
 
 
+def test_poll_accepts_a_complete_atomic_replacement_between_stat_and_open(tmp_path, monkeypatch):
+    requests, responses = tmp_path/'requests', tmp_path/'responses'
+    requests.mkdir(); responses.mkdir(); write_json(responses/'ready.json', READY)
+    client = PythonClient({'requests': str(requests), 'responses': str(responses)}, str(uuid.uuid4()), 1,
+                          script_step(HEADER+'print(1)', 'test.py'))
+    frame = dict(schema_version=RESPONSE_SCHEMA, request_id=client.id, request_sha256=client.digest,
+                 state='RUNNING', revision=1, control_revision=0, stdout='first\n', stderr='', exit_code=None, error_code='')
+    path = responses/(client.id+'.response.json')
+    write_json(path, frame)
+    original_open = os.open
+    replacements = []
+    def replacing_open(filename, flags, *args, **kwargs):
+        if Path(filename) == path and not replacements:
+            replacements.append(True)
+            write_json(path, {**frame, 'revision': 2, 'stdout': 'first\nsecond\n'}, replace=True)
+        return original_open(filename, flags, *args, **kwargs)
+    monkeypatch.setattr(os, 'open', replacing_open)
+    try:
+        result = client.poll()
+        assert result['revision'] == 2 and result['stdout'] == 'first\nsecond\n'
+        assert replacements == [True]
+    finally:
+        client.close()
+
+
+@pytest.mark.parametrize('error,mutable,attempts', [
+    ('changed before read', False, 1), ('changed before read', True, 4),
+    ('changed while reading', True, 1), ('is not a regular file', True, 1)])
+def test_atomic_read_retries_are_bounded_and_do_not_hide_corruption(monkeypatch, error, mutable, attempts):
+    calls = []
+    def corrupt_read(*args, **kwargs):
+        calls.append(True)
+        raise DevelopmentCorruptionError('Python runtime protocol '+error)
+    monkeypatch.setattr('backend.native_python_protocol.read_protocol_file', corrupt_read)
+    with pytest.raises(DevelopmentCorruptionError, match=error):
+        read_json(Path('/unused/response.json'), mutable=mutable)
+    assert len(calls) == attempts
+
+
 @pytest.fixture
 def runtime_configuration():
     requests = os.environ.get('SPELL_TEST_PYTHON_REQUEST_DIR')
@@ -121,6 +161,25 @@ def test_updated_python_script_runs_all_39_topics(runtime_configuration):
         assert 'multiprocessing IPC result: 49' in result['stdout']
         assert 'loopback TCP echo:' in result['stdout']
         assert 'subprocess nonzero status: 7' in result['stdout']
+    finally:
+        client.close()
+
+
+def test_updated_python_script_completes_after_pause_and_resume(runtime_configuration):
+    source = (ROOT/'procedures/test_Python.py').read_bytes().decode()
+    client = job(runtime_configuration, source)
+    try:
+        revision = client.command('PAUSE')
+        paused = wait(client, {'PAUSED'})
+        assert paused['control_revision'] == revision
+        output = paused['stdout']
+        time.sleep(.2)
+        assert client.poll()['stdout'] == output
+        client.command('RESUME')
+        result = wait(client)
+        assert result['state'] == 'COMPLETED' and result['exit_code'] == 0, result
+        assert result['stderr'] == ''
+        assert '261 check(s), 39 topic(s), 0 optional capability check(s) skipped.' in result['stdout']
     finally:
         client.close()
 
@@ -205,12 +264,22 @@ def test_executor_runs_exact_python_source_and_commits_only_success(client, oper
     identity = create_execution(client, operator_headers, 'test_Python')
     result = wait_for_state(client, identity, viewer_headers, {'completed', 'failed', 'recovery_required'}, timeout=40)
     execution = result['execution']
-    assert execution['state'] == 'completed', result
+    assert execution['state'] == 'completed', [(e['event_type'], e['payload']) for e in result['events']
+        if e['event_type'] in ('worker.crashed', 'worker.consumer_failed', 'worker.command_ack_timeout',
+                              'procedure.error', 'execution.state_changed', 'execution.recovery_required')]
     assert execution['variables']['python_completed'] is True
     assert execution['variables']['python_exit_code'] == 0 and execution['current_step'] == 1
+    assert execution['source_controls'] == {'breakpoints': False, 'run_to_line': False}
     events = client.get(f'/api/v1/executions/{identity}/events?limit=1000', headers=viewer_headers).json()['items']
     logs = '\n'.join(e['payload']['message'] for e in events if e['event_type'] == 'procedure.log')
     assert '39 topic(s), 0 optional capability check(s) skipped.' in logs
+    assert '261 check(s)' in logs
+    # Reopening/refreshing a finished procedure must retain every output line,
+    # including the first topics outside the general 200-event snapshot window.
+    reopened = client.get(f'/api/v1/executions/{identity}/snapshot', headers=viewer_headers).json()
+    assert [e['payload']['message'] for e in reopened['logs']] == [
+        e['payload']['message'] for e in events if e['event_type'] == 'procedure.log']
+    assert len(reopened['logs']) == execution['variables']['python_stdout_lines'] == 345
     assert not any(e['event_type'].startswith('procedure.telecommand_') for e in events)
     [receipt] = [e['payload'] for e in events if e['event_type'] == 'procedure.python_result']
     assert receipt['source_sha256'] == execution['procedure_hash'] and receipt['exit_code'] == 0
@@ -243,9 +312,11 @@ def test_python_operator_controls_do_not_advertise_navigation_or_replay(state, a
     execution = Execution(id='python-actions', procedure_id='python', procedure_name='Python', procedure_hash='a'*64,
         ir_version=IR_VERSION, context_id='simulator', state=state, steps=[], variables={}, next_sequence=1)
     assert set(execution_dict(execution)['allowed_actions']) == actions
+    assert execution_dict(execution)['source_controls'] == {'breakpoints': False, 'run_to_line': False}
 
 
-def test_python_executor_controls_are_fenced_and_operate_on_the_process(client, operator_headers, viewer_headers, runtime_configuration):
+@pytest.mark.parametrize('terminal_action', ['ABORT', 'STOP'])
+def test_python_executor_controls_are_fenced_and_operate_on_the_process(client, operator_headers, viewer_headers, runtime_configuration, terminal_action):
     supervisor = client.app.state.supervisor
     supervisor.python_runtime_configuration = runtime_configuration
     source = HEADER+'import time\nfor i in range(200):\n print(i, flush=True); time.sleep(.05)'
@@ -256,6 +327,15 @@ def test_python_executor_controls_are_fenced_and_operate_on_the_process(client, 
     headers, lease = _acquire_control(client, operator_headers, execution.id, snapshot, 'python')
     proof = _proof(headers, lease); proof['controller_lease_id'] = proof.pop('lease_id')
     service = client.app.state.operator_service
+    breakpoint_proof = {**proof, 'lease_id': proof['controller_lease_id']}
+    breakpoint_proof.pop('controller_lease_id')
+    for line in (1, 2, 3):
+        with pytest.raises(OperatorValidationError, match='PYTHON_COMMAND_UNSUPPORTED'):
+            service.put_breakpoint(execution.id, line, one_shot=False,
+                expected_execution_revision=supervisor.get_execution(execution.id).revision,
+                idempotency_key=f'python-forbidden-breakpoint-{line}', reason='no native line control',
+                **breakpoint_proof)
+    assert service.list_breakpoints(execution.id) == []
     def command_state(command_id):
         with client.app.state.session_factory() as session:
             return session.get(OperatorCommand, command_id).state
@@ -268,7 +348,7 @@ def test_python_executor_controls_are_fenced_and_operate_on_the_process(client, 
         service.accept_operator_command(execution.id, 'PAUSE', supervisor.get_execution(execution.id).revision,
             idempotency_key='python-stale-fence', role='operator', reason='reject stale control', target={},
             **{**proof, 'control_fencing_token': proof['control_fencing_token']+1})
-    for action, state in [('PAUSE', 'paused'), ('RUN', 'running'), ('ABORT', 'aborted')]:
+    for action, state in [('PAUSE', 'paused'), ('RUN', 'running'), (terminal_action, 'aborted')]:
         command = service.accept_operator_command(execution.id, action, supervisor.get_execution(execution.id).revision,
             idempotency_key='python-control-'+action, role='operator', reason='Python process control', target={}, **proof)
         supervisor.dispatch_operator_command(command)

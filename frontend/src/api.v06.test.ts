@@ -17,6 +17,21 @@ describe("v0.6 operator API", () => {
   beforeEach(() => window.sessionStorage.setItem("openbexi.spell.access-token", "signed.test.token"));
   afterEach(() => { window.sessionStorage.clear(); vi.unstubAllGlobals(); });
 
+  it("preserves source-control capabilities and fails closed for malformed values", async () => {
+    for (const [controls, expected] of [
+      [undefined, undefined],
+      [{ breakpoints: false, run_to_line: false }, { breakpoints: false, run_to_line: false }],
+      [{ breakpoints: true, run_to_line: true }, { breakpoints: true, run_to_line: true }],
+      [null, { breakpoints: false, run_to_line: false }],
+      [{ breakpoints: "true", run_to_line: 1 }, { breakpoints: false, run_to_line: false }],
+    ]) {
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ execution: {
+        id: "execution-1", procedure_id: "test", state: "paused", source_controls: controls,
+      }, events: [] }), { headers: { "Content-Type": "application/json" } })));
+      expect((await api.snapshot("execution-1")).source_controls).toEqual(expected);
+    }
+  });
+
   it("preserves absent legacy actions and fails closed for malformed authoritative actions", async () => {
     for (const [actions, expected] of [[undefined, undefined], [null, []], [["run", "abort"], ["RUN", "ABORT"]], [["run", 1], []]]) {
       vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ execution: { id: "execution-1", procedure_id: "test", state: "paused", allowed_actions: actions }, events: [] }), { headers: { "Content-Type": "application/json" } })));

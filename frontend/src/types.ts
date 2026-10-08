@@ -416,6 +416,7 @@ export interface ExecutionSnapshot {
   last_sequence: number;
   source?: string;
   source_digest?: string;
+  source_controls?: { breakpoints: boolean; run_to_line: boolean };
   steps: ProcedureStep[];
   telemetry: TelemetryPoint[];
   events: ExecutionEvent[];

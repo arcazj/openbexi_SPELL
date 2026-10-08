@@ -69,7 +69,10 @@ it. The runner executes the captured UTF-8 bytes and records their SHA-256,
 stdout, stderr and exit status. Nonzero exits fail without a success checkpoint.
 
 Run/Pause and Abort/Stop control the actual Python process and its descendants.
-The UI disables line stepping, navigation, background execution and replay.
+The UI disables line breakpoints, Run to Line, line stepping, navigation,
+background execution and replay, including Step in the compatibility panel.
+The source pane identifies the supported script controls. The Logs view retains
+the full bounded script output when refreshing or reopening an execution.
 Python objects are not inspectable/editable or recoverable checkpoints; after an
 interruption, explicitly start a new execution. Summary variables and Messages
 remain available. [`test_python_core.spell.py`](test_python_core.spell.py) retains

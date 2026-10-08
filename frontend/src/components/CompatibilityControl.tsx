@@ -81,8 +81,10 @@ export function CompatibilityControl({ execution, connected, onRefresh }: {
         const validState = operation === "RUN" || operation === "STEP" ? ["PAUSED", "INTERRUPTED"].includes(execution.state)
           : operation === "PAUSE" ? ["RUNNING", "WAITING", "PROMPT", "PROMPTING"].includes(execution.state)
           : !stopped.has(execution.state);
+        const action = operation === "RETURN_TO_READ_ONLY" ? "ABORT" : operation;
+        const allowed = execution.allowed_actions === undefined || execution.allowed_actions.includes(action);
         return <button key={operation} type="button" onClick={() => start(operation)}
-          disabled={!permitted || unresolved || !reason.trim() || !validState}>{labels[operation]}</button>;
+          disabled={!permitted || !allowed || unresolved || !reason.trim() || !validState}>{labels[operation]}</button>;
       })}
     </div>
     {!ownsControl && <p>Monitor access: acquire control before issuing an operation.</p>}

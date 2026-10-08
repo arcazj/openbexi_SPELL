@@ -16,6 +16,22 @@ const execution: ExecutionSnapshot = {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); sessionStorage.clear(); });
 
 describe("compatibility operation identity", () => {
+  it("obeys authoritative Python actions and disables all mutations while actions are stale", async () => {
+    const current = { ...execution, allowed_actions: ["RUN", "STOP", "ABORT"] };
+    const send = vi.spyOn(api, "compatibilityCommand");
+    const view = render(<CompatibilityControl execution={current} connected onRefresh={vi.fn()} />);
+    await userEvent.click(screen.getByText("Compatibility control"));
+    await userEvent.type(screen.getByLabelText("Control reason"), "Run full Python script");
+    expect(screen.getByRole("button", { name: "Run through adapter" })).toBeEnabled();
+    const step = screen.getByRole("button", { name: "Step through adapter" });
+    expect(step).toBeDisabled();
+    await userEvent.click(step);
+    expect(send).not.toHaveBeenCalled();
+    view.rerender(<CompatibilityControl execution={{ ...current, allowed_actions: [] }} connected onRefresh={vi.fn()} />);
+    for (const name of ["Run through adapter", "Step through adapter", "Return to read-only", "Abort through adapter"])
+      expect(screen.getByRole("button", { name })).toBeDisabled();
+  });
+
   it("retains the exact source and proof across an uncertain outcome and explicit retry", async () => {
     const send = vi.spyOn(api, "compatibilityCommand").mockRejectedValueOnce(new Error("response lost"))
       .mockResolvedValue({ operation_id: "recorded", read_only_confirmed: false, rollback_pending: false,
