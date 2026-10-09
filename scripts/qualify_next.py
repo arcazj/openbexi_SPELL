@@ -548,6 +548,10 @@ def pinned_node_tools():
     return paths["node"], paths["npm-cli"]
 
 
+def pinned_node_environment():
+    return dict(os.environ, PATH=str(pinned_node_tools()[0].parent) + os.pathsep + os.environ.get("PATH", ""))
+
+
 @contextmanager
 def renewing_credential(renew, private_token: Path, *, interval=600):
     """Keep the parent credential current and settle renewal before accepting a gate."""
@@ -670,6 +674,10 @@ class Producer:
                     entries.update(SPELL_PYTHON_BACKEND_IMAGE=IMAGES["backend"],
                         SPELL_PYTHON_PROXY_IMAGE=IMAGES["proxy"], SPELL_PYTHON_IMAGE_TAG=TAG)
                 runtime.write_bytes(("\n".join(f"{key}={value}" for key, value in entries.items()) + "\n").encode())
+            if PYTHON_RELEASE:
+                # Compose names these two helpers and the driver by project.
+                self.run(compose("build", "pki-init", "postgres"))
+                self.run(["docker", "tag", IMAGES["driver"], PROJECT + "-spell-driver:latest"])
             previous_minor = MINOR if PYTHON_RELEASE else MINOR - 1
             previous_env = ROOT / f".qualification/v{previous_minor}/final/runtime.env"
             if previous_env.exists():
@@ -728,11 +736,12 @@ class Producer:
                                        f"--junitxml=/evidence/{gate}.xml", network=network, extra=extra))
         elif gate in {"frontend", "frontend-build"}:
             npm = list(pinned_node_tools()) if PYTHON_RELEASE else [shutil.which("npm.cmd") or shutil.which("npm")]
+            node_env = pinned_node_environment() if PYTHON_RELEASE else None
             if gate == "frontend":
-                self.run([*npm, "ci", "--ignore-scripts"], cwd=ROOT / "frontend")
-                self.run([*npm, "test", "--", "--run", "--reporter=junit", f"--outputFile={OUT / 'frontend.xml'}"], cwd=ROOT / "frontend")
+                self.run([*npm, "ci", "--ignore-scripts"], cwd=ROOT / "frontend", env=node_env)
+                self.run([*npm, "test", "--", "--run", "--reporter=junit", f"--outputFile={OUT / 'frontend.xml'}"], cwd=ROOT / "frontend", env=node_env)
             else:
-                self.run([*npm, "run", "build"], cwd=ROOT / "frontend")
+                self.run([*npm, "run", "build"], cwd=ROOT / "frontend", env=node_env)
         elif gate == "replay":
             self.run(docker_python("-m", "scripts.qualify_legacy_observation_v12", "--soak-seconds", "60", "--output", "/evidence/replay.json"))
             if MINOR >= 14:
@@ -786,6 +795,8 @@ class Producer:
             env = dict(os.environ, SPELL_E2E_TOKEN=token, SPELL_REAL_BACKEND="1", SPELL_E2E_BASE_URL="http://127.0.0.1:8080",
                        PLAYWRIGHT_JUNIT_OUTPUT_FILE=str(OUT / "browser.xml"), PLAYWRIGHT_JUNIT_INCLUDE_PROJECT_IN_TEST_NAME="1",
                        SPELL_E2E_OUTPUT_DIRECTORY=str(OUT / "browser"))
+            if PYTHON_RELEASE:
+                env["PATH"] = pinned_node_environment()["PATH"]
             if MINOR >= 15:
                 reviewer = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
                     "backend", "python", "/app/scripts/issue_dev_token.py", "--subject", "v015-independent-review-test",
@@ -804,7 +815,8 @@ class Producer:
             self.run(docker_python("-m", "pip_audit", "--disable-pip", "--no-deps", "-r", "backend/requirements.hashes.lock", *extra_locks,
                                   "-f", "json", "-o", "/evidence/python-audit.json", network="bridge"))
             npm = list(pinned_node_tools()) if PYTHON_RELEASE else [shutil.which("npm.cmd") or shutil.which("npm")]
-            self.run([*npm, "audit", "--json"], cwd=ROOT / "frontend", output="npm-audit.json")
+            self.run([*npm, "audit", "--json"], cwd=ROOT / "frontend", output="npm-audit.json",
+                     env=pinned_node_environment() if PYTHON_RELEASE else None)
             sbom = Path(os.environ["LOCALAPPDATA"]) / "OpenBEXI/release-toolchain/docker-sbom-0.6.0-windows-amd64/docker-sbom.exe"
             rows = {}
             for name, image in IMAGES.items():
