@@ -294,15 +294,25 @@ print('isolated')
 
 def test_pause_resume_and_abort_stop_the_actual_process(runtime_configuration):
     client = job(runtime_configuration, HEADER+'import time\nfor i in range(200):\n print(i, flush=True); time.sleep(.05)')
+    def output_after(previous):
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            frame = client.poll()
+            if (frame and frame['state'] == 'RUNNING'
+                    and frame['control_revision'] >= client.command_revision
+                    and len(frame['stdout']) > len(previous)):
+                return frame['stdout']
+            time.sleep(.02)
+        raise AssertionError(f'Running Python process did not produce bounded output: {client.last}')
     try:
-        wait(client, {'RUNNING'}); time.sleep(.2)
+        wait(client, {'RUNNING'}); output_after('')
         pause = client.command('PAUSE'); stopped = wait(client, {'PAUSED'})
         assert stopped['control_revision'] == pause
         time.sleep(.2); first = client.poll()['stdout']; time.sleep(.3)
         assert client.poll()['stdout'] == first
         resume = client.command('RESUME'); resumed = wait(client, {'RUNNING'})
         assert resumed['control_revision'] == resume
-        time.sleep(.2); assert len(client.poll()['stdout']) > len(first)
+        assert len(output_after(first)) > len(first)
         client.command('PAUSE'); wait(client, {'PAUSED'})
         abort = client.command('ABORT'); result = wait(client)
         assert result['state'] == 'ABORTED' and result['control_revision'] == abort

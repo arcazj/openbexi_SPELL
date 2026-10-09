@@ -26,7 +26,12 @@ the native test writer resolved it; all 51 native tests and the 1,399-check
 candidate rerun passed. The first SQLite attempt then found an obsolete worker
 signature assertion. It now checks the separate nullable Python configuration
 and proves that only request/response directory paths cross that boundary.
-Original failed attempts remain retained. These source changes require a fresh
+The rerun at `9f36632` passed 3,247 SQLite checks with 41 expected skips,
+190 frontend checks and the production build. PostgreSQL then exposed a
+200 ms output assumption in the native pause/resume test: the child had not
+printed its first line. The test now proves execution before pausing and waits
+up to five seconds for observable resumed output; its stopped-output and abort
+assertions remain. Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
 
