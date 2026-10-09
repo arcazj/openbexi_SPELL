@@ -178,7 +178,7 @@ def v19_state_allowed_actions(state: str) -> list[str]:
 
 def python_state_allowed_actions(state: str) -> list[str]:
     return [action for action in v19_state_allowed_actions(state)
-            if action in {"run", "pause", "stop", "abort"}]
+            if action in {"run", "pause", "step", "step_over", "stop", "abort"}]
 
 
 _PROMPT_TYPES = {
@@ -1414,6 +1414,8 @@ class OperatorService:
     ) -> None:
         state = self.project_execution_state(execution.state)
         current_line = self._current_line(execution)
+        if execution.ir_version == "python/1" and execution.current_step < execution.total_steps:
+            current_line = projection.current_line
         current_frame = self._current_step_field(execution, "lexical_frame_id")
         current_reachability = self._current_step_field(execution, "reachability_id")
         preserve_semantic_state = (
@@ -2801,8 +2803,8 @@ class OperatorService:
                 if execution.ir_version == "0.19" and command_type in {"SKIP", "GOTO"}:
                     raise OperatorValidationError("OBSERVATION_NAVIGATION_FORBIDDEN: v0.19 excludes SKIP/GOTO")
                 if execution.ir_version == "python/1" and (
-                        command_type not in {"RUN", "PAUSE", "STOP", "ABORT"} or target):
-                    raise OperatorValidationError("PYTHON_COMMAND_UNSUPPORTED: scripts support run, pause, stop and abort at script boundaries")
+                        command_type not in {"RUN", "STEP", "STEP_OVER", "PAUSE", "STOP", "ABORT"}):
+                    raise OperatorValidationError("PYTHON_COMMAND_UNSUPPORTED: scripts support Run, Step, Step Over, Pause, Stop and Abort")
                 in_flight = session.scalar(
                     select(OperatorCommand.id).where(
                         OperatorCommand.execution_id == execution_id,
@@ -2817,7 +2819,16 @@ class OperatorService:
                     ).limit(1)
                 )
                 target_step: int | None = None
-                if command_type in {"RUN", "GOTO"} and target:
+                if execution.ir_version == "python/1" and command_type == "RUN" and target:
+                    from .native_python import breakpoint_lines
+                    if target.get("source_digest") not in {None, projection.source_digest}:
+                        raise OperatorConflictError("RUN target source revision conflict")
+                    if target["line"] not in breakpoint_lines(execution.procedure_source):
+                        raise OperatorValidationError("RUN target is not an executable Python source line")
+                    if projection.current_line == target["line"]:
+                        raise OperatorValidationError("RUN target is already the paused line")
+                    target = {**target, "source_digest": projection.source_digest}
+                elif command_type in {"RUN", "GOTO"} and target:
                     if (
                         target.get("source_digest") is not None
                         and target["source_digest"] != projection.source_digest
@@ -8311,10 +8322,13 @@ class OperatorService:
             if execution is None or execution.revision != expected_execution_revision:
                 raise OperatorConflictError("execution revision conflict")
             if execution.ir_version == "python/1":
-                raise OperatorValidationError(
-                    "PYTHON_COMMAND_UNSUPPORTED: Python scripts do not support line breakpoints; use Run/Pause/Stop/Abort"
-                )
-            if line not in {item.get("line") for item in execution.steps}:
+                from .native_python import breakpoint_lines
+                executable_lines = breakpoint_lines(execution.procedure_source)
+                if len(self.list_breakpoints(execution_id)) >= 2048:
+                    raise OperatorValidationError("Python breakpoint count exceeds its bound")
+            else:
+                executable_lines = {item.get("line") for item in execution.steps}
+            if line not in executable_lines:
                 raise OperatorValidationError("breakpoint target is not executable")
             line_id = f"line:{line}"
             breakpoint = session.scalar(

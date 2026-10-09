@@ -1,5 +1,63 @@
 # Test and Integration Plan
 
+## 2026-10-08 Python Line Debugger
+
+The owner-authorized debugger covers the captured script's main thread, including
+functions, loops and async functions. It adds permanent and temporary source
+breakpoints, Step, Step Over, Run to Line and a paused console entry. Actual
+line stops are before execution; all descendants stop with the main process.
+Manual signal pauses clear the exact line until a traced stop is available.
+The existing source digest, isolation, quotas, output, control authority and
+no-replay rules remain enforced. No evaluation or live-object editing is added.
+
+| Executed check | Result |
+| --- | --- |
+| Native SQLite/runtime suite | 51 passed, zero skips; final run 59.86 s |
+| Native PostgreSQL/runtime suite | 51 passed, zero skips; 120.28 s |
+| Final PostgreSQL control selection | 5 passed; 46 deliberately deselected |
+| Backend workspace/API/worker/fencing regressions | 130 passed; 196.87 s |
+| Final safe-point regression selection | 9 passed; 27 deliberately deselected |
+| Frontend components/API/stream | 190 passed, 30 files |
+| Markdown preview and documentation layout | 18 passed |
+| Production TypeScript/Vite and local image builds | Passed |
+| Deployed browser breakpoint, Step, Step Over, Run to Line and reload | Passed |
+
+Runtime tests exercise repeated loop stops, breakpoint removal, function stepping,
+caller stepping, final-line completion, real-process abort/stop, interruption of
+a long Step Over, malformed controls, stale authority, worker loss at a paused
+line, complete output and success-only checkpoints. Static line discovery also
+proves it does not execute submitted source. Final PostgreSQL control checks
+exercise the nullable signal-pause line and durable debugger state.
+
+Browser execution `ab42eda8-a7ef-4d50-9e8e-f0b96d035605` captured source SHA-256
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+Its source-bound pause events record entry line 4, breakpoint 122, Step 123,
+Step Over 124 and Run to Line 135. The line survived reload. Continuing finished
+all 261 checks across 39 topics with zero skips, 345 stdout lines and zero stderr
+lines. No browser exception or runtime/worker error occurred. Screenshots were
+visually checked against the compact operator workspace.
+
+Evidence is local under `.qualification/python-debugger-20261008/`, including
+`native-initial.log`, `native-final.log`, `native-postgresql-initial.log`,
+`native-postgresql.log`, `native-postgresql-final.log`, `workspace.log`,
+`workspace-final.log`, `safe-point-final.log`, `frontend-final.log`,
+`browser-result.json`, `breakpoint.png`, `completed.png`, `documentation.log`
+and `preservation-result.json`.
+The initial native run exposed output-before-pause and checkpoint-before-terminal
+ordering races; both were corrected. Eight initial regression failures came from
+introducing a database lookup on generic worker delivery; native metadata now
+travels on its own worker handle and generic delivery retains its prior path.
+The first disposable PostgreSQL startup needed UID/GID 70 on its temporary data
+mount; readiness was checked before the final run. Its initial unavailable-host
+results are retained. The slow PostgreSQL output-consumer test required a 20 s
+test receipt wait to include persistence of all 345 lines, within its existing
+bounded scenario; product runtime/acknowledgement limits did not change.
+
+These results qualify the repository extension, not a new accepted SPELL version
+or full version-delivery DSS gate. The accepted release bindings below remain
+immutable. The local DSS state and its database/driver/Kafka/PKI identities are
+preserved separately from the updated Python extension services.
+
 ## 2026-10-08 Python Full-Procedure Execution
 
 The unchanged `test_Python.py` source was exercised through the isolated runner,

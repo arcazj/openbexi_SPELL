@@ -42,6 +42,8 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
   const canSetBreakpoints = canMutate && execution.source_controls?.breakpoints !== false;
   const canRunToLine = canMutate && execution.source_controls?.run_to_line !== false;
   const scriptControlsOnly = execution.source_controls?.breakpoints === false && execution.source_controls?.run_to_line === false;
+  const executableLines = execution.source_controls?.executable_lines;
+  const pythonDebugger = executableLines !== undefined;
   const scriptControlExplanation = "Python scripts support Run, Pause, Stop and Abort. Line breakpoints and Run to Line are unavailable.";
   const sourceLines = source ? source.split("\n") : [];
   const textEntries = history.TEXT ?? (execution.text_entries?.length ? execution.text_entries : legacyEntries(execution.text, "procedure", "text"));
@@ -218,7 +220,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
             onClick={() => setSelectedLine(lineNumber)}>
             <td>{interactive && <button type="button" className="breakpoint-toggle"
               aria-label={`${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint on line ${lineNumber}`}
-              title={scriptControlsOnly ? scriptControlExplanation : `${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canSetBreakpoints}
+              title={scriptControlsOnly ? scriptControlExplanation : `${breakpoints.has(lineNumber) ? "Remove" : "Set"} breakpoint`} disabled={!canSetBreakpoints || (executableLines !== undefined && !executableLines.includes(lineNumber))}
               onClick={(event) => { event.stopPropagation(); void toggleBreakpoint(lineNumber); }}>
               {breakpoints.has(lineNumber) ? <CircleDot aria-hidden="true" size={11} /> : <Circle aria-hidden="true" size={11} />}
             </button>}</td>
@@ -245,6 +247,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
       <div className="presentation-indicators">
         <span>Step: {execution.steps.find((step) => step.id === execution.current_step_id)?.label ?? "(None)"}</span>
         {scriptControlsOnly && <span title={scriptControlExplanation}>Python script · Run / Pause / Stop / Abort</span>}
+        {pythonDebugger && <span title="Breakpoints and stepping apply to the captured script's main thread. Imported modules and child processes run without line debugging.">Python debugger · Main script / main thread</span>}
         <label><input type="checkbox" checked={autoScroll} onChange={(event) => setAutoScroll(event.target.checked)} /> Auto-scroll</label>
         <button type="button" aria-label="Decrease code font" disabled={fontSize <= 10} onClick={() => setFontSize((size) => size - 1)}>-</button>
         <button type="button" aria-label="Increase code font" disabled={fontSize >= 18} onClick={() => setFontSize((size) => size + 1)}>+</button>
@@ -261,7 +264,7 @@ export function SourceWorkspace({ execution, canMutate }: { execution: Execution
         <label className="source-search"><Search aria-hidden="true" size={14} /><span className="sr-only">Search selected procedure view</span><input type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Literal search" /></label>
         <span className="source-search-binding" title={searchBinding}>{searching ? "Searching" : hasQuery ? `${matchCount} matches` : searchBinding}</span>
         <button type="button" className="icon-command" aria-label="Remove all breakpoints" title={scriptControlsOnly ? scriptControlExplanation : "Remove all breakpoints"} onClick={() => void clearBreakpoints()} disabled={!canSetBreakpoints || breakpoints.size === 0}><Trash2 aria-hidden="true" size={14} /></button>
-        <button type="button" className="toolbar-command" aria-label={`Run to line ${selectedLine}`} onClick={() => void runToLine()} disabled={!canRunToLine || !execution.source_digest || !["PAUSED", "INTERRUPTED"].includes(execution.state)} title={scriptControlsOnly ? scriptControlExplanation : execution.source_digest ? "Run atomically to selected line" : "Pinned source digest unavailable"}><Play aria-hidden="true" size={14} /><span>Line {selectedLine}</span></button>
+        <button type="button" className="toolbar-command" aria-label={`Run to line ${selectedLine}`} onClick={() => void runToLine()} disabled={!canRunToLine || !execution.source_digest || !["PAUSED", "INTERRUPTED"].includes(execution.state) || (executableLines !== undefined && (!executableLines.includes(selectedLine) || selectedLine === execution.current_line))} title={scriptControlsOnly ? scriptControlExplanation : execution.source_digest ? "Run atomically to selected line" : "Pinned source digest unavailable"}><Play aria-hidden="true" size={14} /><span>Line {selectedLine}</span></button>
       </div>
       {(error || searchError) && <div className="source-error" role="alert">{error ?? searchError}</div>}
       <div className="source-body">

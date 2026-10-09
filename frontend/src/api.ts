@@ -739,6 +739,9 @@ function normalizeSnapshot(body: JsonObject): ExecutionSnapshot {
     source_controls: execution.source_controls === undefined ? undefined : {
       breakpoints: (execution.source_controls as JsonObject | null)?.breakpoints === true,
       run_to_line: (execution.source_controls as JsonObject | null)?.run_to_line === true,
+      executable_lines: Array.isArray((execution.source_controls as JsonObject | null)?.executable_lines)
+        ? ((execution.source_controls as JsonObject).executable_lines as unknown[]).every(line => typeof line === "number" && Number.isSafeInteger(line) && line > 0)
+          ? (execution.source_controls as JsonObject).executable_lines as number[] : [] : undefined,
     },
     steps,
     telemetry: telemetryEvents.map(eventTelemetry),

@@ -1,5 +1,16 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-08 - Authorized Python Line Debugging
+
+The owner authorized source-bound breakpoints, Step, Step Over and Run to Line
+for the native CPython profile. Native source may be compiled solely to collect
+static executable-line metadata after its existing size/AST validation; that
+metadata pass never evaluates or executes source. Execution and tracing remain
+inside the isolated service. The debugger pauses console jobs at entry and
+traces only the captured script's main thread. Existing SPELL profiles keep
+their closed validators. No evaluation, object editing, SKIP/GOTO or replay is
+authorized by this addition; quotas, operator authority and fencing remain.
+
 ## 2026-10-06 - Authorized Python Runtime Extension
 
 The owner requested runtime support for the updated `procedures/test_Python.py`.

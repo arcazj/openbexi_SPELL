@@ -64,6 +64,14 @@ Navigation includes the reference runner, prompt and command examples, and
 inputs and expected results. A native prompt answer never replaces a required
 command confirmation; aborting stops the procedure.
 
+With the optional Python runtime enabled, **Test Python** loads paused before
+its first executable line. Set a source breakpoint, then **Run**; **Step** enters
+functions, **Step over** advances in the caller, and **Run to line** uses a
+temporary breakpoint. The captured script's main thread is the debugging scope.
+Comments and blank lines have disabled markers. A line stop survives a page
+reload; a manual process pause clears the highlight until an exact line stop.
+See the [Python controls and bounds](../procedures/README.md#python-feature-reference).
+
 Observation examples require the driver-enabled stack and the explicit simulator
 context setup in the [root quick start](../README.md#quick-start). That setup
 opens the real local driver context and waits for committed samples; it injects

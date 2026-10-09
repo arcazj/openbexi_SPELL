@@ -13,7 +13,9 @@ approval. Full SPELL Language Reference 2.4.4 compatibility is not claimed.
 
 The optional [Python runtime](procedures/README.md#python-feature-reference)
 runs the updated `test_Python.py` directly from the executor, including its 39
-language and standard-library topics. Enable `compose.python.yaml` to use it.
+language and standard-library topics. It loads paused for setting source-line
+breakpoints, and supports Run, Step, Step over and Run to Line in the captured
+script's main thread. Enable `compose.python.yaml` to use it.
 This extension is separate from the accepted v0.19.0 release qualification.
 
 ## Quick Start

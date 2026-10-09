@@ -14,5 +14,6 @@ RUN mkdir -p /opt/spell-python/usr/local/bin /opt/spell-python/usr/local/lib \
     && cp -a /usr/lib/. /opt/spell-python/usr/lib/ \
     && python -c "import shutil; shutil.copytree('/usr/local/lib/python3.13','/opt/spell-python/usr/local/lib/python3.13',ignore=shutil.ignore_patterns('site-packages','__pycache__')); open('/opt/spell-python/etc/hosts','w').write('127.0.0.1 localhost\n::1 localhost\n')" \
     && mknod -m 666 /opt/spell-python/dev/null c 1 3
+COPY --chmod=444 backend/native_python_debug.py /opt/spell-python/usr/local/lib/spell_python_debug.py
 ENTRYPOINT ["python", "-m", "backend.native_python_runner"]
 CMD []

@@ -4,20 +4,22 @@ from __future__ import annotations
 import ctypes
 import codecs
 import hashlib
+import json
 import os
 import re
 import selectors
 import select
 import shutil
 import signal
+import socket
 import stat
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-from .native_python import MAX_JOB_SECONDS, MAX_OUTPUT_BYTES, PYTHON_VERSION, canonical
-from .native_python_protocol import READY, RESPONSE_SCHEMA, read_json, validate_request, write_json
+from .native_python import MAX_JOB_SECONDS, MAX_OUTPUT_BYTES, PYTHON_VERSION, canonical, breakpoint_lines
+from .native_python_protocol import READY, RESPONSE_SCHEMA, read_json, validate_request, validate_breakpoints, write_json
 from .development_bundle_protocol import require_protocol_directory
 
 JAIL_TMP = Path("/opt/spell-python/tmp")
@@ -83,11 +85,17 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
     digest = hashlib.sha256(canonical(request)).hexdigest()
     frame = {"schema_version": RESPONSE_SCHEMA, "request_id": identity, "request_sha256": digest,
              "state": "RUNNING", "revision": 0, "control_revision": 0, "stdout": "", "stderr": "",
-             "exit_code": None, "error_code": ""}
+             "exit_code": None, "error_code": "",
+             "debug": {"line": None, "reason": None, "sequence": 0, "control_revision": 0}}
     streams = {"stdout": bytearray(), "stderr": bytearray()}
     decoders = {stream: codecs.getincrementaldecoder("utf-8")(errors="replace") for stream in streams}
     process = None
     ready_read = ready_write = None
+    debug_parent = debug_child = None
+    debug_buffer = bytearray()
+    debug_revision = 0
+    valid_lines = set(breakpoint_lines(request["step"]["source"]))
+    debug_path = request_path.with_name(identity + ".debug.json")
     selector = selectors.DefaultSelector()
     control_path = request_path.with_name(identity + ".control.json")
     last_publish = 0.0
@@ -112,40 +120,72 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
         os.chown(workspace / "tmp", CHILD_UID, CHILD_UID)
         publish()
         ready_read, ready_write = os.pipe()
+        debug_parent, debug_child = socket.socketpair()
         process = subprocess.Popen([sys.executable, "-I", "-S", "-B", "/app/backend/native_python_child.py",
-            identity, source.name, str(ready_write), *request["arguments"]], stdin=subprocess.DEVNULL,
+            identity, source.name, str(ready_write), str(debug_child.fileno()), *request["arguments"]], stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, start_new_session=True,
-            pass_fds=(ready_write,),
+            pass_fds=(ready_write, debug_child.fileno()),
             env={"PATH": "/usr/local/bin", "LANG": "C.UTF-8", "TZ": "UTC"})
         os.close(ready_write)
         ready_write = None
+        debug_child.close()
+        debug_child = None
         if not select.select([ready_read], [], [], 2)[0] or os.read(ready_read, 5) != b"ready":
             raise RuntimeError("Python child isolation was not acknowledged")
         os.close(ready_read)
         ready_read = None
+        def debug_send(action, revision=0, target_line=None, breakpoints=None):
+            debug_parent.sendall(canonical({"action": action, "revision": revision,
+                "target_line": target_line, "breakpoints": request["debug"]["breakpoints"]
+                if breakpoints is None else breakpoints}) + b"\n")
+        debug_send("ENTRY" if request["debug"]["start_paused"] else "RUN")
+        debug_parent.setblocking(False)
         for stream in streams:
             handle = getattr(process, stream)
             os.set_blocking(handle.fileno(), False)
             selector.register(handle, selectors.EVENT_READ, stream)
         while selector.get_map() or process.poll() is None:
             now = time.monotonic()
+            debug_stopped = False
             if frame["state"] != "PAUSED":
                 active_elapsed += now - last_tick
             last_tick = now
+            if debug_path.exists():
+                settings = protocol_read(debug_path, mutable=True)
+                if (set(settings) != {"request_id", "request_sha256", "revision", "breakpoints"}
+                        or settings["request_id"] != identity or settings["request_sha256"] != digest
+                        or type(settings["revision"]) is not int or settings["revision"] < 1):
+                    raise ValueError("Python debugger configuration binding differs")
+                validate_breakpoints(settings["breakpoints"], request["step"]["source"])
+                if settings["revision"] > debug_revision:
+                    debug_send("CONFIG", breakpoints=settings["breakpoints"])
+                    debug_revision = settings["revision"]
             if control_path.exists():
                 control = protocol_read(control_path, mutable=True)
-                if (set(control) != {"request_id", "request_sha256", "revision", "action"}
+                if (set(control) != {"request_id", "request_sha256", "revision", "action", "target_line", "breakpoints"}
                         or control["request_id"] != identity or control["request_sha256"] != digest
                         or type(control["revision"]) is not int or control["revision"] < 1
-                        or control["action"] not in {"PAUSE", "RESUME", "ABORT"}):
+                        or control["action"] not in {"PAUSE", "RESUME", "STEP", "STEP_OVER", "RUN_TO_LINE", "ABORT"}):
                     raise ValueError("Python control binding differs")
+                validate_breakpoints(control["breakpoints"], request["step"]["source"])
+                if control["action"] == "RUN_TO_LINE":
+                    validate_breakpoints([control["target_line"]], request["step"]["source"])
+                elif control["target_line"] is not None:
+                    raise ValueError("Python control target differs")
                 if control["revision"] > frame["control_revision"]:
                     action = control["action"]
                     if process.poll() is None:
                         if action == "PAUSE":
                             signal_children(signal.SIGSTOP)
+                            if frame["state"] != "PAUSED":
+                                frame["debug"]["line"] = None
+                                frame["debug"]["reason"] = "pause"
                             frame["state"] = "PAUSED"
-                        elif action == "RESUME":
+                            # A signal pause can interrupt C code; line stepping
+                            # subsequently stops at the next traced source line.
+                        elif action in {"RESUME", "STEP", "STEP_OVER", "RUN_TO_LINE"}:
+                            debug_send("RUN" if action == "RESUME" else action,
+                                control["revision"], control["target_line"], control["breakpoints"])
                             signal_children(signal.SIGCONT)
                             frame["state"] = "RUNNING"
                         else:
@@ -153,6 +193,26 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
                             kill_children()
                     frame["control_revision"] = control["revision"]
                     publish()
+            if select.select([debug_parent], [], [], 0)[0]:
+                chunk = debug_parent.recv(8192)
+                debug_buffer.extend(chunk)
+                if len(debug_buffer) > 65536:
+                    raise ValueError("Python debugger transport exceeds its bound")
+                while b"\n" in debug_buffer:
+                    raw, _, remaining = debug_buffer.partition(b"\n")
+                    debug_buffer[:] = remaining
+                    stopped = json.loads(raw)
+                    if (type(stopped) is not dict or set(stopped) != {"sequence", "line", "reason", "control_revision"}
+                            or type(stopped["sequence"]) is not int or stopped["sequence"] != frame["debug"]["sequence"] + 1
+                            or type(stopped["line"]) is not int or stopped["line"] not in valid_lines
+                            or stopped["reason"] not in {"entry", "breakpoint", "step", "step_over", "run_to_line"}
+                            or type(stopped["control_revision"]) is not int
+                            or not 0 <= stopped["control_revision"] <= frame["control_revision"]):
+                        raise ValueError("Python debugger stop binding differs")
+                    signal_children(signal.SIGSTOP)
+                    frame["state"] = "PAUSED"
+                    frame["debug"] = stopped
+                    debug_stopped = True
             if (not request_path.exists() or int(time.time() * 1000) > request["expires_at_ms"]
                     or now > job_deadline
                     or active_elapsed > request["timeout_seconds"]):
@@ -169,26 +229,29 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
                 frame["error_code"] = "PYTHON_WORKER_LOST"
                 kill_children()
             for key, _ in selector.select(0.02):
-                chunk = os.read(key.fileobj.fileno(), 8192)
-                if not chunk:
-                    selector.unregister(key.fileobj)
-                    key.fileobj.close()
-                    continue
-                remaining = MAX_OUTPUT_BYTES - sum(len(value) for value in streams.values())
-                accepted = chunk[:max(0, remaining)]
-                streams[key.data].extend(accepted)
-                frame[key.data] += decoders[key.data].decode(accepted)
-                if len(chunk) > remaining:
-                    forced_state = "OUTPUT_LIMIT"
-                    frame["error_code"] = "PYTHON_OUTPUT_LIMIT"
-                    kill_children()
-                if sum(value.count(b"\n") for value in streams.values()) > 1000:
-                    forced_state = "OUTPUT_LIMIT"
-                    frame["error_code"] = "PYTHON_OUTPUT_LIMIT"
-                    kill_children()
+                # Drain output produced before the stop before publishing it.
+                # The byte quota bounds this drain, including a hostile writer.
+                for _ in range(64):
+                    try:
+                        chunk = os.read(key.fileobj.fileno(), 8192)
+                    except BlockingIOError:
+                        break
+                    if not chunk:
+                        selector.unregister(key.fileobj)
+                        key.fileobj.close()
+                        break
+                    remaining = MAX_OUTPUT_BYTES - sum(len(value) for value in streams.values())
+                    accepted = chunk[:max(0, remaining)]
+                    streams[key.data].extend(accepted)
+                    frame[key.data] += decoders[key.data].decode(accepted)
+                    if len(chunk) > remaining or sum(value.count(b"\n") for value in streams.values()) > 1000:
+                        forced_state = "OUTPUT_LIMIT"
+                        frame["error_code"] = "PYTHON_OUTPUT_LIMIT"
+                        kill_children()
+                        break
             if process.poll() is not None:
                 kill_children()
-            if now - last_publish > 0.1:
+            if debug_stopped or now - last_publish > 0.1:
                 publish()
         process.wait(timeout=2)
         frame["exit_code"] = process.returncode
@@ -208,6 +271,9 @@ def run_request(request: dict, request_path: Path, responses: Path) -> None:
                 process.kill()
             process.wait(timeout=2)
         selector.close()
+        for handle in (debug_parent, debug_child):
+            if handle is not None:
+                handle.close()
         for stream in streams:
             frame[stream] += decoders[stream].decode(b"", final=True)
         # Source and temporary files are confined to this exact owned job directory.

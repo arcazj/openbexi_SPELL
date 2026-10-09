@@ -23,6 +23,7 @@ export function eventRequiresProjectionResync(eventType: string, hasAuthoritativ
   return ["control.", "schedule.", "startproc.", "relationship."].some((prefix) => eventType.startsWith(prefix))
     || eventType === "execution.child_created"
     || eventType === "operator.control_loss_requested"
+    || eventType === "procedure.python_paused"
     || (hasAuthoritativeActions && ["execution.state_changed", "prompt.opened", "prompt.reopened", "prompt.closed", "prompt.settled"].includes(eventType));
 }
 

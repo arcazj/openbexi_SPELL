@@ -22,6 +22,8 @@ describe("v0.6 operator API", () => {
       [undefined, undefined],
       [{ breakpoints: false, run_to_line: false }, { breakpoints: false, run_to_line: false }],
       [{ breakpoints: true, run_to_line: true }, { breakpoints: true, run_to_line: true }],
+      [{ breakpoints: true, run_to_line: true, executable_lines: [2, 5] }, { breakpoints: true, run_to_line: true, executable_lines: [2, 5] }],
+      [{ breakpoints: true, run_to_line: true, executable_lines: ["2"] }, { breakpoints: true, run_to_line: true, executable_lines: [] }],
       [null, { breakpoints: false, run_to_line: false }],
       [{ breakpoints: "true", run_to_line: 1 }, { breakpoints: false, run_to_line: false }],
     ]) {

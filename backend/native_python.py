@@ -5,6 +5,8 @@ import ast
 import hashlib
 import json
 import re
+import types
+from functools import lru_cache
 from typing import Any
 
 from .ir_v03 import IRValidationError, ValidatedIR
@@ -30,6 +32,27 @@ def canonical(value: Any) -> bytes:
 
 def has_profile(source: str) -> bool:
     return PROFILE_HEADER.search(source[:4096]) is not None
+
+
+@lru_cache(maxsize=32)
+def _breakpoint_lines(source: str) -> tuple[int, ...]:
+    if not source:
+        return ()
+    # Apply the existing byte/AST limits before compiling static line metadata.
+    # No code object produced here is evaluated, imported or executed.
+    script_step(source, "debug.py")
+    code = compile(source, "<python-line-metadata>", "exec", dont_inherit=True, optimize=0)
+    pending = [code]
+    lines = set()
+    while pending:
+        code = pending.pop()
+        lines.update(line for _, _, line in code.co_lines() if line is not None and line > 0)
+        pending.extend(value for value in code.co_consts if isinstance(value, types.CodeType))
+    return tuple(sorted(lines))
+
+
+def breakpoint_lines(source: str) -> list[int]:
+    return list(_breakpoint_lines(source))
 
 
 def script_step(source: str, source_name: str) -> dict[str, Any]:

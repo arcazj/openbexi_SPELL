@@ -249,6 +249,7 @@ class WorkerHandle:
     control: Any
     output: Any
     generation: int
+    python_source_hash: str | None = None
     normal_exit: bool = False
     intentional_stop: bool = False
     failure_signal: threading.Event = field(default_factory=threading.Event)
@@ -1766,7 +1767,15 @@ class Supervisor:
             "operator_command", command["id"], revision
         ):
             return command
-        handle.control.put(self._operator_command_message(command))
+        message = self._operator_command_message(command)
+        source_hash = getattr(handle, "python_source_hash", None)
+        if source_hash is not None:
+            if str(command.get("type", "")).upper() == "RUN" and command.get("target", {}).get("line"):
+                message["target_line"] = command["target"]["line"]
+            message["python_breakpoints"] = sorted({row["line"] for row in
+                self.operator_service.list_breakpoints(command["execution_id"])
+                if row["source_digest"] == source_hash})
+        handle.control.put(message)
         return command
 
     def _waiting_operator_command(
@@ -2796,6 +2805,7 @@ class Supervisor:
                 control=control,
                 output=output,
                 generation=generation,
+                python_source_hash=execution.procedure_hash if ir_version == PYTHON_IR_VERSION else None,
             )
             self._workers[execution_id] = handle
             # ``spawn`` otherwise copies every backend service secret into the
@@ -3091,11 +3101,16 @@ class Supervisor:
             execution = session.get(Execution, execution_id)
             if execution is None or execution.worker_generation != generation:
                 return
+            unknown_python_line = (
+                getattr(execution, "ir_version", None) == PYTHON_IR_VERSION
+                and message.get("safe_point_kind") == "WAIT_BOUNDARY"
+                and message.get("line") is None
+            )
             point = validate_safe_point(
                 SafePoint(
                     kind=message.get("safe_point_kind"),
                     step_index=message.get("step_index"),
-                    line=message.get("line"),
+                    line=1 if unknown_python_line else message.get("line"),
                     source_digest=execution.procedure_hash,
                     execution_revision=execution.revision,
                     effect_certainty=message.get("effect_certainty", "NO_EFFECT"),
@@ -3108,7 +3123,7 @@ class Supervisor:
                 safe_point_id=point.id,
                 safe_point_type=point.kind,
                 step_index=point.step_index,
-                line=point.line,
+                line=None if unknown_python_line else point.line,
                 lexical_frame_id=message.get("lexical_frame_id"),
                 reachability_id=message.get("reachability_id"),
                 worker_generation=generation,
@@ -3169,13 +3184,15 @@ class Supervisor:
                 session, execution_id, generation
             ) is None:
                 return
-            handle.control.put(
-                {
+            acknowledgement = {
                     "type": "safe_point_ack",
                     "safe_point_token": message.get("safe_point_token"),
                 }
-            )
-            if breakpoint is not None:
+            if getattr(handle, "python_source_hash", None) is not None:
+                acknowledgement["python_breakpoints"] = sorted({row["line"] for row in
+                    service.list_breakpoints(execution_id) if row["source_digest"] == execution.procedure_hash})
+            handle.control.put(acknowledgement)
+            if breakpoint is not None and getattr(handle, "python_source_hash", None) is None:
                 handle.control.put(
                     {
                         "type": "pause",

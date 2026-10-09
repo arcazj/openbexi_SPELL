@@ -33,6 +33,26 @@ function storeWith(execution?: ExecutionSnapshot) {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("manual-aligned procedure workspace", () => {
+  it("enables Python debugging only on executable lines and displays the paused line", async () => {
+    const execution = { ...snapshot(), current_line: 2,
+      source_controls: { breakpoints: true, run_to_line: true, executable_lines: [2, 3] } };
+    const setBreakpoint = vi.spyOn(api, "setBreakpoint").mockResolvedValue();
+    render(<Provider store={storeWith(execution)}><SourceWorkspace execution={execution} canMutate /></Provider>);
+    expect(screen.getByText("Python debugger · Main script / main thread")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Set breakpoint on line 1" })).toBeDisabled();
+    const breakpoint = screen.getByRole("button", { name: "Set breakpoint on line 3" });
+    expect(breakpoint).toBeEnabled();
+    await userEvent.click(breakpoint);
+    expect(setBreakpoint).toHaveBeenCalledWith(execution.id, 3, true, execution.revision, expect.any(Object));
+    expect(screen.getByRole("row", { name: "Line 2" })).toHaveClass("current-line");
+    fireEvent.click(screen.getByRole("row", { name: "Line 1, executed" }));
+    expect(screen.getByRole("button", { name: "Run to line 1" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("row", { name: "Line 3" }));
+    expect(screen.getByRole("button", { name: "Run to line 3" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("row", { name: "Line 2" }));
+    expect(screen.getByRole("button", { name: "Run to line 2" })).toBeDisabled();
+  });
+
   it("prevents unsupported Python line controls even while the controller owns a paused execution", async () => {
     const execution = { ...snapshot(), source_controls: { breakpoints: false, run_to_line: false }, breakpoints: [1] };
     const setBreakpoint = vi.spyOn(api, "setBreakpoint");

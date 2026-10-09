@@ -1,5 +1,50 @@
 # Prompt History
 
+## 2026-10-08 - Python Line Debugging Authorized
+
+The owner requested breakpoint support and instructed "execute", then "resume".
+Implement source-bound line breakpoints, Continue/Run, Step, Step Over and Run to
+Line in the isolated CPython profile. The console will load Python executions
+paused before their first executable line so breakpoints can be set before Run.
+Trace only the captured script's main thread, including its functions and loops;
+imported modules and child processes are outside line debugging. Pause/Stop/Abort
+still control all job descendants. Do not expose evaluation, live-object editing,
+SKIP/GOTO or replay. Keep source/output bindings, quotas and generation/lease
+fencing. Tracing is a debugger, not an isolation or authorization boundary.
+
+Reference review: GUI User Manual 2.4.4 sections 3.2.1, 3.2.4 and 5.8 (pages 11,
+17, 44-45), SHA-256 `1a6b13190b0bb25d6f19a0549f3917beaac72a40d851eac5165a95c9d3b779c6`;
+Server Manual 2.4.4 executor configuration (page 6), SHA-256
+`ee123aaf6434ec781e9f2679729207d138f775ba99175ae7310558b98ca4dcb9`.
+Acceptance requires actual before-line stops, repeated-loop and function cases,
+step/step-over/run-to-line outcomes, breakpoint removal, malformed/stale controls,
+abort at a breakpoint, worker-loss cancellation, full-script completion, and
+deployed browser controls/current-line verification. This is repository work;
+accepted v0.19.0 artifacts remain immutable and new-version qualification is
+separate. Standing commit/push authorization applies.
+
+Implemented permanent source breakpoints, Step, Step Over and temporary Run to
+Line using the unchanged captured Python source. Native executable-line metadata
+is collected without execution after byte/AST validation. Debugger frames and
+controls remain source/request/generation bound and bounded; the inherited
+socket exposes no evaluation API or service credentials. Line pauses precede
+execution and freeze descendants. A signal pause clears an unavailable exact
+line, and duplicate controls acknowledge their original operation without
+resuming a later breakpoint. Step modes acknowledge admission so a long library
+call remains abortable. Logs and checkpoint/state ordering are preserved.
+
+Validation passed 51 native tests without skips on SQLite and 51 on isolated
+PostgreSQL, 130 backend regressions, 190 frontend tests and the production build.
+Final source changes received additional PostgreSQL control checks and nine
+safe-point regressions. The deployed browser execution
+`ab42eda8-a7ef-4d50-9e8e-f0b96d035605` paused at entry line 4, breakpoint 122,
+Step 123, Step Over 124 and Run to Line 135. Reload retained the paused line;
+Run then completed 261 checks/39 topics with zero skips, 345 stdout lines, zero
+stderr lines and no browser/runtime errors. Source SHA-256 remains
+`1d34c925cfae0227561c9619740c5931e48558cf81f3cd08d8a7f5b01a3fd7e7`.
+Detailed logs/screenshots are retained in `.qualification/python-debugger-20261008/`.
+This is an unreleased extension; accepted version artifacts are unchanged.
+
 ## 2026-10-08 - Full Python Procedure Execution Reliability
 
 The owner requested: "I want full execution of this procedure with zero issue"

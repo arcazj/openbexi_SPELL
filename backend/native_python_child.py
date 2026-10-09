@@ -8,7 +8,7 @@ import sys
 
 
 def main() -> None:
-    if os.getuid() != 0 or len(sys.argv) < 4:
+    if os.getuid() != 0 or len(sys.argv) < 5:
         raise RuntimeError("Python isolation launcher requires its privileged service identity")
     job, filename = sys.argv[1:3]
     if re.fullmatch(r"[0-9a-f]{32}", job) is None or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\.py", filename) is None:
@@ -34,8 +34,11 @@ def main() -> None:
     os.close(ready_fd)
     environment = {"PATH": "/usr/local/bin", "LANG": "C.UTF-8", "TZ": "UTC",
                    "TMPDIR": "/tmp/" + job + "/tmp"}
+    debug_fd = int(sys.argv[4])
+    os.set_inheritable(debug_fd, True)
     os.execve("/usr/local/bin/python3", ["python3", "-I", "-S", "-B", "-u", "-X", "utf8",
-              "/tmp/" + job + "/" + filename, *sys.argv[4:]], environment)
+              "/usr/local/lib/spell_python_debug.py", str(debug_fd),
+              "/tmp/" + job + "/" + filename, *sys.argv[5:]], environment)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ Its cases reset shared satellite state and finish paused; run them without other
 | `native_command_default_v18` | Wait five seconds, or explicitly choose YES. | The default NO requests no command. YES executes one simulator command. |
 | `prompt_workflow_v17` | Choose a route, observe the numeric default, enter a note, then choose OK or CANCEL. | Typed answers are stored. CANCEL is an ordinary answer; Abort stops without a result. |
 | `telecommand_modes_v18` | Start and inspect the command results. | Direct and built commands execute; the final command is loaded only. Its execution-success flag remains false. |
-| `test_Python` | Enable the Python runtime below, select **Test Python**, and start it. | The exact updated Python script runs all 39 topics. Output and errors appear in Messages; successful completion stores `python_completed=True` and `python_exit_code=0`. |
+| `test_Python` | Enable the Python runtime below, select **Test Python**, start it, set any breakpoints and choose **Run**. | The captured script loads paused before its first executable line. Run completes all 39 topics; successful completion stores `python_completed=True` and `python_exit_code=0`. |
 | `test_python_core` | Select **Test Python Core**, start it, and inspect the result variables. | Six bounded SPELL core checks pass with `checks_passed=6` and `all_checks_passed=True`. |
 | `tutorial_core_v18` | Start and inspect variables and messages. | `total=12`, `power=32`, `mask=3`, plus empty and ordinary Display messages. No commands or prompts. |
 
@@ -47,8 +47,10 @@ docker compose -f compose.yaml -f compose.procedures.yaml -f compose.python.yaml
 docker compose -f compose.yaml -f compose.procedures.yaml -f compose.python.yaml up -d --wait
 ```
 
-Apply this when no procedures are running. Refresh the operator page, select
-**Test Python**, then choose **Start procedure**. The optional overlay uses
+Apply this when no procedures are running. Build `backend` first, then build
+`python-runtime` so it inherits that exact updated backend image. Refresh the
+operator page, select **Test Python**, then choose **Start procedure** and **Run**.
+The optional overlay uses
 separate local images and two dedicated protocol volumes. It does not replace
 the accepted v0.19.0 release images. The procedure is also runnable directly:
 
@@ -68,10 +70,27 @@ header are omitted from the catalog. Validation parses source without running
 it. The runner executes the captured UTF-8 bytes and records their SHA-256,
 stdout, stderr and exit status. Nonzero exits fail without a success checkpoint.
 
-Run/Pause and Abort/Stop control the actual Python process and its descendants.
-The UI disables line breakpoints, Run to Line, line stepping, navigation,
-background execution and replay, including Step in the compatibility panel.
-The source pane identifies the supported script controls. The Logs view retains
+The console loads Python scripts paused before their first executable line.
+Click a source-line breakpoint marker, then **Run**: execution pauses before that
+line runs. Permanent breakpoints stop again when a loop revisits the line;
+remove the marker or **Remove all breakpoints** to discard them. Comments and
+blank lines have disabled markers. **Step** reaches the next executable line,
+including called functions; **Step over** runs a call and pauses in its caller,
+unless a breakpoint inside the call is reached. Select another executable line
+and choose **Run to line** to set a temporary breakpoint. It is discarded when
+reached; an unvisited target does not prevent normal script completion.
+
+Line debugging covers only the main thread of the captured script, including
+its functions, loops and asynchronous functions running on that thread. Imported
+modules, dynamically compiled code with other filenames, other threads and child
+processes run without line stepping. At a line stop, the runner stops all job
+descendants. Run/Pause and Abort/Stop also control the actual process family;
+a manual signal pause can interrupt a C call before the next source-line stop;
+its exact line is unavailable, so the source highlight clears until a line stop.
+All pauses count toward the existing total-lifetime bound. Source is never
+rewritten; the UI displays the source-bound paused line and preserves controls
+after refreshing or reopening the execution. Navigation, background execution,
+live-object editing and replay remain unavailable. The Logs view retains
 the full bounded script output when refreshing or reopening an execution.
 Python objects are not inspectable/editable or recoverable checkpoints; after an
 interruption, explicitly start a new execution. Summary variables and Messages
