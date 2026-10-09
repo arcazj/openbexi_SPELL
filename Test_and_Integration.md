@@ -6,7 +6,7 @@ The owner authorized full DSS qualification and publication of the isolated
 Python runtime/debugger. The separate v0.19.1 inventory covers all 12 procedure
 files, 956 procedure/reference identities and 32 independent scenarios. Its
 seven image inventories include the Python runner. Collected catalogs freeze
-1,399 candidate checks and final gates of 3,288 SQLite, 3,167 PostgreSQL,
+1,415 candidate checks and final gates of 3,304 SQLite, 3,183 PostgreSQL,
 190 frontend, 34 browser, four Compose, 18 documentation and 606 tooling
 identities before qualification. Existing v0.19.0
 evidence and tags remain unchanged.
@@ -37,6 +37,8 @@ API's immediate dispatch attempted to mark it waiting. That transition now
 compares its expected durable state atomically and returns an advanced command
 without rollback or delivery. Deterministic concurrent regression checks also
 preserve worker-epoch checks and strict unconditional transitions.
+The focused SQLite dispatch, worker-fencing and actual native runtime run
+passed all 91 checks. Fresh collection includes 4,991 identities.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
