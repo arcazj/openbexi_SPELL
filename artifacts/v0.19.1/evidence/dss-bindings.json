@@ -1,0 +1,12 @@
+{
+  "image_ids": {
+    "backend": "sha256:c60156332cefdb81ce648f021d8286623b6fd30bdd75afce58925843ef1f4e3e",
+    "driver": "sha256:db76b5f7c1e537989fe20102d371fe7f184a1d078096feda711ef5032d1a0359",
+    "dss": "sha256:1dcfb2cb9d3129044b636018dcc2c5ed11b9cad8cfa5dcf00047fe955fbb66aa",
+    "frontend": "sha256:fb04d4012e6b0bef3bcb80df44a41f648a4e4b8e631883cc6568c7870c0847b0",
+    "kafka": "sha256:4ba10e665eb7981f63f809b766c237a3db93c5bf4d73fe28aeb11b8630c12c23",
+    "proxy": "sha256:5ce8e3dfcef957ccd757e940fd09dfea08f061f8f54f0db2420322df2c3faa9d",
+    "python": "sha256:73e201a47e4122e6b079920dd7919d8b53e2da6fef40356ffa5ceba6454e309a"
+  },
+  "source_commit": "5fbc85b5ae263a66a5768e1a42331884b80992c5"
+}

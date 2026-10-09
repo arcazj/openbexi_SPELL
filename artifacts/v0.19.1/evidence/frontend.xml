@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="190" failures="0" errors="0" time="34.2305081">
+    <testsuite name="src/api.driverProjection.test.ts" timestamp="2026-10-09T18:41:55.362Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0106164">
+        <testcase classname="src/api.driverProjection.test.ts" name="v0.4 driver projection API &gt; uses only the seven approved authenticated GET resources" time="0.0089049">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.observation.test.ts" timestamp="2026-10-09T18:41:55.366Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0073606">
+        <testcase classname="src/api.observation.test.ts" name="v0.7 observation API &gt; uses the exact authenticated read-only resources and cursor URL" time="0.0057067">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.telemetrySchedules.test.ts" timestamp="2026-10-09T18:41:55.366Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0181614">
+        <testcase classname="src/api.telemetrySchedules.test.ts" name="v0.7 telemetry schedule API &gt; binds list, read, create, and cancel to their authenticated durable resources" time="0.0164561">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.v06.test.ts" timestamp="2026-10-09T18:41:55.367Z" hostname="ARCAZJ" tests="9" failures="0" errors="0" skipped="0" time="0.0409346">
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; preserves source-control capabilities and fails closed for malformed values" time="0.0124672">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; preserves absent legacy actions and fails closed for malformed authoritative actions" time="0.0032262">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; normalizes canonical LIST identities without flattening typed VALUE objects" time="0.000718">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; binds every operator workbench control to its durable resource" time="0.0115414">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; derives local lease ownership and preserves typed LIST values from a snapshot" time="0.0022938">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; binds workspace search to the selected view, source digest, and cursor" time="0.0011255">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; pages authoritative workspace history with its digest and cursor" time="0.0014109">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; fails closed for expired leases and redacted other-holder projections" time="0.0012676">
+        </testcase>
+        <testcase classname="src/api.v06.test.ts" name="v0.6 operator API &gt; uses the exact two-party handover and execution-settings request shapes" time="0.0048541">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/api.v10.test.ts" timestamp="2026-10-09T18:41:55.369Z" hostname="ARCAZJ" tests="2" failures="0" errors="0" skipped="0" time="0.0152586">
+        <testcase classname="src/api.v10.test.ts" name="v0.10 language-reference prompt API &gt; preserves all 195 labels and maps the final INDEX choice to 194" time="0.00503">
+        </testcase>
+        <testcase classname="src/api.v10.test.ts" name="v0.10 language-reference prompt API &gt; settles Example 195 with the typed index and complete lease proof" time="0.0081607">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/dataApi.test.ts" timestamp="2026-10-09T18:41:55.370Z" hostname="ARCAZJ" tests="5" failures="0" errors="0" skipped="0" time="0.0158433">
+        <testcase classname="src/dataApi.test.ts" name="v0.8 data API &gt; decodes the authenticated role without granting unknown roles mutation access" time="0.0030328">
+        </testcase>
+        <testcase classname="src/dataApi.test.ts" name="v0.8 data API &gt; uses bounded cursor pagination and authenticated owner scope" time="0.0051374">
+        </testcase>
+        <testcase classname="src/dataApi.test.ts" name="v0.8 data API &gt; sends CAS revisions as decimal strings with explicit caller and idempotency bindings" time="0.0026572">
+        </testcase>
+        <testcase classname="src/dataApi.test.ts" name="v0.8 data API &gt; binds every namespace-specific request to the composite scope identity" time="0.0008207">
+        </testcase>
+        <testcase classname="src/dataApi.test.ts" name="v0.8 data API &gt; normalizes the closed top-level error envelope" time="0.0024025">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/store.promptOrdering.test.tsx" timestamp="2026-10-09T18:41:55.371Z" hostname="ARCAZJ" tests="12" failures="0" errors="0" skipped="0" time="0.5596025">
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps the next confirmation visible when its opened event precedes the old HTTP settlement" time="0.2139401">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; retains an authoritative next-prompt resnapshot before the old HTTP settlement" time="0.0425739">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps a reopened higher revision of the same prompt after an old settlement" time="0.0376506">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; does not clear the prompt of an execution selected while the old HTTP request is pending" time="0.0269708">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; does not apply an old durable value rejection to the next prompt" time="0.0311718">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; does not apply an old HTTP failure to the next prompt" time="0.0405592">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; still clears the currently answered prompt after its accepted settlement" time="0.0130904">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; still reports a value rejection for the current prompt without dismissing it" time="0.0194976">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps another pending action after the old request returns accepted" time="0.0315454">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps another pending action after the old request returns http-error" time="0.0362379">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps a newer prompt response pending after the old request returns accepted" time="0.0345601">
+        </testcase>
+        <testcase classname="src/store.promptOrdering.test.tsx" name="prompt response ordering &gt; keeps a newer prompt response pending after the old request returns http-error" time="0.0276602">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/store.test.ts" timestamp="2026-10-09T18:41:55.374Z" hostname="ARCAZJ" tests="13" failures="0" errors="0" skipped="0" time="0.0268859">
+        <testcase classname="src/store.test.ts" name="console state &gt; resnapshots and retries a fresh execution ACQUIRE after a revision conflict" time="0.0067038">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; does not retry a fresh execution ACQUIRE for non-conflict failures" time="0.0055237">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; bounds fresh execution ACQUIRE revision-conflict retries" time="0.0015991">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; tracks validation independently and ignores a superseded response" time="0.0018856">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; keeps validation request failures in the validation workflow" time="0.0010616">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; tracks explicit connection phases" time="0.0005739">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; applies ordered backend event aliases and ignores duplicates" time="0.0020362">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; latches and resolves a durable prompt" time="0.001905">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; normalizes canonical typed prompt events without conflating prompt and execution revisions" time="0.000865">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; retains an open prompt when a durable 202 attempt rejects its value" time="0.0010556">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; clears an interrupted prompt before recovery reopens it" time="0.0006878">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; does not let an older snapshot overwrite newer event state" time="0.0008223">
+        </testcase>
+        <testcase classname="src/store.test.ts" name="console state &gt; accepts an older authoritative snapshot after a stream reset" time="0.0004551">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/telemetryConditions.test.ts" timestamp="2026-10-09T18:41:55.377Z" hostname="ARCAZJ" tests="2" failures="0" errors="0" skipped="0" time="0.0067872">
+        <testcase classname="src/telemetryConditions.test.ts" name="v0.7 telemetry condition builder &gt; emits the frozen typed condition contract for bundled engineering telemetry" time="0.0032168">
+        </testcase>
+        <testcase classname="src/telemetryConditions.test.ts" name="v0.7 telemetry condition builder &gt; preserves boolean and string literal types and rejects unbounded input" time="0.0017416">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useDriverProjectionStream.test.tsx" timestamp="2026-10-09T18:41:55.377Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="0.0412427">
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; refreshes from ordered committed notifications and deduplicates reconnects" time="0.0287266">
+        </testcase>
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; refreshes authority and reconnects from a 4409 resync cursor" time="0.0067717">
+        </testcase>
+        <testcase classname="src/useDriverProjectionStream.test.tsx" name="driver projection stream &gt; invalidates authentication on 4401 and never reconnects" time="0.0037142">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useExecutionStream.test.tsx" timestamp="2026-10-09T18:41:55.378Z" hostname="ARCAZJ" tests="7" failures="0" errors="0" skipped="0" time="0.0548438">
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; closes an active socket when authentication ends" time="0.0278293">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears the session and does not reconnect after a 4401 close" time="0.0063936">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears the session at JWT expiry even when no close code is available" time="0.004619">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; clears an expired session when no execution is selected" time="0.0039257">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; does not let a replaced token&apos;s old deadline clear a later token" time="0.0043793">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream authentication lifecycle &gt; replaces a later deadline with an earlier token deadline" time="0.0041552">
+        </testcase>
+        <testcase classname="src/useExecutionStream.test.tsx" name="execution stream projection invalidation &gt; resyncs durable control, schedule, and StartProc projections but not ordinary telemetry" time="0.0010157">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useSimulatorSession.test.tsx" timestamp="2026-10-09T18:41:55.380Z" hostname="ARCAZJ" tests="11" failures="0" errors="0" skipped="0" time="0.0845063">
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; bootstraps once under StrictMode without embedding a credential" time="0.0343612">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; reuses a live session on reload and renews before expiry" time="0.0062447">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; keeps separately supplied admin identity and never renews it as admin" time="0.0056966">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; recovers after expiry or a 4401 consumer erases the token" time="0.0045527">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; shows unavailable and reconnects without replaying procedure requests" time="0.004777">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; retries when the browser returns online" time="0.00475">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; stops automatic retries when backend bootstrap is explicitly disabled" time="0.0041946">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; rejects malformed or expired bootstrap credentials" time="0.0029532">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; does not overwrite an explicit identity selected during bootstrap" time="0.0036787">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; erases an expired local token even while renewal service is unavailable" time="0.008774">
+        </testcase>
+        <testcase classname="src/useSimulatorSession.test.tsx" name="automatic local simulator session &gt; cancels unavailable retries when an explicit identity is selected" time="0.002446">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/useTelemetryObservationStream.test.tsx" timestamp="2026-10-09T18:41:55.382Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="0.0395946">
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; refreshes ordered projection events and ignores keepalives" time="0.0250852">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; resynchronizes a sequence gap from the committed snapshot cursor" time="0.0042333">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; backs off after a 4409 when the replacement snapshot is unavailable" time="0.0047494">
+        </testcase>
+        <testcase classname="src/useTelemetryObservationStream.test.tsx" name="telemetry observation stream &gt; invalidates authentication on 4401 without reconnecting" time="0.0036406">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/CompatibilityControl.test.tsx" timestamp="2026-10-09T18:41:55.383Z" hostname="ARCAZJ" tests="6" failures="0" errors="0" skipped="0" time="2.4623077">
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; obeys authoritative Python actions and disables all mutations while actions are stale" time="1.0969682">
+        </testcase>
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; retains the exact source and proof across an uncertain outcome and explicit retry" time="0.873146">
+        </testcase>
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; restores operation identity after remount and waits for authoritative rollback confirmation" time="0.1933909">
+        </testcase>
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; prevents control for viewer" time="0.0531187">
+        </testcase>
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; prevents control for disconnected" time="0.0602331">
+        </testcase>
+        <testcase classname="src/components/CompatibilityControl.test.tsx" name="compatibility operation identity &gt; prevents control for expired" time="0.1834319">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/DataServiceWorkspace.test.tsx" timestamp="2026-10-09T18:41:55.385Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="2.0005523">
+        <testcase classname="src/components/DataServiceWorkspace.test.tsx" name="DataServiceWorkspace &gt; renders every data domain and keeps viewer mutations disabled" time="0.7476644">
+        </testcase>
+        <testcase classname="src/components/DataServiceWorkspace.test.tsx" name="DataServiceWorkspace &gt; publishes with opaque decimal revisions and an explicit idempotency key" time="0.9221265">
+        </testcase>
+        <testcase classname="src/components/DataServiceWorkspace.test.tsx" name="DataServiceWorkspace &gt; loads an exact catalog revision without converting its identifier" time="0.2468534">
+        </testcase>
+        <testcase classname="src/components/DataServiceWorkspace.test.tsx" name="DataServiceWorkspace &gt; surfaces a bounded API error and preserves retryable owner scope" time="0.0817082">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/DriverProjection.test.tsx" timestamp="2026-10-09T18:41:55.386Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="0.4553787">
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; shows explicit simulator, health, generation, capacity, stage, and certainty state" time="0.2871592">
+        </testcase>
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; keeps an unavailable projection read-only and retryable" time="0.0364767">
+        </testcase>
+        <testcase classname="src/components/DriverProjection.test.tsx" name="DriverProjection &gt; distinguishes a failed host with no supported capabilities" time="0.1295807">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ExecutionWorkspace.test.tsx" timestamp="2026-10-09T18:41:55.387Z" hostname="ARCAZJ" tests="10" failures="0" errors="0" skipped="0" time="4.9050755">
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; interlocks server actions after execution.state_changed until a fresh snapshot" time="0.7374047">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; interlocks server actions after prompt.opened until a fresh snapshot" time="0.3912157">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; releases to background through the fenced safe-point command" time="0.125998">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; closes the exact active subscription on execution switch and unmount" time="0.3154892">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; expires local control at the deadline and enables authoritative reacquisition" time="0.0635501">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; bounds authoritative snapshot and Master refresh retries after lease expiry" time="0.1016232">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; submits bounded execution prompt settings through the lease-only control" time="1.0951581">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; requires a named active monitor and responsibility acknowledgement for handover" time="1.1132636">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; lets the current holder approve a discovered handover with current lease proof" time="0.8536231">
+        </testcase>
+        <testcase classname="src/components/ExecutionWorkspace.test.tsx" name="monitor subscription lifecycle &gt; discovers a completed requester handover and refreshes the successor lease" time="0.1057328">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/LegacyObservation.test.tsx" timestamp="2026-10-09T18:41:55.389Z" hostname="ARCAZJ" tests="2" failures="0" errors="0" skipped="0" time="0.3752383">
+        <testcase classname="src/components/LegacyObservation.test.tsx" name="loads only after expansion and preserves uint64 values" time="0.2773362">
+        </testcase>
+        <testcase classname="src/components/LegacyObservation.test.tsx" name="clears stale evidence when the source fails and allows refresh" time="0.0964934">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ManualWorkspace.test.tsx" timestamp="2026-10-09T18:41:55.389Z" hostname="ARCAZJ" tests="10" failures="0" errors="0" skipped="0" time="3.0329303">
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; enables Python debugging only on executable lines and displays the paused line" time="0.4529721">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; prevents unsupported Python line controls even while the controller owns a paused execution" time="0.3530593">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; routes typed control through the enabled button and preserves the abort confirmation action" time="0.514912">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; rejects shell input and disabled typed control without invoking a button" time="0.6668607">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; leaves Data and Result blank for traversal, uncorrelated data, and another execution" time="0.0875817">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; shows the latest explicitly correlated observation by sequence without changing input order" time="0.0007208">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; renders source markup literally without creating executable elements" time="0.0131615">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; correlates durable observation results with the exact request and immutable source step" time="0.0008787">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; navigates paused source from the left Outline and interlocks running navigation" time="0.2641483">
+        </testcase>
+        <testcase classname="src/components/ManualWorkspace.test.tsx" name="manual-aligned procedure workspace &gt; keeps Master permanent and switches to the selected instance using keyboard tabs" time="0.6764323">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/OperatorDock.test.tsx" timestamp="2026-10-09T18:41:55.391Z" hostname="ARCAZJ" tests="5" failures="0" errors="0" skipped="0" time="4.0797121">
+        <testcase classname="src/components/OperatorDock.test.tsx" name="named action controls &gt; uses durable disable and dismiss mutations and renders their authoritative state" time="0.5782804">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="bounded console controls &gt; exposes and sends all five canonical typed operations" time="1.7512403">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="bounded console controls &gt; sends canonical typed ARGS writes when the safe-state projection is editable" time="0.383931">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="durable projection panels &gt; adopts schedule and relationship changes from an authoritative resync" time="0.2157033">
+        </testcase>
+        <testcase classname="src/components/OperatorDock.test.tsx" name="durable projection panels &gt; creates and cancels a bounded typed telemetry-conditioned schedule" time="1.14687">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ProcedureFlow.test.tsx" timestamp="2026-10-09T18:41:55.393Z" hostname="ARCAZJ" tests="1" failures="0" errors="0" skipped="0" time="0.0730731">
+        <testcase classname="src/components/ProcedureFlow.test.tsx" name="ProcedureFlow &gt; renders an accessible flow and marks the active step" time="0.0714643">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/PromptPanel.test.tsx" timestamp="2026-10-09T18:41:55.393Z" hostname="ARCAZJ" tests="13" failures="0" errors="0" skipped="0" time="5.1194583">
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; starts native LIST empty, accepts a typed key and clears every draft selection on Reset" time="0.8435863">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; keeps a persisted native warning answerable when optional browser audio is unavailable" time="0.2803141">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; keeps native CANCEL distinct from the COMMIT action" time="0.1967692">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; keeps native CANCEL distinct from the ABORT action" time="0.283102">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; rejects a calendar rollover before sending a DATE settlement" time="0.1093807">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; commits the typed LIST value rather than its display label" time="0.1123679">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; filters a large reference-example menu without changing its typed index" time="0.7178359">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; does not submit an option hidden by a large-menu filter" time="2.0810607">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; commits the scalar identity projected by a canonical VALUE prompt event" time="0.1256774">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; preserves an object LIST value and selects its typed default" time="0.1509829">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; keeps monitor sessions read-only while allowing local draft reset" time="0.0939484">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; interlocks settlement after the controller lease expires" time="0.0228859">
+        </testcase>
+        <testcase classname="src/components/PromptPanel.test.tsx" name="durable prompt panel &gt; advances warning and deadline state from server timestamps and resynchronizes each boundary" time="0.0990523">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ShadowPilot.test.tsx" timestamp="2026-10-09T18:41:55.397Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="2.9538614">
+        <testcase classname="src/components/ShadowPilot.test.tsx" name="prevents viewer mutation and creator self-review" time="0.958722">
+        </testcase>
+        <testcase classname="src/components/ShadowPilot.test.tsx" name="retains the exact request across an uncertain response and remount" time="0.7781541">
+        </testcase>
+        <testcase classname="src/components/ShadowPilot.test.tsx" name="allows a different administrator to review and shows incident rollback" time="0.6048413">
+        </testcase>
+        <testcase classname="src/components/ShadowPilot.test.tsx" name="rejects invalid backup JSON before any restore request" time="0.6106345">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/TelemetryAdapter.test.tsx" timestamp="2026-10-09T18:41:55.398Z" hostname="ARCAZJ" tests="5" failures="0" errors="0" skipped="0" time="1.6475309">
+        <testcase classname="src/components/TelemetryAdapter.test.tsx" name="loads on expansion and preserves values and source-bound next modifiers" time="0.7254404">
+        </testcase>
+        <testcase classname="src/components/TelemetryAdapter.test.tsx" name="clears stale values and cursor when explicitly switching fallback source" time="0.3133539">
+        </testcase>
+        <testcase classname="src/components/TelemetryAdapter.test.tsx" name="shows failure without old data and supports explicit retry" time="0.2364259">
+        </testcase>
+        <testcase classname="src/components/TelemetryAdapter.test.tsx" name="never presents indeterminate comparison as equivalent" time="0.1249103">
+        </testcase>
+        <testcase classname="src/components/TelemetryAdapter.test.tsx" name="discards late responses from a previous source" time="0.2455294">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/TelemetryObservation.test.tsx" timestamp="2026-10-09T18:41:55.399Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="0.3805473">
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; renders exact typed values and keeps quality facts distinct" time="0.1664188">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; shows stream gaps independently from stale sample state" time="0.0686716">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; keeps an unavailable projection retryable" time="0.1070406">
+        </testcase>
+        <testcase classname="src/components/TelemetryObservation.test.tsx" name="TelemetryObservation &gt; renders an empty committed snapshot without requiring driver time" time="0.0365261">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/development/development.test.tsx" timestamp="2026-10-09T18:41:55.400Z" hostname="ARCAZJ" tests="32" failures="0" errors="0" skipped="0" time="2.3621352">
+        <testcase classname="src/development/development.test.tsx" name="v0.9 development authentication and timing &gt; accepts a trimmed optional Bearer prefix and rejects malformed credentials" time="0.0035423">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 development authentication and timing &gt; does not persist a backend-rejected credential" time="0.0063483">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 development authentication and timing &gt; chunks deadlines beyond the browser timer maximum" time="0.0037148">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 development authentication and timing &gt; keeps the gate visible for a 401 and clears stale feedback while editing" time="0.1803652">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 development authentication and timing &gt; re-arms development expiry when a token is replaced" time="0.0392192">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 semantic job presentation &gt; keeps the latest current-revision report available after the job completes" time="0.0006699">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 semantic job presentation &gt; prioritizes an active job over a completed current-revision report" time="0.0005019">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; applies a bounded rectangular edit across selected lines" time="0.0005391">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; formats deterministically without changing language semantics" time="0.0007205">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; supports keyboard rectangular edit, find/replace, formatting, and custom snippets" time="0.1350174">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; only enables file and folder checks for matching resource selections" time="0.0844122">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; does not expose an empty diagnostics container as an invalid ARIA list" time="0.0374523">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; disables revision-bound problem actions while a workspace mutation reloads" time="0.0754558">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; filters all pinned catalog kinds by typed fields and inserts text only" time="0.0717965">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 editor operations &gt; bounds pinned catalog results to 500 entries" time="1.5219124">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; replays the exact idempotent mutation after a retryable transaction conflict" time="0.0373571">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; does not replay an ordinary workspace conflict" time="0.0013645">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; uses the dedicated status, diff, selected-commit, and refresh-base contracts" time="0.0037944">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; binds catalog decisions to each bundle&apos;s exact procedure and registry state" time="0.0015444">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; creates exact DB and IMP documents with canonical SHA-256 digests" time="0.0439515">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; uploads exact authenticated archive bytes and hashes kept external content" time="0.0133884">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; clears a rejected credential on raw project import" time="0.0019871">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; uses retained import operation routes and extracts only bounded conflict references" time="0.0019175">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; requires an existing digest for external deletes before sending a request" time="0.0007386">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; reads project exports as authenticated digest-bound ZIP bytes" time="0.0114309">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; clears a rejected credential on binary project export" time="0.0064124">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; verifies immutable bundle download headers and bytes" time="0.002287">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; fails closed when immutable bundle download provenance differs" time="0.0008576">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; downloads only digest-bound canonical semantic report bytes" time="0.0588061">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; projects a revision-zero registry for the first promotion" time="0.0018798">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; updates the exact project manifest contract at the dedicated route" time="0.0017424">
+        </testcase>
+        <testcase classname="src/development/development.test.tsx" name="v0.9 strict exchange and API contracts &gt; uses authoritative server metadata for a saved procedure" time="0.0011481">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/development/developmentProfile.test.tsx" timestamp="2026-10-09T18:41:55.407Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="0.6047259">
+        <testcase classname="src/development/developmentProfile.test.tsx" name="v0.19 authoring profile &gt; offers supported native calls and inserts explicit independent confirmation" time="0.443672">
+        </testcase>
+        <testcase classname="src/development/developmentProfile.test.tsx" name="v0.19 authoring profile &gt; retains the selected profile while editing other manifest properties" time="0.0574804">
+        </testcase>
+        <testcase classname="src/development/developmentProfile.test.tsx" name="v0.19 authoring profile &gt; creates a v19 project by default and permits explicit legacy authoring" time="0.1011966">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/dss/DssApp.test.tsx" timestamp="2026-10-09T18:41:55.408Z" hostname="ARCAZJ" tests="4" failures="0" errors="0" skipped="0" time="1.1669031">
+        <testcase classname="src/dss/DssApp.test.tsx" name="DSS persisted state workspace &gt; uses the observed epoch and revision for controls and displays only returned state" time="0.2898216">
+        </testcase>
+        <testcase classname="src/dss/DssApp.test.tsx" name="DSS persisted state workspace &gt; shows packet-derived telemetry and provenance with keyboard tabs and filtering" time="0.5488723">
+        </testcase>
+        <testcase classname="src/dss/DssApp.test.tsx" name="DSS persisted state workspace &gt; retains stale state visibly and disables mutation after a failed refresh" time="0.1233694">
+        </testcase>
+        <testcase classname="src/dss/DssApp.test.tsx" name="DSS persisted state workspace &gt; does not display previous-epoch telemetry or retry a conflicted control" time="0.2025823">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/dss/DssCommandForm.test.tsx" timestamp="2026-10-09T18:41:55.409Z" hostname="ARCAZJ" tests="3" failures="0" errors="0" skipped="0" time="1.6756033">
+        <testcase classname="src/dss/DssCommandForm.test.tsx" name="requires separate command confirmation and sends exact typed database operands" time="0.9547264">
+        </testcase>
+        <testcase classname="src/dss/DssCommandForm.test.tsx" name="retains an uncertain operation across remount without sending again" time="0.3638026">
+        </testcase>
+        <testcase classname="src/dss/DssCommandForm.test.tsx" name="clears confirmation when observed revision changes and fences a mismatched database" time="0.345722">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/developmentMutationObserver.test.ts" timestamp="2026-10-09T18:41:55.410Z" hostname="ARCAZJ" tests="10" failures="0" errors="0" skipped="0" time="0.0138368">
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; accepts a single successful response bound to the exact save" time="0.0033349">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; observes at most two explicit transaction conflicts before the same immutable save succeeds" time="0.0007023">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects ordinary conflicts, malformed error bodies and all other failed statuses" time="0.0016548">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects an exhausted conflict instead of waiting for a later success" time="0.0005557">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects changes to source, digest, media, revision, key or serialized byte order between responses" time="0.0012055">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects a changed origin, resource path or method" time="0.0008347">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects an unbound first request even if its response is successful" time="0.0010114">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; keeps ordinary failure terminal and records sanitized response metadata" time="0.0008304">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; binds resource creation to its POST template, path, kind and single workspace revision" time="0.0005951">
+        </testcase>
+        <testcase classname="src/test/developmentMutationObserver.test.ts" name="development mutation response observer &gt; rejects changed creation fields and a POST retry that changes to PUT" time="0.0009035">
+        </testcase>
+    </testsuite>
+</testsuites>

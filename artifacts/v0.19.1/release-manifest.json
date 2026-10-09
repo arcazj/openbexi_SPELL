@@ -1,0 +1,11 @@
+{
+  "file_count": 985,
+  "package_sha256": "6eb93c400d66a918eb5ba91d4b2a01d1cc7734d47c2e1b8ed8be4a14332d64db",
+  "qualification_sha256": "793dc13392647f55f32b962a5ab76b5dd5bf31b37bf25bb4ce068c00a0be0d9e",
+  "release_tag": "v0.19.1",
+  "repeated_builds": 2,
+  "schema_version": "spell.v19.release-manifest/1",
+  "scope": "LOCAL_SIMULATOR_PYTHON_RUNTIME_AND_DEBUGGER",
+  "source_commit": "5fbc85b5ae263a66a5768e1a42331884b80992c5",
+  "source_fingerprint": "82a76b956dd4ec948b83b81d2e0dd55bdbdf1851b20d84494096f6e42867b9a6"
+}

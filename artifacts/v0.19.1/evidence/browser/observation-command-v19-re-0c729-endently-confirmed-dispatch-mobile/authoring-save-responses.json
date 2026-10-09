@@ -1,0 +1,14 @@
+[
+  {
+    "status": 409,
+    "code": "RETRYABLE_TRANSACTION_CONFLICT",
+    "request_sha256": "5dada77e0acf398e3a2bf6bd3eb23724cb4a4b63dea97030d47c72d53702e49c",
+    "disposition": "intermediate"
+  },
+  {
+    "status": 200,
+    "code": null,
+    "request_sha256": "5dada77e0acf398e3a2bf6bd3eb23724cb4a4b63dea97030d47c72d53702e49c",
+    "disposition": "success"
+  }
+]
