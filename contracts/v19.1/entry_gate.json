@@ -1,0 +1,20 @@
+{
+  "dss_validation_required": true,
+  "full_language_compatibility_claim": false,
+  "operational_authorization": false,
+  "owner_authorized": true,
+  "predecessor_commit": "57cc80d969ebc222d47f0e8d19f962682c47d10c",
+  "release_tag": "v0.19.1",
+  "requirements": [
+    "V191-DEBUG-001",
+    "V191-DSS-001",
+    "V191-DURABILITY-001",
+    "V191-ISOLATION-001",
+    "V191-PROCEDURES-001",
+    "V191-RELEASE-001",
+    "V191-SOURCE-001",
+    "V191-UI-001"
+  ],
+  "schema_version": "spell.v191.entry-gate/1",
+  "scope": "LOCAL_SIMULATOR_PYTHON_RUNTIME_AND_DEBUGGER"
+}

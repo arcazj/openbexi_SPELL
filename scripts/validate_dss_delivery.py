@@ -92,8 +92,15 @@ class CaptureStore(Mapping):
 
 def _release_minor(release: str) -> int:
     match = re.fullmatch(r"v0\.([1-9][0-9]*)\.0", release) if type(release) is str else None
+    if release == "v0.19.1":
+        return 19
     require(match is not None, "unsupported DSS release identity")
     return int(match[1])
+
+
+def _release_key(release: str) -> str:
+    minor = _release_minor(release)
+    return "191" if release == "v0.19.1" else str(minor)
 
 
 def _definition(identity: str, kind: str, **fields: Any) -> dict:
@@ -107,7 +114,10 @@ def source_inventory(release: str = "v0.19.0", *, root: Path = ROOT) -> list[dic
     registry = importlib.import_module(f"backend.language_conformance_v{minor}")
     from backend.dss_scenarios import subject_execution_spec,procedure_execution_spec
     rows = []
-    for path in sorted((root / "procedures").rglob("*.spell.py")):
+    for path in sorted((root / "procedures").rglob("*.py" if release == "v0.19.1" else "*.spell.py")):
+        # This procedure belongs to v0.19.1; retain the immutable predecessor inventory.
+        if release == "v0.19.0" and path.name == "test_python_core.spell.py":
+            continue
         relative = path.relative_to(root).as_posix()
         rows.append(_definition("procedure:" + relative, "PROCEDURE",
             source_path=relative, source_sha256=sha256(path.read_bytes()),execution_spec={"scenarios":"EXACT_DECLARED_PROCEDURE_SCENARIOS"}))
@@ -159,7 +169,7 @@ def source_inventory(release: str = "v0.19.0", *, root: Path = ROOT) -> list[dic
 
 
 def load_manifest(release: str = "v0.19.0", *, root: Path = ROOT) -> dict:
-    path = root / f"contracts/dss/procedure_scenarios_v{_release_minor(release)}.json"
+    path = root / f"contracts/dss/procedure_scenarios_v{_release_key(release)}.json"
     require(path.is_file() and path.stat().st_size <= 8_000_000, "DSS scenario manifest is missing or oversized")
     manifest = json.loads(path.read_bytes())
     require(set(manifest) == {"schema_version", "release", "inventory", "inventory_sha256", "scenarios"},
@@ -172,7 +182,7 @@ def load_manifest(release: str = "v0.19.0", *, root: Path = ROOT) -> dict:
     scenarios = manifest["scenarios"]
     require(type(scenarios) is list and scenarios, "DSS scenarios are missing")
     require(len({row["id"] for row in scenarios}) == len(scenarios), "duplicate DSS scenario")
-    producer=importlib.import_module(f"scripts.qualify_dss_v{_release_minor(release)}")
+    producer=importlib.import_module(f"scripts.qualify_dss_v{_release_key(release)}")
     require(canonical(scenarios)==canonical(producer.scenario_definitions()),"DSS scenario inputs or independent oracles differ from reviewed source")
     for row in scenarios:
         require(set(row) == {"id", "subject", "inputs", "operator_actions", "expected", "definition_sha256"},
@@ -190,7 +200,7 @@ def reproduction_metadata(release: str, *, root: Path = ROOT) -> dict:
     import inspect
     from dss.catalog import SatelliteDatabase
     from dss.server import DssRuntime
-    minor = _release_minor(release)
+    minor = _release_key(release)
     producer = importlib.import_module(f"scripts.qualify_dss_v{minor}")
     manifest_path = f"contracts/dss/procedure_scenarios_v{minor}.json"
     mapping_path = f"contracts/dss/reference_adapters_v{minor}.json"
@@ -245,7 +255,8 @@ def validate_report(report: dict, *, source_commit: str, image_ids: dict[str, st
     require(report["full_language_compatibility"] is False, "DSS evidence cannot assert full language compatibility")
     require(type(source_commit) is str and HEX40.fullmatch(source_commit) is not None
             and report["source_commit"] == source_commit, "DSS source commit differs")
-    require(type(image_ids) is dict and set(image_ids) == {"backend", "driver", "dss", "kafka", "frontend", "proxy"}
+    expected_images = {"backend", "driver", "dss", "kafka", "frontend", "proxy"} | ({"python"} if report["release"] == "v0.19.1" else set())
+    require(type(image_ids) is dict and set(image_ids) == expected_images
             and all(type(value) is str and re.fullmatch(r"sha256:[0-9a-f]{64}", value) for value in image_ids.values())
             and canonical(report["image_ids"]) == canonical(image_ids), "DSS image identities differ")
     from dss import SIMULATOR_VERSION, DYNAMICS_ENGINE_VERSION
@@ -708,6 +719,8 @@ def observed_procedure(capture: dict, definition: dict) -> dict:
     require(canonical(capture["actions"])==canonical(definition["operator_actions"]),"procedure operator actions differ")
     variables=execution["variables"]
     expected=definition["expected"]
+    if definition["subject"] == "procedure:procedures/test_Python.py":
+        return observed_python_procedure(capture, definition)
     validate_execution_spec(capture,definition["inputs"]["execution_spec"],capture["initial_dss_state"],
         capture["dss"]["faults"] if "dss" in capture else None)
     actions=[row for row in definition["operator_actions"] if row["action"]!="await_warning"]
@@ -754,6 +767,32 @@ def observed_procedure(capture: dict, definition: dict) -> dict:
     if "command_fault" in expected:
         observed["command_fault"] = command_fault
     return observed
+
+
+def observed_python_procedure(capture: dict, definition: dict) -> dict:
+    """Bind native completion to actual jailed output, authority and no TC effects."""
+    execution, events = capture["execution"], capture["events"]
+    validate_execution_spec(capture, definition["inputs"]["execution_spec"], capture["initial_dss_state"], capture["dss"]["faults"])
+    variables = execution["variables"]
+    logs = [row["payload"]["message"] for row in events if row["event_type"] == "procedure.log"]
+    require(capture["typed_prompts"] == [], "native Python unexpectedly presented a service prompt")
+    commands = [row for row in capture["operator_audit"] if row["event_type"] == "operator.command_settled"]
+    require(len(commands) == 1, "Python Run has no unique durable command settlement")
+    require(execution["ir_version"] == "python/1" and execution["current_step"] == 1
+            and variables.get("python_completed") is True and variables.get("python_exit_code") == 0,
+            "Python success checkpoint differs")
+    require(len([row for row in events if row["event_type"] == "step.completed"]) == 1
+            and not any(row["event_type"] in {"procedure.error", "worker.crashed", "worker.consumer_failed", "worker.command_ack_timeout"} for row in events),
+            "Python completion was duplicated or errored")
+    pauses = [row["payload"] for row in events if row["event_type"] == "procedure.python_paused"]
+    require(len(pauses) == 1 and pauses[0].get("reason") == "entry"
+            and pauses[0].get("source_sha256") == execution["procedure_hash"], "Python entry/source binding differs")
+    counts = validate_transport_capture(capture, scenario_id=capture["dss"]["scenario_id"], epoch=capture["dss"]["epoch"])
+    require(counts == {"executed_commands": 0, "loaded_unexecuted_commands": 0}, "native Python dispatched a spacecraft command")
+    summaries = [line for line in logs if line.startswith("All runtime checks passed:")]
+    return {"terminal": execution["state"], "variables": {key:variables[key] for key in definition["expected"]["variables"]},
+            "summary": summaries, "stdout_lines": len(logs), "stderr_lines": variables.get("python_stderr_lines"),
+            "outer_executed_commands": 0, "outer_loaded_unexecuted_commands": 0, "observations": []}
 
 
 def _observation_scalar_from_packet(scalar):

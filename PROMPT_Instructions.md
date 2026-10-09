@@ -1,5 +1,14 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-09 - v0.19.1 Release Authorized
+
+The owner authorized full qualification and publication of the Python runtime
+and debugger as v0.19.1. Use its separate entry, frozen catalog and artifact
+roots; run the full DSS delivery gate and every applicable release check.
+Seven exact image inventories include the isolated Python runner. Acceptance
+and publication require passing source-bound evidence, four matching packages
+and independent clean annotated-tag validation. Preserve accepted v0.19.0.
+
 ## 2026-10-08 - Authorized Python Line Debugging
 
 The owner authorized source-bound breakpoints, Step, Step Over and Run to Line
@@ -436,8 +445,8 @@ Core and GUI legacy versions remain independent version series.
   dependencies with `npm ci`.
 - Produce the exact version-scoped SBOM set required by the active gate and a
   checksum manifest, and run dependency audits for every release. The current
-  release contract requires six distinct CycloneDX inventories for backend,
-  driver, DSS, Kafka, frontend-build, and proxy image identities under the active version's
+  v0.19.1 release contract requires seven distinct CycloneDX inventories for backend,
+  driver, DSS, Kafka, frontend-build, proxy and isolated Python image identities under the active version's
   artifact root. Critical or High findings require resolution; every other
   advisory requires a recorded, time-bounded disposition.
 - Build the release package twice from the same frozen source and require

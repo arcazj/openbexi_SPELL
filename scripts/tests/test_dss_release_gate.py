@@ -8,6 +8,11 @@ import pytest
 from scripts import release_next as release
 
 
+@pytest.fixture(autouse=True)
+def retained_v19_release_contract(monkeypatch):
+    monkeypatch.setattr(release, "PYTHON_RELEASE", False)
+
+
 def test_gate_rejects_renewal_failure_that_finishes_after_validation(tmp_path, monkeypatch):
     from scripts import qualify_next as qualifier
     token = tmp_path / "operator.token"

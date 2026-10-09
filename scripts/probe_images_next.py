@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
-from scripts.release_next import VERSION, MINOR, TAG, image_names, verify_running_image_bindings
+from scripts.release_next import VERSION, MINOR, TAG, PROJECT, PYTHON_RELEASE, image_names, verify_running_image_bindings
 
 
 def call(*args):
@@ -20,14 +20,17 @@ def main():
         image = f"openbexi-spell-{name}:{TAG}"
         identity = json.loads(call("image", "inspect", image))[0]
         image = identity["Id"]
-        assert identity["Config"]["User"] not in ("", "root", "0", "0:0")
-        root = "/app" if name in {"backend", "driver", "dss"} else "/src/frontend" if name == "frontend" else "/opt/kafka" if name == "kafka" else "/usr/share/nginx/html"
+        if name == "python":
+            assert identity["Config"]["User"] == "0:0"  # Trusted launcher drops child identity after chroot.
+        else:
+            assert identity["Config"]["User"] not in ("", "root", "0", "0:0")
+        root = "/app" if name in {"backend", "driver", "dss", "python"} else "/src/frontend" if name == "frontend" else "/opt/kafka" if name == "kafka" else "/usr/share/nginx/html"
         files = call("run", "--rm", "--network", "none", "--entrypoint", "find", image, root, "-type", "f").splitlines()
         forbidden = [value for value in files if Path(value).suffix.lower() in {".pdf", ".zip", ".pyc", ".pyo", ".key", ".pem"}
                      or Path(value).name in {".env", "credentials.json", "secrets.json"}]
         assert not forbidden, (name, forbidden)
         row = {"image_id": identity["Id"], "user": identity["Config"]["User"], "product_files": len(files), "forbidden_files": []}
-        if name in {"backend", "driver", "dss"}:
+        if name in {"backend", "driver", "dss", "python"}:
             code = (Path(__file__).with_name("gcc_header_applicability.py")).read_text()
             row["gcc_header_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
             if MINOR >= 18:
@@ -111,13 +114,23 @@ def main():
                 if MINOR >= 17:
                     from importlib import import_module
                     assert row["language_runner"] == import_module(language_module).expected_image_runner_proof()
+        if name == "python":
+            code = "import json; from backend.native_python_protocol import READY; print(json.dumps(READY))"
+            row["python_runtime"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))
+            from backend.native_python_protocol import READY
+            assert row["python_runtime"] == READY
+            jail = call("run", "--rm", "--network", "none", "--entrypoint", "find", image, "/opt/spell-python", "-type", "f").splitlines()
+            assert "/opt/spell-python/usr/local/lib/spell_python_debug.py" in jail
+            assert not any("site-packages" in name or "/app/" in name or Path(name).suffix.lower() in {".pem", ".key", ".pdf", ".zip", ".pyc"} for name in jail)
         images[name] = row
     services = {}
     service_names = ("backend", "postgres", "spell-driver", "bundle-builder-a", "bundle-builder-b", "proxy")
     if MINOR >= 19:
         service_names += ("dss", "kafka")
+    if PYTHON_RELEASE:
+        service_names += ("python-runtime",)
     for service in service_names:
-        ids = call("ps", "--filter", f"label=com.docker.compose.project=spellv0{MINOR}release", "--filter", "label=com.docker.compose.service=" + service, "--format", "{{.ID}}").splitlines()
+        ids = call("ps", "--filter", f"label=com.docker.compose.project={PROJECT}", "--filter", "label=com.docker.compose.service=" + service, "--format", "{{.ID}}").splitlines()
         assert len(ids) == 1
         info = json.loads(call("inspect", ids[0]))[0]
         host = info["HostConfig"]
@@ -135,7 +148,11 @@ def main():
             assert not ports
         else:
             assert ports == {"8080/tcp": [{"HostIp": "127.0.0.1", "HostPort": "8080"}]}
-        if service.startswith("bundle-builder"):
+        if service == "python-runtime":
+            assert host["NetworkMode"] == "none" and info["Config"]["User"] == "0:0"
+            assert set(host["CapAdd"]) == {"CHOWN", "DAC_OVERRIDE", "SETUID", "SETGID", "SYS_CHROOT", "KILL"}
+            assert host["Memory"] == 512 * 1024 * 1024 and host["PidsLimit"] == 64
+        elif service.startswith("bundle-builder"):
             assert host["NetworkMode"] == "none"
         elif service != "proxy":
             for network in info["NetworkSettings"]["Networks"]:

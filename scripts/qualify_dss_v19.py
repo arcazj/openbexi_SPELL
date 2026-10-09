@@ -190,9 +190,10 @@ class Api:
 
 
 class DeliveryQualifier:
+    release = RELEASE
     def __init__(self, backend, dss, bindings, output):
         self.backend, self.dss, self.bindings, self.output = backend, dss, bindings, output
-        self.manifest = load_manifest(RELEASE)
+        self.manifest = load_manifest(self.release)
         self.definitions = {row["id"]:row for row in self.manifest["inventory"]}
         self.results, self.scenarios, self.captures = {}, [], {}
         self.current_identity="initialization"
@@ -342,6 +343,27 @@ class DeliveryQualifier:
                     headers_extra=headers)["control_lease"]
                 renewed_at=time.monotonic()
             prompt = snapshot.get("active_prompt")
+            if action_index < len(actions) and actions[action_index]["action"] == "run":
+                if execution["state"] != "paused":
+                    time.sleep(.05)
+                    continue
+                if lease is None:
+                    lease = self.backend.call(f"/api/v1/executions/{execution_id}/control", {
+                        "action":"ACQUIRE", "session_id":session_id, "client_instance_key_id":session_id,
+                        "expected_execution_revision":execution["revision"], "lease_seconds":300,
+                        "acknowledgement":"I accept responsibility for the DSS qualification execution",
+                        "idempotency_key":"lease-" + uuid.uuid4().hex, "reason":"DSS qualification"},
+                        headers_extra=headers)["control_lease"]
+                    renewed_at=time.monotonic()
+                self.backend.call(f"/api/v1/executions/{execution_id}/commands", {
+                    "type":"RUN", "expected_execution_revision":execution["revision"],
+                    "lease_id":lease["id"], "expected_lease_revision":lease["revision"],
+                    "control_fencing_token":lease["control_fencing_token"],
+                    "session_id":session_id, "client_instance_key_id":session_id,
+                    "idempotency_key":"run-"+uuid.uuid4().hex, "reason":"DSS Python qualification"},
+                    headers_extra=headers)
+                action_index += 1
+                continue
             if prompt is None or prompt["id"] in answered:
                 time.sleep(.05)
                 continue
@@ -520,7 +542,7 @@ class DeliveryQualifier:
     def run(self):
         from backend import language_conformance_v19 as registry
         from scripts.validate_dss_delivery import CaptureStore, validate_report, observed_procedure, reproduction_metadata, delivery_counts
-        reproduction = reproduction_metadata(RELEASE)
+        reproduction = reproduction_metadata(self.release)
         health = self.dss.call("/state")["transport"]
         if any(health.get(key) != reproduction["runtime_configuration"][key]
                for key in ("automatic_interval_ns", "physics_ticks_per_frame")):
@@ -566,7 +588,7 @@ class DeliveryQualifier:
                 evidence = all_evidence
                 del retained
             else:
-                procedure = Path(definition["subject"].removeprefix("procedure:")).name.removesuffix(".spell.py")
+                procedure = Path(definition["subject"].removeprefix("procedure:")).name.removesuffix(".spell.py").removesuffix(".py")
                 capture = self.run_procedure(definition["id"],procedure,definition["operator_actions"],definition["inputs"])
                 evidence = self.evidence(capture)
             observed = observed_procedure(capture,definition)
@@ -580,7 +602,7 @@ class DeliveryQualifier:
         from dss import SIMULATOR_VERSION,DYNAMICS_ENGINE_VERSION
         from dss.catalog import SatelliteDatabase
         database=SatelliteDatabase.load()
-        report={"schema_version":"spell.dss.delivery/1","release":RELEASE,**self.bindings,
+        report={"schema_version":"spell.dss.delivery/1","release":self.release,**self.bindings,
             "database_identity":{"satellite_id":"GENERIC","revision":database.revision,"sha256":database.digest,
                 "simulator_version":SIMULATOR_VERSION,"dynamics_engine_version":DYNAMICS_ENGINE_VERSION},
             "inventory_sha256":self.manifest["inventory_sha256"],"decision":"PASS","full_language_compatibility":False,
@@ -592,10 +614,14 @@ class DeliveryQualifier:
         self.current_identity = "final-state"
         self.assert_normal_finish(capture)
         self.output.write_bytes(canonical(report)+b"\n")
-        print("v0.19.0 DSS delivery: PASS",flush=True)
+        print(self.release + " DSS delivery: PASS",flush=True)
 
 
-def main() -> int:
+def main(*, release=RELEASE, manifest=MANIFEST, mapping=REFERENCE_MAPPING,
+         build=None, reference=None, qualifier_type=None) -> int:
+    build = build_manifest if build is None else build
+    reference = reference_mapping if reference is None else reference
+    qualifier_type = DeliveryQualifier if qualifier_type is None else qualifier_type
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write-contract", action="store_true")
     parser.add_argument("--check-contract", action="store_true")
@@ -608,14 +634,14 @@ def main() -> int:
     if args.write_contract:
         if args.check_contract or args.output or args.bindings or args.resume_from:
             parser.error("contract generation cannot be combined with qualification")
-        MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-        MANIFEST.write_bytes((json.dumps(build_manifest(), indent=2, sort_keys=True) + "\n").encode("ascii"))
-        REFERENCE_MAPPING.write_bytes((json.dumps(reference_mapping(), indent=2, sort_keys=True) + "\n").encode("ascii"))
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_bytes((json.dumps(build(), indent=2, sort_keys=True) + "\n").encode("ascii"))
+        mapping.write_bytes((json.dumps(reference(), indent=2, sort_keys=True) + "\n").encode("ascii"))
         return 0
     if args.check_contract:
         if args.output or args.bindings or args.resume_from:
             parser.error("contract checking is not qualification")
-        if canonical(load_manifest(RELEASE)) != canonical(build_manifest()):
+        if canonical(load_manifest(release)) != canonical(build()):
             raise ValueError("reviewed DSS scenario definitions are stale")
         print("DSS inventory and scenario contract: PASS")
         return 0
@@ -624,20 +650,20 @@ def main() -> int:
     args.output.parent.mkdir(parents=True,exist_ok=True)
     qualifier=None
     try:
-        load_manifest(RELEASE)
+        load_manifest(release)
         if not (os.environ.get("SPELL_DSS_GATE_TOKEN") or os.environ.get("SPELL_DSS_GATE_TOKEN_FILE")):
             raise ValueError("DSS qualification operator credential is unavailable; gate cannot be skipped")
         bindings=json.loads(args.bindings.read_bytes())
         if set(bindings) != {"source_commit","image_ids"}:
             raise ValueError("DSS qualification bindings differ")
-        qualifier=DeliveryQualifier(Api(args.backend_url,os.environ.get("SPELL_DSS_GATE_TOKEN") or "token-file"),
+        qualifier=qualifier_type(Api(args.backend_url,os.environ.get("SPELL_DSS_GATE_TOKEN") or "token-file"),
             Api(args.dss_url),bindings,args.output)
         if args.resume_from:
             from scripts.dss_continuation import restore_prefix
             restore_prefix(qualifier,args.resume_from)
         qualifier.run()
     except Exception as exc:
-        args.output.write_bytes(canonical({"schema_version":"spell.dss.delivery/1","release":RELEASE,
+        args.output.write_bytes(canonical({"schema_version":"spell.dss.delivery/1","release":release,
             "decision":"FAIL","failed_identity":qualifier.current_identity if qualifier else "initialization",
             "error":str(exc)[:1000],"completed_identities":sorted(qualifier.results) if qualifier else []})+b"\n")
         raise

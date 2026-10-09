@@ -1,0 +1,87 @@
+{
+  "schema_version": "spell.v191.release-toolchain/1",
+  "host_platform": "windows-amd64-docker-desktop",
+  "tools": [
+    {
+      "name": "docker-cli",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/bin/docker.exe",
+      "sha256": "1aaf3dd59c24ff4c83d930bc51ecac8bf6f6f4e7a310573ee69d14ca3a7ef85c"
+    },
+    {
+      "name": "docker-buildx",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-buildx.exe",
+      "sha256": "5dd05fcf14bbde17ae0af0303825d39ef8a97857c0fe3d322198a4565c4625cb"
+    },
+    {
+      "name": "docker-compose",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-compose.exe",
+      "sha256": "538f62c391b1fe1813ae52669e826d217298b6e4342e49ac4c8e2c58e70c1479"
+    },
+    {
+      "name": "docker-sbom",
+      "base_directory": "LocalAppData",
+      "relative_path": "OpenBEXI/release-toolchain/docker-sbom-0.6.0-windows-amd64/docker-sbom.exe",
+      "sha256": "e070d15332889311d5652e440d413d38a3b19596d5c080e28e059af0315c5865"
+    },
+    {
+      "name": "docker-scout",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Docker/Docker/resources/cli-plugins/docker-scout.exe",
+      "sha256": "eef491b6ac6c25f4fbd760c089ae6f551b432a7d04d78fff6f93a23040f49602"
+    },
+    {
+      "name": "python",
+      "base_directory": "LocalAppData",
+      "relative_path": "OpenBEXI/release-toolchain/python-3.13.14-embed-amd64/python.exe",
+      "sha256": "ef8f51028ac5329641985112f8efb1c2d4c47c86b8011ddf7e6fae21e2b4e5a1",
+      "archive_relative_path": "OpenBEXI/release-toolchain/python-3.13.14-embed-amd64.zip",
+      "archive_sha256": "90b4e5b9898b72d744650524bff92377c367f44bd5fbd09e3148656c080ad907",
+      "archive_url": "https://www.python.org/ftp/python/3.13.14/python-3.13.14-embeddable-amd64.zip"
+    },
+    {
+      "name": "node",
+      "base_directory": "LocalAppData",
+      "relative_path": "JetBrains/IntelliJIdea2026.2/acp-agents/.runtimes/node/24.19.0/node.EXE",
+      "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237"
+    },
+    {
+      "name": "npm-cli",
+      "base_directory": "LocalAppData",
+      "relative_path": "JetBrains/IntelliJIdea2026.2/acp-agents/.runtimes/node/24.19.0/node_modules/npm/bin/npm-cli.js",
+      "sha256": "3ce7cba6f5128dd5f54c98b6a5036b0f850496878cc2e21044b675fe3c594e3e"
+    },
+    {
+      "name": "git",
+      "base_directory": "ProgramFiles",
+      "relative_path": "Git/cmd/git.EXE",
+      "sha256": "4ab2b391de7fb5eb3afb34b5bd19ee7f71d0450bf7e4c207b201a0392e3825ae"
+    }
+  ],
+  "versions": {
+    "docker_cli": "29.8.1",
+    "docker_buildx": "v0.37.1",
+    "docker_compose": "v5.5.1",
+    "docker_sbom": "0.6.0",
+    "syft_provider": "v0.43.0",
+    "docker_scout": "v1.24.0",
+    "host_python": "3.13.14",
+    "node": "24.19.0",
+    "npm": "11.17.0"
+  },
+  "release_tag": "v0.19.1",
+  "host_update_review": {
+    "source": "https://docs.docker.com/desktop/release-notes/",
+    "docker_publisher": "Docker Inc",
+    "authenticode_status": "Valid",
+    "reviewed_tools": [
+      "docker-cli",
+      "docker-buildx",
+      "docker-compose",
+      "docker-scout"
+    ],
+    "decision": "Installed signed tools retain the reviewed v19 hashes; independent v0.19.1 lock."
+  }
+}

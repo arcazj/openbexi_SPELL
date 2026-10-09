@@ -1,5 +1,14 @@
 # Prompt History
 
+## 2026-10-09 - v0.19.1 Qualification And Release Authorized
+
+The owner instructed "execute" after the proposed v0.19.1 workflow: run every
+procedure/reference case against DSS, complete all release checks, freeze the
+passing build, verify four reproducible packages, then tag and publish. Scope
+is the isolated Python runtime/debugger and inherited local DSS product. Record
+actual results against the separate v0.19.1 contract; retain v0.19.0 evidence
+and tags unchanged. The next v0.20 language milestone remains planned.
+
 ## 2026-10-08 - Python Line Debugging Authorized
 
 The owner requested breakpoint support and instructed "execute", then "resume".

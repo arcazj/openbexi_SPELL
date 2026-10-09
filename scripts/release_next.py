@@ -23,7 +23,7 @@ import tomllib
 
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 MINOR = int(VERSION.split(".")[1])
-if VERSION not in {"0.13.0", "0.14.0", "0.15.0", "0.16.0", "0.17.0", "0.18.0", "0.19.0"}:
+if VERSION not in {"0.13.0", "0.14.0", "0.15.0", "0.16.0", "0.17.0", "0.18.0", "0.19.0", "0.19.1"}:
     raise ValueError("unsupported release identity")
 PROFILE = {13: "LOCAL_SYNTHETIC_PROCEDURE_CONTROL", 14: "LOCAL_SYNTHETIC_TELEMETRY_ADAPTER",
            15: "LOCAL_SYNTHETIC_SHADOW_PILOT",
@@ -31,16 +31,21 @@ PROFILE = {13: "LOCAL_SYNTHETIC_PROCEDURE_CONTROL", 14: "LOCAL_SYNTHETIC_TELEMET
            17: "LOCAL_SIMULATOR_DIRECT_LANGUAGE_CONFORMANCE",
            18: "LOCAL_SIMULATOR_NATIVE_TELECOMMAND_WORKFLOWS",
            19: "LOCAL_SIMULATOR_OBSERVATION_COMMAND_WORKFLOWS"}[MINOR]
-ARTIFACT = Path(f"artifacts/v0.{MINOR}")
+PYTHON_RELEASE = VERSION == "0.19.1"
+RELEASE_KEY = "19.1" if PYTHON_RELEASE else str(MINOR)
+PROJECT = "spellv0191release" if PYTHON_RELEASE else f"spellv0{MINOR}release"
+if PYTHON_RELEASE:
+    PROFILE = "LOCAL_SIMULATOR_PYTHON_RUNTIME_AND_DEBUGGER"
+ARTIFACT = Path(f"artifacts/v0.{RELEASE_KEY}")
 TAG = "v" + VERSION
-POLICY = Path(f"contracts/v{MINOR}/release_policy.json")
+POLICY = Path(f"contracts/v{RELEASE_KEY}/release_policy.json")
 PACKAGE = ARTIFACT / f"openbexi-spell-{TAG}.tar.gz"
-PREDECESSOR = f"v0.{MINOR-1}.0"
-CANDIDATE = ROOT / f"artifacts/v0.{MINOR}-candidate"
+PREDECESSOR = "v0.19.0" if PYTHON_RELEASE else f"v0.{MINOR-1}.0"
+CANDIDATE = ROOT / f"artifacts/v0.{RELEASE_KEY}-candidate"
 
 
 def image_names() -> set[str]:
-    return {"backend", "driver", "frontend", "proxy"} | ({"dss", "kafka"} if MINOR >= 19 else set())
+    return {"backend", "driver", "frontend", "proxy"} | ({"dss", "kafka"} if MINOR >= 19 else set()) | ({"python"} if PYTHON_RELEASE else set())
 
 
 def verify_dss_capture(directory: Path, *, source_commit: str, image_ids: dict) -> dict:
@@ -69,6 +74,8 @@ def verify_running_image_bindings(services: dict, images: dict) -> None:
                 ("bundle-builder-a", "backend"), ("bundle-builder-b", "backend"))
     if MINOR >= 19:
         mappings += (("dss", "dss"), ("kafka", "kafka"))
+    if PYTHON_RELEASE:
+        mappings += (("python-runtime", "python"),)
     for service, image in mappings:
         actual, expected = services.get(service), images.get(image)
         require(isinstance(actual, dict) and isinstance(expected, dict)
@@ -99,7 +106,9 @@ def policy() -> dict:
     if MINOR >= 19:
         require(data.get("dss_validation_required") is True, "mandatory DSS delivery gate is disabled")
     if MINOR >= 16:
-        if MINOR >= 19:
+        if PYTHON_RELEASE:
+            from scripts.validate_v191_gate import validate as validate_entry
+        elif MINOR >= 19:
             from scripts.validate_v19_gate import validate as validate_entry
         elif MINOR >= 18:
             from scripts.validate_v18_gate import validate as validate_entry
@@ -319,6 +328,8 @@ def record(captures: Path) -> None:
                   if path.is_file() and path.suffix in {".json", ".log"}}
         names |= {path.relative_to(captures).as_posix() for path in (captures / "dss-validation-captures").rglob("*")
                   if path.is_file()}
+    if PYTHON_RELEASE:
+        names |= {"python.cdx.json", "python.sarif.json"}
     browser = [path for path in (captures / "browser").rglob("*") if path.is_file() and path.suffix in {".png", ".json"}]
     names |= {path.relative_to(captures).as_posix() for path in browser}
     for name in sorted(names):

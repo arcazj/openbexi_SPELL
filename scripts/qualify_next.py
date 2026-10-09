@@ -21,12 +21,12 @@ import time
 import uuid
 import xml.etree.ElementTree as ET
 
-from scripts.release_next import ROOT, VERSION, MINOR, TAG, POLICY, fingerprint, git, require, write_json, verify_candidate, policy
+from scripts.release_next import ROOT, VERSION, MINOR, TAG, POLICY, PYTHON_RELEASE, RELEASE_KEY, PROJECT, fingerprint, git, require, write_json, verify_candidate, policy
 from scripts.gcc_header_applicability import resolve
 
-OUT = ROOT / f".qualification/v{MINOR}/final"
+OUT = ROOT / f".qualification/v{RELEASE_KEY}/final"
 QUALIFIER = "openbexi-spell-qualification:next"
-IMAGE_NAMES = ("backend", "driver", "frontend", "proxy") + (("dss", "kafka") if MINOR >= 19 else ())
+IMAGE_NAMES = ("backend", "driver", "frontend", "proxy") + (("dss", "kafka") if MINOR >= 19 else ()) + (("python",) if PYTHON_RELEASE else ())
 IMAGES = {name: f"openbexi-spell-{name}:{TAG}" for name in IMAGE_NAMES}
 COMPOSE_TESTS = ["backend/tests/test_driver_isolation.py::" + name for name in (
     "test_created_compose_driver_has_runtime_isolation_controls",
@@ -40,6 +40,8 @@ if MINOR >= 18:
 if MINOR >= 19:
     TOOL_TESTS += ["scripts/tests/test_dss_delivery.py", "scripts/tests/test_dss_release_gate.py",
                    "scripts/tests/test_seed_dss_v19.py", "scripts/tests/test_dss_continuation.py"]
+if PYTHON_RELEASE:
+    TOOL_TESTS.append("scripts/tests/test_release_v191.py")
 
 
 MODULE_PYTEST = "from scripts.qualify_next import run_module_pytest; import json,sys; run_module_pytest(sys.argv[1],json.loads(sys.argv[2]))"
@@ -521,8 +523,29 @@ def docker_python(*args, network="none", extra=()):
 
 
 def compose(*args):
+    overlays = ["-f", "compose.yaml", "-f", "compose.procedures.yaml", "-f", "compose.python.yaml"] if PYTHON_RELEASE else []
     return ["docker", "compose", "--env-file", str(OUT / "runtime.env"),
-            "--project-name", f"spellv0{MINOR}release", "--profile", "driver", *args]
+            "--project-name", PROJECT, "--profile", "driver", *overlays, *args]
+
+
+def python_test_mounts():
+    if not PYTHON_RELEASE:
+        return []
+    return ["-v", PROJECT + "_spell-python-requests:/python-requests",
+            "-v", PROJECT + "_spell-python-responses:/python-responses",
+            "-e", "SPELL_TEST_PYTHON_REQUEST_DIR=/python-requests",
+            "-e", "SPELL_TEST_PYTHON_RESPONSE_DIR=/python-responses",
+            "--tmpfs", "/tmp:size=512m"]
+
+
+def pinned_node_tools():
+    lock = json.loads((ROOT / "scripts/release-toolchain-v191.json").read_bytes())
+    paths = {row["name"]: Path(os.environ[row["base_directory"]]) / row["relative_path"]
+             for row in lock["tools"] if row["name"] in {"node", "npm-cli"}}
+    for row in lock["tools"]:
+        if row["name"] in paths:
+            require(hashlib.sha256(paths[row["name"]].read_bytes()).hexdigest() == row["sha256"], "Pinned Node tool differs")
+    return paths["node"], paths["npm-cli"]
 
 
 @contextmanager
@@ -631,6 +654,9 @@ class Producer:
             for name, dockerfile, target in builds:
                 command = ["docker", "build", "-t", IMAGES[name], "-f", dockerfile]
                 self.run(command + (["--target", target] if target else []) + ["."])
+            if PYTHON_RELEASE:
+                self.run(["docker", "build", "-t", IMAGES["python"], "-f", "backend/python_runtime.Dockerfile",
+                    "--build-arg", "SPELL_PYTHON_BACKEND_IMAGE=" + IMAGES["backend"], "."])
             runtime = OUT / "runtime.env"
             if not runtime.exists():
                 runtime.write_bytes((f"SPELL_DB_PASSWORD={secrets.token_hex(24)}\n"
@@ -640,12 +666,17 @@ class Producer:
                 # Private environment remains private; the gate reset API is explicitly local.
                 entries = dict(line.split("=", 1) for line in runtime.read_text().splitlines() if "=" in line)
                 entries.update(SPELL_DSS_ENABLED="true", DSS_TEST_CONTROL_ENABLED="true")
+                if PYTHON_RELEASE:
+                    entries.update(SPELL_PYTHON_BACKEND_IMAGE=IMAGES["backend"],
+                        SPELL_PYTHON_PROXY_IMAGE=IMAGES["proxy"], SPELL_PYTHON_IMAGE_TAG=TAG)
                 runtime.write_bytes(("\n".join(f"{key}={value}" for key, value in entries.items()) + "\n").encode())
-            previous_env = ROOT / f".qualification/v{MINOR-1}/final/runtime.env"
+            previous_minor = MINOR if PYTHON_RELEASE else MINOR - 1
+            previous_env = ROOT / f".qualification/v{previous_minor}/final/runtime.env"
             if previous_env.exists():
+                previous_overlays = ["-f", "compose.yaml", "-f", "compose.procedures.yaml", "-f", "compose.python.yaml"] if PYTHON_RELEASE else []
                 self.run(["docker", "compose", "--env-file", str(previous_env),
-                          "--project-name", f"spellv0{MINOR-1}release", "--profile", "driver", "stop"])
-            self.run(compose("up", "--build", "-d", "--wait"))
+                          "--project-name", f"spellv0{previous_minor}release", "--profile", "driver", *previous_overlays, "stop"])
+            self.run(compose("up", "--no-build" if PYTHON_RELEASE else "--build", "-d", "--wait"))
             if MINOR >= 19:
                 self.run(compose("exec", "-T", "dss", "python", "-m", "dss.control", "RESUME"))
                 # Admit the real bundled simulator observation context; no test data injection.
@@ -655,6 +686,8 @@ class Producer:
             runtime_images = (("backend", "backend"), ("spell-driver", "driver"), ("proxy", "proxy"))
             if MINOR >= 19:
                 runtime_images += (("dss", "dss"), ("kafka", "kafka"))
+            if PYTHON_RELEASE:
+                runtime_images += (("python-runtime", "python"),)
             for service, name in runtime_images:
                 container = self.run(compose("ps", "--quiet", service)).decode().strip()
                 identity = self.run(["docker", "inspect", "--format", "{{.Image}}", container]).decode().strip()
@@ -672,7 +705,7 @@ class Producer:
         elif gate == "candidate":
             deselections = [arg for name in policy().get("candidate_deselections", []) for arg in ("--deselect", name)]
             self.run(docker_python("-m", "pytest", *policy()["candidate_files"], *deselections, "-q", "-p", "no:cacheprovider",
-                                   "--tb=short", "--junitxml=/evidence/candidate.xml"))
+                                   "--tb=short", "--junitxml=/evidence/candidate.xml", extra=python_test_mounts()))
         elif gate in {"sqlite", "postgresql", "compose", "documentation", "tooling"}:
             tests = {
                 "sqlite": ["backend/tests", "driver_host/tests"], "postgresql": ["backend/tests"],
@@ -682,23 +715,24 @@ class Producer:
             extra, network = [], "none"
             if gate == "postgresql":
                 extra = ["--env-file", str(OUT / "postgres.env")]
-                network = f"spellv0{MINOR}release_spell-internal"
+                network = PROJECT + "_spell-internal"
             elif gate == "compose":
                 extra = ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "SPELL_RUN_COMPOSE_RUNTIME_TESTS=1",
                          "-e", f"SPELL_IMAGE_TAG={TAG}-isolation"]
                 network = "bridge"
             if gate in {'sqlite', 'postgresql'}:
+                extra += python_test_mounts()
                 self.run(docker_python('-c', MODULE_PYTEST, gate, json.dumps(tests), network=network, extra=extra))
             else:
                 self.run(docker_python("-m", "pytest", *tests, "-q", "-p", "no:cacheprovider", "--tb=short",
                                        f"--junitxml=/evidence/{gate}.xml", network=network, extra=extra))
         elif gate in {"frontend", "frontend-build"}:
-            npm = shutil.which("npm.cmd") or shutil.which("npm")
+            npm = list(pinned_node_tools()) if PYTHON_RELEASE else [shutil.which("npm.cmd") or shutil.which("npm")]
             if gate == "frontend":
-                self.run([npm, "ci", "--ignore-scripts"], cwd=ROOT / "frontend")
-                self.run([npm, "test", "--", "--run", "--reporter=junit", f"--outputFile={OUT / 'frontend.xml'}"], cwd=ROOT / "frontend")
+                self.run([*npm, "ci", "--ignore-scripts"], cwd=ROOT / "frontend")
+                self.run([*npm, "test", "--", "--run", "--reporter=junit", f"--outputFile={OUT / 'frontend.xml'}"], cwd=ROOT / "frontend")
             else:
-                self.run([npm, "run", "build"], cwd=ROOT / "frontend")
+                self.run([*npm, "run", "build"], cwd=ROOT / "frontend")
         elif gate == "replay":
             self.run(docker_python("-m", "scripts.qualify_legacy_observation_v12", "--soak-seconds", "60", "--output", "/evidence/replay.json"))
             if MINOR >= 14:
@@ -711,6 +745,8 @@ class Producer:
             if MINOR >= 19:
                 self.run(docker_python("-m", "scripts.generate_dss_contract", "--check"))
                 self.run(docker_python("-m", "scripts.generate_kafka_security_dockerfile", "--check"))
+            if PYTHON_RELEASE:
+                self.run(docker_python("-m", "scripts.qualify_dss_v191", "--check-contract"))
             self.run(docker_python("-m", "scripts.qualify_reference_examples_v10", "--output", "/evidence/reference-examples.json"))
             if MINOR >= 16:
                 language_qualifier = f"scripts.qualify_language_v{MINOR}"
@@ -737,10 +773,10 @@ class Producer:
                             "DSS continuation requires a separate retained archive")
                     resume_args = ["--resume-from", "/retained-dss"]
                     resume_mount = ["-v", f"{self.resume_from.as_posix()}:/retained-dss:ro"]
-                self.run(docker_python("-m", "scripts.qualify_dss_v19", "--backend-url", "http://proxy:8080",
+                self.run(docker_python("-m", "scripts.qualify_dss_v191" if PYTHON_RELEASE else "scripts.qualify_dss_v19", "--backend-url", "http://proxy:8080",
                     "--dss-url", "http://dss:8081/api/v1", "--bindings", "/evidence/dss-bindings.json",
                     "--output", "/evidence/dss-validation.json", *resume_args,
-                    network=f"spellv0{MINOR}release_spell-internal",
+                    network=PROJECT + "_spell-internal",
                     extra=["-e", "SPELL_DSS_GATE_TOKEN_FILE=/evidence/dss-gate.token", *resume_mount]))
         elif gate == "browser":
             token = self.run(compose("run", "--rm", "--no-deps", "-e", "SPELL_ALLOW_LOCAL_DEV_TOKEN=true",
@@ -756,7 +792,7 @@ class Producer:
                     "--role", "admin", "--lifetime", "900"), private=True).decode().strip()
                 require(reviewer.count(".") == 2 and "\n" not in reviewer, "review token issuer output invalid")
                 env["SPELL_E2E_REVIEW_TOKEN"] = reviewer
-            node = shutil.which("node")
+            node = pinned_node_tools()[0] if PYTHON_RELEASE else shutil.which("node")
             self.run([node, "node_modules/@playwright/test/cli.js", "test", "legacy-observation-v12-real.spec.ts",
                       *policy()["feature_browser_specs"], "language-reference-v10-real.spec.ts", "--workers=1", "--retries=0", "--reporter=junit"], cwd=ROOT / "frontend", env=env)
         elif gate == "image-probe":
@@ -767,8 +803,8 @@ class Producer:
             extra_locks = ["-r", "driver_host/requirements.hashes.lock", "-r", "dss/requirements.hashes.lock"] if MINOR >= 19 else []
             self.run(docker_python("-m", "pip_audit", "--disable-pip", "--no-deps", "-r", "backend/requirements.hashes.lock", *extra_locks,
                                   "-f", "json", "-o", "/evidence/python-audit.json", network="bridge"))
-            npm = shutil.which("npm.cmd") or shutil.which("npm")
-            self.run([npm, "audit", "--json"], cwd=ROOT / "frontend", output="npm-audit.json")
+            npm = list(pinned_node_tools()) if PYTHON_RELEASE else [shutil.which("npm.cmd") or shutil.which("npm")]
+            self.run([*npm, "audit", "--json"], cwd=ROOT / "frontend", output="npm-audit.json")
             sbom = Path(os.environ["LOCALAPPDATA"]) / "OpenBEXI/release-toolchain/docker-sbom-0.6.0-windows-amd64/docker-sbom.exe"
             rows = {}
             for name, image in IMAGES.items():

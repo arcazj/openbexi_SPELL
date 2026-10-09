@@ -8,7 +8,7 @@ import sys
 import tempfile
 
 from scripts.release_next import (
-    ARTIFACT, MINOR, PACKAGE, ROOT, fingerprint, git, require, sha,
+    ARTIFACT, MINOR, RELEASE_KEY, PACKAGE, ROOT, fingerprint, git, require, sha,
     validate_qualification, write_json,
 )
 
@@ -17,7 +17,7 @@ def main() -> None:
     require(not git("status", "--porcelain"), "reproducibility requires a clean evidence commit")
     qualification = validate_qualification()
     revision, source_fingerprint = git("rev-parse", "HEAD"), fingerprint()
-    evidence_root = ROOT / ".qualification" / f"v{MINOR}"
+    evidence_root = ROOT / ".qualification" / f"v{RELEASE_KEY}"
     evidence_root.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix="reproducibility-", dir=evidence_root)).resolve()
     require(staging.is_relative_to(evidence_root.resolve()), "export destination escaped workspace")

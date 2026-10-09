@@ -10,6 +10,12 @@ import pytest
 from scripts import release_next as release
 
 
+@pytest.fixture(autouse=True)
+def retained_minor_release_contract(monkeypatch):
+    """These inherited fixtures exercise the original minor-release contracts."""
+    monkeypatch.setattr(release, "PYTHON_RELEASE", False)
+
+
 @pytest.mark.parametrize("builder,tamper", [
     (None, None),
     ("bundle-builder-a", "mismatch"),

@@ -1,5 +1,20 @@
 # Test and Integration Plan
 
+## 2026-10-09 v0.19.1 Release Qualification
+
+The owner authorized full DSS qualification and publication of the isolated
+Python runtime/debugger. The separate v0.19.1 inventory covers all 12 procedure
+files, 956 procedure/reference identities and 32 independent scenarios. Its
+seven image inventories include the Python runner. Candidate/final test
+catalogs will be collected and frozen before qualification. Existing v0.19.0
+evidence and tags remain unchanged.
+
+Initial release-tool preflight passed 546 checks; corrected documentation
+inventory/preview checks passed all 18 cases. The entry gate passed eight
+requirements and revalidated eight exact reference inputs. These checks do
+not establish release acceptance; the canonical DSS, runtime, regression,
+browser, supply-chain and reproducible-package gates remain pending.
+
 ## 2026-10-08 Python Line Debugger
 
 The owner-authorized debugger covers the captured script's main thread, including

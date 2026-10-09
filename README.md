@@ -17,6 +17,8 @@ language and standard-library topics. It loads paused for setting source-line
 breakpoints, and supports Run, Step, Step over and Run to Line in the captured
 script's main thread. Enable `compose.python.yaml` to use it.
 This extension is separate from the accepted v0.19.0 release qualification.
+Its [v0.19.1 release qualification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Pre-Implementation.md)
+is in progress; acceptance and publication remain pending the full gates.
 
 ## Quick Start
 

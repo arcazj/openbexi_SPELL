@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.release_next import ROOT, POLICY, MINOR, junit, require, write_json
+from scripts.release_next import ROOT, POLICY, MINOR, PYTHON_RELEASE, junit, require, write_json
 from scripts.qualify_next import COMPOSE_TESTS
 
 
@@ -18,7 +18,7 @@ def main():
     config = json.loads((ROOT / POLICY).read_bytes())
     if MINOR >= 19:
         config["feature_browser_specs"] = sorted(set(config["feature_browser_specs"]) | {"dss-v19-real.spec.ts"})
-        config["browser_screenshots"] = 32
+        config["browser_screenshots"] = 34 if PYTHON_RELEASE else 32
     require(len({r["identity"] for r in rows}) == len(rows), "duplicate collection identity")
     def gate(selected, skipped=None):
         identities = sorted(r["identity"] for r in selected)
@@ -37,6 +37,8 @@ def main():
              "scripts.tests.test_dss_continuation::"))]
     docs = [r for r in rows if r["identity"].startswith(("scripts.tests.test_markdown_preview_v09::",
             "scripts.tests.test_documentation_tree_layout::"))]
+    if PYTHON_RELEASE:
+        tools += [r for r in rows if r["identity"].startswith("scripts.tests.test_release_v191::")]
     config["gates"]["sqlite"] = gate(backend + driver)
     config["gates"]["postgresql"] = gate(backend, compose)
     config["gates"]["tooling"] = gate(tools)
@@ -86,7 +88,10 @@ def main():
         config["candidate_files"] += dss_files
         prefixes += tuple(name[:-3].replace("/", ".") + "::" for name in dss_files)
         config["feature_browser_specs"] = sorted(set(config["feature_browser_specs"]) | {"dss-v19-real.spec.ts"})
-        config["browser_screenshots"] = 32
+        config["browser_screenshots"] = 34 if PYTHON_RELEASE else 32
+    if PYTHON_RELEASE:
+        config["candidate_files"] += ["backend/tests/test_native_python.py", "scripts/tests/test_release_v191.py"]
+        prefixes += ("backend.tests.test_native_python::", "scripts.tests.test_release_v191::")
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))
     if MINOR == 15:
         postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]

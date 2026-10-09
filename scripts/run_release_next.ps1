@@ -5,6 +5,9 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $toolchainFile = 'scripts/release-toolchain-next.json'
+if ((Get-Content (Join-Path $root 'pyproject.toml') -Raw) -match '(?m)^version = "0\.19\.1"$') {
+  $toolchainFile = 'scripts/release-toolchain-v191.json'
+}
 if ((Get-Content (Join-Path $root 'pyproject.toml') -Raw) -match '(?m)^version = "0\.19\.0"$') {
   $toolchainFile = 'scripts/release-toolchain-v19.json'
 }
