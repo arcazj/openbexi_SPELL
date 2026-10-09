@@ -6,8 +6,8 @@ The owner authorized full DSS qualification and publication of the isolated
 Python runtime/debugger. The separate v0.19.1 inventory covers all 12 procedure
 files, 956 procedure/reference identities and 32 independent scenarios. Its
 seven image inventories include the Python runner. Collected catalogs freeze
-1,415 candidate checks and final gates of 3,304 SQLite, 3,183 PostgreSQL,
-190 frontend, 34 browser, four Compose, 18 documentation and 606 tooling
+1,426 candidate checks and final gates of 3,304 SQLite, 3,183 PostgreSQL,
+190 frontend, 34 browser, four Compose, 18 documentation and 617 tooling
 identities before qualification. Existing v0.19.0
 evidence and tags remain unchanged.
 
@@ -76,8 +76,11 @@ Checksum-pinned signed zlib 1.3.2-r1 packages and lz4-java 1.11.4 replace the
 affected inputs. The expanded Kafka lock and actual installed-byte inventory
 retain exact size/hash/version and old-classpath checks. All seven image audits
 will precede the next source freeze and complete rerun.
-Original failed attempts remain retained. These source changes require a fresh
-catalog and complete rerun. The canonical DSS, runtime, regression,
+At `34a48e1`, all 56 patch-release/dependency preflight checks, seven installed
+image probes, dependency audits and seven image scans passed. Fresh collection
+recorded 5,002 pytest identities; a fresh browser catalog retains 34 identities.
+The frozen catalogs now bind the counts above. Original failed attempts remain
+retained. These source changes require a complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
 
 ## 2026-10-08 Python Line Debugger
