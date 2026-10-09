@@ -39,6 +39,17 @@ without rollback or delivery. Deterministic concurrent regression checks also
 preserve worker-epoch checks and strict unconditional transitions.
 The focused SQLite dispatch, worker-fencing and actual native runtime run
 passed all 91 checks. Fresh collection includes 4,991 identities.
+At `81105d3`, the 1,415-check candidate, both final database suites,
+190 frontend checks/build, all four Compose checks, 18 documentation checks,
+606 tooling checks, soaks and reference checks passed. Full DSS delivery passed
+all 956 identities and 32 scenarios, including the 261-check/39-topic Python
+procedure and the six-check core procedure. An initial Compose create/build
+failure did not recur in its full rerun; both attempts remain retained.
+The browser run passed 28 of 34 cases. All six failures were obsolete exact
+catalog assertions in two inherited specs: they expected ten entries instead
+of the twelve now including both Python procedures. Those assertions now retain
+exact identity/order checks, include both entries and verify their IR profiles.
+The corrected browser source requires a new committed qualification run.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.

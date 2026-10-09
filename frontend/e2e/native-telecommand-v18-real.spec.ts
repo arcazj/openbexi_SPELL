@@ -26,7 +26,7 @@ type CommandEvent = {
   };
 };
 
-const catalogIds = ["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"];
+const catalogIds = ["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "test_Python", "test_python_core", "tutorial_core_v18"];
 
 async function read<T>(page: Page, path: string): Promise<T> {
   return page.evaluate(async (url) => {
@@ -87,7 +87,7 @@ async function openWorkspace(page: Page, testInfo: TestInfo) {
   await ensureDssObservationReady(page);
   const catalog = await read<{ items: Array<{ id: string }> }>(page, "/api/v1/procedures");
   expect(catalog.items.map((item) => item.id)).toEqual(catalogIds);
-  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(10);
+  await expect(page.getByRole("listbox", { name: "Procedure catalog" }).getByRole("option")).toHaveCount(catalogIds.length);
 }
 
 async function capture(page: Page, testInfo: TestInfo, name: string, selector: string) {

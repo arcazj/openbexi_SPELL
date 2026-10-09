@@ -73,7 +73,11 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   const catalogResponse = await catalogPromise;
   expect(catalogResponse.status()).toBe(200);
   const catalog = await catalogResponse.json() as { items: Array<{ id: string; name: string; version: string; ir_version: string }> };
-  expect(catalog.items.map((item) => item.id)).toEqual(["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "tutorial_core_v18"]);
+  expect(catalog.items.map((item) => item.id)).toEqual(["dss_command_catalog_v19", "language_reference_244", "native_command_branch_v18", "native_command_default_v18", "observation_command_v19", "observation_decision_v19", "observation_wait_v19", "prompt_workflow_v17", "telecommand_modes_v18", "test_Python", "test_python_core", "tutorial_core_v18"]);
+  expect(catalog.items.find((item) => item.id === "test_Python"))
+    .toEqual(expect.objectContaining({ ir_version: "python/1" }));
+  expect(catalog.items.find((item) => item.id === "test_python_core"))
+    .toEqual(expect.objectContaining({ ir_version: "0.19" }));
   expect(catalog.items.find((item) => item.id === "dss_command_catalog_v19"))
     .toEqual(expect.objectContaining({ ir_version: "0.11" }));
   const reference = catalog.items.find((item) => item.id === "language_reference_244");
