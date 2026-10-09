@@ -19,7 +19,15 @@ actual desktop/mobile Python debugger checks passed. Both additional DSS
 procedure preflights passed: Test Python completed 261 checks/39 topics and
 Test Python Core completed all six checks. Initial public-response shape
 assumptions in the release oracle were corrected; original captures/logs are
-retained under `.qualification/v19.1/preflight/`. The canonical DSS, runtime, regression,
+retained under `.qualification/v19.1/preflight/`. The first candidate attempt
+exposed a harness ownership mismatch: root-created private protocol files were
+correctly unreadable by the runner's backend identity. Using UID/GID 10001 for
+the native test writer resolved it; all 51 native tests and the 1,399-check
+candidate rerun passed. The first SQLite attempt then found an obsolete worker
+signature assertion. It now checks the separate nullable Python configuration
+and proves that only request/response directory paths cross that boundary.
+Original failed attempts remain retained. These source changes require a fresh
+catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
 
 ## 2026-10-08 Python Line Debugger

@@ -280,12 +280,15 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
         "durable_arguments",
         "safe_point_ack_required",
         "dss_language_enabled",
+        "python_runtime_configuration",
     }
-    assert worker_main.args.args[-1].arg == "dss_language_enabled"
-    assert isinstance(worker_main.args.args[-1].annotation, ast.Name)
-    assert worker_main.args.args[-1].annotation.id == "bool"
+    assert worker_arguments[-2:] == ["dss_language_enabled", "python_runtime_configuration"]
+    assert isinstance(worker_main.args.args[-2].annotation, ast.Name)
+    assert worker_main.args.args[-2].annotation.id == "bool"
+    assert isinstance(worker_main.args.defaults[-2], ast.Constant)
+    assert worker_main.args.defaults[-2].value is False
     assert isinstance(worker_main.args.defaults[-1], ast.Constant)
-    assert worker_main.args.defaults[-1].value is False
+    assert worker_main.args.defaults[-1].value is None
     assert not any(
         marker in argument.lower()
         for argument in worker_arguments
@@ -311,7 +314,27 @@ def test_spawned_worker_has_no_driver_product_call_path_or_credential_argument()
     expected_dss_flag = ast.parse(
         'getattr(self, "dss_runtime", None) is not None', mode="eval"
     ).body
-    assert ast.dump(keywords["args"].elts[-1]) == ast.dump(expected_dss_flag)
+    assert ast.dump(keywords["args"].elts[-2]) == ast.dump(expected_dss_flag)
+    expected_python_configuration = ast.parse(
+        'getattr(self, "python_runtime_configuration", None)', mode="eval"
+    ).body
+    assert ast.dump(keywords["args"].elts[-1]) == ast.dump(expected_python_configuration)
+    app_tree = ast.parse((ROOT / "backend/app.py").read_text(encoding="utf-8"))
+    [python_configuration] = [
+        node.value for node in ast.walk(app_tree)
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Attribute) and target.attr == "python_runtime_configuration"
+            for target in node.targets
+        )
+    ]
+    assert isinstance(python_configuration, ast.IfExp)
+    assert isinstance(python_configuration.orelse, ast.Constant)
+    assert python_configuration.orelse.value is None
+    expected_directories = ast.parse(
+        '{"requests": str(settings.python_request_directory), '
+        '"responses": str(settings.python_response_directory)}', mode="eval"
+    ).body
+    assert ast.dump(python_configuration.body) == ast.dump(expected_directories)
     process_arguments = [
         item.id for item in keywords["args"].elts if isinstance(item, ast.Name)
     ]
