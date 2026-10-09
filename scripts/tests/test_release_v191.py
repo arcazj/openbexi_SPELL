@@ -11,6 +11,32 @@ from scripts.qualify_dss_v191 import build_manifest, scenario_definitions
 from scripts.validate_dss_delivery import load_manifest, source_inventory, _release_minor
 
 
+_RUNNER_CAPABILITIES = ["CHOWN", "DAC_OVERRIDE", "KILL", "SETGID", "SETUID", "SYS_CHROOT"]
+
+
+@pytest.mark.parametrize("capabilities", [
+    _RUNNER_CAPABILITIES,
+    ["CAP_" + value for value in _RUNNER_CAPABILITIES],
+    ["CAP_" + value if index % 2 else value for index, value in enumerate(_RUNNER_CAPABILITIES)],
+])
+def test_python_runner_capability_probe_accepts_docker_names_and_cli_aliases(capabilities):
+    from scripts.probe_images_next import verify_python_runtime_capabilities
+    verify_python_runtime_capabilities(capabilities)
+
+
+@pytest.mark.parametrize("capabilities", [
+    None, [], "CAP_CHOWN", _RUNNER_CAPABILITIES[:-1],
+    _RUNNER_CAPABILITIES + ["CAP_SYS_ADMIN"],
+    _RUNNER_CAPABILITIES + ["CAP_CHOWN"],
+    ["cap_CHOWN", *_RUNNER_CAPABILITIES[1:]],
+    [123, *_RUNNER_CAPABILITIES[1:]],
+])
+def test_python_runner_capability_probe_rejects_incomplete_expanded_or_ambiguous_boundaries(capabilities):
+    from scripts.probe_images_next import verify_python_runtime_capabilities
+    with pytest.raises(AssertionError):
+        verify_python_runtime_capabilities(capabilities)
+
+
 @pytest.mark.parametrize("tamper", [None, "schema", "owner", "scope", "requirements", "predecessor", "authority", "dss", "references", "source"])
 def test_patch_entry_rechecks_authority_predecessor_and_reference_bytes(tmp_path, monkeypatch, tamper):
     references = [{"path":"manual.pdf", "sha256":hashlib.sha256(b"reference").hexdigest()}]

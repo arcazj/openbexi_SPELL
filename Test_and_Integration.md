@@ -61,6 +61,16 @@ These asynchronous readiness assertions now use the existing 20-second bound;
 identity, authority, confirmation, command counts and packet checks remain exact.
 The resulting full browser preflight passed all 34 cases. Fresh collection again
 recorded 4,991 identities and reproduced the exact frozen gate catalogs above.
+At `a129a50`, the candidate passed all 1,415 checks, all seven final test suites
+passed 7,294 executions with 45 resolved environment selections, and fresh DSS
+delivery passed all 956 identities and 32 scenarios. The native Python and Core
+procedures completed 261 checks/39 topics and six checks respectively. The image
+probe then rejected Docker's `CAP_` capability names because it expected CLI
+aliases. Actual inspection confirmed the exact six approved capabilities and
+all existing runtime bounds. The probe now normalizes this naming representation
+and still rejects missing, duplicate, malformed or extra capabilities. Eleven
+regression checks cover these boundaries. Image and supply-chain preflight will
+precede the next source freeze and complete rerun.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.

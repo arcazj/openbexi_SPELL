@@ -11,6 +11,14 @@ def call(*args):
     return subprocess.check_output(["docker", *args], stderr=subprocess.PIPE).decode()
 
 
+def verify_python_runtime_capabilities(capabilities):
+    """Accept Docker's CAP_ names and CLI aliases for the same exact boundary."""
+    assert type(capabilities) is list and all(type(value) is str for value in capabilities)
+    names = {value.removeprefix("CAP_") for value in capabilities}
+    expected = {"CHOWN", "DAC_OVERRIDE", "SETUID", "SETGID", "SYS_CHROOT", "KILL"}
+    assert names == expected and len(capabilities) == len(expected)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
@@ -150,7 +158,7 @@ def main():
             assert ports == {"8080/tcp": [{"HostIp": "127.0.0.1", "HostPort": "8080"}]}
         if service == "python-runtime":
             assert host["NetworkMode"] == "none" and info["Config"]["User"] == "0:0"
-            assert set(host["CapAdd"]) == {"CHOWN", "DAC_OVERRIDE", "SETUID", "SETGID", "SYS_CHROOT", "KILL"}
+            verify_python_runtime_capabilities(host["CapAdd"])
             assert host["Memory"] == 512 * 1024 * 1024 and host["PidsLimit"] == 64
         elif service.startswith("bundle-builder"):
             assert host["NetworkMode"] == "none"
