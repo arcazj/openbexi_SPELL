@@ -347,6 +347,11 @@ def create_linux_pytest_evidence(gate, source):
     call('volume', 'create', '--label', 'openbexi.qualification.evidence='+marker,
          '--label', 'openbexi.qualification.source='+source, evidence['volume'])
     require_pytest_evidence_owner(json.loads(call('volume', 'inspect', evidence['volume']))[0], evidence)
+    if PYTHON_RELEASE and gate in {'candidate', 'sqlite', 'postgresql'}:
+        # The runner reads private protocol frames as the backend identity.
+        # Its test writer must use that same identity, including report storage.
+        call('run', '--rm', '--network', 'none', '-v', evidence['volume']+':/evidence',
+             '--entrypoint', 'python', QUALIFIER, '-c', 'import os;os.chown("/evidence",10001,10001)')
     write_json(OUT/(gate+'.pytest-evidence.json'), evidence)
     return evidence
 
@@ -531,7 +536,8 @@ def compose(*args):
 def python_test_mounts():
     if not PYTHON_RELEASE:
         return []
-    return ["-v", PROJECT + "_spell-python-requests:/python-requests",
+    return ["--user", "10001:10001", "-e", "HOME=/tmp",
+            "-v", PROJECT + "_spell-python-requests:/python-requests",
             "-v", PROJECT + "_spell-python-responses:/python-responses",
             "-e", "SPELL_TEST_PYTHON_REQUEST_DIR=/python-requests",
             "-e", "SPELL_TEST_PYTHON_RESPONSE_DIR=/python-responses",

@@ -14,5 +14,7 @@ RUN python -m pip install --require-hashes -r /tmp/backend.lock -r /tmp/pki.lock
 WORKDIR /workspace
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/ /usr/local/libexec/docker/cli-plugins/
-RUN git config --global --add safe.directory /workspace
+RUN groupadd --gid 10001 spell-qualifier \
+    && useradd --uid 10001 --gid 10001 --no-create-home spell-qualifier \
+    && git config --system --add safe.directory /workspace
 ENTRYPOINT ["python"]
