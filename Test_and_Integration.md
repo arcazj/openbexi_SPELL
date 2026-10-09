@@ -31,7 +31,13 @@ The rerun at `9f36632` passed 3,247 SQLite checks with 41 expected skips,
 200 ms output assumption in the native pause/resume test: the child had not
 printed its first line. The test now proves execution before pausing and waits
 up to five seconds for observable resumed output; its stopped-output and abort
-assertions remain. Original failed attempts remain retained. These source changes require a fresh
+assertions remain. The next candidate run exposed a runtime race: background
+safe-point application could advance an accepted operator command before the
+API's immediate dispatch attempted to mark it waiting. That transition now
+compares its expected durable state atomically and returns an advanced command
+without rollback or delivery. Deterministic concurrent regression checks also
+preserve worker-epoch checks and strict unconditional transitions.
+Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
 

@@ -90,8 +90,8 @@ def main():
         config["feature_browser_specs"] = sorted(set(config["feature_browser_specs"]) | {"dss-v19-real.spec.ts"})
         config["browser_screenshots"] = 34 if PYTHON_RELEASE else 32
     if PYTHON_RELEASE:
-        config["candidate_files"] += ["backend/tests/test_native_python.py", "scripts/tests/test_release_v191.py"]
-        prefixes += ("backend.tests.test_native_python::", "scripts.tests.test_release_v191::")
+        config["candidate_files"] += ["backend/tests/test_native_python.py", "backend/tests/test_operator_dispatch_race.py", "scripts/tests/test_release_v191.py"]
+        prefixes += ("backend.tests.test_native_python::", "backend.tests.test_operator_dispatch_race::", "scripts.tests.test_release_v191::")
     config["candidate_identities"] = sorted(r["identity"] for r in rows if r["identity"].startswith(prefixes))
     if MINOR == 15:
         postgres_only = [f"backend.tests.test_shadow_pilot_v15::test_postgresql_prior_upgrade_failure_and_repeat[{value}]" for value in ("False", "True")]

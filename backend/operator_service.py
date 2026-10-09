@@ -3241,11 +3241,14 @@ class OperatorService:
         effect_certainty: str | None = None,
         legacy_command_id: str | None = None,
         worker_generation: int | None = None,
+        expected_state: str | None = None,
     ) -> dict[str, Any]:
         command_id = _identifier(command_id, "command_id")
         state = _identifier(state.upper(), "state")
         if state not in _COMMAND_TRANSITIONS:
             raise OperatorValidationError("operator command state is invalid")
+        if expected_state is not None and expected_state not in _COMMAND_TRANSITIONS:
+            raise OperatorValidationError("expected operator command state is invalid")
         if effect_certainty is not None and effect_certainty not in {
             "NO_EFFECT",
             "EFFECT_CONFIRMED",
@@ -3267,6 +3270,12 @@ class OperatorService:
             command = session.get(OperatorCommand, command_id, with_for_update=True)
             if command is None:
                 raise OperatorNotFoundError("operator command not found")
+            # A stale dispatch snapshot must not roll back an application or
+            # settlement committed by the background safe-point dispatcher.
+            # Compare under the same lock/transaction as the state mutation,
+            # after checking the worker epoch even when no mutation is needed.
+            if expected_state is not None and command.state != expected_state:
+                return command_dict(command)
             if command.state == state:
                 return command_dict(command)
             if state not in _COMMAND_TRANSITIONS[command.state]:

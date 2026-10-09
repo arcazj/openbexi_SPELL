@@ -1516,8 +1516,10 @@ class Supervisor:
         if command_type in {"RELOAD", "RECOVER"}:
             return self._apply_successor_operator_command(command)
         command = service.transition_operator_command(
-            command_id, "WAITING_SAFE_POINT"
+            command_id, "WAITING_SAFE_POINT", expected_state="ACCEPTED"
         )
+        if command.get("state") != "WAITING_SAFE_POINT":
+            return command
         lifecycle_claimed = False
 
         def apply_without_worker() -> dict[str, Any]:
