@@ -38,6 +38,10 @@ def main():
                      or Path(value).name in {".env", "credentials.json", "secrets.json"}]
         assert not forbidden, (name, forbidden)
         row = {"image_id": identity["Id"], "user": identity["Config"]["User"], "product_files": len(files), "forbidden_files": []}
+        if name in {"frontend", "proxy"}:
+            row["zlib_package"] = call("run", "--rm", "--network", "none", "--entrypoint", "apk", image,
+                                       "list", "--installed", "zlib").split()[0]
+            assert row["zlib_package"] == "zlib-1.3.2-r1"
         if name in {"backend", "driver", "dss", "python"}:
             code = (Path(__file__).with_name("gcc_header_applicability.py")).read_text()
             row["gcc_header_applicability"] = json.loads(call("run", "--rm", "--network", "none", "--entrypoint", "python", image, "-c", code))

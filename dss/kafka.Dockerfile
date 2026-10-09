@@ -5,6 +5,7 @@ ADD --checksum=sha256:b5ad11f5955b3b7ddfd8c32e8c1fdd79878d208bb4dfa9bbd8f35ddc59
 ADD --checksum=sha256:80332be2dcd7a9a0408a1eeca8efd4b66adf8f79d1e99d7022d3be4a34433c4a https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/openssl-3.5.9-r0.apk /apks/openssl-3.5.9-r0.apk
 ADD --checksum=sha256:5216046085b92da88a6b107dbbb558f69d49c347a6335291fcf199ebd1670a8f https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/libexpat-2.8.5-r0.apk /apks/libexpat-2.8.5-r0.apk
 ADD --checksum=sha256:414be12c879052f4614a42a10fc12af67a88ba49e8e1e33f78cd9ddbbdb13fee https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/sqlite-libs-3.53.4-r0.apk /apks/sqlite-libs-3.53.4-r0.apk
+ADD --checksum=sha256:ee62e1864c235901e2aa4d1868c7ae8f7cc5d0740a98c48a2525332eb4bfda73 https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/zlib-1.3.2-r1.apk /apks/zlib-1.3.2-r1.apk
 ADD --checksum=sha256:8c5623b98f32d5f7e1287ff61ed50e08ab7b11381e991fff89327faabba42261 https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.21.7/jackson-core-2.21.7.jar /jars/jackson-core-2.21.7.jar
 ADD --checksum=sha256:1290c2795e93e8a6861a6c4d9ff0d844d32f5ea178362cb2721edf5561e828b1 https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.21.7/jackson-databind-2.21.7.jar /jars/jackson-databind-2.21.7.jar
 ADD --checksum=sha256:df2b3e6a194181dc067b7211d750926b4ae9e4f3c892a0005b8219a9b59be681 https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.21.7/jackson-dataformat-yaml-2.21.7.jar /jars/jackson-dataformat-yaml-2.21.7.jar
@@ -25,6 +26,7 @@ ADD --checksum=sha256:f0eb8d1e71d67d0f937c45752546cf479ba55ad3135cf600d3bf723f52
 ADD --checksum=sha256:b191d45e3c48711cc784d509a8dec50112816af392b2b7c76d9e42324b5064da https://repo.maven.apache.org/maven2/org/eclipse/jetty/jetty-io/12.0.36/jetty-io-12.0.36.jar /jars/jetty-io-12.0.36.jar
 ADD --checksum=sha256:e4bc43fbe7ddb1f7658a935b9ad0329d9cf4eae446533bfed7822e6183fe933e https://repo.maven.apache.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlets/12.0.36/jetty-ee10-servlets-12.0.36.jar /jars/jetty-ee10-servlets-12.0.36.jar
 ADD --checksum=sha256:64d42fc2e1c3fd6b7e7a77c1165626bce3a52ef3ed89a7cf00163d11b42201c8 https://repo.maven.apache.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlet/12.0.36/jetty-ee10-servlet-12.0.36.jar /jars/jetty-ee10-servlet-12.0.36.jar
+ADD --checksum=sha256:58c8e0b813960d2a248e050c353baea73139b48a2ffc55382d42c69707e17325 https://repo.maven.apache.org/maven2/at/yawk/lz4/lz4-java/1.11.4/lz4-java-1.11.4.jar /jars/lz4-java-1.11.4.jar
 
 FROM apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837 AS secured-runtime
 ARG SPELL_PACKAGE_VERSION=0.19.0
@@ -55,6 +57,7 @@ RUN apk add --no-cache --no-network /tmp/security-updates/*.apk \
         /opt/kafka/libs/jetty-io-12.0.34.jar \
         /opt/kafka/libs/jetty-ee10-servlets-12.0.34.jar \
         /opt/kafka/libs/jetty-ee10-servlet-12.0.34.jar \
+        /opt/kafka/libs/lz4-java-1.10.2.jar \
     && mkdir -p /var/lib/kafka/data /usr/local/share/openbexi \
     && chown 1000:1000 /var/lib/kafka/data
 COPY --chmod=0644 --from=security-inputs /jars/ /opt/kafka/libs/

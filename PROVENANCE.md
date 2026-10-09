@@ -1,5 +1,28 @@
 # SPELL Release Provenance and Dependency Review
 
+## v0.19.1 Security Inputs Pending Final Qualification
+
+The image preflight found High advisories CVE-2026-85091 in the Alpine zlib
+package and CVE-2026-106451 in Kafka's lz4-java dependency. The frontend build
+and delivered frontend image use Alpine 3.24 zlib 1.3.2-r1 (56,210 bytes,
+SHA-256 `63aeea03c15a2f9018f81805cfc8aa926bdf5cd68921f22149c2fbb5d0ee9f47`).
+The proxy and Kafka use Alpine 3.23 zlib 1.3.2-r1 (56,205 bytes, SHA-256
+`ee62e1864c235901e2aa4d1868c7ae8f7cc5d0740a98c48a2525332eb4bfda73`).
+Docker downloads these signed vendor APKs from the exact Alpine CDN coordinates
+with checksum verification; apk installs them offline and verifies signatures.
+The delivered-image probe requires the installed fixed zlib version.
+
+The [Kafka dependency lock](contracts/dss/kafka_dependency_lock.json) also
+pins lz4-java 1.11.4 from Maven Central (899,910 bytes, SHA-256
+`58c8e0b813960d2a248e050c353baea73139b48a2ffc55382d42c69707e17325`).
+The [vendor advisory](https://github.com/yawkat/lz4-java/security/advisories/GHSA-mcr4-qmvw-px4g)
+identifies that version as the fix. The generated Kafka image removes the old
+1.10.2 JAR before copying its secured filesystem into a fresh final image.
+The installed inventory checks the lock bytes, each JAR's size and hash,
+absence of old or duplicate family members, and every locked APK version.
+All seven image audits and the complete source-bound release run remain
+required before acceptance. No broad advisory exception is introduced.
+
 ## Accepted v0.19 Release
 
 The observation-to-command and DSS increment passed clean-tag validation and was published. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds its qualified source, package, six image audits and hash-bound binary transport evidence. Original manuals and legacy code remain read-only and excluded from product images and packages.

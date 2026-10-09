@@ -42,10 +42,10 @@ def generated(root=ROOT):
         folder="apks" if row["kind"]=="APK" else "jars"
         lines.append(f"ADD --checksum=sha256:{row['sha256']} {row['url']} /{folder}/{name}")
     jars=[row for row in lock["artifacts"] if row["kind"]=="MAVEN"]
-    if len(jars)!=20 or len(lock["artifacts"])!=25:
+    if len(jars)!=21 or len(lock["artifacts"])!=27:
         raise ValueError("Kafka patched dependency inventory differs")
     old=[f"/opt/kafka/libs/{row['name']}-" + ("2.21.2" if row['name'].startswith('jackson-') else
-          "3.30.4" if row['name']=='jline' else "12.0.34") + ".jar" for row in jars]
+          "3.30.4" if row['name']=='jline' else "1.10.2" if row['name']=='lz4-java' else "12.0.34") + ".jar" for row in jars]
     lines += ["", "FROM " + lock["base"] + " AS secured-runtime", "ARG SPELL_PACKAGE_VERSION=0.19.0",
         'LABEL org.openbexi.spell.component="kafka" \\',
         '      org.openbexi.spell.scope="local-satellite-simulator" \\',

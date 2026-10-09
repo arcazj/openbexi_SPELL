@@ -69,8 +69,13 @@ probe then rejected Docker's `CAP_` capability names because it expected CLI
 aliases. Actual inspection confirmed the exact six approved capabilities and
 all existing runtime bounds. The probe now normalizes this naming representation
 and still rejects missing, duplicate, malformed or extra capabilities. Eleven
-regression checks cover these boundaries. Image and supply-chain preflight will
-precede the next source freeze and complete rerun.
+regression checks cover these boundaries. The corrected image preflight passed
+at `71021f6`; supply-chain preflight then found High CVE-2026-85091 in Alpine
+zlib (frontend, proxy and Kafka) and CVE-2026-106451 in Kafka lz4-java.
+Checksum-pinned signed zlib 1.3.2-r1 packages and lz4-java 1.11.4 replace the
+affected inputs. The expanded Kafka lock and actual installed-byte inventory
+retain exact size/hash/version and old-classpath checks. All seven image audits
+will precede the next source freeze and complete rerun.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.

@@ -129,7 +129,7 @@ def test_kafka_recipe_matches_lock_and_removes_old_layers():
     recipe = generated()
     assert recipe == (release.ROOT / "dss/kafka.Dockerfile").read_bytes()
     assert b"FROM scratch\nCOPY --from=secured-runtime / /" in recipe
-    assert recipe.count(b"ADD --checksum=sha256:") == 25
+    assert recipe.count(b"ADD --checksum=sha256:") == 27
 
 
 @pytest.mark.parametrize("mutation", ["coordinate", "origin", "checksum", "missing"])
