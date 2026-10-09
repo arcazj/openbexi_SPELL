@@ -5,14 +5,21 @@
 The owner authorized full DSS qualification and publication of the isolated
 Python runtime/debugger. The separate v0.19.1 inventory covers all 12 procedure
 files, 956 procedure/reference identities and 32 independent scenarios. Its
-seven image inventories include the Python runner. Candidate/final test
-catalogs will be collected and frozen before qualification. Existing v0.19.0
+seven image inventories include the Python runner. Collected catalogs freeze
+1,399 candidate checks and final gates of 3,288 SQLite, 3,167 PostgreSQL,
+190 frontend, 34 browser, four Compose, 18 documentation and 606 tooling
+identities before qualification. Existing v0.19.0
 evidence and tags remain unchanged.
 
 Initial release-tool preflight passed 546 checks; corrected documentation
 inventory/preview checks passed all 18 cases. The entry gate passed eight
 requirements and revalidated eight exact reference inputs. These checks do
-not establish release acceptance; the canonical DSS, runtime, regression,
+not establish release acceptance. The new oracle's 22 regression checks and
+actual desktop/mobile Python debugger checks passed. Both additional DSS
+procedure preflights passed: Test Python completed 261 checks/39 topics and
+Test Python Core completed all six checks. Initial public-response shape
+assumptions in the release oracle were corrected; original captures/logs are
+retained under `.qualification/v19.1/preflight/`. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
 
 ## 2026-10-08 Python Line Debugger

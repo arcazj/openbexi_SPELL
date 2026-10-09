@@ -82,3 +82,29 @@ def test_patch_inventory_includes_every_python_file_and_retains_all_reference_ca
 @pytest.mark.parametrize("version", ["v0.19.2", "v0.20.1", "v0.19", "0.19.1"])
 def test_unreviewed_patch_release_cannot_borrow_dss_contract(version):
     with pytest.raises(ValueError): _release_minor(version)
+
+
+@pytest.mark.parametrize("tamper", [None, "procedure-profile", "tc-stage", "duplicate-checkpoint"])
+def test_native_dss_oracle_uses_public_metadata_and_accepts_decoded_telemetry(monkeypatch, tamper):
+    from scripts import validate_dss_delivery as validator
+    definition = next(row for row in scenario_definitions() if row["id"] == "native-python-full")
+    expected = definition["expected"]
+    events = [{"event_type":"step.completed", "payload":{}},
+              {"event_type":"procedure.python_paused", "payload":{"reason":"entry", "source_sha256":"a"*64}}]
+    events += [{"event_type":"procedure.log", "payload":{"message":"runtime output"}} for _ in range(344)]
+    events.append({"event_type":"procedure.log", "payload":{"message":expected["summary"][0]}})
+    # The execution snapshot deliberately has no ir_version; the public procedure does.
+    capture = {"execution":{"state":"completed", "current_step":1, "variables":deepcopy(expected["variables"]), "procedure_hash":"a"*64},
+        "procedure":{"ir_version":"python/1"}, "events":events, "typed_prompts":[],
+        "operator_audit":[{"event_type":"operator.command_settled"}], "initial_dss_state":{},
+        "dss":{"scenario_id":"native-test", "epoch":"test-epoch", "faults":{}}}
+    counts = {"tc_stages":0, "executed_commands":0, "loaded_unexecuted_commands":0, "decoded_packets":14}
+    monkeypatch.setattr(validator, "validate_execution_spec", lambda *args: None)
+    monkeypatch.setattr(validator, "validate_transport_capture", lambda *args, **kwargs: counts)
+    if tamper == "procedure-profile": capture["procedure"]["ir_version"] = "0.19"
+    elif tamper == "tc-stage": counts["tc_stages"] = 1
+    elif tamper == "duplicate-checkpoint": events.append(events[0])
+    if tamper:
+        with pytest.raises(ValueError): validator.observed_python_procedure(capture, definition)
+    else:
+        assert validator.observed_python_procedure(capture, definition) == expected

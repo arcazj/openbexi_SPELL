@@ -778,7 +778,7 @@ def observed_python_procedure(capture: dict, definition: dict) -> dict:
     require(capture["typed_prompts"] == [], "native Python unexpectedly presented a service prompt")
     commands = [row for row in capture["operator_audit"] if row["event_type"] == "operator.command_settled"]
     require(len(commands) == 1, "Python Run has no unique durable command settlement")
-    require(execution["ir_version"] == "python/1" and execution["current_step"] == 1
+    require(capture["procedure"]["ir_version"] == "python/1" and execution["current_step"] == 1
             and variables.get("python_completed") is True and variables.get("python_exit_code") == 0,
             "Python success checkpoint differs")
     require(len([row for row in events if row["event_type"] == "step.completed"]) == 1
@@ -788,7 +788,8 @@ def observed_python_procedure(capture: dict, definition: dict) -> dict:
     require(len(pauses) == 1 and pauses[0].get("reason") == "entry"
             and pauses[0].get("source_sha256") == execution["procedure_hash"], "Python entry/source binding differs")
     counts = validate_transport_capture(capture, scenario_id=capture["dss"]["scenario_id"], epoch=capture["dss"]["epoch"])
-    require(counts == {"executed_commands": 0, "loaded_unexecuted_commands": 0}, "native Python dispatched a spacecraft command")
+    require(counts["tc_stages"] == counts["executed_commands"] == counts["loaded_unexecuted_commands"] == 0,
+            "native Python dispatched a spacecraft command")
     summaries = [line for line in logs if line.startswith("All runtime checks passed:")]
     return {"terminal": execution["state"], "variables": {key:variables[key] for key in definition["expected"]["variables"]},
             "summary": summaries, "stdout_lines": len(logs), "stderr_lines": variables.get("python_stderr_lines"),
