@@ -59,6 +59,8 @@ prompt after 9.49 seconds. A focused diagnostic passed all four desktop/mobile
 cases with the original assertions and confirmed the same operator after reload.
 These asynchronous readiness assertions now use the existing 20-second bound;
 identity, authority, confirmation, command counts and packet checks remain exact.
+The resulting full browser preflight passed all 34 cases. Fresh collection again
+recorded 4,991 identities and reproduced the exact frozen gate catalogs above.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
