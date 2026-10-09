@@ -1,0 +1,11 @@
+{
+  "command_sha256": "ed71dc5541454f6d7eb719fa908a286c618d7d249c47c31663dab879db8753a5",
+  "decision": "PASS",
+  "evidence_sha256": "b136fd0b02063e1214adb9cb9b0e7d20b45f170398e6deeb03ac8f0491c2ca2a",
+  "profile": "LOCAL_SIMULATOR_PYTHON_RUNTIME_AND_DEBUGGER",
+  "release_tag": "v0.19.1",
+  "schema_version": "spell.candidate-gate/1",
+  "source_commit": "8fbd50cb894c9f5b8c75e120415cd015de7b4051",
+  "source_fingerprint": "82a76b956dd4ec948b83b81d2e0dd55bdbdf1851b20d84494096f6e42867b9a6",
+  "tests": 1426
+}
