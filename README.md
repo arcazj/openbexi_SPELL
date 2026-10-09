@@ -50,7 +50,7 @@ Invoke-RestMethod http://127.0.0.1:8080/api/v1/health
 
 Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). The local profile connects
 as a simulator operator automatically; no Session access screen or pasted token
-is needed. Health reports `0.19.0`, `simulator-only` and
+is needed. The current source build reports `0.19.1`, `simulator-only` and
 `operational_use: false`. Keep `.env` private and untracked.
 
 DSS starts paused. The RESUME command starts its fixed-tick dynamics; you can also
