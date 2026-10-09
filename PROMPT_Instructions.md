@@ -1,5 +1,10 @@
 # OpenBEXI SPELL Project Instructions
 
+## 2026-10-09 - v0.19.1 Accepted
+
+The authorized Python runtime/debugger release is accepted and published. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) binds its evidence. Preserve its isolated execution, source-bound main-thread debugger, durable authority and no-resend recovery. The next v0.20 milestone remains planned; full SPELL 2.4.4 compatibility and operational authorization remain outside this local simulator profile.
+
+
 ## 2026-10-09 - v0.19.1 Release Authorized
 
 The owner authorized full qualification and publication of the Python runtime
@@ -209,7 +214,7 @@ as operational qualification.
 
 ## Accepted Baseline And Active Worktree
 
-SPELL v0.19.0 is the accepted local simulator baseline; v0.18.0 is its predecessor. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds its exact tag, qualified source, evidence and package. Validate the clean tagged checkout with `scripts/release_next.py validate --require-tag`. Documentation closeout does not retarget immutable releases or replace their evidence.
+SPELL v0.19.1 is the accepted local simulator baseline; v0.19.0 is its predecessor. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) binds its exact tag, qualified source, evidence and package. Validate the clean tagged checkout with `scripts/release_next.py validate --require-tag`. Documentation closeout does not retarget immutable releases or replace their evidence.
 
 SPELL v0.11.0 is a historical product baseline. Annotated tag object
 `eb9e95f357bda3e505035e6f0f54ef5fb164a6c5` peels to release commit
@@ -519,10 +524,11 @@ Core and GUI legacy versions remain independent version series.
    archive and sidecar, and amend the transient commit so only the amended
    object is eligible as the release commit. Never tag, publish, or describe the
    transient object as a release.
-8. On the clean complete release commit, run
-   `scripts/validate_release_evidence_v09.py` before tagging, create the
-   requested annotated semantic-version tag, then rerun that validator with
-   `--require-tag`. Keep prior history and accepted evidence immutable.
+8. On the clean complete release commit, run the active version's strict
+   validator before tagging (for v0.19.1, `scripts/release_next.py validate`),
+   create the requested annotated semantic-version tag, then independently
+   validate its clean checkout with `--require-tag`. Historical releases use
+   their own committed validators. Keep prior history and evidence immutable.
 9. When the release includes a web application, start the verified local stack
    and leave it running on its documented loopback URL after acceptance.
 

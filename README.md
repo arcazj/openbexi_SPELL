@@ -4,7 +4,7 @@ OpenBEXI SPELL is a local simulator for developing and executing bounded
 satellite procedures, with a Python control plane, isolated workers,
 PostgreSQL storage and a compact web operator workspace.
 
-**v0.19.0 is accepted and published** for bounded observation-to-command workflows, aligned authoring and the Docker DSS with binary CCSDS/Kafka command and telemetry transport. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) binds its scope, limits and qualification; v0.18.0 is its accepted predecessor.
+**v0.19.1 is accepted and published** with the isolated Python runtime, source-line debugger and inherited observation-to-command workflows, authoring and Docker DSS. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) binds its scope and qualification; v0.19.0 is its accepted predecessor.
 
 Every document under `SPELL_DOCUMENTATION/` is a required source reference for
 future SPELL work. Derived specifications cannot silently replace its behavior.
@@ -16,9 +16,7 @@ runs the updated `test_Python.py` directly from the executor, including its 39
 language and standard-library topics. It loads paused for setting source-line
 breakpoints, and supports Run, Step, Step over and Run to Line in the captured
 script's main thread. Enable `compose.python.yaml` to use it.
-This extension is separate from the accepted v0.19.0 release qualification.
-Its [v0.19.1 release qualification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Pre-Implementation.md)
-is in progress; acceptance and publication remain pending the full gates.
+It is qualified in the [v0.19.1 release](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding). The [published package](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.1) and its four verified assets retain the exact accepted source and evidence.
 
 ## Quick Start
 

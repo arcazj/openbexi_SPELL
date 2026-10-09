@@ -1,6 +1,6 @@
 # OpenBEXI SPELL Project Roadmap
 
-Updated 2026-10-06. **v0.19.0 is accepted and published.** This roadmap covers the remaining work through a complete **v1.0.0 local simulator**, followed by the additional gates for a connected deployment if that scope is selected.
+Updated 2026-10-09. **v0.19.1 is accepted and published.** This roadmap covers the remaining work through a complete **v1.0.0 local simulator**, followed by the additional gates for a connected deployment if that scope is selected.
 
 Future versions are **planning targets**, not delivered features or guaranteed
 dates. A milestone may require several releases. Update its scope and target
@@ -11,16 +11,17 @@ is valid before its acceptance gate passes.
 
 ## Current Baseline
 
-| Item | Accepted v0.19.0 baseline |
+| Item | Accepted v0.19.1 baseline |
 | --- | --- |
 | Procedure execution | Bounded GetTM/Verify/WaitFor combine with native core language, Prompt/Display and literal BuildTC/Send through the shared-database Docker DSS and binary CCSDS/Kafka transport; other service profiles remain separately bounded. |
 | Operator UI | Compact GUI-manual workspace, automatic local connection at `http://127.0.0.1:8080/`, execution views and durable operator controls. |
 | Development | Explicit v0.19 authoring profile supports checks, immutable builds, separate review, promotion and execution; legacy authoring remains supported. |
 | Language evidence | 148 cases: 112 direct-source checks and 36 expected rejections; 195 adaptations retain 257 variants. |
 | Remaining coverage | 763 inventory entries: 195 ADAPTED, 79 PARTIAL and 489 GAP. A GAP can mean missing implementation, missing proof or a manual conflict. |
-| Qualification | 7,130 passed test executions; 45 environment-selected skips resolved by complementary runs; 1325 candidate checks; four matching package builds. |
+| Qualification | 7,305 passed test executions; 45 environment-selected skips resolved by complementary runs; 1,426 candidate checks; 956 DSS identities and 32 scenarios; four matching package builds. |
+| Native Python | Isolated CPython 3.13 executes captured source; paused entry, permanent breakpoints, Step, Step Over and Run to Line cover the script main thread. Full reference completion passed 261 checks over 39 topics. |
 
-The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding)
+The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding)
 owns exact bindings and evidence. Earlier delivery is retained in the
 [release index](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/README.md) and
 [version timeline](VERSION_TIMELINE.md).
@@ -85,6 +86,7 @@ these prerequisites forward from v0.28/v0.31 as needed.
 | Milestone | Deliverables | Exit evidence |
 | --- | --- | --- |
 | **v0.19.0: Observation-to-command workflows** | **Accepted.** Bounded observations, native decisions and literal commands; aligned authoring and Docker DSS with binary CCSDS/Kafka transport. | [148 language checks and durable runtime qualification](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding); read-time snapshots, typed outcomes, authority, abort/recovery and no SKIP/GOTO. |
+| **v0.19.1: Isolated Python runtime and line debugger** | **Accepted.** Captured native source executes within the separate bounded service and supports source-line control in the main thread. | [Qualified native completion, debugger and full DSS release gates](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding); closed SPELL profiles retain their separate language bounds. |
 | **v0.20.0: Complete values and collections** | Documented scalar conversions, arithmetic, math and strings; lists, dictionaries, tuples, indexing, slicing, unpacking and mutation; typed value serialization. | Type/coercion and aliasing rules, expression results, persistence, malformed input and bounded memory/size tests. |
 | **v0.21.0: Functions, loops and libraries** | Function parameters, defaults, returns and scope; documented for/while, break and continue; immutable procedure libraries, modules and qualified names. | Call/scope/import semantics, dependency pinning, source maps and declared execution/resource limits; no arbitrary host-code execution. |
 | **v0.22.0: Time, defaults and error handling** | Complete TIME parsing, formats and arithmetic; ChangeLanguageConfig and configuration precedence; DriverException and documented exception handling; result/failure actions and silent execution. | Every relevant default, modifier, timeout, return and error path has direct proof; manual ambiguities have recorded resolutions. |

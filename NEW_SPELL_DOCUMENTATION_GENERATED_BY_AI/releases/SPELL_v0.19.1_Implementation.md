@@ -1,7 +1,7 @@
 # SPELL v0.19.1 Implementation
 
-This candidate packages the inherited v0.19 local DSS product with the isolated
-Python runtime and source-line debugger. The annotated tag and its independently
+Accepted `v0.19.1` was published on 2026-10-09 with the isolated Python runtime,
+source-line debugger and inherited v0.19 local DSS product. The annotated tag and its independently
 validated committed qualification, manifest and reproducibility records under
 `artifacts/v0.19.1/` govern acceptance. A mutable worktree or this document alone
 does not establish a passing release.
@@ -60,3 +60,40 @@ of the clean annotated tag. Earlier accepted evidence remains immutable.
 
 This is a local simulator. Full SPELL 2.4.4 language conformance, real legacy
 system qualification and operational authority are not claimed.
+
+## Accepted Results
+
+The seven final suites recorded **7,305 passed executions** and 45 environment-selected skips, all resolved by complementary runs. The candidate separately passed 1,426 checks. Full DSS delivery passed 956 identities and 32 scenarios; Test Python completed all 261 checks over 39 topics, and Test Python Core completed six checks. Seven image inventories, supply-chain checks, four matching packages, independent clean-tag validation and all four public downloads passed. No exceptions were accepted.
+
+| Final gate | Passed executions | Environment-selected skips |
+| --- | --- | --- |
+| sqlite | 3,263 | 41 |
+| postgresql | 3,179 | 4 |
+| frontend | 190 | 0 |
+| browser | 34 | 0 |
+| compose | 4 | 0 |
+| documentation | 18 | 0 |
+| tooling | 617 | 0 |
+
+Every DSS identity and scenario ran freshly against the qualified source and seven bound images. The actual Python scenarios prove completion without spacecraft command dispatch. The final DSS state is paused and fault-free.
+
+## Accepted Release Binding
+
+| Binding | Accepted value |
+| --- | --- |
+| Annotated tag object | `6ee72201741563768b36f1063ff635f48ba83a81` |
+| Release commit | `4ca64a4170a646a1f0528b90e237f8aedf2b2bfa` |
+| Qualified source / tree | `5fbc85b5ae263a66a5768e1a42331884b80992c5 / c14344b304abb2491044cefb434bc87affae4fcb` |
+| Source fingerprint | `82a76b956dd4ec948b83b81d2e0dd55bdbdf1851b20d84494096f6e42867b9a6` |
+| Accepted predecessor | `v0.19.0, commit 57cc80d969ebc222d47f0e8d19f962682c47d10c` |
+| Candidate source / checks | `8fbd50cb894c9f5b8c75e120415cd015de7b4051 / 1,426 passed` |
+| Package SHA-256 | `6eb93c400d66a918eb5ba91d4b2a01d1cc7734d47c2e1b8ed8be4a14332d64db` |
+| Qualification SHA-256 | `793dc13392647f55f32b962a5ab76b5dd5bf31b37bf25bb4ce068c00a0be0d9e` |
+| Manifest SHA-256 | `c848a836488edecd94449ed2ac7913c2f64af6ef2aa6bcb26c8cec39d106ceef` |
+| Reproducibility SHA-256 | `2e490056e9450888a9d4304a5c77d1b18a1e02fac4e69a0742540c73527c7a16` |
+| DSS report SHA-256 | `890fce6bc29802993b0a3309cfe19c69ed062de0d56e7ba93d5f5442cdb7c7ee` |
+| DSS producer bindings SHA-256 | `87c44bfee123176c16e00d88dd0930c5b3201b39592226548d1bf44bca6c92f0` |
+| DSS raw captures / governed requirements | `1061 / 8` |
+| Tag / publication time | `2026-10-09 17:45:16 EDT / 2026-10-09 17:55:13 EDT` |
+
+The [GitHub release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.1) contains four verified assets. The [qualification](../../artifacts/v0.19.1/qualification.json), [manifest](../../artifacts/v0.19.1/release-manifest.json) and [reproducibility record](../../artifacts/v0.19.1/reproducibility.json) retain the exact evidence. Documentation closeout does not alter the tagged package or acceptance.

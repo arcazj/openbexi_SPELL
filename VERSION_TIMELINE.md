@@ -1,5 +1,21 @@
 # OpenBEXI SPELL Version Timeline
 
+## 2026-10-09 - v0.19.1 Accepted
+
+The seven final suites recorded **7,305 passed executions** and 45 environment-selected skips, all resolved by complementary runs. The candidate separately passed 1,426 checks. Full DSS delivery passed 956 identities and 32 scenarios; Test Python completed all 261 checks over 39 topics, and Test Python Core completed six checks. Seven image inventories, supply-chain checks, four matching packages, independent clean-tag validation and all four public downloads passed. No exceptions were accepted.
+
+| Milestone | America/New_York time | Git identity |
+| --- | --- | --- |
+| Authorized entry | 2026-10-09 04:53:45 EDT | `6a5ff8357dc3a1f2b43611ad77e1df8a071405b6` |
+| Frozen candidate source | 2026-10-09 14:31:55 EDT | `8fbd50cb894c9f5b8c75e120415cd015de7b4051` |
+| Qualified source | 2026-10-09 14:40:56 EDT | `5fbc85b5ae263a66a5768e1a42331884b80992c5` |
+| Release commit | 2026-10-09 17:43:15 EDT | `4ca64a4170a646a1f0528b90e237f8aedf2b2bfa` |
+| Annotated tag | 2026-10-09 17:45:16 EDT | `6ee72201741563768b36f1063ff635f48ba83a81` |
+| GitHub publication | 2026-10-09 17:55:13 EDT | [Release](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.1) |
+
+The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) owns scope and exact bindings. The next v0.20 milestone remains planned.
+
+
 ## 2026-10-06 - v0.19.0 Accepted
 
 Independent clean-tag validation and public asset verification passed. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) owns qualification totals and scope.
@@ -165,6 +181,7 @@ this planning/source record does not independently claim completed tests.
 | v0.17 current status | Accepted 2026-10-02 at `v0.17.0`; 4,563 passed executions, 24 resolved environment skips, 363 candidate checks, no accepted exceptions |
 | v0.18 current status | Accepted 2026-10-02 at `v0.18.0`; 5,146 passed executions, 24 resolved environment skips, 395 candidate checks, no accepted exceptions |
 | v0.19 current status | Accepted and published 2026-10-06; exact bindings and qualification in the [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) |
+| v0.19.1 current status | Accepted and published 2026-10-09; isolated Python runtime/debugger, full DSS gate and [release binding](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) |
 | Next-generation specification | `0.1.0-draft.1` prepared 2026-07-18; broader organization acceptance remains pending and is outside local v0.4 Gate 0 |
 | Experimental activity | `NG-PROT-001` and bounded continuation `NG-PROT-002` prepared and tested in isolation; no product work package, release, or Gate G0 claim |
 | Historical local Gate G0 readiness | `PASS`; exhaustive seven-source compatibility review passed for 1,682 rows, including 125 v0.4 and 1,557 Deferred rows; exact manifest and pinned Python 3.13 qualification verified |

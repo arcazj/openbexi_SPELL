@@ -1,6 +1,6 @@
-# SPELL v0.19 Console
+# SPELL v0.19.1 Console
 
-v0.19.0 is accepted and published. See the [accepted release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding).
+v0.19.1 is accepted and published, including the isolated Python runtime and line debugger. See the [accepted release record](../NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding).
 
 Open `http://127.0.0.1:8080/` to connect directly to the local OpenBEXI SPELL
 simulator. No token entry is needed. If the backend is unavailable, use

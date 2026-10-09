@@ -1,6 +1,11 @@
 # SPELL Release Provenance and Dependency Review
 
-## v0.19.1 Security Inputs Pending Final Qualification
+## Accepted v0.19.1 Release
+
+The isolated Python runtime and source-line debugger passed independent clean-tag validation and publication. The [accepted release record](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) binds its source, seven image inventories and complete DSS evidence. The [qualification](artifacts/v0.19.1/qualification.json), [reproducibility record](artifacts/v0.19.1/reproducibility.json), [SBOM validation](artifacts/v0.19.1/evidence/sbom-validation.json) and [supply-chain review](artifacts/v0.19.1/evidence/supply-chain.json) retain the source-bound checks and four matching packages. No unresolved High/Critical findings remain in this local profile; raw findings and exact applicability dispositions remain available.
+
+
+## v0.19.1 Qualified Security Inputs
 
 The image preflight found High advisories CVE-2026-85091 in the Alpine zlib
 package and CVE-2026-106451 in Kafka's lz4-java dependency. The frontend build
@@ -20,8 +25,8 @@ identifies that version as the fix. The generated Kafka image removes the old
 1.10.2 JAR before copying its secured filesystem into a fresh final image.
 The installed inventory checks the lock bytes, each JAR's size and hash,
 absence of old or duplicate family members, and every locked APK version.
-All seven image audits and the complete source-bound release run remain
-required before acceptance. No broad advisory exception is introduced.
+All seven image audits and the complete source-bound release run passed
+before acceptance. No broad advisory exception was introduced.
 
 ## Accepted v0.19 Release
 
@@ -46,7 +51,7 @@ binds the independently authored implementation to its qualification evidence.
 
 ## Record Status
 
-This record retains historical provenance and identifies **v0.19.0** as the
+This record retains historical provenance and identifies **v0.19.1** as the
 current accepted local product baseline. These annotated tags passed independent
 clean-checkout validation; their immutable bindings are:
 
@@ -59,6 +64,7 @@ clean-checkout validation; their immutable bindings are:
 | [v0.17.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.17_Implementation.md#accepted-release-binding) | `a7311ddad24a4c74599f8d518331dfc398109fb9` | `e525b9c842e3c26a35058d85fc40bd3ee4b16c85` | `14a532ccbde01b5a33970e04a7594a25d34d3d6fc6c1fbfcca36c9f105cfb69d` |
 | [v0.18.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.18_Implementation.md#accepted-release-binding) | `0bdd0ade51dbcc7822927fb95b5f962b6194b40f` | `8e9a252db7860cee8b4d5f291ed1d803d8bc3b48` | `3e2821b8c0db18d07a33c9b55625e5bbe0d47125d03fbbbf6d768756ba71d62c` |
 | [v0.19.0](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19_Implementation.md#accepted-release-binding) | `de2ec8f3db9c079838591a06d2d5b743fabb9b11` | `57cc80d969ebc222d47f0e8d19f962682c47d10c` | `fe37d37924e23d3b65b6f76666221445b23a2b27b434e5ea6944634d97c1f4e3` |
+| [v0.19.1](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) | `6ee72201741563768b36f1063ff635f48ba83a81` | `4ca64a4170a646a1f0528b90e237f8aedf2b2bfa` | `6eb93c400d66a918eb5ba91d4b2a01d1cc7734d47c2e1b8ed8be4a14332d64db` |
 
 The [v0.19 qualification](artifacts/v0.19/qualification.json) binds its exact
 source commit, source fingerprint, predecessor, and evidence digests. The

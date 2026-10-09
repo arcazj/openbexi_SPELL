@@ -1,5 +1,22 @@
 # Test and Integration Plan
 
+## 2026-10-09 v0.19.1 Accepted Results
+
+The seven final suites recorded **7,305 passed executions** and 45 environment-selected skips, all resolved by complementary runs. The candidate separately passed 1,426 checks. Full DSS delivery passed 956 identities and 32 scenarios; Test Python completed all 261 checks over 39 topics, and Test Python Core completed six checks. Seven image inventories, supply-chain checks, four matching packages, independent clean-tag validation and all four public downloads passed. No exceptions were accepted.
+
+| Final gate | Passed executions | Environment-selected skips |
+| --- | --- | --- |
+| sqlite | 3,263 | 41 |
+| postgresql | 3,179 | 4 |
+| frontend | 190 | 0 |
+| browser | 34 | 0 |
+| compose | 4 | 0 |
+| documentation | 18 | 0 |
+| tooling | 617 | 0 |
+
+Qualified source `5fbc85b5ae263a66a5768e1a42331884b80992c5`; release commit `4ca64a4170a646a1f0528b90e237f8aedf2b2bfa`. The [accepted binding](NEW_SPELL_DOCUMENTATION_GENERATED_BY_AI/releases/SPELL_v0.19.1_Implementation.md#accepted-release-binding) and [published assets](https://github.com/arcazj/openbexi_SPELL/releases/tag/v0.19.1) are authoritative. Earlier failed attempts remain local; none substitute for this complete source-bound run. The first PostgreSQL attempt at this source reached Core step 53/59 with all six checks passed but exceeded its eight-second completion wait. The exact unchanged test passed on focused rerun; the complete fresh PostgreSQL suite then passed. Both earlier captures remain retained.
+
+
 ## 2026-10-09 v0.19.1 Release Qualification
 
 The owner authorized full DSS qualification and publication of the isolated
@@ -80,8 +97,7 @@ At `34a48e1`, all 56 patch-release/dependency preflight checks, seven installed
 image probes, dependency audits and seven image scans passed. Fresh collection
 recorded 5,002 pytest identities; a fresh browser catalog retains 34 identities.
 The frozen catalogs now bind the counts above. Original failed attempts remain
-retained. These source changes require a complete rerun. The canonical DSS, runtime, regression,
-browser, supply-chain and reproducible-package gates remain pending.
+retained. These source changes require a complete rerun. Those canonical gates subsequently passed on the accepted source recorded above.
 
 ## 2026-10-08 Python Line Debugger
 
