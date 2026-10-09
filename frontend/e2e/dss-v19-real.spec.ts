@@ -173,10 +173,10 @@ test("SPELL command confirmation changes the same DSS state and binds actual Kaf
   ]);
   expect(started.status()).toBe(202);
   const id = ((await started.json()) as { execution: { id: string } }).execution.id;
-  await expect(page.getByRole("heading", { name: "Run the simulated command?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Run the simulated command?" })).toBeVisible({ timeout: 20_000 });
   await page.getByRole("radio", { name: "YES", exact: true }).check();
   await page.getByRole("button", { name: "Commit response" }).click();
-  await expect(page.getByRole("heading", { name: /^Confirm deterministic simulator telecommand plan / })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Confirm deterministic simulator telecommand plan / })).toBeVisible({ timeout: 20_000 });
   expect((await read<DssState>(page, "/dss/api/v1/state")).core.commands_executed).toBe(before.core.commands_executed);
   await page.getByRole("radio", { name: "YES", exact: true }).check();
   await page.getByRole("button", { name: "Commit response" }).click();

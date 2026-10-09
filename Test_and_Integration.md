@@ -53,6 +53,12 @@ The corrected browser source requires a new committed qualification run.
 Its first full preflight passed 32 cases; the added Core profile assertion
 incorrectly expected v0.19. The declared Core source uses v0.17, and the
 assertion now checks that exact IR instead.
+The next preflight passed 32 cases with two five-second readiness timeouts:
+console reload and initial command prompt. The latter reached its durable
+prompt after 9.49 seconds. A focused diagnostic passed all four desktop/mobile
+cases with the original assertions and confirmed the same operator after reload.
+These asynchronous readiness assertions now use the existing 20-second bound;
+identity, authority, confirmation, command counts and packet checks remain exact.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.

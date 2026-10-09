@@ -6,7 +6,7 @@ test.use({ trace: "off", video: "off" });
 
 test("automatically connects, reloads and renews the same local operator", async ({ page }, testInfo) => {
   await page.goto("/");
-  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED", { timeout: 20_000 });
   await expect(page.getByLabel("Signed JWT")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Session access" })).toHaveCount(0);
   const identity = () => page.evaluate(() => {
@@ -18,16 +18,16 @@ test("automatically connects, reloads and renews the same local operator", async
   const first = await identity();
   expect(first.role).toBe("operator"); expect(first.lifetime).toBeLessThanOrEqual(300);
   await page.reload();
-  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED", { timeout: 20_000 });
   expect((await identity()).subject).toBe(first.subject);
   await page.evaluate(() => {
     sessionStorage.removeItem("openbexi.spell.access-token");
     window.dispatchEvent(new Event("spell-auth-changed"));
   });
-  await expect.poll(async () => (await identity()).id).not.toBe("");
-  await expect.poll(async () => (await identity()).id).not.toBe(first.id);
+  await expect.poll(async () => (await identity()).id, { timeout: 20_000 }).not.toBe("");
+  await expect.poll(async () => (await identity()).id, { timeout: 20_000 }).not.toBe(first.id);
   expect((await identity()).subject).toBe(first.subject);
-  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED", { timeout: 20_000 });
   expect((await new AxeBuilder({ page }).analyze()).violations.filter((item) =>
     item.impact === "serious" || item.impact === "critical")).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
@@ -47,7 +47,7 @@ test("recovers a fresh browser after the simulator is unavailable", async ({ pag
   await page.screenshot({ path: testInfo.outputPath("simulator-unavailable.png") });
   await page.unroute("**/api/v1/local-session");
   await page.getByRole("button", { name: "Retry connection" }).click();
-  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED", { timeout: 20_000 });
 });
 
 test("rejects non-browser bootstrap and leaves API authentication enforced", async ({ request, page }, testInfo) => {
@@ -56,6 +56,6 @@ test("rejects non-browser bootstrap and leaves API authentication enforced", asy
   const anonymous = await request.get("/api/v1/procedures");
   expect(anonymous.status()).toBe(401);
   await page.goto("/");
-  await expect(page.locator(".connection-badge")).toContainText("CONNECTED");
+  await expect(page.locator(".connection-badge")).toContainText("CONNECTED", { timeout: 20_000 });
   await page.screenshot({ path: testInfo.outputPath("protected-simulator-session.png") });
 });
