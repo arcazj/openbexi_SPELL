@@ -77,7 +77,7 @@ test("selects Example 195 through the single v0.10 runner and records PASS evide
   expect(catalog.items.find((item) => item.id === "test_Python"))
     .toEqual(expect.objectContaining({ ir_version: "python/1" }));
   expect(catalog.items.find((item) => item.id === "test_python_core"))
-    .toEqual(expect.objectContaining({ ir_version: "0.19" }));
+    .toEqual(expect.objectContaining({ ir_version: "0.17" }));
   expect(catalog.items.find((item) => item.id === "dss_command_catalog_v19"))
     .toEqual(expect.objectContaining({ ir_version: "0.11" }));
   const reference = catalog.items.find((item) => item.id === "language_reference_244");

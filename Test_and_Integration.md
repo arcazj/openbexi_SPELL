@@ -50,6 +50,9 @@ catalog assertions in two inherited specs: they expected ten entries instead
 of the twelve now including both Python procedures. Those assertions now retain
 exact identity/order checks, include both entries and verify their IR profiles.
 The corrected browser source requires a new committed qualification run.
+Its first full preflight passed 32 cases; the added Core profile assertion
+incorrectly expected v0.19. The declared Core source uses v0.17, and the
+assertion now checks that exact IR instead.
 Original failed attempts remain retained. These source changes require a fresh
 catalog and complete rerun. The canonical DSS, runtime, regression,
 browser, supply-chain and reproducible-package gates remain pending.
